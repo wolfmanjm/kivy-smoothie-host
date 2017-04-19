@@ -7,14 +7,95 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, StringProperty, ObjectProperty
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.uix.behaviors.button import ButtonBehavior
+from kivy.vector import Vector
 
 #Builder.load_file('kbd.kv')
 
 Builder.load_string('''
+<CircularButton>:
+    canvas:
+        Ellipse:
+            pos: self.pos
+            size: self.size
+    Label:
+        pos: root.pos
+        color: 1,0,0,1
+        text: root.text
+
+<ArrowButton>:
+    canvas:
+        PushMatrix:
+        Color:
+            rgba: 0,0,1,1
+        Translate:
+            x: root.pos[0]
+            y: root.pos[1]
+        Rotate:
+            angle: root.angle
+            axis: 0,0,1
+        Mesh:
+            mode: 'triangle_fan'
+            vertices: 0,50,0,0, 50,0,0,0, 25,0,0,0, 25,-50,0,0, -25,-50,0,0, -25,0,0,0, -50,0,0,0,
+            indices: 0,1,2,3,4,5,6
+        PopMatrix:
+    Label:
+        pos: root.pos[0]-25, root.pos[1]-50
+        color: 1,1,1,1
+        text: root.text
+
+<JogRoseWidget>:
+    canvas:
+        Color:
+            rgba: 0.5, 0.5, 0.5, 1
+        Rectangle:
+            pos: 0, 0
+            size: self.size
+
+    ArrowButton:
+        pos_hint: {'center_x': 0.5, 'top': 1}
+        size_hint: None, None
+        size: 50, 50
+        text: 'Y +10'
+        angle: 0
+        on_press: root.handle_action('Y10')
+    Button:
+        pos_hint: {'center_x': 0.5, 'top': 0.75}
+        size_hint: None, None
+        size: 50, 50
+        text: 'Y +1'
+        on_press: root.handle_action('Y1')
+    Button:
+        pos_hint: {'center_x': 0.5, 'bottom': 1}
+        size_hint: None, None
+        size: 100, 100
+        text: 'Y -10'
+        on_press: root.handle_action('Y-10')
+    ArrowButton:
+        pos_hint: {'left': 1, 'center_y': 0.5}
+        size_hint: None, None
+        size: 100, 100
+        text: 'X -10'
+        angle: 90
+        on_press: root.handle_action('X-10')
+    Button:
+        pos_hint: {'right': 1, 'center_y': 0.5}
+        size_hint: None, None
+        size: 100, 100
+        text: 'X +10'
+        on_press: root.handle_action('X10')
+    CircularButton:
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        size_hint: None, None
+        size: 100, 100
+        text: 'Origin'
+        on_press: root.handle_action('X0 Y0')
+
 # a template Butt of type Button
 <Butt@Button>
     font_size: 16
@@ -23,8 +104,8 @@ Builder.load_string('''
 <KbdWidget>:
 	display: entry
     rows: 9
-    padding: 10
-    spacing: 10
+    padding: 2
+    spacing: 2
 
     BoxLayout:
 	    TextInput:
@@ -138,13 +219,40 @@ Builder.load_string('''
 	ScrollableLabel:
 		text: kbd_widget.log
 
-	KbdWidget:
-		id: kbd_widget
+    PageLayout:
+        border: 25
+	    KbdWidget:
+            id: kbd_widget
+            size_hint: 0.75, 1.0
+
+        JogRoseWidget:
+            id: jog_rose
+
+        Button:
+            text: 'macro page place holder'
+            background_color: 0,1,0,1
+
 
 ''')
 
+class CircularButton(ButtonBehavior, Widget):
+    text= StringProperty()
+    def collide_point(self, x, y):
+        return Vector(x, y).distance(self.center) <= self.width / 2
+
+class ArrowButton(ButtonBehavior, Widget):
+    text= StringProperty()
+    angle= NumericProperty()
+    def collide_point(self, x, y):
+        print(self.center)
+        return Vector(x, y).distance(self.center) <= self.width / 2
+
+class JogRoseWidget(RelativeLayout):
+    def handle_action(self, s):
+        print("Jog " + s)
+
 class ScrollableLabel(ScrollView):
-	text= StringProperty()
+    text= StringProperty()
 
 class KbdWidget(GridLayout):
 	log= StringProperty()
@@ -161,7 +269,7 @@ class KbdWidget(GridLayout):
 			self.display.text += key
 
 	def handle_input(self, s):
-		self.log += self.display.text + '\n'
+		self.log += s + '\n'
 		self.display.text = ''
 
 class MainWindow(BoxLayout):
