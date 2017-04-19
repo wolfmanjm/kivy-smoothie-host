@@ -383,12 +383,12 @@ class KbdWidget(GridLayout):
 class MainWindow(BoxLayout):
 	pass
 
-class KPronterfaceApp(App):
+class SmoothieHost(App):
 	def build(self):
 		return MainWindow()
 
 if __name__ == "__main__":
-	KPronterfaceApp().run()
+	SmoothieHost().run()
 
 
 
