@@ -45,6 +45,14 @@ Builder.load_string('''
             text: 'macro page place holder'
             background_color: 0,1,0,1
 
+        Button:
+            text: 'temperature page place holder'
+            background_color: 0,0,1,1
+
+        Button:
+            text: 'play file page place holder'
+            background_color: 0,1,1,1
+
 ''')
 
 class CircularButton(ButtonBehavior, Widget):
@@ -80,15 +88,15 @@ class KbdWidget(GridLayout):
         print("Key " + key)
         if key == 'Send':
         	print("Sending " + self.display.text)
-        	self.log += self.display.text + '\n'
+        	self.log +=  '<< ' + self.display.text + '\n'
         	self.display.text = ''
         elif key == 'BS':
         	self.display.text = self.display.text[:-1]
         else:
         	self.display.text += key
 
-	def handle_input(self, s):
-		self.log += s + '\n'
+    def handle_input(self, s):
+		self.log += ('<< ' + s + '\n')
 		self.display.text = ''
 
 class MainWindow(BoxLayout):
