@@ -15,8 +15,6 @@ from kivy.lang import Builder
 from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.vector import Vector
 
-#Builder.load_file('kbd.kv')
-
 Builder.load_string('''
 <CircularButton>:
     canvas:
@@ -25,31 +23,43 @@ Builder.load_string('''
             size: self.size
     Label:
         pos: root.pos
+        size: root.size
         color: 1,0,0,1
         text: root.text
 
 <ArrowButton>:
+    # canvas.before:
+    #     Color:
+    #         rgba: 1, 0, 0, 1
+    #     Rectangle:
+    #         pos: self.pos
+    #         size: self.size
+
     canvas:
-        PushMatrix:
         Color:
             rgba: 0,0,1,1
+        PushMatrix
         Translate:
-            x: root.pos[0]
-            y: root.pos[1]
+            x: self.pos[0]
+            y: self.pos[1]
         Rotate:
             angle: root.angle
-            axis: 0,0,1
+            origin: 25,25
         Mesh:
             mode: 'triangle_fan'
-            vertices: 0,50,0,0, 50,0,0,0, 25,0,0,0, 25,-50,0,0, -25,-50,0,0, -25,0,0,0, -50,0,0,0,
-            indices: 0,1,2,3,4,5,6
-        PopMatrix:
+            vertices: 0,0,0,0, 0,25,0,0, 25,50,0,0, 50,25,0,0, 50,0,0,0
+            indices: 0,1,2,3,4
+        PopMatrix
+
     Label:
-        pos: root.pos[0]-25, root.pos[1]-50
+        size_hint: None, None
+        pos: root.pos
+        size: root.size
         color: 1,1,1,1
         text: root.text
 
 <JogRoseWidget>:
+    x10_cb: x10cb
     canvas:
         Color:
             rgba: 0.5, 0.5, 0.5, 1
@@ -57,44 +67,133 @@ Builder.load_string('''
             pos: 0, 0
             size: self.size
 
-    ArrowButton:
-        pos_hint: {'center_x': 0.5, 'top': 1}
+    GridLayout:
+        pos_hint: {'center_x': 0.5, 'top': 1.0}
         size_hint: None, None
-        size: 50, 50
-        text: 'Y +10'
-        angle: 0
-        on_press: root.handle_action('Y10')
-    Button:
-        pos_hint: {'center_x': 0.5, 'top': 0.75}
+        size: 50, 150
+        #spacing: 4
+        rows: 3
+        col_force_default: True
+        col_default_width: 50
+        row_force_default: True
+        row_default_height: 50
+        ArrowButton:
+            size_hint: None, None
+            size: 50, 50
+            text: 'Y +10'
+            angle: 0
+            on_press: root.handle_action('Y', 10)
+        Button:
+            size_hint: None, None
+            size: 50, 50
+            text: 'Y +1'
+            on_press: root.handle_action('Y', 1)
+        Button:
+            size_hint: None, None
+            size: 50, 50
+            text: 'Y +0.1'
+            on_press: root.handle_action('Y', 0.1)
+
+    GridLayout:
+        pos_hint: {'center_x': 0.5, 'bottom': 1.0}
         size_hint: None, None
-        size: 50, 50
-        text: 'Y +1'
-        on_press: root.handle_action('Y1')
-    Button:
-        pos_hint: {'center_x': 0.5, 'bottom': 1}
-        size_hint: None, None
-        size: 100, 100
-        text: 'Y -10'
-        on_press: root.handle_action('Y-10')
-    ArrowButton:
+        size: 50, 150
+        #spacing: 4
+        rows: 3
+        col_force_default: True
+        col_default_width: 50
+        row_force_default: True
+        row_default_height: 50
+
+        Button:
+            size_hint: None, None
+            size: 50, 50
+            text: 'Y -0.1'
+            on_press: root.handle_action('Y', -0.1)
+        Button:
+            size_hint: None, None
+            size: 50, 50
+            text: 'Y -1'
+            on_press: root.handle_action('Y', -1)
+        ArrowButton:
+            size_hint: None, None
+            size: 50, 50
+            text: 'Y -10'
+            angle: 180
+            on_press: root.handle_action('Y', -10)
+
+    GridLayout:
         pos_hint: {'left': 1, 'center_y': 0.5}
         size_hint: None, None
-        size: 100, 100
-        text: 'X -10'
-        angle: 90
-        on_press: root.handle_action('X-10')
-    Button:
+        size: 150, 50
+        #spacing: 4
+        cols: 3
+        col_force_default: True
+        col_default_width: 50
+        row_force_default: True
+        row_default_height: 50
+
+        ArrowButton:
+            size_hint: None, None
+            size: 50, 50
+            text: 'X -10'
+            angle: 90
+            on_press: root.handle_action('X', -10)
+        Button:
+            size_hint: None, None
+            size: 50, 50
+            text: 'X -1'
+            on_press: root.handle_action('X', -1)
+        Button:
+            size_hint: None, None
+            size: 50, 50
+            text: 'X -0.1'
+            on_press: root.handle_action('X', -0.1)
+
+    GridLayout:
         pos_hint: {'right': 1, 'center_y': 0.5}
         size_hint: None, None
-        size: 100, 100
-        text: 'X +10'
-        on_press: root.handle_action('X10')
+        size: 150, 50
+        #spacing: 4
+        cols: 3
+        col_force_default: True
+        col_default_width: 50
+        row_force_default: True
+        row_default_height: 50
+
+        Button:
+            size_hint: None, None
+            size: 50, 50
+            text: 'X 0.1'
+            on_press: root.handle_action('X', 0.1)
+        Button:
+            size_hint: None, None
+            size: 50, 50
+            text: 'X 1'
+            on_press: root.handle_action('X', 1)
+        ArrowButton:
+            size_hint: None, None
+            size: 50, 50
+            text: 'X +10'
+            angle: -90
+            on_press: root.handle_action('X', 10)
+
     CircularButton:
         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
         size_hint: None, None
-        size: 100, 100
+        size: 50, 50
         text: 'Origin'
-        on_press: root.handle_action('X0 Y0')
+        on_press: root.handle_action('H', 0)
+
+    GridLayout:
+        pos_hint: {'left': 1.0, 'top': 1.0}
+        size_hint: 0.2, None
+        cols: 2
+        CheckBox:
+            id: x10cb
+        Label:
+            text: "x10"
+            #active: True
 
 # a template Butt of type Button
 <Butt@Button>
@@ -204,6 +303,8 @@ Builder.load_string('''
         Butt:
         	text: 'BS'
         Butt:
+            text: ' '
+        Butt:
         	text: 'Send'
 
 <ScrollableLabel>:
@@ -220,10 +321,10 @@ Builder.load_string('''
 		text: kbd_widget.log
 
     PageLayout:
-        border: 25
-	    KbdWidget:
+        size_hint: 1.0, 1.0
+        border: 20
+        KbdWidget:
             id: kbd_widget
-            size_hint: 0.75, 1.0
 
         JogRoseWidget:
             id: jog_rose
@@ -243,30 +344,37 @@ class CircularButton(ButtonBehavior, Widget):
 class ArrowButton(ButtonBehavior, Widget):
     text= StringProperty()
     angle= NumericProperty()
-    def collide_point(self, x, y):
-        print(self.center)
-        return Vector(x, y).distance(self.center) <= self.width / 2
+    # def collide_point(self, x, y):
+    #     bmin= Vector(self.center) - Vector(25, 25)
+    #     bmax= Vector(self.center) + Vector(25, 25)
+    #     return Vector.in_bbox((x, y), bmin, bmax)
 
 class JogRoseWidget(RelativeLayout):
-    def handle_action(self, s):
-        print("Jog " + s)
+    def handle_action(self, axis, v):
+        x10= self.x10_cb.active
+        if x10:
+            v *= 10
+        if axis == 'H':
+            print("G0 X0 Y0")
+        else:
+            print("Jog " + axis + ' ' + str(v))
 
 class ScrollableLabel(ScrollView):
     text= StringProperty()
 
 class KbdWidget(GridLayout):
-	log= StringProperty()
+    log= StringProperty()
 
-	def do_action(self, key):
-		print("Key " + key)
-		if key == 'Send':
-			print("Sending " + self.display.text)
-			self.log += self.display.text + '\n'
-			self.display.text = ''
-		elif key == 'BS':
-			self.display.text = self.display.text[:-1]
-		else:
-			self.display.text += key
+    def do_action(self, key):
+        print("Key " + key)
+        if key == 'Send':
+        	print("Sending " + self.display.text)
+        	self.log += self.display.text + '\n'
+        	self.display.text = ''
+        elif key == 'BS':
+        	self.display.text = self.display.text[:-1]
+        else:
+        	self.display.text += key
 
 	def handle_input(self, s):
 		self.log += s + '\n'
