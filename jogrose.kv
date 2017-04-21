@@ -62,18 +62,18 @@
         ArrowButton:
             size_hint: None, None
             size: 50, 50
-            text: 'Y +10'
+            text: '+100' if x10cb.active else '+10'
             angle: 0
             on_press: root.handle_action('Y', 10)
         Button:
             size_hint: None, None
             size: 50, 50
-            text: 'Y +1'
+            text: '+10' if x10cb.active else '+1'
             on_press: root.handle_action('Y', 1)
         Button:
             size_hint: None, None
             size: 50, 50
-            text: 'Y +0.1'
+            text: '+1' if x10cb.active else '+0.1'
             on_press: root.handle_action('Y', 0.1)
 
     GridLayout:

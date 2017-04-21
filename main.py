@@ -14,6 +14,8 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.vector import Vector
+from kivy.clock import Clock
+#from kivy.garden.gauge import Gauge
 
 Builder.load_string('''
 #:include jogrose.kv
@@ -24,15 +26,16 @@ Builder.load_string('''
         size_hint_y: None
         height: self.texture_size[1]
         text_size: self.width, None
-    	text: root.text
+        text: root.text
 
 <MainWindow>:
-	orientation: 'horizontal'
+    orientation: 'horizontal'
 
-	ScrollableLabel:
-		text: kbd_widget.log
+    ScrollableLabel:
+        text: kbd_widget.log
 
     PageLayout:
+        id: page_layout
         size_hint: 1.0, 1.0
         border: 20
         KbdWidget:
@@ -46,12 +49,16 @@ Builder.load_string('''
             background_color: 0,1,0,1
 
         Button:
-            text: 'temperature page place holder'
+            text: 'temperature/extruder place holder'
             background_color: 0,0,1,1
 
         Button:
             text: 'play file page place holder'
             background_color: 0,1,1,1
+
+        Button:
+            text: 'DRO place holder'
+            background_color: 1,1,0,1
 
 ''')
 
@@ -87,27 +94,35 @@ class KbdWidget(GridLayout):
     def do_action(self, key):
         print("Key " + key)
         if key == 'Send':
-        	print("Sending " + self.display.text)
-        	self.log +=  '<< ' + self.display.text + '\n'
-        	self.display.text = ''
+            print("Sending " + self.display.text)
+            self.log +=  '<< ' + self.display.text + '\n'
+            self.display.text = ''
         elif key == 'BS':
-        	self.display.text = self.display.text[:-1]
+            self.display.text = self.display.text[:-1]
         else:
-        	self.display.text += key
+            self.display.text += key
 
     def handle_input(self, s):
-		self.log += ('<< ' + s + '\n')
-		self.display.text = ''
+        self.log += ('<< ' + s + '\n')
+        self.display.text = ''
 
 class MainWindow(BoxLayout):
-	pass
+    # def __init__(self, **kwargs):
+    #     super(MainWindow, self).__init__(**kwargs)
+    #     Clock.schedule_once(self.my_callback, 5)
+
+    # def my_callback(self, dt):
+    #     print("switch page")
+    #     self.ids.page_layout.page= 2
+    pass
 
 class SmoothieHost(App):
-	def build(self):
-		return MainWindow()
+
+    def build(self):
+        return MainWindow()
 
 if __name__ == "__main__":
-	SmoothieHost().run()
+    SmoothieHost().run()
 
 
 
