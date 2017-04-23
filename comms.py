@@ -99,9 +99,10 @@ class Comms():
 
     def write(self, data):
         """ Write to serial port, called from UI thread """
-        self.log.debug('Comms: writing ' + data)
-        async_main_loop.call_soon_threadsafe(self._write, data)
-        #asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
+        if self.proto and async_main_loop:
+            self.log.debug('Comms: writing ' + data)
+            async_main_loop.call_soon_threadsafe(self._write, data)
+            #asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
 
     def _write(self, data):
         # calls the send_message in Serial Connection proto which is a queue

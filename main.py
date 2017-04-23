@@ -17,6 +17,7 @@ from kivy.vector import Vector
 from kivy.clock import Clock, mainthread
 #from kivy.garden.gauge import Gauge
 from kivy.factory import Factory
+from kivy.logger import Logger
 
 from comms import Comms
 
@@ -39,23 +40,21 @@ Builder.load_string('''
 
     BoxLayout:
         orientation: 'vertical'
+        padding: 5, 5
         ScrollableLabel:
             id: log_window
             text: kbd_widget.log
-
-        BoxLayout:
-            orientation: 'horizontal'
-            Button:
-                id: connect_button
-                size_hint_y: None
-                size: 20, 40
-                text: 'Connect'
-                on_press: root.connect()
+        Button:
+            id: connect_button
+            size_hint_y: None
+            size: 20, 40
+            text: 'Connect'
+            on_press: root.connect()
 
     PageLayout:
         id: page_layout
         size_hint: 1.0, 1.0
-        border: 20
+        border: 30
         KbdWidget:
             id: kbd_widget
 
@@ -99,10 +98,10 @@ class JogRoseWidget(RelativeLayout):
         if x10:
             v *= 10
         if axis == 'H':
-            print("G0 X0 Y0")
+            Logger.debug("JogRoseWidget: G0 X0 Y0")
             comms.write('G0 X0 Y0\n')
         else:
-            print("Jog " + axis + ' ' + str(v))
+            Logger.debug("JogRoseWidget: Jog " + axis + ' ' + str(v))
             comms.write(axis + ' ' + str(v) + '\n')
 
 class ScrollableLabel(ScrollView):
@@ -112,9 +111,9 @@ class KbdWidget(GridLayout):
     log= StringProperty()
 
     def do_action(self, key):
-        print("Key " + key)
+        Logger.debug("KbdWidget: Key " + key)
         if key == 'Send':
-            print("Sending " + self.display.text)
+            Logger.debug("KbdWidget: Sending " + self.display.text)
             self.log +=  '<< ' + self.display.text + '\n'
             comms.write(self.display.text + '\n')
             self.display.text = ''
@@ -135,15 +134,15 @@ class MainWindow(BoxLayout):
         #     Clock.schedule_once(self.my_callback, 5)
 
     # def my_callback(self, dt):
-    #     print("switch page")
+    #     Logger.debug("switch page")
     #     self.ids.page_layout.page= 2
     def connect(self):
         if self.is_connected:
-            print("Disconnecting...")
+            Logger.debug("MainWindow: Disconnecting...")
             self.ids.kbd_widget.log += "Disconnecting...\n"
             comms.disconnect()
         else:
-            print("Connecting...")
+            Logger.debug("MainWindow: Connecting...")
             self.ids.kbd_widget.log += "Connecting...\n"
             comms.connect('/dev/ttyACM1')
 
@@ -153,13 +152,13 @@ class MainWindow(BoxLayout):
 
     @mainthread
     def connected(self):
-        print("Connected...")
+        Logger.debug("MainWindow: Connected...")
         self.is_connected= True
         self.ids.connect_button.text= "Disconnect"
 
     @mainthread
     def disconnected(self):
-        print("Disconnected...")
+        Logger.debug("MainWindow: Disconnected...")
         self.is_connected= False
         self.ids.connect_button.text= "Connect"
 
