@@ -1,97 +1,136 @@
 import threading
 import asyncio
 import serial_asyncio
+import logging
+import functools
+import sys
 
 async_main_loop= None
 
 class SerialConnection(asyncio.Protocol):
     def __init__(self, cb):
+        super().__init__()
         self.cb = cb
         self.data_buffer = ''
         self.cnt= 0
+        self.log = logging.getLogger() #.getChild('SerialConnection')
+        self.log.info('SerialConnection: creating SerialCOnnection')
+        self.queue = asyncio.Queue()
+        self._ready = asyncio.Event()
+        self.tsk= asyncio.async(self._send_messages())  # Or asyncio.ensure_future if using 3.4.3+
+
+    @asyncio.coroutine
+    def _send_messages(self):
+        """ Send messages to the server as they become available. """
+        yield from self._ready.wait()
+        self.log.debug("SerialConnection: send_messages Ready!")
+        while True:
+            data = yield from self.queue.get()
+            self.transport.write(data.encode('utf-8'))
+            self.log.debug('Message sent: {!r}'.format(data))
 
     def connection_made(self, transport):
         self.transport = transport
-        print('port opened', transport)
+        self.log.debug('SerialConnection: port opened: ' + str(transport))
         transport.serial.rts = False  # You can manipulate Serial object via transport
-        transport.write(b'version\n')  # Write serial data via transport
-        self.cb.connected(True, transport)
+        self._ready.set()
+        self.cb.connected(True)
+
+    @asyncio.coroutine
+    def send_message(self, data):
+        """ Feed a message to the sender coroutine. """
+        self.log.debug('SerialConnection: send_message')
+        yield from self.queue.put(data)
 
     def data_received(self, data):
         #print('data received', repr(data))
         self.data_buffer += data.decode('utf-8')
         if '\n' in self.data_buffer:
-            print('data buffer: ' + self.data_buffer)
+            self.log.debug('SerialConnection: data buffer: ' + self.data_buffer)
             self.cb.incoming_data(self.data_buffer)
             # Reset the data_buffer!
             self.data_buffer = ''
 
     def connection_lost(self, exc):
-        print('port closed')
-        # self.transport.loop.stop()
+        self.log.debug('SerialConnection: port closed')
+        self.tsk.cancel() # stop the writer task
         self.cb.connected(False)
+        # self.transport.loop.stop()
         async_main_loop.stop()
 
     def pause_writing(self):
-        print('pause writing')
-        print(self.transport.get_write_buffer_size())
+        self.log.debug('SerialConnection: pause writing')
+        self.log.debug('SerialConnection: ' + self.transport.get_write_buffer_size())
 
     def resume_writing(self):
-        print(self.transport.get_write_buffer_size())
-        print('resume writing')
+        self.log.debug(self.transport.get_write_buffer_size())
+        self.log.debug('SerialConnection: ' + 'resume writing')
 
 class Comms():
     def __init__(self, app):
         self.app = app
-        self.transport = None
+        self.proto = None
+        #logging.getLogger('asyncio').setLevel(logging.DEBUG)
+        self.log = logging.getLogger() #.getChild('Comms')
+        logging.getLogger().setLevel(logging.DEBUG)
 
     def connect(self, port):
         self.port= port
+        self.log.info('Comms: creating comms thread')
         threading.Thread(target=self.run_async_loop).start()
 
-    def connected(self, b, transport=None):
+    def connected(self, b):
         if b:
-            self.transport= transport
             self.app.root.connected()
         else:
-            self.transport= None
+            self.proto= None
             self.app.root.disconnected()
 
     def disconnect(self):
-        if self.transport:
-            async_main_loop.call_soon_threadsafe(self.transport.close)
+        if self.proto:
+            async_main_loop.call_soon_threadsafe(self.proto.transport.close)
 
     def incoming_data(self, data):
         self.app.root.display(data)
 
     def write(self, data):
-        if self.transport:
-            print('writing ' + data)
-            async_main_loop.call_soon_threadsafe(self.transport.write, data.encode('utf-8'))
+        """ Write to serial port, called from UI thread """
+        self.log.debug('Comms: writing ' + data)
+        async_main_loop.call_soon_threadsafe(self._write, data)
+        #asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
+
+    def _write(self, data):
+        # calls the send_message in Serial Connection proto which is a queue
+        #self.log.debug('Comms: _write ' + data)
+        if self.proto:
+           asyncio.async(self.proto.send_message(data))
 
     def stop(self):
-        if self.transport:
-            async_main_loop.call_soon_threadsafe(self.transport.close)
+        if self.proto:
+            async_main_loop.call_soon_threadsafe(self.proto.transport.close)
         else:
             if async_main_loop:
                 async_main_loop.call_soon_threadsafe(async_main_loop.stop)
 
     def run_async_loop(self):
         global async_main_loop
+
         newloop = asyncio.new_event_loop()
         asyncio.set_event_loop(newloop)
         loop = asyncio.get_event_loop()
         async_main_loop = loop
-        serial_conn = serial_asyncio.create_serial_connection(loop, lambda: SerialConnection(self), self.port, baudrate=115200)
+        sc_factory = functools.partial(SerialConnection, cb=self)
+        serial_conn = serial_asyncio.create_serial_connection(loop, sc_factory, self.port, baudrate=115200)
         try:
-            loop.run_until_complete(serial_conn)
+            _, self.proto = loop.run_until_complete(serial_conn)
+            self._write('version\n')
             loop.run_forever()
         except:
-            print("Got serial error opening port")
+            self.log.error("Comms: Got serial error opening port")
             self.app.root.error_message("Connect failed")
 
         finally:
             loop.close()
             async_main_loop= None
-            print('asyncio thread Exiting...')
+            self.log.debug('Comms: asyncio thread Exiting...')
 
