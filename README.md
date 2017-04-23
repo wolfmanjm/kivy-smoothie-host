@@ -10,5 +10,16 @@ I use kivypi from here  http://kivypie.mitako.eu/ and the official 7" touch scre
 
 You need the latest python serial and pyserial-asyncio from here https://github.com/pyserial/pyserial-asyncio.git
 
+Run with...
+
+> kivy main.py
+
+### On linux (and maybe windows/macos)
+
+Install kivy for python3 from your distro
+
+Run as
+
+> python3 main.py
 
 
