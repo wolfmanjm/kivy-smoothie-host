@@ -28,22 +28,20 @@ Builder.load_string('''
 #:include jogrose.kv
 #:include kbd.kv
 
-<ScrollableLabel>:
-    Label:
-        size_hint_y: None
-        height: self.texture_size[1]
-        text_size: self.width, None
-        text: root.text
-
 <MainWindow>:
     orientation: 'horizontal'
 
+    # Left panel
     BoxLayout:
         orientation: 'vertical'
         padding: 5, 5
-        ScrollableLabel:
-            id: log_window
-            text: kbd_widget.log
+        ScrollView:
+            Label:
+                id: log_window
+                size_hint_y: None
+                height: self.texture_size[1]
+                text_size: self.width, None
+
         Button:
             id: connect_button
             size_hint_y: None
@@ -51,6 +49,7 @@ Builder.load_string('''
             text: 'Connect'
             on_press: root.connect()
 
+    # Right panel
     PageLayout:
         id: page_layout
         size_hint: 1.0, 1.0
@@ -104,17 +103,17 @@ class JogRoseWidget(RelativeLayout):
             Logger.debug("JogRoseWidget: Jog " + axis + ' ' + str(v))
             comms.write(axis + ' ' + str(v) + '\n')
 
-class ScrollableLabel(ScrollView):
-    text= StringProperty()
-
 class KbdWidget(GridLayout):
-    log= StringProperty()
+
+    def _add_to_log(self, s):
+        app= App.get_running_app()
+        app.root.add_to_log(s)
 
     def do_action(self, key):
         Logger.debug("KbdWidget: Key " + key)
         if key == 'Send':
             Logger.debug("KbdWidget: Sending " + self.display.text)
-            self.log +=  '<< ' + self.display.text + '\n'
+            self._add_to_log('<< ' + self.display.text + '\n')
             comms.write(self.display.text + '\n')
             self.display.text = ''
         elif key == 'BS':
@@ -123,7 +122,7 @@ class KbdWidget(GridLayout):
             self.display.text += key
 
     def handle_input(self, s):
-        self.log += ('<< ' + s + '\n')
+        self._add_to_log('<< ' + s + '\n')
         comms.write(s + '\n')
         self.display.text = ''
 
@@ -136,19 +135,31 @@ class MainWindow(BoxLayout):
     # def my_callback(self, dt):
     #     Logger.debug("switch page")
     #     self.ids.page_layout.page= 2
+
+    def add_to_log(self, s):
+        ''' Add lines to the log window, which is trimmed to the last 200 lines '''
+        max_lines= 200
+        self.ids.log_window.text += s
+        n= self.ids.log_window.text.count('\n')
+        # we use some hysterysis here so we don't truncate every line added over max_lines
+        if n > max_lines+10: # TODO needs to be configurable
+            # truncate string to last max_lines
+            l= self.ids.log_window.text.splitlines(keepends=True)
+            self.ids.log_window.text = ''.join(l[-max_lines:])
+
     def connect(self):
         if self.is_connected:
             Logger.debug("MainWindow: Disconnecting...")
-            self.ids.kbd_widget.log += "Disconnecting...\n"
+            self.add_to_log("Disconnecting...\n")
             comms.disconnect()
         else:
             Logger.debug("MainWindow: Connecting...")
-            self.ids.kbd_widget.log += "Connecting...\n"
+            self.add_to_log("Connecting...\n")
             comms.connect('/dev/ttyACM1')
 
     @mainthread
     def display(self, data):
-        self.ids.kbd_widget.log += data
+        self.add_to_log(data)
 
     @mainthread
     def connected(self):

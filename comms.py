@@ -72,7 +72,7 @@ class Comms():
         self.proto = None
         #logging.getLogger('asyncio').setLevel(logging.DEBUG)
         self.log = logging.getLogger() #.getChild('Comms')
-        logging.getLogger().setLevel(logging.DEBUG)
+        #logging.getLogger().setLevel(logging.DEBUG)
 
     def connect(self, port):
         ''' called from UI to connect to given port, runs the asyncio mainlopp in a separate thread '''
@@ -98,7 +98,7 @@ class Comms():
         self.app.root.display(data)
 
     def write(self, data):
-        """ Write to serial port, called from UI thread """
+        ''' Write to serial port, called from UI thread '''
         if self.proto and async_main_loop:
             self.log.debug('Comms: writing ' + data)
             async_main_loop.call_soon_threadsafe(self._write, data)
