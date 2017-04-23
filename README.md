@@ -23,5 +23,16 @@ Recommended to do a sudo apt-get update and sudo apt-get upgrade.
 You need the latest python serial and pyserial-asyncio from here https://github.com/pyserial/pyserial-asyncio.git
 (git install).
 
+Run with...
+
+> kivy main.py
+
+### On linux (and maybe windows/macos)
+
+Install kivy for python3 from your distro
+
+Run as
+
+> python3 main.py
 
 
