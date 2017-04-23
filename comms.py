@@ -75,11 +75,13 @@ class Comms():
         logging.getLogger().setLevel(logging.DEBUG)
 
     def connect(self, port):
+        ''' called from UI to connect to given port, runs the asyncio mainlopp in a separate thread '''
         self.port= port
         self.log.info('Comms: creating comms thread')
         threading.Thread(target=self.run_async_loop).start()
 
     def connected(self, b):
+        ''' called by the serial connection to indicate when connectde and disconnected '''
         if b:
             self.app.root.connected()
         else:
@@ -87,10 +89,12 @@ class Comms():
             self.app.root.disconnected()
 
     def disconnect(self):
+        ''' called by ui thread to disconnect '''
         if self.proto:
             async_main_loop.call_soon_threadsafe(self.proto.transport.close)
 
     def incoming_data(self, data):
+        ''' called by Srial connection when incomign data is recieved '''
         self.app.root.display(data)
 
     def write(self, data):
@@ -106,6 +110,7 @@ class Comms():
            asyncio.async(self.proto.send_message(data))
 
     def stop(self):
+        ''' called by ui thread when it is exiting '''
         if self.proto:
             async_main_loop.call_soon_threadsafe(self.proto.transport.close)
         else:
@@ -113,21 +118,22 @@ class Comms():
                 async_main_loop.call_soon_threadsafe(async_main_loop.stop)
 
     def run_async_loop(self):
+        ''' called by connect in a new thread to setup and start the asyncio loop '''
         global async_main_loop
 
         newloop = asyncio.new_event_loop()
         asyncio.set_event_loop(newloop)
         loop = asyncio.get_event_loop()
         async_main_loop = loop
-        sc_factory = functools.partial(SerialConnection, cb=self)
+        sc_factory = functools.partial(SerialConnection, cb=self) # uses partial so we can pass a parameter
         serial_conn = serial_asyncio.create_serial_connection(loop, sc_factory, self.port, baudrate=115200)
         try:
-            _, self.proto = loop.run_until_complete(serial_conn)
-            self._write('version\n')
+            _, self.proto = loop.run_until_complete(serial_conn) # sets up connection returning transport and protocol handler
+            self._write('version\n') # issue a version command to get things started
             loop.run_forever()
-        except:
-            self.log.error("Comms: Got serial error opening port")
-            self.app.root.error_message("Connect failed")
+        except Exception as err:
+            self.log.error("Comms: Got serial error opening port: {0}".format(err))
+            self.app.root.error_message("Connect failed: {0}".format(err))
 
         finally:
             loop.close()
