@@ -1,0 +1,146 @@
+<ExtruderWidget>:
+    orientation: 'vertical'
+    canvas.before:
+        Color:
+            rgba: 0.4, 0.4, 0.4, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    GridLayout:
+        cols: 4
+        padding: 10, 5
+        spacing: 5
+        #size_hint: 1.0, 0.5
+        Label:
+            halign: 'right'
+            valign: 'middle'
+            text_size: self.size
+            text: 'Hotend:'
+        Button:
+            text: 'Off'
+            on_press: set_hotend_temp.text= set_hotend_temp.values[0]
+
+        Spinner:
+            id: set_hotend_temp
+            text: '0 (off)'
+            values: ('0 (off)', '185 (PLA)', '230 (abs)', '0 (Last)')
+            size_hint_y: None
+            height: '48dp'
+            on_text: root.set_temp('hotend', self.text)
+        Button:
+            text: 'Set'
+            on_press: root.set_temp('hotend', set_hotend_temp.text)
+
+        Label:
+            halign: 'right'
+            valign: 'middle'
+            text_size: self.size
+            text: 'Bed:'
+        Button:
+            text: 'Off'
+            on_press: set_bed_temp.text= set_bed_temp.values[0]
+
+        Spinner:
+            id: set_bed_temp
+            text: '0 (off)'
+            values: ('0 (off)', '60 (PLA)', '110 (abs)', '0 (Last)')
+            size_hint_y: None
+            height: '48dp'
+            on_text: root.set_temp('bed', self.text)
+
+        Button:
+            text: 'Set'
+            on_press: root.set_temp('bed', set_bed_temp.text)
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10, 5
+        #size_hint: (1.0, 0.8)
+
+        BoxLayout:
+            spacing: 10
+            orientation: 'horizontal'
+            Button:
+                size_hint_y: None
+                size: 40, 40
+                text: 'Extrude'
+                on_press: root.extrude()
+            Button:
+                size_hint_y: None
+                text: 'Reverse'
+                size: 40, 40
+                on_press: root.reverse()
+
+        BoxLayout:
+            padding: 10, 5
+            orientation: 'horizontal'
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    halign: 'left'
+                    # valign: 'bottom'
+                    text_size: self.size
+                    size_hint_y: None
+                    size: self.texture_size
+                    text: 'Length:'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    size: 40, extrude_length.minimum_height
+                    TextInput:
+                        id: extrude_length
+                        multiline: False
+                        size_hint_y: None
+                        size: 40, self.minimum_height
+                        text: '20.0'
+                    Label:
+                        size_hint_y: None
+                        size: 40, extrude_length.minimum_height
+                        text: 'mm @'
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    halign: 'left'
+                    text_size: self.size
+                    size_hint_y: None
+                    size: self.texture_size
+                    text: 'Speed:'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    size: 40, extrude_speed.minimum_height
+                    TextInput:
+                        id: extrude_speed
+                        multiline: False
+                        size_hint_y: None
+                        size: 40, self.minimum_height
+                        text: '300.0'
+                    Label:
+                        size_hint_y: None
+                        size: 40, extrude_speed.minimum_height
+                        text: 'mm/min'
+
+    Widget:
+        # canvas.before:
+        #     Color:
+        #         rgba: 1, 0, 0, 1
+        #     Rectangle:
+        #         pos: self.pos
+        #         size: self.size
+
+    Label:
+        canvas.before:
+            PushMatrix
+            Rotate:
+                angle: 90
+                origin: self.center
+        canvas.after:
+            PopMatrix
+        size_hint: None, None
+        pos: 0, 0
+        #size: 10, 20
+        halign: 'left'
+        valign: 'top'
+        text_size: self.size
+        text: 'Extruder'

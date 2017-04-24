@@ -64,142 +64,159 @@
 
 <JogRoseWidget>:
     x10_cb: x10cb
-    canvas:
+    padding: 5, 5
+    canvas.before:
         Color:
             rgba: 0.5, 0.5, 0.5, 1
         Rectangle:
-            pos: 0, 0
+            pos: self.pos
             size: self.size
 
-    MyGridV:
-        pos_hint: {'right': 1.0, 'top': 1.0}
-        ArrowButton:
-            size_hint: None, None
-            size: 50, 50
-            text: 'Z+10' if x10cb.active else 'Z+1'
-            angle: 0
-            on_press: root.handle_action('Z', 1)
-        Button:
-            size_hint: None, None
-            size: 50, 50
-            text: 'Z+1' if x10cb.active else 'Z+0.1'
-            on_press: root.handle_action('Z', 0.1)
+    RelativeLayout:
+        MyGridV:
+            pos_hint: {'right': 1.0, 'top': 1.0}
+            ArrowButton:
+                size_hint: None, None
+                size: 50, 50
+                text: 'Z+10' if x10cb.active else 'Z+1'
+                angle: 0
+                on_press: root.handle_action('Z', 1)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: 'Z+1' if x10cb.active else 'Z+0.1'
+                on_press: root.handle_action('Z', 0.1)
 
-    MyGridV:
-        pos_hint: {'right': 1.0, 'bottom': 1.0}
-        size: 50, 100
+        MyGridV:
+            pos_hint: {'right': 1.0, 'bottom': 1.0}
+            size: 50, 100
 
-        Button:
-            size_hint: None, None
-            size: 50, 50
-            text: 'Z-1' if x10cb.active else 'Z-0.1'
-            on_press: root.handle_action('Z', -0.1)
-        ArrowButton:
-            size_hint: None, None
-            size: 50, 50
-            text: 'Z-10' if x10cb.active else 'Z-1'
-            angle: 180
-            on_press: root.handle_action('Z', -1)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: 'Z-1' if x10cb.active else 'Z-0.1'
+                on_press: root.handle_action('Z', -0.1)
+            ArrowButton:
+                size_hint: None, None
+                size: 50, 50
+                text: 'Z-10' if x10cb.active else 'Z-1'
+                angle: 180
+                on_press: root.handle_action('Z', -1)
 
-    MyGridV:
-        pos_hint: {'center_x': 0.5, 'top': 1.0}
-        ArrowButton:
-            size_hint: None, None
-            size: 50, 50
-            text: 'Y+100' if x10cb.active else 'Y+10'
-            angle: 0
-            on_press: root.handle_action('Y', 10)
-        Button:
-            size_hint: None, None
-            size: 50, 50
-            text: 'Y+10' if x10cb.active else 'Y+1'
-            on_press: root.handle_action('Y', 1)
-        Button:
-            size_hint: None, None
-            size: 50, 50
-            text: 'Y+1' if x10cb.active else 'Y+0.1'
-            on_press: root.handle_action('Y', 0.1)
+        MyGridV:
+            pos_hint: {'center_x': 0.5, 'top': 1.0}
+            ArrowButton:
+                size_hint: None, None
+                size: 50, 50
+                text: 'Y+100' if x10cb.active else 'Y+10'
+                angle: 0
+                on_press: root.handle_action('Y', 10)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: 'Y+10' if x10cb.active else 'Y+1'
+                on_press: root.handle_action('Y', 1)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: 'Y+1' if x10cb.active else 'Y+0.1'
+                on_press: root.handle_action('Y', 0.1)
 
-    MyGridV:
-        pos_hint: {'center_x': 0.5, 'bottom': 1.0}
+        MyGridV:
+            pos_hint: {'center_x': 0.5, 'bottom': 1.0}
 
-        Button:
-            size_hint: None, None
-            size: 50, 50
-            text: 'Y-1' if x10cb.active else 'Y-0.1'
-            on_press: root.handle_action('Y', -0.1)
-        Button:
-            size_hint: None, None
-            size: 50, 50
-            text: 'Y-10' if x10cb.active else 'Y-1'
-            on_press: root.handle_action('Y', -1)
-        ArrowButton:
-            size_hint: None, None
-            size: 50, 50
-            text: 'Y-100' if x10cb.active else 'Y-10'
-            angle: 180
-            on_press: root.handle_action('Y', -10)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: 'Y-1' if x10cb.active else 'Y-0.1'
+                on_press: root.handle_action('Y', -0.1)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: 'Y-10' if x10cb.active else 'Y-1'
+                on_press: root.handle_action('Y', -1)
+            ArrowButton:
+                size_hint: None, None
+                size: 50, 50
+                text: 'Y-100' if x10cb.active else 'Y-10'
+                angle: 180
+                on_press: root.handle_action('Y', -10)
 
-    MyGridH:
-        pos_hint: {'left': 1, 'center_y': 0.5}
+        MyGridH:
+            pos_hint: {'left': 1, 'center_y': 0.5}
 
-        ArrowButton:
+            ArrowButton:
+                size_hint: None, None
+                size: 50, 50
+                text: 'X-100' if x10cb.active else 'Y-10'
+                angle: 90
+                on_press: root.handle_action('X', -10)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: 'X-10' if x10cb.active else 'X-1'
+                on_press: root.handle_action('X', -1)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: 'X-1' if x10cb.active else 'X-0.1'
+                on_press: root.handle_action('X', -0.1)
+
+        MyGridH:
+            pos_hint: {'right': 1, 'center_y': 0.5}
+
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: 'X+1' if x10cb.active else 'X+0.1'
+                on_press: root.handle_action('X', 0.1)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: 'X+10' if x10cb.active else 'X+1'
+                on_press: root.handle_action('X', 1)
+            ArrowButton:
+                size_hint: None, None
+                size: 50, 50
+                text: 'X+100' if x10cb.active else 'X+10'
+                angle: -90
+                on_press: root.handle_action('X', 10)
+
+        CircularButton:
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
             size_hint: None, None
             size: 50, 50
-            text: 'X-100' if x10cb.active else 'Y-10'
-            angle: 90
-            on_press: root.handle_action('X', -10)
-        Button:
+            text: 'Origin'
+            on_press: root.handle_action('O', 0)
+
+        CircularButton:
+            pos_hint: {'center_x': 0.1, 'center_y': 0.1}
             size_hint: None, None
             size: 50, 50
-            text: 'X-10' if x10cb.active else 'X-1'
-            on_press: root.handle_action('X', -1)
-        Button:
-            size_hint: None, None
-            size: 50, 50
-            text: 'X-1' if x10cb.active else 'X-0.1'
-            on_press: root.handle_action('X', -0.1)
+            text: 'Home'
+            on_press: root.handle_action('H', 0)
 
-    MyGridH:
-        pos_hint: {'right': 1, 'center_y': 0.5}
-
-        Button:
-            size_hint: None, None
-            size: 50, 50
-            text: 'X+1' if x10cb.active else 'X+0.1'
-            on_press: root.handle_action('X', 0.1)
-        Button:
-            size_hint: None, None
-            size: 50, 50
-            text: 'X+10' if x10cb.active else 'X+1'
-            on_press: root.handle_action('X', 1)
-        ArrowButton:
-            size_hint: None, None
-            size: 50, 50
-            text: 'X+100' if x10cb.active else 'X+10'
-            angle: -90
-            on_press: root.handle_action('X', 10)
-
-    CircularButton:
-        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-        size_hint: None, None
-        size: 50, 50
-        text: 'Origin'
-        on_press: root.handle_action('O', 0)
-
-    CircularButton:
-        pos_hint: {'center_x': 0.1, 'center_y': 0.1}
-        size_hint: None, None
-        size: 50, 50
-        text: 'Home'
-        on_press: root.handle_action('H', 0)
-
-    GridLayout:
-        pos_hint: {'center_x': 0.1, 'center_y': 0.95}
-        size_hint: 0.2, None
-        cols: 2
-        CheckBox:
-            id: x10cb
-        Label:
-            text: "x10"
-            #active: True
+        GridLayout:
+            pos_hint: {'center_x': 0.1, 'center_y': 0.95}
+            size_hint: 0.2, None
+            cols: 2
+            CheckBox:
+                id: x10cb
+            Label:
+                text: "x10"
+                #active: True
+        # Label:
+        #     pos_hint: {'left': 1, 'bottom': 1}
+        #     canvas.before:
+        #         PushMatrix
+        #         Rotate:
+        #             angle: 90
+        #             origin: self.center
+        #     canvas.after:
+        #         PopMatrix
+        #     size_hint: None, None
+        #     #size: 50, 50
+        #     halign: 'left'
+        #     valign: 'top'
+        #     text_size: self.size
+        #     text: 'Jogs'

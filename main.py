@@ -27,6 +27,7 @@ comms= None
 Builder.load_string('''
 #:include jogrose.kv
 #:include kbd.kv
+#:include extruder.kv
 
 <MainWindow>:
     orientation: 'horizontal'
@@ -60,13 +61,12 @@ Builder.load_string('''
         JogRoseWidget:
             id: jog_rose
 
+        ExtruderWidget:
+            id: extruder
+
         Button:
             text: 'macro page place holder'
             background_color: 0,1,0,1
-
-        Button:
-            text: 'temperature/extruder place holder'
-            background_color: 0,0,1,1
 
         Button:
             text: 'play file page place holder'
@@ -77,6 +77,17 @@ Builder.load_string('''
             background_color: 1,1,0,1
 
 ''')
+
+class ExtruderWidget(BoxLayout):
+    def set_temp(self, type, temp):
+        Logger.info('Extruder: ' + type + ' temp set to: ' + temp)
+
+    def extrude(self):
+        Logger.info('Extruder: extrude ' + self.ids.extrude_length.text + " @ " + self.ids.extrude_speed.text)
+
+    def reverse(self):
+        Logger.info('Extruder: reverse ' + self.ids.extrude_length.text + " @ " + self.ids.extrude_speed.text)
+
 
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()
@@ -91,7 +102,7 @@ class ArrowButton(ButtonBehavior, Widget):
     #     bmax= Vector(self.center) + Vector(25, 25)
     #     return Vector.in_bbox((x, y), bmin, bmax)
 
-class JogRoseWidget(RelativeLayout):
+class JogRoseWidget(BoxLayout):
     def handle_action(self, axis, v):
         x10= self.x10_cb.active
         if x10:
