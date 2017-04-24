@@ -96,9 +96,12 @@ class JogRoseWidget(RelativeLayout):
         x10= self.x10_cb.active
         if x10:
             v *= 10
-        if axis == 'H':
+        if axis == 'O':
             Logger.debug("JogRoseWidget: G0 X0 Y0")
             comms.write('G0 X0 Y0\n')
+        elif axis == 'H':
+            Logger.debug("JogRoseWidget: G28")
+            comms.write('G28\n')
         else:
             Logger.debug("JogRoseWidget: Jog " + axis + ' ' + str(v))
             comms.write(axis + ' ' + str(v) + '\n')

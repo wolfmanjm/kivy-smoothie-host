@@ -1,5 +1,7 @@
 <CircularButton>:
     canvas:
+        Color:
+            rgba: 1,1,1,1
         Ellipse:
             pos: self.pos
             size: self.size
@@ -40,6 +42,26 @@
         color: 1,1,1,1
         text: root.text
 
+<MyGridV@GridLayout>:
+    size_hint: None, None
+    size: 50, 150
+    #spacing: 4
+    rows: 3
+    col_force_default: True
+    col_default_width: 50
+    row_force_default: True
+    row_default_height: 50
+
+<MyGridH@GridLayout>:
+    size_hint: None, None
+    size: 150, 50
+    #spacing: 4
+    cols: 3
+    col_force_default: True
+    col_default_width: 50
+    row_force_default: True
+    row_default_height: 50
+
 <JogRoseWidget>:
     x10_cb: x10cb
     canvas:
@@ -49,43 +71,57 @@
             pos: 0, 0
             size: self.size
 
-    GridLayout:
-        pos_hint: {'center_x': 0.5, 'top': 1.0}
-        size_hint: None, None
-        size: 50, 150
-        #spacing: 4
-        rows: 3
-        col_force_default: True
-        col_default_width: 50
-        row_force_default: True
-        row_default_height: 50
+    MyGridV:
+        pos_hint: {'right': 1.0, 'top': 1.0}
         ArrowButton:
             size_hint: None, None
             size: 50, 50
-            text: '+100' if x10cb.active else '+10'
+            text: 'Z+10' if x10cb.active else 'Z+1'
+            angle: 0
+            on_press: root.handle_action('Z', 1)
+        Button:
+            size_hint: None, None
+            size: 50, 50
+            text: 'Z+1' if x10cb.active else 'Z+0.1'
+            on_press: root.handle_action('Z', 0.1)
+
+    MyGridV:
+        pos_hint: {'right': 1.0, 'bottom': 1.0}
+        size: 50, 100
+
+        Button:
+            size_hint: None, None
+            size: 50, 50
+            text: 'Z-1' if x10cb.active else 'Z-0.1'
+            on_press: root.handle_action('Z', -0.1)
+        ArrowButton:
+            size_hint: None, None
+            size: 50, 50
+            text: 'Z-10' if x10cb.active else 'Z-1'
+            angle: 180
+            on_press: root.handle_action('Z', -1)
+
+    MyGridV:
+        pos_hint: {'center_x': 0.5, 'top': 1.0}
+        ArrowButton:
+            size_hint: None, None
+            size: 50, 50
+            text: 'Y+100' if x10cb.active else 'Y+10'
             angle: 0
             on_press: root.handle_action('Y', 10)
         Button:
             size_hint: None, None
             size: 50, 50
-            text: '+10' if x10cb.active else '+1'
+            text: 'Y+10' if x10cb.active else 'Y+1'
             on_press: root.handle_action('Y', 1)
         Button:
             size_hint: None, None
             size: 50, 50
-            text: '+1' if x10cb.active else '+0.1'
+            text: 'Y+1' if x10cb.active else 'Y+0.1'
             on_press: root.handle_action('Y', 0.1)
 
-    GridLayout:
+    MyGridV:
         pos_hint: {'center_x': 0.5, 'bottom': 1.0}
-        size_hint: None, None
-        size: 50, 150
-        #spacing: 4
-        rows: 3
-        col_force_default: True
-        col_default_width: 50
-        row_force_default: True
-        row_default_height: 50
 
         Button:
             size_hint: None, None
@@ -104,16 +140,8 @@
             angle: 180
             on_press: root.handle_action('Y', -10)
 
-    GridLayout:
+    MyGridH:
         pos_hint: {'left': 1, 'center_y': 0.5}
-        size_hint: None, None
-        size: 150, 50
-        #spacing: 4
-        cols: 3
-        col_force_default: True
-        col_default_width: 50
-        row_force_default: True
-        row_default_height: 50
 
         ArrowButton:
             size_hint: None, None
@@ -132,16 +160,8 @@
             text: 'X -0.1'
             on_press: root.handle_action('X', -0.1)
 
-    GridLayout:
+    MyGridH:
         pos_hint: {'right': 1, 'center_y': 0.5}
-        size_hint: None, None
-        size: 150, 50
-        #spacing: 4
-        cols: 3
-        col_force_default: True
-        col_default_width: 50
-        row_force_default: True
-        row_default_height: 50
 
         Button:
             size_hint: None, None
@@ -165,10 +185,17 @@
         size_hint: None, None
         size: 50, 50
         text: 'Origin'
+        on_press: root.handle_action('O', 0)
+
+    CircularButton:
+        pos_hint: {'center_x': 0.1, 'center_y': 0.1}
+        size_hint: None, None
+        size: 50, 50
+        text: 'Home'
         on_press: root.handle_action('H', 0)
 
     GridLayout:
-        pos_hint: {'left': 1.0, 'top': 1.0}
+        pos_hint: {'center_x': 0.1, 'center_y': 0.95}
         size_hint: 0.2, None
         cols: 2
         CheckBox:
