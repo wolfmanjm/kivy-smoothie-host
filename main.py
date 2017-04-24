@@ -18,11 +18,12 @@ from kivy.clock import Clock, mainthread
 #from kivy.garden.gauge import Gauge
 from kivy.factory import Factory
 from kivy.logger import Logger
-
+from kivy.core.window import Window
 from comms import Comms
 
 
 comms= None
+Window.softinput_mode = 'pan'
 
 Builder.load_string('''
 #:include jogrose.kv
@@ -42,13 +43,19 @@ Builder.load_string('''
                 size_hint_y: None
                 height: self.texture_size[1]
                 text_size: self.width, None
-
-        Button:
-            id: connect_button
-            size_hint_y: None
-            size: 20, 40
-            text: 'Connect'
-            on_press: root.connect()
+        BoxLayout:
+            orientation: 'horizontal'
+            Button:
+                id: connect_button
+                size_hint_y: None
+                size: 20, 40
+                text: 'Connect'
+                on_press: root.connect()
+            Button:
+                size_hint_y: None
+                size: 20, 40
+                text: 'Quit'
+                on_press: exit()
 
     # Right panel
     PageLayout:
