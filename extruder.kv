@@ -53,19 +53,36 @@
             text: 'Set'
             on_press: root.set_temp('bed', set_bed_temp.text)
 
-    BoxLayout:
-        orientation: 'vertical'
-        # placeholder for temperature gauges
-        # canvas.before:
-        #     Color:
-        #         rgba: 1, 0, 0, 1
-        #     Rectangle:
-        #         pos: self.pos
-        #         size: self.size
+    GridLayout:
+        cols: 3
+        spacing: 10
+        size_hint_y: 0.4
         Label:
-            text: 'hotend temp gauges go here'
+            size_hint_y: None
+            size: self.texture_size
+            text: 'hotend temp:'
         Label:
-            text: 'bed temp gauges go here'
+            id: hotend_temp
+            size_hint_y: None
+            size: self.texture_size
+            text: '25'
+        Label:
+            size_hint_y: None
+            size: self.texture_size
+            text: '°C'
+        Label:
+            size_hint_y: None
+            size: self.texture_size
+            text: 'bed temp:'
+        Label:
+            id: bed_temp
+            size_hint_y: None
+            size: self.texture_size
+            text: '25'
+        Label:
+            size_hint_y: None
+            size: self.texture_size
+            text: '°C'
 
 
     BoxLayout:
@@ -135,6 +152,7 @@
                         size: 40, extrude_speed.minimum_height
                         text: 'mm/min'
 
+    Widget:
 
     # Label:
     #     canvas.before:

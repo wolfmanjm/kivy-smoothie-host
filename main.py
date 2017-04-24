@@ -80,14 +80,31 @@ Builder.load_string('''
 
 class ExtruderWidget(BoxLayout):
     def set_temp(self, type, temp):
+        ''' called when the target temp is changed '''
         Logger.info('Extruder: ' + type + ' temp set to: ' + temp)
+        if type == 'bed':
+            comms.write('M140 S{0}\n'.format(str(temp)))
+        elif type == 'hotend':
+            comms.write('M104 S{0}\n'.format(str(temp)))
+
+    def update_temp(self, type, temp):
+        ''' called to update the temperature display'''
+        if type == 'bed':
+            self.ids.bed_temp.text = str(temp)
+        elif type == 'hotend':
+            self.ids.hotend_temp.text = str(temp)
+        else:
+            Logger.error('Extruder: unknown temp type - ' + type)
 
     def extrude(self):
-        Logger.info('Extruder: extrude ' + self.ids.extrude_length.text + " @ " + self.ids.extrude_speed.text)
+        ''' called when the extrude button is pressed '''
+        Logger.info('Extruder: extrude {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
+        comms.write('G91 G0 E{0} F{1} G90\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
 
     def reverse(self):
-        Logger.info('Extruder: reverse ' + self.ids.extrude_length.text + " @ " + self.ids.extrude_speed.text)
-
+        ''' called when the reverse button is pressed '''
+        Logger.info('Extruder: reverse {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
+        comms.write('G91 G0 E-{0} F{1} G90\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
 
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()
