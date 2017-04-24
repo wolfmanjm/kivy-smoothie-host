@@ -1,14 +1,14 @@
 <CircularButton>:
     canvas:
         Color:
-            rgba: 1,1,1,1
+            rgba: [0.75,0.75,0.75,1] if root.state == 'normal' else [0,1,1,1]
         Ellipse:
             pos: self.pos
             size: self.size
     Label:
         pos: root.pos
         size: root.size
-        color: 1,0,0,1
+        color: [1,0,0,1]
         text: root.text
 
 <ArrowButton>:
@@ -21,7 +21,7 @@
 
     canvas:
         Color:
-            rgba: 0,0,1,1
+            rgba: [0.75,0.75,0.75, 1] if root.state == 'normal' else [0,1,1,1]
         PushMatrix
         Translate:
             x: self.pos[0]
@@ -126,17 +126,17 @@
         Button:
             size_hint: None, None
             size: 50, 50
-            text: 'Y -0.1'
+            text: 'Y-1' if x10cb.active else 'Y-0.1'
             on_press: root.handle_action('Y', -0.1)
         Button:
             size_hint: None, None
             size: 50, 50
-            text: 'Y -1'
+            text: 'Y-10' if x10cb.active else 'Y-1'
             on_press: root.handle_action('Y', -1)
         ArrowButton:
             size_hint: None, None
             size: 50, 50
-            text: 'Y -10'
+            text: 'Y-100' if x10cb.active else 'Y-10'
             angle: 180
             on_press: root.handle_action('Y', -10)
 
@@ -146,18 +146,18 @@
         ArrowButton:
             size_hint: None, None
             size: 50, 50
-            text: 'X -10'
+            text: 'X-100' if x10cb.active else 'Y-10'
             angle: 90
             on_press: root.handle_action('X', -10)
         Button:
             size_hint: None, None
             size: 50, 50
-            text: 'X -1'
+            text: 'X-10' if x10cb.active else 'X-1'
             on_press: root.handle_action('X', -1)
         Button:
             size_hint: None, None
             size: 50, 50
-            text: 'X -0.1'
+            text: 'X-1' if x10cb.active else 'X-0.1'
             on_press: root.handle_action('X', -0.1)
 
     MyGridH:
@@ -166,17 +166,17 @@
         Button:
             size_hint: None, None
             size: 50, 50
-            text: 'X 0.1'
+            text: 'X+1' if x10cb.active else 'X+0.1'
             on_press: root.handle_action('X', 0.1)
         Button:
             size_hint: None, None
             size: 50, 50
-            text: 'X 1'
+            text: 'X+10' if x10cb.active else 'X+1'
             on_press: root.handle_action('X', 1)
         ArrowButton:
             size_hint: None, None
             size: 50, 50
-            text: 'X +10'
+            text: 'X+100' if x10cb.active else 'X+10'
             angle: -90
             on_press: root.handle_action('X', 10)
 
