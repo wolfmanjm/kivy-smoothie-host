@@ -38,9 +38,12 @@ https://kivy.org/docs/installation/installation.html
 3. sudo apt-get install python3-kivy
 
 Install pyserial which you probably alrady have:-
+(make sure pip is installed.. sudo apt-get python3-pip)
+
 4. sudo python3 -m pip install --upgrade pyserial
 
 Install the asyncio stuff:-
+(May first need to do sudo apt-get python3-setuptools)
 5. git clone https://github.com/pyserial/pyserial-asyncio.git
 6. cd pyserial-asyncio/
 7. python3 setup.py install --user
