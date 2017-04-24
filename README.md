@@ -29,10 +29,24 @@ Run with...
 
 ### On linux (and maybe windows/macos)
 
-Install kivy for python3 from your distro
+Install kivy for python3 from your distro:-
+
+https://kivy.org/docs/installation/installation.html
+
+1. sudo add-apt-repository ppa:kivy-team/kivy
+2. sudo apt-get update
+3. sudo apt-get install python3-kivy
+
+Install pyserial which you probably alrady have:-
+4. sudo python3 -m pip install --upgrade pyserial
+
+Install the asyncio stuff:-
+5. git clone https://github.com/pyserial/pyserial-asyncio.git
+6. cd pyserial-asyncio/
+7. python3 setup.py install --user
 
 Run as
-
+> cd kivy-smoothie-host
 > python3 main.py
 
 

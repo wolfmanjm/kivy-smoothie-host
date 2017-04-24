@@ -55,8 +55,22 @@
 
     BoxLayout:
         orientation: 'vertical'
+        # placeholder for temperature gauges
+        # canvas.before:
+        #     Color:
+        #         rgba: 1, 0, 0, 1
+        #     Rectangle:
+        #         pos: self.pos
+        #         size: self.size
+        Label:
+            text: 'hotend temp gauges go here'
+        Label:
+            text: 'bed temp gauges go here'
+
+
+    BoxLayout:
+        orientation: 'vertical'
         padding: 10, 5
-        #size_hint: (1.0, 0.8)
 
         BoxLayout:
             spacing: 10
@@ -121,26 +135,19 @@
                         size: 40, extrude_speed.minimum_height
                         text: 'mm/min'
 
-    Widget:
-        # canvas.before:
-        #     Color:
-        #         rgba: 1, 0, 0, 1
-        #     Rectangle:
-        #         pos: self.pos
-        #         size: self.size
 
-    Label:
-        canvas.before:
-            PushMatrix
-            Rotate:
-                angle: 90
-                origin: self.center
-        canvas.after:
-            PopMatrix
-        size_hint: None, None
-        pos: 0, 0
-        #size: 10, 20
-        halign: 'left'
-        valign: 'top'
-        text_size: self.size
-        text: 'Extruder'
+    # Label:
+    #     canvas.before:
+    #         PushMatrix
+    #         Rotate:
+    #             angle: 90
+    #             origin: self.center
+    #     canvas.after:
+    #         PopMatrix
+    #     size_hint: None, None
+    #     pos: 0, 0
+    #     #size: 10, 20
+    #     halign: 'left'
+    #     valign: 'top'
+    #     text_size: self.size
+    #     text: 'Extruder'
