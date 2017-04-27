@@ -4,7 +4,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 
-from kivy.properties import ListProperty, NumericProperty, ObjectProperty, BooleanProperty, AliasProperty
+from kivy.properties import ListProperty, NumericProperty, ObjectProperty, BooleanProperty, AliasProperty, ReferenceListProperty
 from kivy.lang import Builder
 from kivy.graphics import Color, Line, Translate, Rotate, PushMatrix, PopMatrix, Mesh, Scale, Rectangle
 from kivy.graphics import InstructionGroup
@@ -26,7 +26,7 @@ Builder.load_string('''
     #         size: self.size
 
     size_hint: None, None
-    size: [self.dial_size[0], (self.dial_size[1]/2)+self.hub_radius] if self.semi_circle else self.dial_size
+    size: [self.dial_diameter, (self.dial_diameter/2)+self.hub_radius] if self.semi_circle else self.dial_size
 
     canvas.before:
         # background dial
@@ -35,7 +35,7 @@ Builder.load_string('''
 
         PushMatrix
         Translate:
-            y: -self.dial_size[1]/2+self.hub_radius if self.semi_circle else 0
+            y: -self.dial_diameter/2+self.hub_radius if self.semi_circle else 0
 
         Ellipse:
             pos: self.pos
@@ -46,7 +46,7 @@ Builder.load_string('''
         PopMatrix
         Rectangle:
             pos: self.pos[0], self.pos[1]
-            size: [self.dial_size[0], self.hub_radius] if self.semi_circle else [0, 0]
+            size: [self.dial_diameter, self.hub_radius] if self.semi_circle else [0, 0]
 
     canvas:
         # needle
@@ -109,7 +109,7 @@ if __name__ == '__main__':
             #         size: 4,4
             id: dg
             pos_hint: {'center_x': .5, 'top': 1.0}
-            dial_size: 180, 180
+            dial_diameter: 250
 
             # gauge properties
             scale_max: 260
@@ -129,8 +129,8 @@ if __name__ == '__main__':
             #angle_start: 45
             #angle_stop: 315
 
-            tic_radius: self.dial_size[0]/2.0
-            needle_length: self.dial_size[1]/2 - self.tic_length -4 # ends just where tics start less a few pixels
+            tic_radius: self.dial_diameter/2.0
+            needle_length: self.dial_diameter/2 - self.tic_length -4 # ends just where tics start less a few pixels
             needle_width: 5
             hub_radius: 8
             dial_color: 1,1,0,1
@@ -138,7 +138,7 @@ if __name__ == '__main__':
             needle_color: 1,0,0
 
             show_value: True
-            value_offset_pos: 0, self.dial_size[1]/4 # offset from center of dial
+            value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
             value_color: [0,1,0,1]
         Label:
             text: 'test dial'
@@ -172,7 +172,8 @@ if __name__ == '__main__':
 ''')
 
 class DialGauge(Widget):
-    dial_size= ListProperty([180, 180])
+    dial_diameter= NumericProperty(180)
+    dial_size= ReferenceListProperty(dial_diameter, dial_diameter)
     scale_max = NumericProperty(100.0)
     scale_min = NumericProperty(0.0)
     scale_increment = NumericProperty(10.0)
@@ -206,10 +207,10 @@ class DialGauge(Widget):
         self.bind(pos=self._redraw, size=self._redraw)
 
     def get_dial_center(self):
-        x= self.pos[0] + self.dial_size[0] / 2.
-        y= self.pos[1] + self.dial_size[1] / 2.
+        x= self.pos[0] + self.dial_diameter / 2.
+        y= self.pos[1] + self.dial_diameter / 2.
         if self.semi_circle:
-            y += (-self.dial_size[1]/2+self.hub_radius)
+            y += (-self.dial_diameter/2+self.hub_radius)
 
         return [x, y]
 
@@ -233,13 +234,13 @@ class DialGauge(Widget):
         self.annulars.add(Color(0, 1, 0, 1))
         if self.semi_circle:
             self.annulars.add(PushMatrix())
-            self.annulars.add(Translate(0, -self.dial_size[1]/2+self.hub_radius))
+            self.annulars.add(Translate(0, -self.dial_diameter/2+self.hub_radius))
 
-        self.annulars.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_size[0]-awidth*2, self.dial_size[1]-awidth*2, -90, -50), width=awidth, cap= 'none', joint='round'))
+        self.annulars.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_diameter-awidth*2, self.dial_diameter-awidth*2, -90, -50), width=awidth, cap= 'none', joint='round'))
         self.annulars.add(Color(1, 165.0/255, 0, 1))
-        self.annulars.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_size[0]-awidth*2, self.dial_size[1]-awidth*2, -50, 0), width=awidth, cap= 'none', joint='round'))
+        self.annulars.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_diameter-awidth*2, self.dial_diameter-awidth*2, -50, 0), width=awidth, cap= 'none', joint='round'))
         self.annulars.add(Color(1, 0, 0, 1))
-        self.annulars.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_size[0]-awidth*2, self.dial_size[1]-awidth*2, 0, 94), width=awidth, cap= 'none', joint='round'))
+        self.annulars.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_diameter-awidth*2, self.dial_diameter-awidth*2, 0, 94), width=awidth, cap= 'none', joint='round'))
         if self.semi_circle:
             self.annulars.add(PopMatrix())
 

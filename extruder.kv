@@ -69,7 +69,7 @@
             orientation: 'vertical'
             DialGauge:
                 id: hotend_dg
-                dial_size: 180, 180
+                dial_diameter: 180
 
                 # gauge properties
                 scale_max: 230
@@ -82,8 +82,8 @@
                 angle_start: 90
                 angle_stop: 270
                 tic_frequency: 1
-                tic_radius: self.dial_size[0]/2.0
-                needle_length: self.dial_size[1]/2 - self.tic_length -4 # ends just where tics start less a few pixels
+                tic_radius: self.dial_diameter/2.0
+                needle_length: self.dial_diameter/2 - self.tic_length -4 # ends just where tics start less a few pixels
                 needle_width: 5
                 hub_radius: 10
                 dial_color: 1,1,0,1
@@ -91,7 +91,7 @@
                 needle_color: 1,0,0
 
                 show_value: True
-                value_offset_pos: 0, self.dial_size[1]/4 # offset from center of dial
+                value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
                 value_color: [0,1,0,1]
 
             Label:
@@ -104,7 +104,7 @@
 
             DialGauge:
                 id: bed_dg
-                dial_size: 180, 180
+                dial_diameter: 180
 
                 # gauge properties
                 scale_max: 120
@@ -117,8 +117,8 @@
                 angle_start: 90
                 angle_stop: 270
                 tic_frequency: 1
-                tic_radius: self.dial_size[0]/2.0
-                needle_length: self.dial_size[1]/2 - self.tic_length -4 # ends just where tics start less a few pixels
+                tic_radius: self.dial_diameter/2.0
+                needle_length: self.dial_diameter/2 - self.tic_length -4 # ends just where tics start less a few pixels
                 needle_width: 5
                 hub_radius: 10
                 dial_color: 1,1,0,1
@@ -126,7 +126,7 @@
                 needle_color: 1,0,0
 
                 show_value: True
-                value_offset_pos: 0, self.dial_size[1]/4 # offset from center of dial
+                value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
                 value_color: [0,1,0,1]
 
             Label:
