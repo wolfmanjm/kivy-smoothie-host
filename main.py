@@ -55,7 +55,7 @@ Builder.load_string('''
                 size_hint_y: None
                 size: 20, 40
                 text: 'Quit'
-                on_press: exit()
+                on_press: root.do_exit()
 
     # Right panel
     PageLayout:
@@ -97,10 +97,10 @@ class ExtruderWidget(BoxLayout):
     def update_temp(self, type, temp):
         ''' called to update the temperature display'''
         if type == 'bed':
-            self.ids.bed_dg.value= 60
+            self.ids.bed_dg.value= temp
             #self.ids.bed_temp.text = str(temp)
         elif type == 'hotend':
-            self.ids.hotend_dg.value= 185
+            self.ids.hotend_dg.value= temp
             #self.ids.hotend_temp.text = str(temp)
         else:
             Logger.error('Extruder: unknown temp type - ' + type)
@@ -213,8 +213,19 @@ class MainWindow(BoxLayout):
         self.is_connected= False
         self.ids.connect_button.text= "Connect"
 
+    @mainthread
+    def update_temps(self, he, be):
+        if he:
+            self.ids.extruder.update_temp('hotend', he)
+        if be:
+            self.ids.extruder.update_temp('bed', be)
+
     def error_message(self, str):
         self.display('! ' + str + '\n')
+
+    def do_exit(self):
+        comms.stop()
+        exit()
 
 class SmoothieHost(App):
     #Factory.register('Comms', cls=Comms)

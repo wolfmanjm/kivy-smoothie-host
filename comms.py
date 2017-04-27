@@ -4,6 +4,8 @@ import serial_asyncio
 import logging
 import functools
 import sys
+import re
+import traceback
 
 async_main_loop= None
 
@@ -70,9 +72,10 @@ class Comms():
     def __init__(self, app):
         self.app = app
         self.proto = None
+        self.okcnt= 0
         #logging.getLogger('asyncio').setLevel(logging.DEBUG)
         self.log = logging.getLogger() #.getChild('Comms')
-        #logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
 
     def connect(self, port):
         ''' called from UI to connect to given port, runs the asyncio mainlopp in a separate thread '''
@@ -92,10 +95,6 @@ class Comms():
         ''' called by ui thread to disconnect '''
         if self.proto:
             async_main_loop.call_soon_threadsafe(self.proto.transport.close)
-
-    def incoming_data(self, data):
-        ''' called by Srial connection when incomign data is recieved '''
-        self.app.root.display(data)
 
     def write(self, data):
         ''' Write to serial port, called from UI thread '''
@@ -141,3 +140,79 @@ class Comms():
             async_main_loop= None
             self.log.debug('Comms: asyncio thread Exiting...')
 
+    # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
+    tempreading_exp = re.compile("(^T:| T:)")
+    def incoming_data(self, data):
+        ''' called by Serial connection when incoming data is recieved '''
+        l= data.splitlines()
+        for s in l:
+            if s in 'ok':
+                self.okcnt += 1
+
+            elif "ok C:" in s:
+                self.handle_position(s)
+
+            elif "ok T:" in s or self.tempreading_exp.findall(s):
+                self.handle_tempdisplay(s)
+
+            elif s.startswith('<'):
+                self.handle_status(s)
+
+            else:
+                self.app.root.display(s + '\n')
+
+    # Handle parsing of temp readings (Lifted mostly from Pronterface)
+    tempreport_exp = re.compile("([TB]\d*):([-+]?\d*\.?\d*)(?: ?\/)?([-+]?\d*\.?\d*)")
+    def parse_temperature(s):
+        matches = tempreport_exp.findall(s)
+        return dict((m[0], (m[1], m[2])) for m in matches)
+
+    def handle_tempdisplay(self, s):
+        # ok T:19.8 /0.0 @0 B:20.1 /0.0 @0
+        try:
+            temps = parse_temperature(s)
+            if "T" in temps and temps["T"][0]:
+                hotend_temp = float(temps["T"][0])
+            else:
+                hotend_temp = None
+
+            if hotend_temp is not None:
+                if temps["T"][1]:
+                    setpoint = float(temps["T"][1])
+                else:
+                    setpoint = None
+            bed_temp = float(temps["B"][0]) if "B" in temps and temps["B"][0] else None
+            if bed_temp is not None:
+                setpoint = temps["B"][1]
+                if setpoint:
+                    setpoint = float(setpoint)
+
+            self.log.debug('Comms: got temps hotend:{0}, bed:{1}'.format(hotend_temp, bed_temp))
+            self.app.root.update_temps(hotend_temp, bed_temp)
+
+        except:
+            self.log.error(traceback.format_exc())
+
+    def handle_position(self, s):
+        # ok C: X:0.0000 Y:0.0000 Z:0.0000
+        l= s.split(' ')
+        if len(l) >= 5:
+            x= float(l[2][2:])
+            y= float(l[3][2:])
+            z= float(l[4][2:])
+            self.log.debug('Comms: got pos: X {0}, Y {1} Z {2}'.format(x, y, z))
+            #self.app.root.update_position(x, y, z)
+
+    def handle_status(self, s):
+        #<Idle,MPos:68.9980,-49.9240,40.0000,WPos:68.9980,-49.9240,40.0000>
+        sl= s.split(',')
+        if len(sl) >= 7:
+            # strip off status
+            status= sl[0]
+            status= status[1:]
+            # strip off mpos
+            mpos= (float(sl[1][5:]), float(sl[2]), float(sl[3]))
+            # strip off wpos
+            wpos= (float(sl[4][5:]), float(sl[5]), float(sl[6][:-1]))
+            self.log.debug('Comms: got status:{0}, mpos:{1},{2},{3}, wpos:{4},{5},{6}'.format(status, mpos[0], mpos[1], mpos[2], wpos[0], wpos[1], wpos[2]))
+            #self.app.root.update_status(status, mpos, wpos)
