@@ -94,14 +94,24 @@ class ExtruderWidget(BoxLayout):
         elif type == 'hotend':
             comms.write('M104 S{0}\n'.format(str(temp)))
 
-    def update_temp(self, type, temp):
+    def update_temp(self, type, temp, setpoint):
         ''' called to update the temperature display'''
         if type == 'bed':
-            self.ids.bed_dg.value= temp
+            if temp:
+                self.ids.bed_dg.value= temp
+            if setpoint:
+                self.ids.set_bed_temp.text= str(setpoint)
+                # FIXME when we set this it tries to set the temp on smoothie
             #self.ids.bed_temp.text = str(temp)
+
         elif type == 'hotend':
-            self.ids.hotend_dg.value= temp
+            if temp:
+                self.ids.hotend_dg.value= temp
+            if setpoint:
+                self.ids.set_hotend_temp.text= str(setpoint)
+                # FIXME when we set this it tries to set the temp on smoothie
             #self.ids.hotend_temp.text = str(temp)
+
         else:
             Logger.error('Extruder: unknown temp type - ' + type)
 
@@ -195,7 +205,7 @@ class MainWindow(BoxLayout):
         else:
             Logger.debug("MainWindow: Connecting...")
             self.add_to_log("Connecting...\n")
-            comms.connect('/dev/ttyACM1')
+            comms.connect('/dev/ttyACM0')
 
     @mainthread
     def display(self, data):
@@ -214,11 +224,11 @@ class MainWindow(BoxLayout):
         self.ids.connect_button.text= "Connect"
 
     @mainthread
-    def update_temps(self, he, be):
+    def update_temps(self, he, hesp, be, besp):
         if he:
-            self.ids.extruder.update_temp('hotend', he)
+            self.ids.extruder.update_temp('hotend', he, hesp)
         if be:
-            self.ids.extruder.update_temp('bed', be)
+            self.ids.extruder.update_temp('bed', be, besp)
 
     def error_message(self, str):
         self.display('! ' + str + '\n')

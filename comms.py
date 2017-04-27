@@ -153,7 +153,7 @@ class Comms():
                 self.handle_position(s)
 
             elif "ok T:" in s or self.tempreading_exp.findall(s):
-                self.handle_tempdisplay(s)
+                self.handle_temperature(s)
 
             elif s.startswith('<'):
                 self.handle_status(s)
@@ -163,32 +163,33 @@ class Comms():
 
     # Handle parsing of temp readings (Lifted mostly from Pronterface)
     tempreport_exp = re.compile("([TB]\d*):([-+]?\d*\.?\d*)(?: ?\/)?([-+]?\d*\.?\d*)")
-    def parse_temperature(s):
-        matches = tempreport_exp.findall(s)
+    def parse_temperature(self, s):
+        matches = self.tempreport_exp.findall(s)
+        print(matches)
         return dict((m[0], (m[1], m[2])) for m in matches)
 
-    def handle_tempdisplay(self, s):
+    def handle_temperature(self, s):
         # ok T:19.8 /0.0 @0 B:20.1 /0.0 @0
+        hotend_setpoint= None
+        bed_setpoint= None
+        hotend_temp= None
+        bed_temp= None
+
         try:
-            temps = parse_temperature(s)
+            temps = self.parse_temperature(s)
             if "T" in temps and temps["T"][0]:
                 hotend_temp = float(temps["T"][0])
-            else:
-                hotend_temp = None
 
-            if hotend_temp is not None:
-                if temps["T"][1]:
-                    setpoint = float(temps["T"][1])
-                else:
-                    setpoint = None
+            if temps["T"][1]:
+                hotend_setpoint = float(temps["T"][1])
+
             bed_temp = float(temps["B"][0]) if "B" in temps and temps["B"][0] else None
-            if bed_temp is not None:
-                setpoint = temps["B"][1]
-                if setpoint:
-                    setpoint = float(setpoint)
+            if temps["B"][1]:
+                bed_setpoint = float(temps["B"][1])
 
-            self.log.debug('Comms: got temps hotend:{0}, bed:{1}'.format(hotend_temp, bed_temp))
-            self.app.root.update_temps(hotend_temp, bed_temp)
+            self.log.debug('Comms: got temps hotend:{0}, bed:{1}, hotend_setpoint:{2}, bed_setpoint:{3}'.format(hotend_temp, bed_temp, hotend_setpoint, bed_setpoint))
+            self.app.root.update_temps(hotend_temp, hotend_setpoint, bed_temp, bed_setpoint)
+            #self.app.root.update_temps(185.5, 185.0, 50.5, 60.0)
 
         except:
             self.log.error(traceback.format_exc())
