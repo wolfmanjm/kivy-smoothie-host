@@ -97,9 +97,11 @@ class ExtruderWidget(BoxLayout):
     def update_temp(self, type, temp):
         ''' called to update the temperature display'''
         if type == 'bed':
-            self.ids.bed_temp.text = str(temp)
+            self.ids.bed_dg.value= 60
+            #self.ids.bed_temp.text = str(temp)
         elif type == 'hotend':
-            self.ids.hotend_temp.text = str(temp)
+            self.ids.hotend_dg.value= 185
+            #self.ids.hotend_temp.text = str(temp)
         else:
             Logger.error('Extruder: unknown temp type - ' + type)
 

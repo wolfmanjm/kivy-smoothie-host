@@ -1,3 +1,4 @@
+#: import DialGauge dial-gauge
 <ExtruderWidget>:
     orientation: 'vertical'
     canvas.before:
@@ -53,55 +54,89 @@
             text: 'Set'
             on_press: root.set_temp('bed', set_bed_temp.text)
 
-    GridLayout:
-        cols: 3
-        spacing: 10
-        size_hint_y: 0.4
-        Label:
-            size_hint_y: None
-            size: self.texture_size
-            text: 'hotend temp:'
-        Label:
-            id: hotend_temp
-            size_hint_y: None
-            size: self.texture_size
-            text: '25'
-        Label:
-            size_hint_y: None
-            size: self.texture_size
-            text: '°C'
-        Label:
-            size_hint_y: None
-            size: self.texture_size
-            text: 'bed temp:'
-        Label:
-            id: bed_temp
-            size_hint_y: None
-            size: self.texture_size
-            text: '25'
-        Label:
-            size_hint_y: None
-            size: self.texture_size
-            text: '°C'
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
 
+        # canvas.before:
+        #     Color:
+        #         rgba: 1, 0, 0, 1
+        #     Rectangle:
+        #         pos: self.pos
+        #         size: self.size
+
+        BoxLayout:
+            orientation: 'vertical'
+            DialGauge:
+                id: hotend_dg
+                dial_size: 180, 180
+
+                # gauge properties
+                scale_max: 230
+                scale_min: 20
+                value: self.scale_min
+
+                # example for half temperature gauge
+                semi_circle: True
+                scale_increment: 20
+                angle_start: 90
+                angle_stop: 270
+                tic_frequency: 1
+                tic_radius: self.dial_size[0]/2.0
+                needle_length: self.dial_size[1]/2 - self.tic_length -4 # ends just where tics start less a few pixels
+                needle_width: 5
+                hub_radius: 10
+                dial_color: 1,1,0,1
+                hub_color: 1,0,0
+                needle_color: 1,0,0
+
+                show_value: True
+                value_offset_pos: 0, self.dial_size[1]/4 # offset from center of dial
+                value_color: [0,1,0,1]
+
+            Label:
+                text: 'Hotend'
+                size_hint_y: None
+                size: self.texture_size
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            DialGauge:
+                id: bed_dg
+                dial_size: 180, 180
+
+                # gauge properties
+                scale_max: 120
+                scale_min: 20
+                value: self.scale_min
+
+                # example for half temperature gauge
+                scale_increment: 20
+                semi_circle: True
+                angle_start: 90
+                angle_stop: 270
+                tic_frequency: 1
+                tic_radius: self.dial_size[0]/2.0
+                needle_length: self.dial_size[1]/2 - self.tic_length -4 # ends just where tics start less a few pixels
+                needle_width: 5
+                hub_radius: 10
+                dial_color: 1,1,0,1
+                hub_color: 1,0,0
+                needle_color: 1,0,0
+
+                show_value: True
+                value_offset_pos: 0, self.dial_size[1]/4 # offset from center of dial
+                value_color: [0,1,0,1]
+
+            Label:
+                text: 'Bed'
+                size_hint_y: None
+                size: self.texture_size
 
     BoxLayout:
         orientation: 'vertical'
         padding: 10, 5
-
-        BoxLayout:
-            spacing: 10
-            orientation: 'horizontal'
-            Button:
-                size_hint_y: None
-                size: 40, 40
-                text: 'Extrude'
-                on_press: root.extrude()
-            Button:
-                size_hint_y: None
-                text: 'Reverse'
-                size: 40, 40
-                on_press: root.reverse()
 
         BoxLayout:
             padding: 10, 5
@@ -155,8 +190,22 @@
                         size_hint_y: None
                         size: 40, extrude_speed.minimum_height
                         text: 'mm/min'
+        BoxLayout:
+            spacing: 10
+            orientation: 'horizontal'
+            Button:
+                size_hint_y: None
+                size: 40, 40
+                text: 'Extrude'
+                on_press: root.extrude()
+            Button:
+                size_hint_y: None
+                text: 'Reverse'
+                size: 40, 40
+                on_press: root.reverse()
 
     Widget:
+        # uses up rest of space bit like a spring in other layouts
 
     # Label:
     #     canvas.before:
