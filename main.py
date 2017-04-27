@@ -21,8 +21,6 @@ from kivy.logger import Logger
 from kivy.core.window import Window
 from comms import Comms
 
-
-comms= None
 Window.softinput_mode = 'pan'
 
 Builder.load_string('''
@@ -86,13 +84,17 @@ Builder.load_string('''
 ''')
 
 class ExtruderWidget(BoxLayout):
+    def __init__(self, **kwargs):
+        super(ExtruderWidget, self).__init__(**kwargs)
+        self.app = App.get_running_app()
+
     def set_temp(self, type, temp):
         ''' called when the target temp is changed '''
         Logger.info('Extruder: ' + type + ' temp set to: ' + temp)
         if type == 'bed':
-            comms.write('M140 S{0}\n'.format(str(temp)))
+            self.app.comms.write('M140 S{0}\n'.format(str(temp)))
         elif type == 'hotend':
-            comms.write('M104 S{0}\n'.format(str(temp)))
+            self.app.comms.write('M104 S{0}\n'.format(str(temp)))
 
     def update_temp(self, type, temp, setpoint):
         ''' called to update the temperature display'''
@@ -118,12 +120,12 @@ class ExtruderWidget(BoxLayout):
     def extrude(self):
         ''' called when the extrude button is pressed '''
         Logger.info('Extruder: extrude {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
-        comms.write('G91 G0 E{0} F{1} G90\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
+        self.app.comms.write('G91 G0 E{0} F{1} G90\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
 
     def reverse(self):
         ''' called when the reverse button is pressed '''
         Logger.info('Extruder: reverse {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
-        comms.write('G91 G0 E-{0} F{1} G90\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
+        self.app.comms.write('G91 G0 E-{0} F{1} G90\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
 
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()
@@ -139,32 +141,38 @@ class ArrowButton(ButtonBehavior, Widget):
     #     return Vector.in_bbox((x, y), bmin, bmax)
 
 class JogRoseWidget(BoxLayout):
+    def __init__(self, **kwargs):
+        super(JogRoseWidget, self).__init__(**kwargs)
+        self.app = App.get_running_app()
+
     def handle_action(self, axis, v):
         x10= self.x10_cb.active
         if x10:
             v *= 10
         if axis == 'O':
             Logger.debug("JogRoseWidget: G0 X0 Y0")
-            comms.write('G0 X0 Y0\n')
+            self.app.comms.write('G0 X0 Y0\n')
         elif axis == 'H':
             Logger.debug("JogRoseWidget: G28")
-            comms.write('G28\n')
+            self.app.comms.write('G28\n')
         else:
             Logger.debug("JogRoseWidget: Jog " + axis + ' ' + str(v))
-            comms.write(axis + ' ' + str(v) + '\n')
+            self.app.comms.write(axis + ' ' + str(v) + '\n')
 
 class KbdWidget(GridLayout):
+    def __init__(self, **kwargs):
+        super(KbdWidget, self).__init__(**kwargs)
+        self.app = App.get_running_app()
 
     def _add_to_log(self, s):
-        app= App.get_running_app()
-        app.root.add_to_log(s)
+        self.app.root.add_to_log(s)
 
     def do_action(self, key):
         Logger.debug("KbdWidget: Key " + key)
         if key == 'Send':
             Logger.debug("KbdWidget: Sending " + self.display.text)
             self._add_to_log('<< ' + self.display.text + '\n')
-            comms.write(self.display.text + '\n')
+            self.app.comms.write(self.display.text + '\n')
             self.display.text = ''
         elif key == 'BS':
             self.display.text = self.display.text[:-1]
@@ -173,12 +181,13 @@ class KbdWidget(GridLayout):
 
     def handle_input(self, s):
         self._add_to_log('<< ' + s + '\n')
-        comms.write(s + '\n')
+        self.app.comms.write(s + '\n')
         self.display.text = ''
 
 class MainWindow(BoxLayout):
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
+        self.app = App.get_running_app()
         self.is_connected= False
         #     Clock.schedule_once(self.my_callback, 5)
 
@@ -201,11 +210,11 @@ class MainWindow(BoxLayout):
         if self.is_connected:
             Logger.debug("MainWindow: Disconnecting...")
             self.add_to_log("Disconnecting...\n")
-            comms.disconnect()
+            self.app.comms.disconnect()
         else:
             Logger.debug("MainWindow: Connecting...")
             self.add_to_log("Connecting...\n")
-            comms.connect('/dev/ttyACM0')
+            self.app.comms.connect('/dev/ttyACM0')
 
     @mainthread
     def display(self, data):
@@ -234,18 +243,20 @@ class MainWindow(BoxLayout):
         self.display('! ' + str + '\n')
 
     def do_exit(self):
-        comms.stop()
+        self.app.comms.stop()
         exit()
 
 class SmoothieHost(App):
+    def __init__(self, **kwargs):
+        super(SmoothieHost, self).__init__(**kwargs)
+        self.comms= Comms(self)
+
     #Factory.register('Comms', cls=Comms)
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop
-        comms.stop(); # stop the aysnc loop
+        self.comms.stop(); # stop the aysnc loop
 
     def build(self):
-        global comms
-        comms= Comms(self)
         return MainWindow()
 
 if __name__ == "__main__":
