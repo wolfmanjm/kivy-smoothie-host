@@ -19,8 +19,8 @@ class SerialConnection(asyncio.Protocol):
         self.log.info('SerialConnection: creating SerialCOnnection')
         self.queue = asyncio.Queue(maxsize=100)
         self.hipri_queue = asyncio.Queue()
-        self._msg_ready = asyncio.Event()
         self._ready = asyncio.Event()
+        self._msg_ready = asyncio.Semaphore(value=0)
         self.tsk= asyncio.async(self._send_messages())  # Or asyncio.ensure_future if using 3.4.3+
 
     @asyncio.coroutine
@@ -30,11 +30,11 @@ class SerialConnection(asyncio.Protocol):
         yield from self._ready.wait()
         self.log.debug("SerialConnection: send_messages Ready!")
         while True:
-            yield from self._msg_ready.wait()
-            self._msg_ready.clear()
+            # everty message added to one of the queues increments the semaphore
+            yield from self._msg_ready.acquire()
 
             # see which queue, try hipri queue first
-            while not self.hipri_queue.empty():
+            if not self.hipri_queue.empty():
                 data = self.hipri_queue.get_nowait()
                 self.transport.write(data.encode('utf-8'))
                 self.log.debug('hipri message sent: {!r}'.format(data))
@@ -56,7 +56,7 @@ class SerialConnection(asyncio.Protocol):
     def send_message(self, data, hipri=False):
         """ Feed a message to the sender coroutine. """
         self.log.debug('SerialConnection: send_message - hipri: ' + str(hipri))
-        self._msg_ready.set() # as this is co routines it is safe to set this first
+        self._msg_ready.release()
         if hipri:
             yield from self.hipri_queue.put(data)
         else:
