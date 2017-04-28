@@ -39,8 +39,8 @@ class SerialConnection(asyncio.Protocol):
                 self.transport.write(data.encode('utf-8'))
                 self.log.debug('hipri message sent: {!r}'.format(data))
 
-            # see if anything on normal queue and send it too
-            if not self.queue.empty():
+            elif not self.queue.empty():
+                # see if anything on normal queue and send it
                 data = self.queue.get_nowait()
                 self.transport.write(data.encode('utf-8'))
                 self.log.debug('normal message sent: {!r}'.format(data))
@@ -67,9 +67,10 @@ class SerialConnection(asyncio.Protocol):
         self.data_buffer += data.decode('utf-8')
         if '\n' in self.data_buffer:
             self.log.debug('SerialConnection: data buffer: ' + self.data_buffer)
-            self.cb.incoming_data(self.data_buffer)
-            # Reset the data_buffer!
-            self.data_buffer = ''
+            n= self.data_buffer.rfind('\n') # find last \n and truncate at there as the rest is an unfinished line
+            self.cb.incoming_data(self.data_buffer[0:n+1]) # send what we have including final \n
+            # Reset the data_buffer with whatever is after the last \n
+            self.data_buffer = self.data_buffer[n+1:]
 
     def connection_lost(self, exc):
         self.log.debug('SerialConnection: port closed')
@@ -95,7 +96,7 @@ class Comms():
 
         #logging.getLogger('asyncio').setLevel(logging.DEBUG)
         self.log = logging.getLogger() #.getChild('Comms')
-        logging.getLogger().setLevel(logging.DEBUG)
+        #logging.getLogger().setLevel(logging.DEBUG)
 
     def connect(self, port):
         ''' called from UI to connect to given port, runs the asyncio mainloop in a separate thread '''
@@ -198,13 +199,12 @@ class Comms():
                 self.handle_status(s)
 
             else:
-                self.app.root.display(s + '\n')
+                self.app.root.async_display(s + '\n')
 
     # Handle parsing of temp readings (Lifted mostly from Pronterface)
     tempreport_exp = re.compile("([TB]\d*):([-+]?\d*\.?\d*)(?: ?\/)?([-+]?\d*\.?\d*)")
     def parse_temperature(self, s):
         matches = self.tempreport_exp.findall(s)
-        print(matches)
         return dict((m[0], (m[1], m[2])) for m in matches)
 
     def handle_temperature(self, s):

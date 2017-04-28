@@ -21,6 +21,8 @@ from kivy.logger import Logger
 from kivy.core.window import Window
 from comms import Comms
 
+import queue
+
 Window.softinput_mode = 'pan'
 
 Builder.load_string('''
@@ -42,6 +44,8 @@ Builder.load_string('''
                 height: self.texture_size[1]
                 text_size: self.width, None
         BoxLayout:
+            size_hint_y: None
+            height: 40
             orientation: 'horizontal'
             Button:
                 id: connect_button
@@ -189,6 +193,9 @@ class MainWindow(BoxLayout):
         super(MainWindow, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.is_connected= False
+        self._trigger = Clock.create_trigger(self.async_get_display_data)
+        self._q= queue.Queue()
+
         #     Clock.schedule_once(self.my_callback, 5)
 
     # def my_callback(self, dt):
@@ -216,9 +223,22 @@ class MainWindow(BoxLayout):
             self.add_to_log("Connecting...\n")
             self.app.comms.connect('/dev/ttyACM0')
 
-    @mainthread
     def display(self, data):
         self.add_to_log(data)
+
+    # we have to do this as @mainthread was getting stuff out of order
+    def async_display(self, data):
+        ''' called from external thread to display incoming data '''
+        # puts the data onto queue and triggers an event to read it in the Kivy thread
+        self._q.put(data)
+        self._trigger()
+
+    def async_get_display_data(self, *largs):
+        ''' fetches data from the Queue and displays it, triggered by incoming data '''
+        while not self._q.empty():
+            # we need this loop until q is empty as trigger only triggers once per frame
+            data= self._q.get(False)
+            self.display(data)
 
     @mainthread
     def connected(self):
