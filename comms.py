@@ -17,19 +17,33 @@ class SerialConnection(asyncio.Protocol):
         self.cnt= 0
         self.log = logging.getLogger() #.getChild('SerialConnection')
         self.log.info('SerialConnection: creating SerialCOnnection')
-        self.queue = asyncio.Queue()
+        self.queue = asyncio.Queue(maxsize=100)
+        self.hipri_queue = asyncio.Queue()
+        self._msg_ready = asyncio.Event()
         self._ready = asyncio.Event()
         self.tsk= asyncio.async(self._send_messages())  # Or asyncio.ensure_future if using 3.4.3+
 
     @asyncio.coroutine
     def _send_messages(self):
-        """ Send messages to the server as they become available. """
+        ''' Send messages to the board as they become available. '''
+        # checks high priority queue first
         yield from self._ready.wait()
         self.log.debug("SerialConnection: send_messages Ready!")
         while True:
-            data = yield from self.queue.get()
-            self.transport.write(data.encode('utf-8'))
-            self.log.debug('Message sent: {!r}'.format(data))
+            yield from self._msg_ready.wait()
+            self._msg_ready.clear()
+
+            # see which queue, try hipri queue first
+            while not self.hipri_queue.empty():
+                data = self.hipri_queue.get_nowait()
+                self.transport.write(data.encode('utf-8'))
+                self.log.debug('hipri message sent: {!r}'.format(data))
+
+            # see if anything on normal queue and send it too
+            if not self.queue.empty():
+                data = self.queue.get_nowait()
+                self.transport.write(data.encode('utf-8'))
+                self.log.debug('normal message sent: {!r}'.format(data))
 
     def connection_made(self, transport):
         self.transport = transport
@@ -39,10 +53,14 @@ class SerialConnection(asyncio.Protocol):
         self.cb.connected(True)
 
     @asyncio.coroutine
-    def send_message(self, data):
+    def send_message(self, data, hipri=False):
         """ Feed a message to the sender coroutine. """
-        self.log.debug('SerialConnection: send_message')
-        yield from self.queue.put(data)
+        self.log.debug('SerialConnection: send_message - hipri: ' + str(hipri))
+        self._msg_ready.set() # as this is co routines it is safe to set this first
+        if hipri:
+            yield from self.hipri_queue.put(data)
+        else:
+            yield from self.queue.put(data)
 
     def data_received(self, data):
         #print('data received', repr(data))
@@ -73,12 +91,14 @@ class Comms():
         self.app = app
         self.proto = None
         self.okcnt= 0
+        self.timer= None
+
         #logging.getLogger('asyncio').setLevel(logging.DEBUG)
         self.log = logging.getLogger() #.getChild('Comms')
         logging.getLogger().setLevel(logging.DEBUG)
 
     def connect(self, port):
-        ''' called from UI to connect to given port, runs the asyncio mainlopp in a separate thread '''
+        ''' called from UI to connect to given port, runs the asyncio mainloop in a separate thread '''
         self.port= port
         self.log.info('Comms: creating comms thread')
         threading.Thread(target=self.run_async_loop).start()
@@ -102,6 +122,8 @@ class Comms():
             self.log.debug('Comms: writing ' + data)
             async_main_loop.call_soon_threadsafe(self._write, data)
             #asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
+        else:
+            self.log.warning('Comms: Cannot write to closed connection: ' + data)
 
     def _write(self, data):
         # calls the send_message in Serial Connection proto which is a queue
@@ -109,17 +131,31 @@ class Comms():
         if self.proto:
            asyncio.async(self.proto.send_message(data))
 
+    def _get_reports(self):
+        # calls the send_message in Serial Connection proto which is a queue
+        if self.proto:
+           asyncio.async(self.proto.send_message('M105\n', True))
+           asyncio.async(self.proto.send_message('?', True))
+           self.timer = async_main_loop.call_later(5, self._get_reports)
+
     def stop(self):
         ''' called by ui thread when it is exiting '''
         if self.proto:
             async_main_loop.call_soon_threadsafe(self.proto.transport.close)
         else:
             if async_main_loop:
+                if self.timer:
+                    self.timer.cancel()
                 async_main_loop.call_soon_threadsafe(async_main_loop.stop)
+
 
     def run_async_loop(self):
         ''' called by connect in a new thread to setup and start the asyncio loop '''
         global async_main_loop
+
+        if async_main_loop:
+            self.log.error("Comms: Already running cannot connect again")
+            return
 
         newloop = asyncio.new_event_loop()
         asyncio.set_event_loop(newloop)
@@ -130,12 +166,15 @@ class Comms():
         try:
             _, self.proto = loop.run_until_complete(serial_conn) # sets up connection returning transport and protocol handler
             self._write('version\n') # issue a version command to get things started
+            self.timer = loop.call_later(5, self._get_reports)
             loop.run_forever()
         except Exception as err:
             self.log.error("Comms: Got serial error opening port: {0}".format(err))
             self.app.root.error_message("Connect failed: {0}".format(err))
 
         finally:
+            if self.timer:
+                self.timer.cancel()
             loop.close()
             async_main_loop= None
             self.log.debug('Comms: asyncio thread Exiting...')
