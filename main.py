@@ -107,16 +107,12 @@ class ExtruderWidget(BoxLayout):
                 self.ids.bed_dg.value= temp
             if setpoint:
                 self.ids.set_bed_temp.text= str(setpoint)
-                # FIXME when we set this it tries to set the temp on smoothie
-            #self.ids.bed_temp.text = str(temp)
 
         elif type == 'hotend':
             if temp:
                 self.ids.hotend_dg.value= temp
             if setpoint:
                 self.ids.set_hotend_temp.text= str(setpoint)
-                # FIXME when we set this it tries to set the temp on smoothie
-            #self.ids.hotend_temp.text = str(temp)
 
         else:
             Logger.error('Extruder: unknown temp type - ' + type)

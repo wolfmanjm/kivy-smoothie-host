@@ -20,6 +20,8 @@
             text: 'Hotend:'
         Button:
             text: 'Off'
+            size_hint_y: None
+            height: 40
             on_press:
                 set_hotend_temp.text= set_hotend_temp.values[0]
                 root.set_temp('hotend', '0')
@@ -27,12 +29,14 @@
         Spinner:
             id: set_hotend_temp
             text: '0 (off)'
-            values: ('0 (off)', '185 (PLA)', '230 (abs)', '0 (Last)')
+            values: ('0 (off)', '185 (PLA)', '230 (abs)')
             size_hint_y: None
-            height: '48dp'
+            height: 40
             #on_text: root.set_temp('hotend', float(self.text))
         Button:
             text: 'Set'
+            size_hint_y: None
+            height: 40
             on_press: root.set_temp('hotend', set_hotend_temp.text.split()[0])
 
         Label:
@@ -42,6 +46,8 @@
             text: 'Bed:'
         Button:
             text: 'Off'
+            size_hint_y: None
+            height: 40
             on_press:
                 set_bed_temp.text= set_bed_temp.values[0]
                 root.set_temp('bed', '0')
@@ -49,13 +55,15 @@
         Spinner:
             id: set_bed_temp
             text: '0 (off)'
-            values: ('0 (off)', '60 (PLA)', '110 (abs)', '0 (Last)')
+            values: ('0 (off)', '60 (PLA)', '110 (abs)')
             size_hint_y: None
-            height: '48dp'
+            height: 40
             #on_text: root.set_temp('bed', self.text)
 
         Button:
             text: 'Set'
+            size_hint_y: None
+            height: 40
             on_press: root.set_temp('bed', set_bed_temp.text.split()[0])
 
     BoxLayout:

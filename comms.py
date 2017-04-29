@@ -29,19 +29,19 @@ class SerialConnection(asyncio.Protocol):
         yield from self._ready.wait()
         self.log.debug("SerialConnection: send_messages Ready!")
         while True:
-            # everty message added to one of the queues increments the semaphore
+            # every message added to one of the queues increments the semaphore
             yield from self._msg_ready.acquire()
 
             # see which queue, try hipri queue first
             if not self.hipri_queue.empty():
                 data = self.hipri_queue.get_nowait()
-                self.transport.write(data.encode('latin-1'))
+                self.transport.write(data.encode('utf-8'))
                 self.log.debug('hipri message sent: {!r}'.format(data))
 
             elif not self.queue.empty():
                 # see if anything on normal queue and send it
                 data = self.queue.get_nowait()
-                self.transport.write(data.encode('latin-1'))
+                self.transport.write(data.encode('utf-8'))
                 self.log.debug('normal message sent: {!r}'.format(data))
 
     def connection_made(self, transport):
@@ -64,10 +64,12 @@ class SerialConnection(asyncio.Protocol):
     def data_received(self, data):
         #print('data received', repr(data))
         try:
-            self.cb.incoming_data(data.decode('latin-1'))
+            # FIXME this is a problem when it splits utf-8, may need to get whole lines here anyway
+            self.cb.incoming_data(data.decode('utf-8'))
 
         except Exception as err:
             self.log.error("SerialConnection: Got decode error on data {}: {}".format(repr(data), err))
+            self.cb.incoming_data(repr(data)) # send it upstream anyway
 
 
     def connection_lost(self, exc):
