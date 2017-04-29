@@ -219,11 +219,11 @@ class Comms():
             if "T" in temps and temps["T"][0]:
                 hotend_temp = float(temps["T"][0])
 
-            if temps["T"][1]:
+            if "T" in temps and temps["T"][1]:
                 hotend_setpoint = float(temps["T"][1])
 
             bed_temp = float(temps["B"][0]) if "B" in temps and temps["B"][0] else None
-            if temps["B"][1]:
+            if "B" in temps and temps["B"][1]:
                 bed_setpoint = float(temps["B"][1])
 
             self.log.debug('Comms: got temps hotend:{0}, bed:{1}, hotend_setpoint:{2}, bed_setpoint:{3}'.format(hotend_temp, bed_temp, hotend_setpoint, bed_setpoint))
