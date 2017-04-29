@@ -123,12 +123,12 @@ class ExtruderWidget(BoxLayout):
 
     def extrude(self):
         ''' called when the extrude button is pressed '''
-        Logger.info('Extruder: extrude {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
+        Logger.debug('Extruder: extrude {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
         self.app.comms.write('G91 G0 E{0} F{1} G90\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
 
     def reverse(self):
         ''' called when the reverse button is pressed '''
-        Logger.info('Extruder: reverse {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
+        Logger.debug('Extruder: reverse {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
         self.app.comms.write('G91 G0 E-{0} F{1} G90\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
 
 class CircularButton(ButtonBehavior, Widget):
@@ -154,13 +154,10 @@ class JogRoseWidget(BoxLayout):
         if x10:
             v *= 10
         if axis == 'O':
-            Logger.debug("JogRoseWidget: G0 X0 Y0")
             self.app.comms.write('G0 X0 Y0\n')
         elif axis == 'H':
-            Logger.debug("JogRoseWidget: G28")
             self.app.comms.write('G28\n')
         else:
-            Logger.debug("JogRoseWidget: Jog " + axis + ' ' + str(v))
             self.app.comms.write(axis + ' ' + str(v) + '\n')
 
 class KbdWidget(GridLayout):
@@ -168,15 +165,14 @@ class KbdWidget(GridLayout):
         super(KbdWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
-    def _add_to_log(self, s):
-        self.app.root.add_to_log(s)
+    def _add_line_to_log(self, s):
+        self.app.root.add_line_to_log(s)
 
     def do_action(self, key):
-        Logger.debug("KbdWidget: Key " + key)
         if key == 'Send':
-            Logger.debug("KbdWidget: Sending " + self.display.text)
-            self._add_to_log('<< ' + self.display.text + '\n')
-            self.app.comms.write(self.display.text + '\n')
+            #Logger.debug("KbdWidget: Sending {}".format(self.display.text))
+            self._add_line_to_log('<< {}'.format(self.display.text))
+            self.app.comms.write('{}\n'.format(self.display.text))
             self.display.text = ''
         elif key == 'BS':
             self.display.text = self.display.text[:-1]
@@ -184,8 +180,8 @@ class KbdWidget(GridLayout):
             self.display.text += key
 
     def handle_input(self, s):
-        self._add_to_log('<< ' + s + '\n')
-        self.app.comms.write(s + '\n')
+        self._add_line_to_log('<< {}'.format(s))
+        self.app.comms.write('{}\n'.format(s))
         self.display.text = ''
 
 class MainWindow(BoxLayout):
@@ -195,6 +191,7 @@ class MainWindow(BoxLayout):
         self.is_connected= False
         self._trigger = Clock.create_trigger(self.async_get_display_data)
         self._q= queue.Queue()
+        self._log= []
 
         #     Clock.schedule_once(self.my_callback, 5)
 
@@ -202,29 +199,28 @@ class MainWindow(BoxLayout):
     #     Logger.debug("switch page")
     #     self.ids.page_layout.page= 2
 
-    def add_to_log(self, s):
+    def add_line_to_log(self, s):
         ''' Add lines to the log window, which is trimmed to the last 200 lines '''
-        max_lines= 200
-        self.ids.log_window.text += s
-        n= self.ids.log_window.text.count('\n')
+        max_lines= 200 # TODO needs to be configurable
+        self._log.append(s)
         # we use some hysterysis here so we don't truncate every line added over max_lines
-        if n > max_lines+10: # TODO needs to be configurable
-            # truncate string to last max_lines
-            l= self.ids.log_window.text.splitlines(keepends=True)
-            self.ids.log_window.text = ''.join(l[-max_lines:])
+        n= len(self._log) - max_lines # how many lines over our max
+        if n > 10:
+            # truncate log to last max_lines, we delete the oldest 10 or so lines
+            del self._log[0:n]
+
+        self.ids.log_window.text= '\n'.join(self._log)
 
     def connect(self):
         if self.is_connected:
-            Logger.debug("MainWindow: Disconnecting...")
-            self.add_to_log("Disconnecting...\n")
+            self.add_line_to_log("Disconnecting...")
             self.app.comms.disconnect()
         else:
-            Logger.debug("MainWindow: Connecting...")
-            self.add_to_log("Connecting...\n")
+            self.add_line_to_log("Connecting...")
             self.app.comms.connect('/dev/ttyACM0')
 
     def display(self, data):
-        self.add_to_log(data)
+        self.add_line_to_log(data)
 
     # we have to do this as @mainthread was getting stuff out of order
     def async_display(self, data):
@@ -258,9 +254,6 @@ class MainWindow(BoxLayout):
             self.ids.extruder.update_temp('hotend', he, hesp)
         if be:
             self.ids.extruder.update_temp('bed', be, besp)
-
-    def error_message(self, str):
-        self.display('! ' + str + '\n')
 
     def do_exit(self):
         self.app.comms.stop()

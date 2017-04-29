@@ -13,7 +13,6 @@ class SerialConnection(asyncio.Protocol):
     def __init__(self, cb):
         super().__init__()
         self.cb = cb
-        self.data_buffer = ''
         self.cnt= 0
         self.log = logging.getLogger() #.getChild('SerialConnection')
         self.log.info('SerialConnection: creating SerialCOnnection')
@@ -36,13 +35,13 @@ class SerialConnection(asyncio.Protocol):
             # see which queue, try hipri queue first
             if not self.hipri_queue.empty():
                 data = self.hipri_queue.get_nowait()
-                self.transport.write(data.encode('utf-8'))
+                self.transport.write(data.encode('latin-1'))
                 self.log.debug('hipri message sent: {!r}'.format(data))
 
             elif not self.queue.empty():
                 # see if anything on normal queue and send it
                 data = self.queue.get_nowait()
-                self.transport.write(data.encode('utf-8'))
+                self.transport.write(data.encode('latin-1'))
                 self.log.debug('normal message sent: {!r}'.format(data))
 
     def connection_made(self, transport):
@@ -64,13 +63,12 @@ class SerialConnection(asyncio.Protocol):
 
     def data_received(self, data):
         #print('data received', repr(data))
-        self.data_buffer += data.decode('utf-8')
-        if '\n' in self.data_buffer:
-            self.log.debug('SerialConnection: data buffer: ' + self.data_buffer)
-            n= self.data_buffer.rfind('\n') # find last \n and truncate at there as the rest is an unfinished line
-            self.cb.incoming_data(self.data_buffer[0:n+1]) # send what we have including final \n
-            # Reset the data_buffer with whatever is after the last \n
-            self.data_buffer = self.data_buffer[n+1:]
+        try:
+            self.cb.incoming_data(data.decode('latin-1'))
+
+        except Exception as err:
+            self.log.error("SerialConnection: Got decode error on data {}: {}".format(repr(data), err))
+
 
     def connection_lost(self, exc):
         self.log.debug('SerialConnection: port closed')
@@ -93,6 +91,7 @@ class Comms():
         self.proto = None
         self.okcnt= 0
         self.timer= None
+        self._fragment= None
 
         #logging.getLogger('asyncio').setLevel(logging.DEBUG)
         self.log = logging.getLogger() #.getChild('Comms')
@@ -120,7 +119,7 @@ class Comms():
     def write(self, data):
         ''' Write to serial port, called from UI thread '''
         if self.proto and async_main_loop:
-            self.log.debug('Comms: writing ' + data)
+            #self.log.debug('Comms: writing ' + data)
             async_main_loop.call_soon_threadsafe(self._write, data)
             #asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
         else:
@@ -171,7 +170,7 @@ class Comms():
             loop.run_forever()
         except Exception as err:
             self.log.error("Comms: Got serial error opening port: {0}".format(err))
-            self.app.root.error_message("Connect failed: {0}".format(err))
+            self.app.root.async_display(">>> Connect failed: {0}".format(err))
 
         finally:
             if self.timer:
@@ -181,11 +180,26 @@ class Comms():
             self.log.debug('Comms: asyncio thread Exiting...')
 
     # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
+    # Note the data could be a line fragment and we need to only process complete lines terminated with \n
     tempreading_exp = re.compile("(^T:| T:)")
     def incoming_data(self, data):
-        ''' called by Serial connection when incoming data is recieved '''
-        l= data.splitlines()
+        ''' called by Serial connection when incoming data is received '''
+        l= data.splitlines(1)
+
         for s in l:
+            if self._fragment:
+                # handle line fragment
+                s= ''.join( (self._fragment, s) )
+                self._fragment= None
+
+            if not s.endswith('\n'):
+                # this is the last line and is a fragment
+                self._fragment= s
+                break
+
+            # process a complete line
+            s= s.rstrip() # strip off \n
+
             if s in 'ok':
                 self.okcnt += 1
 
@@ -199,7 +213,7 @@ class Comms():
                 self.handle_status(s)
 
             else:
-                self.app.root.async_display(s + '\n')
+                self.app.root.async_display('{}'.format(s))
 
     # Handle parsing of temp readings (Lifted mostly from Pronterface)
     tempreport_exp = re.compile("([TB]\d*):([-+]?\d*\.?\d*)(?: ?\/)?([-+]?\d*\.?\d*)")
@@ -226,7 +240,7 @@ class Comms():
             if "B" in temps and temps["B"][1]:
                 bed_setpoint = float(temps["B"][1])
 
-            self.log.debug('Comms: got temps hotend:{0}, bed:{1}, hotend_setpoint:{2}, bed_setpoint:{3}'.format(hotend_temp, bed_temp, hotend_setpoint, bed_setpoint))
+            self.log.debug('Comms: got temps hotend:{}, bed:{}, hotend_setpoint:{}, bed_setpoint:{}'.format(hotend_temp, bed_temp, hotend_setpoint, bed_setpoint))
             self.app.root.update_temps(hotend_temp, hotend_setpoint, bed_temp, bed_setpoint)
             #self.app.root.update_temps(185.5, 185.0, 50.5, 60.0)
 
@@ -240,7 +254,7 @@ class Comms():
             x= float(l[2][2:])
             y= float(l[3][2:])
             z= float(l[4][2:])
-            self.log.debug('Comms: got pos: X {0}, Y {1} Z {2}'.format(x, y, z))
+            self.log.debug('Comms: got pos: X {}, Y {} Z {}'.format(x, y, z))
             #self.app.root.update_position(x, y, z)
 
     def handle_status(self, s):
@@ -254,5 +268,5 @@ class Comms():
             mpos= (float(sl[1][5:]), float(sl[2]), float(sl[3]))
             # strip off wpos
             wpos= (float(sl[4][5:]), float(sl[5]), float(sl[6][:-1]))
-            self.log.debug('Comms: got status:{0}, mpos:{1},{2},{3}, wpos:{4},{5},{6}'.format(status, mpos[0], mpos[1], mpos[2], wpos[0], wpos[1], wpos[2]))
+            self.log.debug('Comms: got status:{}, mpos:{},{},{}, wpos:{},{},{}'.format(status, mpos[0], mpos[1], mpos[2], wpos[0], wpos[1], wpos[2]))
             #self.app.root.update_status(status, mpos, wpos)
