@@ -42,6 +42,10 @@
                 value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
                 value_color: [0,1,0,1]
 
+                # setup three annulars of different colors
+                annulars: [{'color': [0,1,0,1], 'start': 20.0, 'stop': 60.0}, {'color': [1, 165.0/255, 0, 1], 'start': 60.0, 'stop': 80.0}, {'color': [1, 0, 0, 1], 'start': 80.0, 'stop': 230.0}]
+                annular_thickness: 6
+
             Label:
                 text: 'Hotend'
                 size_hint_y: None
@@ -60,7 +64,7 @@
                 value: self.scale_min
 
                 # example for half temperature gauge
-                scale_increment: 20
+                scale_increment: 10
                 semi_circle: True
                 angle_start: 90
                 angle_stop: 270
@@ -76,6 +80,10 @@
                 show_value: True
                 value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
                 value_color: [0,1,0,1]
+
+                # setup two annulars of different colors
+                annulars: [{'color': [0,1,0,1], 'start': 20.0, 'stop': 60.0},  {'color': [1, 0, 0, 1], 'start': 60.0, 'stop': 120.0}]
+                annular_thickness: 6
 
             Label:
                 text: 'Bed'

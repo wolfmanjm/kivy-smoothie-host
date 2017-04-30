@@ -140,6 +140,11 @@ if __name__ == '__main__':
             show_value: True
             value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
             value_color: [0,1,0,1]
+
+            # setup three annulars of different colors
+            annulars: [{'color': [0,1,0,1], 'start': 20.0, 'stop': 60.0}, {'color': [1, 165.0/255, 0, 1], 'start': 60.0, 'stop': 80.0}, {'color': [1, 0, 0, 1], 'start': 80.0, 'stop': 260.0}]
+            annular_thickness: 6
+
         Label:
             text: 'test dial'
             size_hint_y: None
@@ -198,10 +203,12 @@ class DialGauge(Widget):
     value_color = ListProperty([0,0,1,1])
     value_font_size = NumericProperty(20)
     scale_font_size = NumericProperty(10)
-
+    annulars = ListProperty()
+    annular_thickness = NumericProperty(8)
 
     def __init__(self, **kwargs):
         super(DialGauge, self).__init__(**kwargs)
+        self.annular_canvas= None
         self.draw_annulars()
         self.draw_ticks()
         self.bind(pos=self._redraw, size=self._redraw)
@@ -220,31 +227,39 @@ class DialGauge(Widget):
     dial_center = AliasProperty(get_dial_center, set_dial_center, bind=['size', 'pos'])
 
     def _redraw(self, instance, value):
-        self.canvas.before.remove(self.annulars)
+        if self.annular_canvas:
+            self.canvas.before.remove(self.annular_canvas)
         self.draw_annulars()
         self.canvas.remove(self.ticks)
         self.draw_ticks()
 
     def draw_annulars(self):
-        self.annulars = InstructionGroup()
+        # draw annulars that are in the annulars list:
+        # requires properties annular_thickness, and a list of dicts {color: , start: , stop: }, ...,
+        # where start and stop are the values of the scale to start and stop the annular
 
-        # draw three annulars green, orange, red
-        # TODO make this configurable
-        awidth= 6
-        self.annulars.add(Color(0, 1, 0, 1))
+        if len(self.annulars) == 0:
+            return
+
+        awidth= self.annular_thickness
+        self.annular_canvas = InstructionGroup()
+
         if self.semi_circle:
-            self.annulars.add(PushMatrix())
-            self.annulars.add(Translate(0, -self.dial_diameter/2+self.hub_radius))
+            self.annular_canvas.add(PushMatrix())
+            self.annular_canvas.add(Translate(0, -self.dial_diameter/2+self.hub_radius))
 
-        self.annulars.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_diameter-awidth*2, self.dial_diameter-awidth*2, -90, -50), width=awidth, cap= 'none', joint='round'))
-        self.annulars.add(Color(1, 165.0/255, 0, 1))
-        self.annulars.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_diameter-awidth*2, self.dial_diameter-awidth*2, -50, 0), width=awidth, cap= 'none', joint='round'))
-        self.annulars.add(Color(1, 0, 0, 1))
-        self.annulars.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_diameter-awidth*2, self.dial_diameter-awidth*2, 0, 94), width=awidth, cap= 'none', joint='round'))
+        for a in self.annulars:
+            self.annular_canvas.add(Color(*a.get('color', [0,1,0,1])))
+            st= a.get('start', self.scale_min)
+            en= a.get('stop', self.scale_max)
+            st= -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * (float(st-self.scale_min) / (self.scale_max-self.scale_min)))
+            en= -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * ((en-self.scale_min) / (self.scale_max-self.scale_min)))
+            self.annular_canvas.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_diameter-awidth*2, self.dial_diameter-awidth*2, st+awidth/2.0-self.tic_width, en+awidth/2.0), width=awidth, cap= 'none', joint='round'))
+
         if self.semi_circle:
-            self.annulars.add(PopMatrix())
+            self.annular_canvas.add(PopMatrix())
 
-        self.canvas.before.add(self.annulars)
+        self.canvas.before.add(self.annular_canvas)
 
     def draw_ticks(self):
         scangle= self.angle_stop-self.angle_start
