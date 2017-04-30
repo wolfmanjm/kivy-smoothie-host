@@ -12,6 +12,8 @@ from kivy.uix.slider import Slider
 from kivy.vector import Vector
 from kivy.core.text import Label as CoreLabel
 
+import math
+
 Builder.load_string('''
 <DialGauge>:
     id: dial_gauge
@@ -212,7 +214,7 @@ class DialGauge(Widget):
 
     setpoint_thickness = NumericProperty(2)
     setpoint_length = NumericProperty(None)
-    setpoint_value = NumericProperty(None)
+    setpoint_value = NumericProperty(float('nan'))
     setpoint_color = ListProperty([0,0,0,1])
 
     def __init__(self, **kwargs):
@@ -325,8 +327,9 @@ class DialGauge(Widget):
         # draw a setpoint
         if self.setpoint_canvas:
             self.canvas.after.remove(self.setpoint_canvas)
+            self.setpoint_canvas= None
 
-        if not self.setpoint_value:
+        if math.isnan(self.setpoint_value):
             return
 
         v= -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * (float(self.setpoint_value-self.scale_min) / (self.scale_max-self.scale_min)))

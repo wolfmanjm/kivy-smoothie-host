@@ -22,6 +22,7 @@ from kivy.core.window import Window
 from comms import Comms
 
 import queue
+import math
 
 Window.softinput_mode = 'pan'
 
@@ -126,7 +127,6 @@ class ExtruderWidget(BoxLayout):
             self.app.comms.write('M140 S{0}\n'.format(str(temp)))
         elif type == 'hotend':
             self.app.comms.write('M104 S{0}\n'.format(str(temp)))
-            self.app.root.update_temps(155.5, 185.0, 50.5, 60.0)
 
 
     def update_temp(self, type, temp, setpoint):
@@ -134,16 +134,17 @@ class ExtruderWidget(BoxLayout):
         if type == 'bed':
             if temp:
                 self.ids.bed_dg.value= temp
-            if setpoint:
+            if not math.isnan(setpoint):
                 self.ids.set_bed_temp.text= str(setpoint)
-                self.ids.bed_dg.setpoint_value= setpoint if setpoint > 0 else None
+                self.ids.bed_dg.setpoint_value= setpoint if setpoint > 0 else float('nan')
+                print(setpoint)
 
         elif type == 'hotend':
             if temp:
                 self.ids.hotend_dg.value= temp
-            if setpoint:
+            if not math.isnan(setpoint):
                 self.ids.set_hotend_temp.text= str(setpoint)
-                self.ids.hotend_dg.setpoint_value= setpoint if setpoint > 0 else None
+                self.ids.hotend_dg.setpoint_value= setpoint if setpoint > 0 else float('nan')
 
         else:
             Logger.error('Extruder: unknown temp type - ' + type)
