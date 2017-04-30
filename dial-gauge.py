@@ -56,7 +56,7 @@ Builder.load_string('''
             rgb: self.needle_color
         PushMatrix
         Rotate:
-            angle: -180+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * ((self.value-self.scale_min) / (self.scale_max-self.scale_min)))
+            angle: self.value_to_angle(self.value)
             axis: 0,0,-1 # we want clockwise rotation
             origin: self.dial_center
         Translate:
@@ -143,7 +143,7 @@ if __name__ == '__main__':
             value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
             value_color: [0,1,0,1]
 
-            setpoint_value: 185
+            setpoint_value: 185.0
             setpoint_color: 1,1,1,1
             setpoint_length: self.dial_diameter/2 - 24
 
@@ -242,6 +242,9 @@ class DialGauge(Widget):
 
     dial_center = AliasProperty(get_dial_center, set_dial_center, bind=['size', 'pos'])
 
+    def value_to_angle(self, v):
+        return -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * ((float(v)-self.scale_min) / (self.scale_max-self.scale_min)))
+
     def _redraw(self, instance, value):
         if self.annular_canvas:
             self.canvas.before.remove(self.annular_canvas)
@@ -267,10 +270,8 @@ class DialGauge(Widget):
 
         for a in self.annulars:
             self.annular_canvas.add(Color(*a.get('color', [0,1,0,1])))
-            st= a.get('start', self.scale_min)
-            en= a.get('stop', self.scale_max)
-            st= -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * (float(st-self.scale_min) / (self.scale_max-self.scale_min)))
-            en= -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * ((en-self.scale_min) / (self.scale_max-self.scale_min)))
+            st= self.value_to_angle(a.get('start', self.scale_min))
+            en= self.value_to_angle(a.get('stop', self.scale_max))
             self.annular_canvas.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_diameter-awidth*2, self.dial_diameter-awidth*2, st+awidth/2.0-self.tic_width, en+awidth/2.0), width=awidth, cap= 'none', joint='round'))
 
         if self.semi_circle:
@@ -332,7 +333,7 @@ class DialGauge(Widget):
         if math.isnan(self.setpoint_value):
             return
 
-        v= -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * (float(self.setpoint_value-self.scale_min) / (self.scale_max-self.scale_min)))
+        v= self.value_to_angle(self.setpoint_value)
         length= self.dial_diameter/2.0-self.tic_length if not self.setpoint_length else self.setpoint_length
         self.setpoint_canvas = InstructionGroup()
 
