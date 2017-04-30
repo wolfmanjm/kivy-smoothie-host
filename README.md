@@ -18,7 +18,8 @@ I upgraded to an RPI-3 Model B and it runs much better, so I recommend them they
 I suspect an RPI-2 Model B will also run pretty well.
 
 
-## Install
+## Install on RPI
+
 I use kivypi from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box.
 Recommended to do a sudo apt-get update and sudo apt-get upgrade.
 
@@ -29,7 +30,7 @@ Run with...
 
 > kivy main.py
 
-### On linux (and maybe windows/macos)
+### On linux Desktop (and maybe windows/macos)
 
 Install kivy for python3 from your distro:-
 
