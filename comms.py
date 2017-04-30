@@ -244,7 +244,6 @@ class Comms():
 
             self.log.debug('Comms: got temps hotend:{}, bed:{}, hotend_setpoint:{}, bed_setpoint:{}'.format(hotend_temp, bed_temp, hotend_setpoint, bed_setpoint))
             self.app.root.update_temps(hotend_temp, hotend_setpoint, bed_temp, bed_setpoint)
-            #self.app.root.update_temps(185.5, 185.0, 50.5, 60.0)
 
         except:
             self.log.error(traceback.format_exc())

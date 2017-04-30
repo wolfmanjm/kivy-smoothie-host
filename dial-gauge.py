@@ -141,6 +141,10 @@ if __name__ == '__main__':
             value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
             value_color: [0,1,0,1]
 
+            setpoint_value: 185
+            setpoint_color: 1,1,1,1
+            setpoint_length: self.dial_diameter/2 - 24
+
             # setup three annulars of different colors
             annulars: [{'color': [0,1,0,1], 'start': 20.0, 'stop': 60.0}, {'color': [1, 165.0/255, 0, 1], 'start': 60.0, 'stop': 80.0}, {'color': [1, 0, 0, 1], 'start': 80.0, 'stop': 260.0}]
             annular_thickness: 6
@@ -206,12 +210,22 @@ class DialGauge(Widget):
     annulars = ListProperty()
     annular_thickness = NumericProperty(8)
 
+    setpoint_thickness = NumericProperty(2)
+    setpoint_length = NumericProperty(None)
+    setpoint_value = NumericProperty(None)
+    setpoint_color = ListProperty([0,0,0,1])
+
     def __init__(self, **kwargs):
         super(DialGauge, self).__init__(**kwargs)
         self.annular_canvas= None
+        self.setpoint_canvas= None
+
         self.draw_annulars()
         self.draw_ticks()
+        self.draw_setpoint()
+
         self.bind(pos=self._redraw, size=self._redraw)
+        self.bind(setpoint_value=self.draw_setpoint)
 
     def get_dial_center(self):
         x= self.pos[0] + self.dial_diameter / 2.
@@ -232,6 +246,7 @@ class DialGauge(Widget):
         self.draw_annulars()
         self.canvas.remove(self.ticks)
         self.draw_ticks()
+        self.draw_setpoint()
 
     def draw_annulars(self):
         # draw annulars that are in the annulars list:
@@ -305,7 +320,28 @@ class DialGauge(Widget):
             x += inc
 
         self.canvas.add(self.ticks)
-        #self.add_widget(Label(text='hello'))
+
+    def draw_setpoint(self, *args):
+        # draw a setpoint
+        if self.setpoint_canvas:
+            self.canvas.after.remove(self.setpoint_canvas)
+
+        if not self.setpoint_value:
+            return
+
+        v= -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * (float(self.setpoint_value-self.scale_min) / (self.scale_max-self.scale_min)))
+        length= self.dial_diameter/2.0-self.tic_length if not self.setpoint_length else self.setpoint_length
+        self.setpoint_canvas = InstructionGroup()
+
+        self.setpoint_canvas.add(PushMatrix())
+        self.setpoint_canvas.add(Color(*self.setpoint_color))
+        self.setpoint_canvas.add(Rotate(angle=v, axis=(0,0,-1), origin= self.dial_center))
+        self.setpoint_canvas.add(Translate(self.dial_center[0], self.dial_center[1]))
+        self.setpoint_canvas.add(Line(points=[0, 0, 0, length], width=self.setpoint_thickness, cap= 'none'))
+        self.setpoint_canvas.add(PopMatrix())
+
+        self.canvas.after.add(self.setpoint_canvas)
+
 
 
 if __name__ == '__main__':
