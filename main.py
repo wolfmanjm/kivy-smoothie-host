@@ -69,22 +69,22 @@ Builder.load_string('''
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 34
+            height: 44
             padding: 1
             spacing: 4
             Button:
                 size_hint_y: None
-                height: 30
+                height: 40
                 text: 'Console'
                 on_press: page_layout.page= 0
             Button:
                 size_hint_y: None
-                height: 30
+                height: 40
                 text: 'Jog'
                 on_press: page_layout.page= 1
             Button:
                 size_hint_y: None
-                height: 30
+                height: 40
                 text: 'Extruder'
                 on_press: page_layout.page= 2
 
