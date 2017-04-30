@@ -21,6 +21,8 @@ from kivy.logger import Logger
 from kivy.core.window import Window
 from comms import Comms
 
+from message_box import MessageBox
+
 import queue
 import math
 
@@ -62,7 +64,12 @@ Builder.load_string('''
                 size_hint_y: None
                 height: 40
                 text: 'Quit'
-                on_press: root.do_exit()
+                on_press: root.ask_exit()
+            Button:
+                size_hint_y: None
+                height: 40
+                text: 'Shutdown'
+                on_press: root.ask_shutdown()
 
     # Right panel
     BoxLayout:
@@ -221,7 +228,7 @@ class MainWindow(BoxLayout):
         self._trigger = Clock.create_trigger(self.async_get_display_data)
         self._q= queue.Queue()
         self._log= []
-        print('font size: {}'.format(self.ids.log_window.font_size))
+        #print('font size: {}'.format(self.ids.log_window.font_size))
 
         #     Clock.schedule_once(self.my_callback, 5)
 
@@ -285,9 +292,25 @@ class MainWindow(BoxLayout):
         if be:
             self.ids.extruder.update_temp('bed', be, besp)
 
-    def do_exit(self):
-        self.app.comms.stop()
-        exit()
+    def ask_exit(self):
+        # are you sure?
+        mb = MessageBox(text='Exit - Are you Sure?', cb= lambda b: self.do_exit(b))
+        mb.open()
+
+    def do_exit(self, b):
+        if b:
+            self.app.comms.stop()
+            exit()
+
+    def ask_shutdown(self):
+        # are you sure?
+        mb = MessageBox(text='Shutdown - Are you Sure?', cb= lambda b: self.do_shutdown(b))
+        mb.open()
+
+    def do_shutdown(self, ok):
+        if ok:
+            #sys.system('sudo halt -p')
+            self.do_exit(True)
 
 class SmoothieHost(App):
     def __init__(self, **kwargs):
