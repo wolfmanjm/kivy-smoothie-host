@@ -24,7 +24,7 @@ from comms import Comms
 import queue
 import math
 
-Window.softinput_mode = 'pan'
+Window.softinput_mode = 'below_target'
 
 Builder.load_string('''
 #:include jogrose.kv
