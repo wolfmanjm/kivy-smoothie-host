@@ -8,74 +8,10 @@
             pos: self.pos
             size: self.size
 
-    GridLayout:
-        cols: 4
-        padding: 10, 5
-        spacing: 5
-        #size_hint: 1.0, 0.5
-        Label:
-            halign: 'right'
-            valign: 'middle'
-            text_size: self.size
-            text: 'Hotend:'
-        Button:
-            text: 'Off'
-            size_hint_y: None
-            height: 40
-            on_press:
-                set_hotend_temp.text= set_hotend_temp.values[0]
-                root.set_temp('hotend', '0')
-
-        Spinner:
-            id: set_hotend_temp
-            text: '0 (off)'
-            values: ('0 (off)', '185 (PLA)', '230 (abs)')
-            size_hint_y: None
-            height: 40
-            #on_text: root.set_temp('hotend', float(self.text))
-        Button:
-            text: 'Set'
-            size_hint_y: None
-            height: 40
-            on_press: root.set_temp('hotend', set_hotend_temp.text.split()[0])
-
-        Label:
-            halign: 'right'
-            valign: 'middle'
-            text_size: self.size
-            text: 'Bed:'
-        Button:
-            text: 'Off'
-            size_hint_y: None
-            height: 40
-            on_press:
-                set_bed_temp.text= set_bed_temp.values[0]
-                root.set_temp('bed', '0')
-
-        Spinner:
-            id: set_bed_temp
-            text: '0 (off)'
-            values: ('0 (off)', '60 (PLA)', '110 (abs)')
-            size_hint_y: None
-            height: 40
-            #on_text: root.set_temp('bed', self.text)
-
-        Button:
-            text: 'Set'
-            size_hint_y: None
-            height: 40
-            on_press: root.set_temp('bed', set_bed_temp.text.split()[0])
-
     BoxLayout:
         orientation: 'horizontal'
         size_hint_y: None
-
-        # canvas.before:
-        #     Color:
-        #         rgba: 1, 0, 0, 1
-        #     Rectangle:
-        #         pos: self.pos
-        #         size: self.size
+        height: 130
 
         BoxLayout:
             orientation: 'vertical'
@@ -145,6 +81,66 @@
                 text: 'Bed'
                 size_hint_y: None
                 size: self.texture_size
+
+    GridLayout:
+        cols: 4
+        padding: 10, 5
+        spacing: 5
+        size_hint_y: None
+        height: 100
+
+        Label:
+            halign: 'right'
+            valign: 'middle'
+            text_size: self.size
+            text: 'Hotend:'
+        Button:
+            text: 'Off'
+            size_hint_y: None
+            height: 40
+            on_press:
+                set_hotend_temp.text= set_hotend_temp.values[0]
+                root.set_temp('hotend', '0')
+
+        Spinner:
+            id: set_hotend_temp
+            text: '0 (off)'
+            values: ('0 (off)', '185 (PLA)', '230 (abs)')
+            size_hint_y: None
+            height: 40
+            #on_text: root.set_temp('hotend', float(self.text))
+        Button:
+            text: 'Set'
+            size_hint_y: None
+            height: 40
+            on_press: root.set_temp('hotend', set_hotend_temp.text.split()[0])
+
+        Label:
+            halign: 'right'
+            valign: 'middle'
+            text_size: self.size
+            text: 'Bed:'
+        Button:
+            text: 'Off'
+            size_hint_y: None
+            height: 40
+            on_press:
+                set_bed_temp.text= set_bed_temp.values[0]
+                root.set_temp('bed', '0')
+
+        Spinner:
+            id: set_bed_temp
+            text: '0 (off)'
+            values: ('0 (off)', '60 (PLA)', '110 (abs)')
+            size_hint_y: None
+            height: 40
+            #on_text: root.set_temp('bed', self.text)
+
+        Button:
+            text: 'Set'
+            size_hint_y: None
+            height: 40
+            on_press: root.set_temp('bed', set_bed_temp.text.split()[0])
 
     BoxLayout:
         orientation: 'vertical'

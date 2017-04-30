@@ -1,6 +1,5 @@
 # a template Butt of type Button
 <Butt@Button>
-    font_size: 16
     on_press: self.parent.parent.do_action(self.text)
 
 <KbdWidget>:
@@ -13,7 +12,6 @@
         TextInput:
             id: entry
             multiline: False
-            font_size: 16
             on_text_validate: self.parent.parent.handle_input(self.text)
 
     BoxLayout:

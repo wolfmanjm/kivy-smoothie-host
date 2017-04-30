@@ -29,6 +29,9 @@ Builder.load_string('''
 #:include jogrose.kv
 #:include kbd.kv
 #:include extruder.kv
+# <Widget>:
+#     # set default font size
+#     font_size: dp(12)
 
 <MainWindow>:
     orientation: 'horizontal'
@@ -38,6 +41,7 @@ Builder.load_string('''
         orientation: 'vertical'
         padding: 5, 5
         ScrollView:
+            scroll_y: 0
             Label:
                 id: log_window
                 size_hint_y: None
@@ -50,40 +54,63 @@ Builder.load_string('''
             Button:
                 id: connect_button
                 size_hint_y: None
-                size: 20, 40
+                height: 40
                 text: 'Connect'
                 on_press: root.connect()
             Button:
                 size_hint_y: None
-                size: 20, 40
+                height: 40
                 text: 'Quit'
                 on_press: root.do_exit()
 
     # Right panel
-    PageLayout:
-        id: page_layout
-        size_hint: 1.0, 1.0
-        border: 30
-        KbdWidget:
-            id: kbd_widget
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 34
+            padding: 1
+            spacing: 4
+            Button:
+                size_hint_y: None
+                height: 30
+                text: 'Console'
+                on_press: page_layout.page= 0
+            Button:
+                size_hint_y: None
+                height: 30
+                text: 'Jog'
+                on_press: page_layout.page= 1
+            Button:
+                size_hint_y: None
+                height: 30
+                text: 'Extruder'
+                on_press: page_layout.page= 2
 
-        JogRoseWidget:
-            id: jog_rose
+        PageLayout:
+            id: page_layout
+            border: 30
+            KbdWidget:
+                id: kbd_widget
 
-        ExtruderWidget:
-            id: extruder
+            JogRoseWidget:
+                id: jog_rose
 
-        Button:
-            text: 'macro page place holder'
-            background_color: 0,1,0,1
+            ExtruderWidget:
+                id: extruder
 
-        Button:
-            text: 'play file page place holder'
-            background_color: 0,1,1,1
+            Button:
+                text: 'macro page place holder'
+                background_color: 0,1,0,1
 
-        Button:
-            text: 'DRO place holder'
-            background_color: 1,1,0,1
+            Button:
+                text: 'play file page place holder'
+                background_color: 0,1,1,1
+
+            Button:
+                text: 'DRO place holder'
+                background_color: 1,1,0,1
 
 ''')
 
@@ -188,6 +215,7 @@ class MainWindow(BoxLayout):
         self._trigger = Clock.create_trigger(self.async_get_display_data)
         self._q= queue.Queue()
         self._log= []
+        print('font size: {}'.format(self.ids.log_window.font_size))
 
         #     Clock.schedule_once(self.my_callback, 5)
 
