@@ -243,6 +243,7 @@ class DialGauge(Widget):
     dial_center = AliasProperty(get_dial_center, set_dial_center, bind=['size', 'pos'])
 
     def value_to_angle(self, v):
+        ''' convert the given value to the angle required for the scale '''
         return -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * ((float(v)-self.scale_min) / (self.scale_max-self.scale_min)))
 
     def _redraw(self, instance, value):

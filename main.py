@@ -92,6 +92,7 @@ Builder.load_string('''
         PageLayout:
             id: page_layout
             border: 30
+            swipe_threshold: .25
             KbdWidget:
                 id: kbd_widget
 
@@ -186,7 +187,7 @@ class JogRoseWidget(BoxLayout):
         elif axis == 'H':
             self.app.comms.write('G28\n')
         else:
-            self.app.comms.write(axis + ' ' + str(v) + '\n')
+            self.app.comms.write('G0 {}{}\n'.format(axis, v))
 
 class KbdWidget(GridLayout):
     def __init__(self, **kwargs):
