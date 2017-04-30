@@ -6,7 +6,7 @@ from kivy.uix.label import Label
 
 from kivy.properties import ListProperty, NumericProperty, ObjectProperty, BooleanProperty, AliasProperty, ReferenceListProperty
 from kivy.lang import Builder
-from kivy.graphics import Color, Line, Translate, Rotate, PushMatrix, PopMatrix, Mesh, Scale, Rectangle
+from kivy.graphics import Color, Line, Translate, Rotate, PushMatrix, PopMatrix, Mesh, Scale, Rectangle, SmoothLine
 from kivy.graphics import InstructionGroup
 from kivy.uix.slider import Slider
 from kivy.vector import Vector
@@ -144,8 +144,9 @@ if __name__ == '__main__':
             value_color: [0,1,0,1]
 
             setpoint_value: 185.0
-            setpoint_color: 1,1,1,1
+            setpoint_color: 0,0,0,1
             setpoint_length: self.dial_diameter/2 - 24
+            setpoint_thickness: 2
 
             # setup three annulars of different colors
             annulars: [{'color': [0,1,0,1], 'start': 20.0, 'stop': 60.0}, {'color': [1, 165.0/255, 0, 1], 'start': 60.0, 'stop': 80.0}, {'color': [1, 0, 0, 1], 'start': 80.0, 'stop': 260.0}]
@@ -343,6 +344,7 @@ class DialGauge(Widget):
         self.setpoint_canvas.add(Rotate(angle=v, axis=(0,0,-1), origin= self.dial_center))
         self.setpoint_canvas.add(Translate(self.dial_center[0], self.dial_center[1]))
         self.setpoint_canvas.add(Line(points=[0, 0, 0, length], width=self.setpoint_thickness, cap= 'none'))
+        #self.setpoint_canvas.add(SmoothLine(points=[0, 0, 0, length], width=self.setpoint_thickness))
         self.setpoint_canvas.add(PopMatrix())
 
         self.canvas.after.add(self.setpoint_canvas)

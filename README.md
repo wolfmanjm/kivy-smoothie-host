@@ -13,7 +13,9 @@ An RPI with 7" touch screen is about the same price as the better LCD panels, an
 
 I have had a 10" linux tablet called a pengpod running my delta printer for years as the only Host, it runs a hacked version of Pronterface to make it more tolerable to use on a touch screen. However Pengpods are no longer available and there are no other linux tablets I can find. A raspberry PI with touch screen is pretty close.
 
-I'm running with the very first RPI model A, but this is running pretty slowly. I will try it on an RPI-3 Model B and see if it is better.
+I'm was running with the very first RPI model A, but it runs pretty slowly.
+I upgraded to an RPI-3 Model B and it runs much better, so I recommend them they are only about $10 more expensive.
+I suspect an RPI-2 Model B will also run pretty well.
 
 
 ## Install
