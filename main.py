@@ -99,18 +99,6 @@ Builder.load_string('''
             ExtruderWidget:
                 id: extruder
 
-            Button:
-                text: 'macro page place holder'
-                background_color: 0,1,0,1
-
-            Button:
-                text: 'play file page place holder'
-                background_color: 0,1,1,1
-
-            Button:
-                text: 'DRO place holder'
-                background_color: 1,1,0,1
-
 ''')
 
 class ExtruderWidget(BoxLayout):
@@ -219,12 +207,10 @@ class MainWindow(BoxLayout):
         self._q= queue.Queue()
         self._log= []
         #print('font size: {}'.format(self.ids.log_window.font_size))
+        Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
 
-        #     Clock.schedule_once(self.my_callback, 5)
-
-    # def my_callback(self, dt):
-    #     Logger.debug("switch page")
-    #     self.ids.page_layout.page= 2
+    def my_callback(self, dt):
+        self.ids.page_layout.page= 1 # switch to jog screen
 
     def add_line_to_log(self, s):
         ''' Add lines to the log window, which is trimmed to the last 200 lines '''
