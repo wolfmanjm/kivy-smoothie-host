@@ -173,6 +173,7 @@ class Comms():
         except Exception as err:
             self.log.error("Comms: Got serial error opening port: {0}".format(err))
             self.app.root.async_display(">>> Connect failed: {0}".format(err))
+            self.app.root.disconnected()
 
         finally:
             if self.timer:

@@ -35,14 +35,48 @@ Builder.load_string('''
 # <Widget>:
 #     # set default font size
 #     font_size: dp(12)
-
 <MainWindow>:
-    orientation: 'horizontal'
+    orientation: 'vertical'
+    ActionBar:
+        pos_hint: {'top':1}
+        ActionView:
+            use_separator: True
+            ActionPrevious:
+                title: 'Smoothie Host'
+                with_previous: False
+            ActionOverflow:
+            ActionGroup:
+                text: 'File'
+                ActionToggleButton:
+                    id: connect_button
+                    text: 'Connect'
+                    on_press: root.connect()
+                ActionButton:
+                    text: 'Quit'
+                    on_press: root.ask_exit()
+                ActionButton:
+                    text: 'Shutdown'
+                    on_press: root.ask_shutdown()
 
-    # Left panel
+            ActionGroup:
+                text: 'Windows'
+                ActionToggleButton:
+                    text: 'Console'
+                    group: 'winds'
+                    on_press: page_layout.page= 0
+                ActionToggleButton:
+                    text: 'Jog'
+                    group: 'winds'
+                    on_press: page_layout.page= 1
+                ActionToggleButton:
+                    text: 'Extruder'
+                    group: 'winds'
+                    on_press: page_layout.page= 2
+
     BoxLayout:
-        orientation: 'vertical'
-        padding: 5, 5
+        orientation: 'horizontal'
+
+        # Left panel
         ScrollView:
             scroll_y: 0
             Label:
@@ -50,52 +84,8 @@ Builder.load_string('''
                 size_hint_y: None
                 height: self.texture_size[1]
                 text_size: self.width, None
-        BoxLayout:
-            size_hint_y: None
-            height: 40
-            orientation: 'horizontal'
-            Button:
-                id: connect_button
-                size_hint_y: None
-                height: 40
-                text: 'Connect'
-                on_press: root.connect()
-            Button:
-                size_hint_y: None
-                height: 40
-                text: 'Quit'
-                on_press: root.ask_exit()
-            Button:
-                size_hint_y: None
-                height: 40
-                text: 'Shutdown'
-                on_press: root.ask_shutdown()
 
-    # Right panel
-    BoxLayout:
-        orientation: 'vertical'
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: 44
-            padding: 1
-            spacing: 4
-            Button:
-                size_hint_y: None
-                height: 40
-                text: 'Console'
-                on_press: page_layout.page= 0
-            Button:
-                size_hint_y: None
-                height: 40
-                text: 'Jog'
-                on_press: page_layout.page= 1
-            Button:
-                size_hint_y: None
-                height: 40
-                text: 'Extruder'
-                on_press: page_layout.page= 2
-
+        # Right panel
         PageLayout:
             id: page_layout
             border: 30
@@ -277,12 +267,14 @@ class MainWindow(BoxLayout):
     def connected(self):
         Logger.debug("MainWindow: Connected...")
         self.is_connected= True
+        self.ids.connect_button.state= 'down'
         self.ids.connect_button.text= "Disconnect"
 
     @mainthread
     def disconnected(self):
         Logger.debug("MainWindow: Disconnected...")
         self.is_connected= False
+        self.ids.connect_button.state= 'normal'
         self.ids.connect_button.text= "Connect"
 
     @mainthread
@@ -297,8 +289,8 @@ class MainWindow(BoxLayout):
         mb = MessageBox(text='Exit - Are you Sure?', cb= lambda b: self.do_exit(b))
         mb.open()
 
-    def do_exit(self, b):
-        if b:
+    def do_exit(self, ok):
+        if ok:
             self.app.comms.stop()
             exit()
 
