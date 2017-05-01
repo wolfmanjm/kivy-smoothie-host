@@ -56,3 +56,8 @@ Run as
 > python3 main.py
 
 
+# Screen shots
+![Extruder Screen](screen1.png)
+![Command Screen](screen2.png)
+![Jog Screen](screen3.png)
+
