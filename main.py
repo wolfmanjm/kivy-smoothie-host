@@ -60,15 +60,15 @@ Builder.load_string('''
 
             ActionGroup:
                 text: 'Windows'
-                ActionToggleButton:
+                ActionButton:
                     text: 'Console'
                     group: 'winds'
                     on_press: page_layout.page= 0
-                ActionToggleButton:
+                ActionButton:
                     text: 'Jog'
                     group: 'winds'
                     on_press: page_layout.page= 1
-                ActionToggleButton:
+                ActionButton:
                     text: 'Extruder'
                     group: 'winds'
                     on_press: page_layout.page= 2
