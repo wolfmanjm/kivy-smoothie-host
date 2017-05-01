@@ -52,6 +52,9 @@ Builder.load_string('''
                     text: 'Connect'
                     on_press: root.connect()
                 ActionButton:
+                    text: 'Print' # also 'Pause'
+                    on_press: root.start_print()
+                ActionButton:
                     text: 'Quit'
                     on_press: root.ask_exit()
                 ActionButton:
@@ -77,13 +80,22 @@ Builder.load_string('''
         orientation: 'horizontal'
 
         # Left panel
-        ScrollView:
-            scroll_y: 0
+        BoxLayout:
+            orientation: 'vertical'
+            ScrollView:
+                scroll_y: 0
+                Label:
+                    id: log_window
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    text_size: self.width, None
             Label:
-                id: log_window
+                id: status_lab
+                halign: 'left'
+                text_size: self.size
+                text: 'Idle | X: 000 Y: 000 Z: 000 | Print ETA 15:00'
                 size_hint_y: None
-                height: self.texture_size[1]
-                text_size: self.width, None
+                size: self.texture_size
 
         # Right panel
         PageLayout:
@@ -290,6 +302,9 @@ class MainWindow(BoxLayout):
             #sys.system('sudo halt -p')
             self.do_exit(True)
 
+    def start_print(self):
+        pass
+
 class SmoothieHost(App):
     def __init__(self, **kwargs):
         super(SmoothieHost, self).__init__(**kwargs)
@@ -303,8 +318,8 @@ class SmoothieHost(App):
     def build(self):
         return MainWindow()
 
-if __name__ == "__main__":
-    SmoothieHost().run()
+
+SmoothieHost().run()
 
 
 
