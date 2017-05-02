@@ -359,10 +359,8 @@ class Comms():
             if self.okcnt:
                 self.okcnt.release() # release it in case it is waiting for ok so it can abort
         elif pause:
-            print('PAUSING')
             self.pause_stream= True #.clear() # pauses stream
         else:
-            print('UNPAUSING')
             self.pause_stream= False #.set() # releases pause on stream
 
     @asyncio.coroutine
