@@ -60,8 +60,8 @@ class SerialConnection(asyncio.Protocol):
         transport.serial.rts = False  # You can manipulate Serial object via transport
         self._ready.set()
 
-    def flush_queue(self, b):
-        self.flush= b
+    def flush_queue(self):
+        self.flush= True
         self._msg_ready.release()
 
     @asyncio.coroutine
@@ -114,7 +114,7 @@ class Comms():
         self.file_streamer= None
 
         self.log = logging.getLogger() #.getChild('Comms')
-        logging.getLogger().setLevel(logging.DEBUG)
+        #logging.getLogger().setLevel(logging.DEBUG)
 
     def connect(self, port):
         ''' called from UI to connect to given port, runs the asyncio mainloop in a separate thread '''
