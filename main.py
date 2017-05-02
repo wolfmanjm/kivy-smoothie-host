@@ -48,34 +48,24 @@ Builder.load_string('''
                 with_previous: False
             ActionOverflow:
 
-            ActionGroup:
-                text: 'Print'
-                ActionToggleButton:
-                    id: connect_button
-                    text: 'Connect'
-                    on_press: root.connect()
-                ActionButton:
-                    id: print_but
-                    disabled: True
-                    text: 'Print' # also 'Pause'/'Resume'
-                    on_press: root.start_print()
-                ActionButton:
-                    id: abort_but
-                    disabled: True
-                    text: 'Abort'
-                    on_press: root.abort_print()
-
-            ActionGroup:
-                text: 'System'
-                ActionButton:
-                    text: 'Quit'
-                    on_press: root.ask_exit()
-                ActionButton:
-                    text: 'Shutdown'
-                    on_press: root.ask_shutdown()
+            ActionToggleButton:
+                id: connect_button
+                text: 'Connect'
+                on_press: root.connect()
+            ActionButton:
+                id: print_but
+                disabled: True
+                text: 'Print' # also 'Pause'/'Resume'
+                on_press: root.start_print()
+            ActionButton:
+                id: abort_but
+                disabled: True
+                text: 'Abort'
+                on_press: root.abort_print()
 
             ActionGroup:
                 text: 'Windows'
+                mode: 'normal'
                 ActionButton:
                     text: 'Console'
                     group: 'winds'
@@ -88,6 +78,17 @@ Builder.load_string('''
                     text: 'Extruder'
                     group: 'winds'
                     on_press: page_layout.page= 2
+
+            ActionGroup:
+                text: 'System'
+                mode: 'spinner'
+                ActionButton:
+                    text: 'Quit'
+                    on_press: root.ask_exit()
+                ActionButton:
+                    text: 'Shutdown'
+                    on_press: root.ask_shutdown()
+
 
     BoxLayout:
         orientation: 'horizontal'
@@ -104,9 +105,16 @@ Builder.load_string('''
                     text_size: self.width, None
             Label:
                 id: status_lab
+                canvas.before:
+                    Color:
+                        rgba: 1,1,1,1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
                 halign: 'left'
                 text_size: self.size
                 text: 'Idle | X: 000 Y: 000 Z: 000 | Print ETA 15:00'
+                color: 0,0,0,1
                 size_hint_y: None
                 size: self.texture_size
 
