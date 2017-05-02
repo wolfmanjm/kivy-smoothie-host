@@ -242,7 +242,7 @@ class Comms():
                     self.okcnt.release()
 
             elif "error" in s or "!!" in s or "ALARM" in s or "ERROR" in s:
-                self.handle_error(s)
+                self.handle_alarm(s)
 
             elif "ok C:" in s:
                 self.handle_position(s)
@@ -329,7 +329,7 @@ class Comms():
             self.log.debug('Comms: got status:{}, mpos:{},{},{}, wpos:{},{},{}'.format(status, mpos[0], mpos[1], mpos[2], wpos[0], wpos[1], wpos[2]))
             #self.app.root.update_status(status, mpos, wpos)
 
-    def handle_error(self, s):
+    def handle_alarm(self, s):
         ''' handle case where smoothie sends us !! or an error of some sort '''
         self.log.warning('Comms: got error: {}'.format(s))
         # abort any streaming immediately
@@ -337,11 +337,14 @@ class Comms():
         if self.proto:
             self.proto.flush_queue()
 
-        self.app.root.incoming_error(s)
+        self.app.root.alarm_state(s)
 
     def stream_gcode(self, fn):
         ''' called from external thread to start streaming a file '''
-        async_main_loop.call_soon_threadsafe(self._stream_file, fn)
+        if self.proto and async_main_loop:
+            async_main_loop.call_soon_threadsafe(self._stream_file, fn)
+        else:
+            self.log.warning('Comms: Cannot print to a closed connection')
 
     def _stream_file(self, fn):
         self.file_streamer= asyncio.async(self.stream_file(fn))
@@ -419,8 +422,10 @@ class Comms():
 
 if __name__ == "__main__":
     ''' a standalone streamer to test it with '''
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
     class CommsApp(object):
-        """ Standalone app """
+        """ Standalone app callbacks """
         def __init__(self):
             super(CommsApp, self).__init__()
             self.root= self
@@ -448,11 +453,10 @@ if __name__ == "__main__":
             self.ok= ok
             self.end_event.set()
 
-        def incoming_error(self, s):
+        def alarm_state(self, s):
             self.ok= False
             self.end_event.set()
 
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
     if len(sys.argv) < 3:
         print("Usage: {} port file".format(sys.argv[0]));
@@ -481,6 +485,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Interrupted")
         comms.stop()
-        #exit(0)
-
 

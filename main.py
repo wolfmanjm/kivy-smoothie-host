@@ -1,30 +1,32 @@
 import kivy
 
 from kivy.app import App
+from kivy.lang import Builder
 
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
-from kivy.properties import NumericProperty, StringProperty, ObjectProperty
-from kivy.app import App
-from kivy.lang import Builder
 from kivy.uix.behaviors.button import ButtonBehavior
+
+from kivy.properties import NumericProperty, StringProperty, ObjectProperty
 from kivy.vector import Vector
 from kivy.clock import Clock, mainthread
-#from kivy.garden.gauge import Gauge
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.core.window import Window
-from comms import Comms
 
+from comms import Comms
 from message_box import MessageBox
+from file_dialog import FileDialog
 
 import queue
 import math
+import os
 
 Window.softinput_mode = 'below_target'
 
@@ -110,7 +112,6 @@ Builder.load_string('''
 
             ExtruderWidget:
                 id: extruder
-
 ''')
 
 class ExtruderWidget(BoxLayout):
@@ -282,6 +283,17 @@ class MainWindow(BoxLayout):
         if be:
             self.ids.extruder.update_temp('bed', be, besp)
 
+    @mainthread
+    def stream_finished(self, ok):
+        ''' called when streaming gcode has finished, ok is True if it completed '''
+        pass
+
+    @mainthread
+    def alarm_state(self, s):
+        ''' called when smoothie is in Alarm state and it is sent a gcode '''
+        if not '!!' in s:
+            self.add_line_to_log("! Alarm state: {}".format(s))
+
     def ask_exit(self):
         # are you sure?
         mb = MessageBox(text='Exit - Are you Sure?', cb= lambda b: self.do_exit(b))
@@ -303,7 +315,16 @@ class MainWindow(BoxLayout):
             self.do_exit(True)
 
     def start_print(self):
-        pass
+        # get file to print
+        f= FileDialog(self._start_print)
+        f.open()
+
+    def _start_print(self, file_path, directory):
+        # start comms thread to stream the file
+        # set comms.ping_pong to False for fast stream mode
+        self.app.comms.stream_gcode(file_path)
+        Logger.info('MainWindow: printing file{}'.format(file_path))
+
 
 class SmoothieHost(App):
     def __init__(self, **kwargs):
