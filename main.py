@@ -47,15 +47,26 @@ Builder.load_string('''
                 title: 'Smoothie Host'
                 with_previous: False
             ActionOverflow:
+
             ActionGroup:
-                text: 'File'
+                text: 'Print'
                 ActionToggleButton:
                     id: connect_button
                     text: 'Connect'
                     on_press: root.connect()
                 ActionButton:
-                    text: 'Print' # also 'Pause'
+                    id: print_but
+                    disabled: True
+                    text: 'Print' # also 'Pause'/'Resume'
                     on_press: root.start_print()
+                ActionButton:
+                    id: abort_but
+                    disabled: True
+                    text: 'Abort'
+                    on_press: root.abort_print()
+
+            ActionGroup:
+                text: 'System'
                 ActionButton:
                     text: 'Quit'
                     on_press: root.ask_exit()
@@ -220,6 +231,9 @@ class MainWindow(BoxLayout):
         self._q= queue.Queue()
         self._log= []
         self.last_path= None
+        self.printing= False
+        self.paused= False
+
         #print('font size: {}'.format(self.ids.log_window.font_size))
         Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
 
@@ -269,6 +283,10 @@ class MainWindow(BoxLayout):
         self.is_connected= True
         self.ids.connect_button.state= 'down'
         self.ids.connect_button.text= "Disconnect"
+        self.ids.print_but.disabled= False
+        self.ids.print_but.text= 'Print'
+        self.paused= False
+        self.printing= False
 
     @mainthread
     def disconnected(self):
@@ -276,6 +294,8 @@ class MainWindow(BoxLayout):
         self.is_connected= False
         self.ids.connect_button.state= 'normal'
         self.ids.connect_button.text= "Connect"
+        self.ids.print_but.disabled= True
+        self.ids.abort_but.disabled= True
 
     @mainthread
     def update_temps(self, he, hesp, be, besp):
@@ -287,7 +307,11 @@ class MainWindow(BoxLayout):
     @mainthread
     def stream_finished(self, ok):
         ''' called when streaming gcode has finished, ok is True if it completed '''
-        pass
+        self.ids.print_but.text= 'Print'
+        self.ids.abort_but.disabled= True
+        self.printing= False
+        self.display('>>> printing finished {}'.format('ok' if ok else 'abnormally'))
+
 
     @mainthread
     def alarm_state(self, s):
@@ -297,35 +321,60 @@ class MainWindow(BoxLayout):
 
     def ask_exit(self):
         # are you sure?
-        mb = MessageBox(text='Exit - Are you Sure?', cb= lambda b: self.do_exit(b))
+        mb = MessageBox(text='Exit - Are you Sure?', cb= lambda b: self._do_exit(b))
         mb.open()
 
-    def do_exit(self, ok):
+    def _do_exit(self, ok):
         if ok:
             self.app.comms.stop()
             exit()
 
     def ask_shutdown(self):
         # are you sure?
-        mb = MessageBox(text='Shutdown - Are you Sure?', cb= lambda b: self.do_shutdown(b))
+        mb = MessageBox(text='Shutdown - Are you Sure?', cb= lambda b: self._do_shutdown(b))
         mb.open()
 
-    def do_shutdown(self, ok):
+    def _do_shutdown(self, ok):
         if ok:
             #sys.system('sudo halt -p')
             self.do_exit(True)
 
+    def abort_print(self):
+        # are you sure?
+        mb = MessageBox(text='Abort - Are you Sure?', cb= lambda b: self._abort_print(b))
+        mb.open()
+
+    def _abort_print(self, ok):
+        if ok:
+            self.app.comms.stream_pause(False, True)
+
     def start_print(self):
-        # get file to print
-        f= FileDialog(self._start_print)
-        f.open(self.last_path)
+        if self.printing:
+            if not self.paused:
+                self.paused= True
+                self.app.comms.stream_pause(True)
+                self.ids.print_but.text= 'Resume'
+            else:
+                self.paused= False
+                self.app.comms.stream_pause(False)
+                self.ids.print_but.text= 'Pause'
+        else:
+            # get file to print
+            f= FileDialog(self._start_print)
+            f.open(self.last_path)
 
     def _start_print(self, file_path, directory):
         # start comms thread to stream the file
         # set comms.ping_pong to False for fast stream mode
-        self.app.comms.stream_gcode(file_path)
         Logger.info('MainWindow: printing file: {}'.format(file_path))
+        self.display('>>> started printing file: {}'.format(file_path))
+
+        self.app.comms.stream_gcode(file_path)
         self.last_path= directory
+        self.ids.print_but.text= 'Pause'
+        self.ids.abort_but.disabled= False
+        self.printing= True
+        self.paused= False
 
 class SmoothieHost(App):
     def __init__(self, **kwargs):

@@ -108,14 +108,13 @@ class Comms():
         self._fragment= None
         self.reports= reports
         self.abort_stream= False
-        self.pause_stream= asyncio.Event()
+        self.pause_stream= False #asyncio.Event()
         self.okcnt= None
         self.ping_pong= True # ping pong protocol for streaming
         self.file_streamer= None
 
-        #logging.getLogger('asyncio').setLevel(logging.DEBUG)
         self.log = logging.getLogger() #.getChild('Comms')
-        #logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
 
     def connect(self, port):
         ''' called from UI to connect to given port, runs the asyncio mainloop in a separate thread '''
@@ -360,10 +359,11 @@ class Comms():
             if self.okcnt:
                 self.okcnt.release() # release it in case it is waiting for ok so it can abort
         elif pause:
-            self.pause_stream.clear() # pauses stream
+            print('PAUSING')
+            self.pause_stream= True #.clear() # pauses stream
         else:
-            self.pause_stream.set() # releases pause on stream
-
+            print('UNPAUSING')
+            self.pause_stream= False #.set() # releases pause on stream
 
     @asyncio.coroutine
     def stream_file(self, fn):
@@ -371,7 +371,7 @@ class Comms():
         self.log.info('Comms: Streaming file {} to port'.format(fn))
 
         self.abort_stream= False
-        self.pause_stream.set() # start out not paused
+        self.pause_stream= False #.set() # start out not paused
         if self.ping_pong:
             self.okcnt= asyncio.Semaphore(1)
 
@@ -380,7 +380,10 @@ class Comms():
         try:
             f = yield from aiofiles.open(fn, mode='r')
             while True:
-                yield from self.pause_stream.wait() # wait for pause to be released
+                #yield from self.pause_stream.wait() # wait for pause to be released
+                # needed to do it this way as the Event did nto seem to work it would pause but not unpause
+                while self.pause_stream:
+                   yield from asyncio.sleep(1)
 
                 line = yield from f.readline()
 
@@ -420,6 +423,8 @@ class Comms():
             self.file_streamer= None
             # notify upstream that we are done
             self.app.root.stream_finished(success)
+
+        return success
 
 if __name__ == "__main__":
     ''' a standalone streamer to test it with '''
