@@ -13,7 +13,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors.button import ButtonBehavior
 
-from kivy.properties import NumericProperty, StringProperty, ObjectProperty
+from kivy.properties import NumericProperty, StringProperty, ObjectProperty, ListProperty
 from kivy.vector import Vector
 from kivy.clock import Clock, mainthread
 from kivy.factory import Factory
@@ -68,14 +68,20 @@ Builder.load_string('''
                 mode: 'normal'
                 ActionButton:
                     text: 'Console'
+                    minimum_width: 40
+                    important: True
                     group: 'winds'
                     on_press: page_layout.page= 0
                 ActionButton:
                     text: 'Jog'
+                    important: True
+                    minimum_width: 40
                     group: 'winds'
                     on_press: page_layout.page= 1
                 ActionButton:
                     text: 'Extruder'
+                    important: True
+                    minimum_width: 40
                     group: 'winds'
                     on_press: page_layout.page= 2
 
@@ -103,20 +109,28 @@ Builder.load_string('''
                     size_hint_y: None
                     height: self.texture_size[1]
                     text_size: self.width, None
-            Label:
-                id: status_lab
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                size: status.texture_size
                 canvas.before:
                     Color:
                         rgba: 1,1,1,1
                     Rectangle:
                         pos: self.pos
                         size: self.size
-                halign: 'left'
-                text_size: self.size
-                text: 'Idle | X: 000 Y: 000 Z: 000 | Print ETA 15:00'
-                color: 0,0,0,1
-                size_hint_y: None
-                size: self.texture_size
+                Label:
+                    id: status
+                    text: root.status
+                    color: 0,0,0,1
+                Label:
+                    id: wcs
+                    text: 'X: {} Y: {} Z: {}'.format(*root.wcs)
+                    color: 0,0,0,1
+                Label:
+                    id: eta
+                    text: 'ETA: {}'.format(root.eta)
+                    color: 0,0,0,1
 
         # Right panel
         PageLayout:
@@ -204,7 +218,7 @@ class JogRoseWidget(BoxLayout):
         elif axis == 'H':
             self.app.comms.write('G28\n')
         else:
-            self.app.comms.write('G0 {}{}\n'.format(axis, v))
+            self.app.comms.write('G91 G0 {}{} G90\n'.format(axis, v))
 
 class KbdWidget(GridLayout):
     def __init__(self, **kwargs):
@@ -231,6 +245,10 @@ class KbdWidget(GridLayout):
         self.display.text = ''
 
 class MainWindow(BoxLayout):
+    status= StringProperty('Idle')
+    wcs= ListProperty([0,0,0])
+    eta= StringProperty('--:--')
+
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
         self.app = App.get_running_app()
@@ -311,6 +329,11 @@ class MainWindow(BoxLayout):
             self.ids.extruder.update_temp('hotend', he, hesp)
         if be:
             self.ids.extruder.update_temp('bed', be, besp)
+
+    @mainthread
+    def update_status(self, stat, mpos, wpos):
+        self.status= stat
+        self.wcs= wpos
 
     @mainthread
     def stream_finished(self, ok):

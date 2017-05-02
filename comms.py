@@ -327,7 +327,7 @@ class Comms():
             # strip off wpos
             wpos= (float(sl[4][5:]), float(sl[5]), float(sl[6][:-1]))
             self.log.debug('Comms: got status:{}, mpos:{},{},{}, wpos:{},{},{}'.format(status, mpos[0], mpos[1], mpos[2], wpos[0], wpos[1], wpos[2]))
-            #self.app.root.update_status(status, mpos, wpos)
+            self.app.root.update_status(status, mpos, wpos)
 
     def handle_alarm(self, s):
         ''' handle case where smoothie sends us !! or an error of some sort '''
