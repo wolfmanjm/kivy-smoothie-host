@@ -59,7 +59,6 @@ class SerialConnection(asyncio.Protocol):
         self.log.debug('SerialConnection: port opened: ' + str(transport))
         transport.serial.rts = False  # You can manipulate Serial object via transport
         self._ready.set()
-        self.cb.connected(True)
 
     def flush_queue(self, b):
         self.flush= b
@@ -194,6 +193,8 @@ class Comms():
         serial_conn = serial_asyncio.create_serial_connection(loop, sc_factory, self.port, baudrate=115200)
         try:
             _, self.proto = loop.run_until_complete(serial_conn) # sets up connection returning transport and protocol handler
+            # this is when we are really setup and ready to go
+            self.connected(True)
 
             if self.reports:
                 # issue a version command to get things started
@@ -464,6 +465,8 @@ if __name__ == "__main__":
 
     app= CommsApp()
     comms= Comms(app, False) # Don't start the report query timer when streaming
+    if len(sys.argv) > 3:
+        comms.ping_pong= False
     try:
         t= comms.connect(sys.argv[1])
         if app.start_event.wait(5): # wait for connected as it is in a separate thread

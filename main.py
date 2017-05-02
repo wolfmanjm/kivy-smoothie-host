@@ -219,6 +219,7 @@ class MainWindow(BoxLayout):
         self._trigger = Clock.create_trigger(self.async_get_display_data)
         self._q= queue.Queue()
         self._log= []
+        self.last_path= None
         #print('font size: {}'.format(self.ids.log_window.font_size))
         Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
 
@@ -317,14 +318,14 @@ class MainWindow(BoxLayout):
     def start_print(self):
         # get file to print
         f= FileDialog(self._start_print)
-        f.open()
+        f.open(self.last_path)
 
     def _start_print(self, file_path, directory):
         # start comms thread to stream the file
         # set comms.ping_pong to False for fast stream mode
         self.app.comms.stream_gcode(file_path)
         Logger.info('MainWindow: printing file: {}'.format(file_path))
-
+        self.last_path= directory
 
 class SmoothieHost(App):
     def __init__(self, **kwargs):

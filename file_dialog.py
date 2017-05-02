@@ -6,7 +6,6 @@ from kivy.lang import Builder
 import os
 
 Builder.load_string('''
-#:import os os
 <LoadDialog>:
     BoxLayout:
         size: root.size
@@ -15,7 +14,7 @@ Builder.load_string('''
         FileChooserIconView:
             id: filechooser
             multiselect: False
-            path: os.path.expanduser("~")
+            path: root.path
             title: 'File to print'
             filters: ['*.g', '*.gcode', '*.nc']
 
@@ -34,10 +33,10 @@ Builder.load_string('''
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
     cancel = ObjectProperty(None)
+    path= StringProperty()
 
 class FileDialog(FloatLayout):
     """File Dialog"""
-
     def __init__(self, arg):
         super(FileDialog, self).__init__()
         self.cb = arg
@@ -45,10 +44,8 @@ class FileDialog(FloatLayout):
     def dismiss_popup(self):
         self._popup.dismiss()
 
-    def open(self):
-        file_path= None
-        directory= None
-        content = LoadDialog(load=self.load, cancel=self.dismiss_popup)
+    def open(self, path= None):
+        content = LoadDialog(load=self.load, cancel=self.dismiss_popup, path=path if path else os.path.expanduser("~"))
         self._popup = Popup(title="File to Print", content=content,
                             size_hint=(0.9, 0.9))
         self._popup.open()
