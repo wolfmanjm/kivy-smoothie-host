@@ -323,7 +323,7 @@ class MainWindow(BoxLayout):
         # start comms thread to stream the file
         # set comms.ping_pong to False for fast stream mode
         self.app.comms.stream_gcode(file_path)
-        Logger.info('MainWindow: printing file{}'.format(file_path))
+        Logger.info('MainWindow: printing file: {}'.format(file_path))
 
 
 class SmoothieHost(App):
