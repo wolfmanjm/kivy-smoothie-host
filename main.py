@@ -160,14 +160,25 @@ class ExtruderWidget(BoxLayout):
                 instance.active= False
             else:
                 self.set_temp(type, value)
+                # save temp whenever we turn it on (not saved if it is changed while already on)
+                if float(value) > 0:
+                    self.set_last_temp(type, value)
+
+
         else:
             self.set_temp(type, '0')
 
     def adjust_temp(self, type, value):
         if type == 'bed':
             self.ids.set_bed_temp.text= '{}'.format(int(self.last_bed_temp) + int(value))
+            if self.ids.bed_switch.active:
+                # update temp
+                self.set_temp(type, self.ids.set_bed_temp.text)
         else:
-            self.ids.set_hotend_temp.text= '{}'.format(int(self.last_hotend_temp) + int(value))
+            self.ids.set_hotend_temp.text= '{}'.format(self.last_hotend_temp + int(value))
+            if self.ids.hotend_switch.active:
+                # update temp
+                self.set_temp(type, self.ids.set_hotend_temp.text)
 
     def set_last_temp(self, type, value):
         if type == 'bed':
@@ -180,14 +191,10 @@ class ExtruderWidget(BoxLayout):
 
     def set_temp(self, type, temp):
         ''' called when the target temp is changed '''
-        Logger.info('Extruder: ' + type + ' temp set to: ' + temp)
         if type == 'bed':
             self.app.comms.write('M140 S{0}\n'.format(str(temp)))
         elif type == 'hotend':
             self.app.comms.write('M104 S{0}\n'.format(str(temp)))
-
-        if float(temp) > 0:
-            self.set_last_temp(type, temp)
 
     def update_temp(self, type, temp, setpoint):
         ''' called to update the temperature display'''
@@ -197,7 +204,6 @@ class ExtruderWidget(BoxLayout):
             if not math.isnan(setpoint):
                 self.ids.set_bed_temp.text= str(setpoint)
                 self.ids.bed_dg.setpoint_value= setpoint if setpoint > 0 else float('nan')
-                print(setpoint)
 
         elif type == 'hotend':
             if temp:
