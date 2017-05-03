@@ -7,6 +7,7 @@ import functools
 import sys
 import re
 import traceback
+import serial.tools.list_ports
 
 async_main_loop= None
 
@@ -57,7 +58,7 @@ class SerialConnection(asyncio.Protocol):
     def connection_made(self, transport):
         self.transport = transport
         self.log.debug('SerialConnection: port opened: ' + str(transport))
-        transport.serial.rts = False  # You can manipulate Serial object via transport
+        #transport.serial.rts = False  # You can manipulate Serial object via transport
         self._ready.set()
 
     def flush_queue(self):
@@ -175,6 +176,8 @@ class Comms():
                     self.timer.cancel()
                 async_main_loop.call_soon_threadsafe(async_main_loop.stop)
 
+    def get_ports(self):
+        return [port for port in serial.tools.list_ports.comports() if port[2] != 'n/a']
 
     def run_async_loop(self):
         ''' called by connect in a new thread to setup and start the asyncio loop '''
@@ -260,10 +263,13 @@ class Comms():
                 if pos >= 0:
                     act= s[pos+7:].strip() # extract action command
                     if act in 'pause':
+                        self.app.root.async_display('>>> Smoothie requested Pause')
                         self._stream_pause(True, False)
                     elif act in 'resume':
+                        self.app.root.async_display('>>> Smoothie requested Resume')
                         self._stream_pause(False, False)
                     elif act in 'disconnect':
+                        self.app.root.async_display('>>> Smoothie requested Disconnect')
                         self.disconnect()
                     else:
                         self.log.warning('Comms: unknown action command: {}'.format(act))
@@ -339,8 +345,9 @@ class Comms():
 
         self.app.root.alarm_state(s)
 
-    def stream_gcode(self, fn):
+    def stream_gcode(self, fn, progress=None):
         ''' called from external thread to start streaming a file '''
+        self.progress= progress
         if self.proto and async_main_loop:
             async_main_loop.call_soon_threadsafe(self._stream_file, fn)
         else:
@@ -375,6 +382,7 @@ class Comms():
 
         f= None
         success= False
+        linecnt= 0
         try:
             f = yield from aiofiles.open(fn, mode='r')
             while True:
@@ -406,7 +414,9 @@ class Comms():
 
                 # send the line
                 self._write(line)
-
+                linecnt += 1
+                if self.progress:
+                    self.progress(linecnt)
 
             success= not self.abort_stream
 
@@ -419,12 +429,24 @@ class Comms():
                 yield from f.close()
 
             self.file_streamer= None
+            self.progress= None
             # notify upstream that we are done
             self.app.root.stream_finished(success)
 
         return success
 
 if __name__ == "__main__":
+    import subprocess
+    import datetime
+
+    def file_len(fname):
+        ''' use external process to quickly find total number of G/M lines in file '''
+        p = subprocess.Popen(['grep', '-c', "^[GM]", fname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result, err = p.communicate()
+        if p.returncode != 0:
+            raise IOError(err)
+        return int(result.strip().split()[0])
+
     ''' a standalone streamer to test it with '''
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
@@ -462,6 +484,7 @@ if __name__ == "__main__":
             self.end_event.set()
 
 
+
     if len(sys.argv) < 3:
         print("Usage: {} port file".format(sys.argv[0]));
         exit(0)
@@ -470,11 +493,38 @@ if __name__ == "__main__":
     comms= Comms(app, False) # Don't start the report query timer when streaming
     if len(sys.argv) > 3:
         comms.ping_pong= False
+        print('Fast Stream')
+
+
+    try:
+        nlines= file_len(sys.argv[2]) # get number of lines so we can do progress and ETA
+        print('number of lines: {}'.format(nlines))
+    except:
+        nlines= None
+
+    start= None
+    def display_progress(n):
+        global start
+        if not start:
+            start= datetime.datetime.now()
+
+        if nlines:
+            now=datetime.datetime.now()
+            d= (now-start).seconds
+            if n > 10 and d > 1:
+                # we have to wait a bit to get reasonable estimates
+                lps= n/d
+                eta= (nlines-n)/lps
+            else:
+                eta= 0
+
+            print("progress: {}/{} {:.1%} ETA {:02d}:{:02d}:{:02d}".format(n, nlines, n/nlines, int(eta//3600), int(eta%3600)//60, int(eta%60)))
+
     try:
         t= comms.connect(sys.argv[1])
         if app.start_event.wait(5): # wait for connected as it is in a separate thread
             if app.is_connected:
-                comms.stream_gcode(sys.argv[2])
+                comms.stream_gcode(sys.argv[2], progress=lambda x: display_progress(x))
                 app.end_event.wait() # wait for streaming to complete
 
                 print("File sent: {}".format('Ok' if app.ok else 'Failed'))

@@ -13,7 +13,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors.button import ButtonBehavior
 
-from kivy.properties import NumericProperty, StringProperty, ObjectProperty, ListProperty
+from kivy.properties import NumericProperty, StringProperty, ObjectProperty, ListProperty, BooleanProperty
 from kivy.vector import Vector
 from kivy.clock import Clock, mainthread
 from kivy.factory import Factory
@@ -27,6 +27,7 @@ from file_dialog import FileDialog
 import queue
 import math
 import os
+import sys
 
 Window.softinput_mode = 'below_target'
 
@@ -54,12 +55,11 @@ Builder.load_string('''
                 on_press: root.connect()
             ActionButton:
                 id: print_but
-                disabled: True
+                disabled: not root.is_connected
                 text: 'Print' # also 'Pause'/'Resume'
                 on_press: root.start_print()
             ActionButton:
-                id: abort_but
-                disabled: True
+                disabled: not root.is_printing
                 text: 'Abort'
                 on_press: root.abort_print()
 
@@ -88,6 +88,10 @@ Builder.load_string('''
             ActionGroup:
                 text: 'System'
                 mode: 'spinner'
+                ActionButton:
+                    text: 'Change Port'
+                    disabled: root.is_connected
+                    on_press: root.change_port()
                 ActionButton:
                     text: 'Quit'
                     on_press: root.ask_exit()
@@ -142,6 +146,7 @@ Builder.load_string('''
 
             JogRoseWidget:
                 id: jog_rose
+                disabled: root.is_printing
 
             ExtruderWidget:
                 id: extruder
@@ -248,16 +253,17 @@ class MainWindow(BoxLayout):
     status= StringProperty('Idle')
     wcs= ListProperty([0,0,0])
     eta= StringProperty('--:--')
+    is_printing= BooleanProperty(False)
+    is_connected= BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.is_connected= False
         self._trigger = Clock.create_trigger(self.async_get_display_data)
         self._q= queue.Queue()
         self._log= []
-        self.last_path= None
-        self.printing= False
+        self.config= self.app.config
+        self.last_path= self.config.get('General', 'last_gcode_path')
         self.paused= False
 
         #print('font size: {}'.format(self.ids.log_window.font_size))
@@ -283,8 +289,9 @@ class MainWindow(BoxLayout):
             self.add_line_to_log("Disconnecting...")
             self.app.comms.disconnect()
         else:
-            self.add_line_to_log("Connecting...")
-            self.app.comms.connect('/dev/ttyACM0')
+            port= self.config.get('General', 'serial_port') if not self.app.use_com_port else self.app.use_com_port
+            self.add_line_to_log("Connecting to {}...".format(port))
+            self.app.comms.connect(port)
 
     def display(self, data):
         self.add_line_to_log(data)
@@ -309,19 +316,17 @@ class MainWindow(BoxLayout):
         self.is_connected= True
         self.ids.connect_button.state= 'down'
         self.ids.connect_button.text= "Disconnect"
-        self.ids.print_but.disabled= False
         self.ids.print_but.text= 'Print'
         self.paused= False
-        self.printing= False
+        self.is_printing= False
 
     @mainthread
     def disconnected(self):
         Logger.debug("MainWindow: Disconnected...")
         self.is_connected= False
+        self.is_printing= False
         self.ids.connect_button.state= 'normal'
         self.ids.connect_button.text= "Connect"
-        self.ids.print_but.disabled= True
-        self.ids.abort_but.disabled= True
 
     @mainthread
     def update_temps(self, he, hesp, be, besp):
@@ -339,8 +344,7 @@ class MainWindow(BoxLayout):
     def stream_finished(self, ok):
         ''' called when streaming gcode has finished, ok is True if it completed '''
         self.ids.print_but.text= 'Print'
-        self.ids.abort_but.disabled= True
-        self.printing= False
+        self.is_printing= False
         self.display('>>> printing finished {}'.format('ok' if ok else 'abnormally'))
 
 
@@ -370,6 +374,11 @@ class MainWindow(BoxLayout):
             #sys.system('sudo halt -p')
             self.do_exit(True)
 
+    def change_port(self):
+        l= self.app.comms.get_ports()
+        for p in l:
+            print(p)
+
     def abort_print(self):
         # are you sure?
         mb = MessageBox(text='Abort - Are you Sure?', cb= lambda b: self._abort_print(b))
@@ -380,7 +389,7 @@ class MainWindow(BoxLayout):
             self.app.comms.stream_pause(False, True)
 
     def start_print(self):
-        if self.printing:
+        if self.is_printing:
             if not self.paused:
                 self.paused= True
                 self.app.comms.stream_pause(True)
@@ -401,18 +410,35 @@ class MainWindow(BoxLayout):
         self.display('>>> started printing file: {}'.format(file_path))
 
         self.app.comms.stream_gcode(file_path)
-        self.last_path= directory
+        if directory != self.last_path:
+            self.last_path= directory
+            self.config.set('General', 'last_gcode_path', directory)
+
+        self.config.set('General', 'last_print_file', file_path)
+        self.config.write()
+
         self.ids.print_but.text= 'Pause'
-        self.ids.abort_but.disabled= False
-        self.printing= True
+        self.is_printing= True
         self.paused= False
 
 class SmoothieHost(App):
+    #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
         super(SmoothieHost, self).__init__(**kwargs)
         self.comms= Comms(self)
+        if len(sys.argv) > 1:
+            # override com port
+            self.use_com_port= sys.argv[1]
+        else:
+            self.use_com_port= None
 
-    #Factory.register('Comms', cls=Comms)
+    def build_config(self, config):
+        config.setdefaults('General', {
+            'last_gcode_path': os.path.expanduser("~"),
+            'last_print_file': '',
+            'serial_port': '/dev/ttyACM0'
+        })
+
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop
         self.comms.stop(); # stop the aysnc loop
