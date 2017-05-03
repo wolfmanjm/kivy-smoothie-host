@@ -101,64 +101,54 @@
                 size: self.texture_size
 
     GridLayout:
-        cols: 4
-        padding: 10, 5
+        cols: 5
+        padding: 5, 5
         spacing: 5
-        size_hint_y: None
-        height: 100
 
         Label:
-            halign: 'right'
-            valign: 'middle'
-            text_size: self.size
+            size_hint_x: None
+            width: self.texture_size[0]
             text: 'Hotend:'
-        Button:
-            text: 'Off'
-            size_hint_y: None
-            height: 40
-            on_press:
-                set_hotend_temp.text= set_hotend_temp.values[0]
-                root.set_temp('hotend', '0')
-
+        Switch:
+            id: hotend_switch
+            on_active: root.switch_active(self, 'hotend', self.active, set_hotend_temp.text.split()[0])
         Spinner:
             id: set_hotend_temp
-            text: '0 (off)'
-            values: ('0 (off)', '185 (PLA)', '230 (abs)')
-            size_hint_y: None
-            height: 40
-            #on_text: root.set_temp('hotend', float(self.text))
-        Button:
-            text: 'Set'
-            size_hint_y: None
-            height: 40
-            on_press: root.set_temp('hotend', set_hotend_temp.text.split()[0])
+            text: 'select temp' if not root.last_hotend_temp else str(root.last_hotend_temp)
+            values: ('185 (PLA)', '230 (abs)')
 
         Label:
-            halign: 'right'
-            valign: 'middle'
-            text_size: self.size
+            size_hint_x: None
+            width: self.texture_size[0]
+            text: '°C'
+        Slider:
+            min: -50
+            max: 50
+            value: 0
+            on_value: root.adjust_temp('hotend', self.value)
+
+        Label:
+            size_hint_x: None
+            width: self.texture_size[0]
             text: 'Bed:'
-        Button:
-            text: 'Off'
-            size_hint_y: None
-            height: 40
-            on_press:
-                set_bed_temp.text= set_bed_temp.values[0]
-                root.set_temp('bed', '0')
+        Switch:
+            id: bed_switch
+            on_active: root.switch_active(self, 'bed', self.active, set_bed_temp.text.split()[0])
 
         Spinner:
             id: set_bed_temp
-            text: '0 (off)'
-            values: ('0 (off)', '60 (PLA)', '110 (abs)')
-            size_hint_y: None
-            height: 40
-            #on_text: root.set_temp('bed', self.text)
+            text: 'select temp' if not root.last_bed_temp else str(root.last_bed_temp)
+            values: ('60 (PLA)', '110 (abs)')
+        Label:
+            size_hint_x: None
+            width: self.texture_size[0]
+            text: '°C'
+        Slider:
+            min: -50
+            max: 50
+            value: 0
+            on_value: root.adjust_temp('bed', self.value)
 
-        Button:
-            text: 'Set'
-            size_hint_y: None
-            height: 40
-            on_press: root.set_temp('bed', set_bed_temp.text.split()[0])
 
     BoxLayout:
         orientation: 'vertical'

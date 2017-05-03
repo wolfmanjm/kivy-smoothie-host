@@ -63,27 +63,21 @@ Builder.load_string('''
                 text: 'Abort'
                 on_press: root.abort_print()
 
-            ActionGroup:
-                text: 'Windows'
-                mode: 'normal'
-                ActionButton:
-                    text: 'Console'
-                    minimum_width: 40
-                    important: True
-                    group: 'winds'
-                    on_press: page_layout.page= 0
-                ActionButton:
-                    text: 'Jog'
-                    important: True
-                    minimum_width: 40
-                    group: 'winds'
-                    on_press: page_layout.page= 1
-                ActionButton:
-                    text: 'Extruder'
-                    important: True
-                    minimum_width: 40
-                    group: 'winds'
-                    on_press: page_layout.page= 2
+            ActionButton:
+                text: 'Console'
+                important: True
+                group: 'winds'
+                on_press: page_layout.page= 0
+            ActionButton:
+                text: 'Jog'
+                important: True
+                group: 'winds'
+                on_press: page_layout.page= 1
+            ActionButton:
+                text: 'Extruder'
+                important: True
+                group: 'winds'
+                on_press: page_layout.page= 2
 
             ActionGroup:
                 text: 'System'
@@ -156,6 +150,33 @@ class ExtruderWidget(BoxLayout):
     def __init__(self, **kwargs):
         super(ExtruderWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.last_bed_temp= self.app.config.getint('Extruder', 'last_bed_temp')
+        self.last_hotend_temp= self.app.config.getint('Extruder', 'last_hotend_temp')
+
+    def switch_active(self, instance, type, on, value):
+        if on:
+            if value == 'select':
+                MessageBox(text='Select a temperature first!').open()
+                instance.active= False
+            else:
+                self.set_temp(type, value)
+        else:
+            self.set_temp(type, '0')
+
+    def adjust_temp(self, type, value):
+        if type == 'bed':
+            self.ids.set_bed_temp.text= '{}'.format(int(self.last_bed_temp) + int(value))
+        else:
+            self.ids.set_hotend_temp.text= '{}'.format(int(self.last_hotend_temp) + int(value))
+
+    def set_last_temp(self, type, value):
+        if type == 'bed':
+            self.last_bed_temp= int(value)
+        else:
+            self.last_hotend_temp= int(value)
+
+        self.app.config.set('Extruder', 'last_{}_temp'.format(type), value)
+        self.app.config.write()
 
     def set_temp(self, type, temp):
         ''' called when the target temp is changed '''
@@ -165,6 +186,8 @@ class ExtruderWidget(BoxLayout):
         elif type == 'hotend':
             self.app.comms.write('M104 S{0}\n'.format(str(temp)))
 
+        if float(temp) > 0:
+            self.set_last_temp(type, temp)
 
     def update_temp(self, type, temp, setpoint):
         ''' called to update the temperature display'''
@@ -437,6 +460,10 @@ class SmoothieHost(App):
             'last_gcode_path': os.path.expanduser("~"),
             'last_print_file': '',
             'serial_port': '/dev/ttyACM0'
+        })
+        config.setdefaults('Extruder', {
+            'last_bed_temp': '',
+            'last_hotend_temp': ''
         })
 
     def on_stop(self):
