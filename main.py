@@ -479,8 +479,8 @@ class SmoothieHost(App):
             'serial_port': '/dev/ttyACM0'
         })
         config.setdefaults('Extruder', {
-            'last_bed_temp': '',
-            'last_hotend_temp': ''
+            'last_bed_temp': '0',
+            'last_hotend_temp': '0'
         })
 
     def on_stop(self):
