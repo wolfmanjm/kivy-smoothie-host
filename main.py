@@ -22,6 +22,7 @@ from kivy.core.window import Window
 
 from comms import Comms
 from message_box import MessageBox
+from selection_box import SelectionBox
 from file_dialog import FileDialog
 
 import queue
@@ -405,8 +406,17 @@ class MainWindow(BoxLayout):
 
     def change_port(self):
         l= self.app.comms.get_ports()
+        ports= []
         for p in l:
-            print(p)
+            ports.append(p.device)
+
+        sb = SelectionBox(text='Select port to open', values= ports, cb= lambda b: self._change_port(b))
+        sb.open()
+
+    def _change_port(self, s):
+        if s:
+            Logger.info('MainWindow: Selected port {}'.format(s))
+            self.config.set('General', 'serial_port', s)
 
     def abort_print(self):
         # are you sure?
