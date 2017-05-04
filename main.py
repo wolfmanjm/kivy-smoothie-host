@@ -58,7 +58,7 @@ Builder.load_string('''
                 on_press: root.connect()
             ActionButton:
                 id: print_but
-                disabled: not root.is_connected
+                disabled: not app.is_connected
                 text: 'Print' # also 'Pause'/'Resume'
                 on_press: root.start_print()
             ActionButton:
@@ -87,7 +87,7 @@ Builder.load_string('''
                 mode: 'spinner'
                 ActionButton:
                     text: 'Select Port'
-                    disabled: root.is_connected
+                    disabled: app.is_connected
                     on_press: root.change_port()
                 ActionButton:
                     text: 'Quit'
@@ -378,7 +378,6 @@ class MainWindow(BoxLayout):
     wcs= ListProperty([0,0,0])
     eta= StringProperty('--:--')
     is_printing= BooleanProperty(False)
-    is_connected= BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
@@ -409,7 +408,7 @@ class MainWindow(BoxLayout):
         self.ids.log_window.text= '\n'.join(self._log)
 
     def connect(self):
-        if self.is_connected:
+        if self.app.is_connected:
             self.add_line_to_log("Disconnecting...")
             self.app.comms.disconnect()
         else:
@@ -437,7 +436,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def connected(self):
         Logger.debug("MainWindow: Connected...")
-        self.is_connected= True
+        self.app.is_connected= True
         self.ids.connect_button.state= 'down'
         self.ids.connect_button.text= "Disconnect"
         self.ids.print_but.text= 'Print'
@@ -447,7 +446,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def disconnected(self):
         Logger.debug("MainWindow: Disconnected...")
-        self.is_connected= False
+        self.app.is_connected= False
         self.is_printing= False
         self.ids.connect_button.state= 'normal'
         self.ids.connect_button.text= "Connect"
@@ -556,6 +555,8 @@ class MainWindow(BoxLayout):
         self.paused= False
 
 class SmoothieHost(App):
+    is_connected= BooleanProperty(False)
+
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
         super(SmoothieHost, self).__init__(**kwargs)

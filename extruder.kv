@@ -111,6 +111,7 @@
             text: 'Hotend:'
         Switch:
             id: hotend_switch
+            disabled: not app.is_connected
             on_active: root.switch_active(self, 'hotend', self.active, set_hotend_temp.text.split()[0])
         Spinner:
             id: set_hotend_temp
@@ -133,6 +134,7 @@
             text: 'Bed:'
         Switch:
             id: bed_switch
+            disabled: not app.is_connected
             on_active: root.switch_active(self, 'bed', self.active, set_bed_temp.text.split()[0])
 
         Spinner:
@@ -215,10 +217,12 @@
                 size_hint_y: None
                 size: 40, 40
                 text: 'Extrude'
+                disabled: not app.is_connected
                 on_press: root.extrude()
             Button:
                 size_hint_y: None
                 text: 'Reverse'
+                disabled: not app.is_connected
                 size: 40, 40
                 on_press: root.reverse()
 
