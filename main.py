@@ -84,7 +84,7 @@ Builder.load_string('''
                 text: 'System'
                 mode: 'spinner'
                 ActionButton:
-                    text: 'Change Port'
+                    text: 'Select Port'
                     disabled: root.is_connected
                     on_press: root.change_port()
                 ActionButton:

@@ -75,10 +75,7 @@ class SelectionBox(Popup):
     def on_ok(self):
         if self.cb:
             s= self.ids.selection.text
-            if s != 'Select':
-                self.cb(s)
-            else:
-                self.cb(None)
+            self.cb(s)
 
     def on_cancel(self):
         if self.cb:
