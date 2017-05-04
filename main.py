@@ -406,7 +406,7 @@ class MainWindow(BoxLayout):
 
     def change_port(self):
         l= self.app.comms.get_ports()
-        ports= []
+        ports= [self.config.get('General', 'serial_port')] # current port is first in list
         for p in l:
             ports.append(p.device)
 
@@ -417,6 +417,7 @@ class MainWindow(BoxLayout):
         if s:
             Logger.info('MainWindow: Selected port {}'.format(s))
             self.config.set('General', 'serial_port', s)
+            self.config.write()
 
     def abort_print(self):
         # are you sure?
