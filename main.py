@@ -170,6 +170,9 @@ class ExtruderWidget(BoxLayout):
             self.set_temp(type, '0')
 
     def adjust_temp(self, type, value):
+        if value == 'select temp':
+            return
+
         if type == 'bed':
             self.ids.set_bed_temp.text= '{}'.format(int(self.last_bed_temp) + int(value))
             if self.ids.bed_switch.active:
@@ -203,18 +206,33 @@ class ExtruderWidget(BoxLayout):
             if temp:
                 self.ids.bed_dg.value= temp
             if not math.isnan(setpoint):
-                self.ids.set_bed_temp.text= str(setpoint)
-                self.ids.bed_dg.setpoint_value= setpoint if setpoint > 0 else float('nan')
+                if setpoint > 0:
+                    self.ids.set_bed_temp.text= str(setpoint)
+                    self.ids.bed_dg.setpoint_value= setpoint
+                else:
+                    self.ids.bed_dg.setpoint_value= float('nan')
 
         elif type == 'hotend':
             if temp:
                 self.ids.hotend_dg.value= temp
             if not math.isnan(setpoint):
-                self.ids.set_hotend_temp.text= str(setpoint)
-                self.ids.hotend_dg.setpoint_value= setpoint if setpoint > 0 else float('nan')
+                if setpoint > 0:
+                    self.ids.set_hotend_temp.text= str(setpoint)
+                    self.ids.hotend_dg.setpoint_value= setpoint
+                else:
+                    self.ids.hotend_dg.setpoint_value= float('nan')
+
 
         else:
             Logger.error('Extruder: unknown temp type - ' + type)
+
+    def update_length(self):
+        self.app.config.set('Extruder', 'length', self.ids.extrude_length.text)
+        self.app.config.write()
+
+    def update_speed(self):
+        self.app.config.set('Extruder', 'speed', self.ids.extrude_speed.text)
+        self.app.config.write()
 
     def extrude(self):
         ''' called when the extrude button is pressed '''
@@ -479,8 +497,10 @@ class SmoothieHost(App):
             'serial_port': '/dev/ttyACM0'
         })
         config.setdefaults('Extruder', {
-            'last_bed_temp': '0',
-            'last_hotend_temp': '0'
+            'last_bed_temp': '60',
+            'last_hotend_temp': '185',
+            'length': '20',
+            'speed': '300'
         })
 
     def on_stop(self):
