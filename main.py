@@ -5,9 +5,11 @@ from kivy.lang import Builder
 
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
+from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.stacklayout import StackLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
@@ -145,7 +147,81 @@ Builder.load_string('''
 
             ExtruderWidget:
                 id: extruder
+
+            MacrosWidget:
+                id: macros
+                orientation: 'tb-lr'
+                spacing: 10, 10
+                padding: 10, 10
+                canvas.before:
+                    Color:
+                        rgba: 0.5, 0.5, 0.5, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                ToggleButton:
+                    text: 'Power on' if self.state == 'normal' else 'Power off'
+                    size: 100, 40
+                    size_hint: None, None
+                    on_press: self.parent.send('M81' if self.state == 'normal' else 'M80')
+
+                ToggleButton:
+                    text: 'Fan on' if self.state == 'normal' else 'Fan off'
+                    size: 100, 40
+                    size_hint: None, None
+                    on_press: self.parent.send('M107' if self.state == 'normal' else 'M106 S255')
+
+                Button:
+                    text: 'Settings'
+                    on_press: self.parent.send('M503')
+                    size: 100, 40
+                    size_hint: None, None
+                Button:
+                    text: 'Get Pos'
+                    on_press: self.parent.send('get pos')
+                    size: 100, 40
+                    size_hint: None, None
+                Button:
+                    text: 'CZ'
+                    on_press: self.parent.send('G0 F15000 X0 Y0 Z0')
+                    size: 100, 40
+                    size_hint: None, None
+                Button:
+                    text: 'C'
+                    on_press: self.parent.send('G0 F15000 X0 Y0 Z0.2')
+                    size: 100, 40
+                    size_hint: None, None
+                Button:
+                    text: 'T1'
+                    on_press: self.parent.send('G0 F15000 X-102.85962 Y-59.3860 Z0.2')
+                    size: 100, 40
+                    size_hint: None, None
+                Button:
+                    text: 'T2'
+                    on_press: self.parent.send('G0 F15000 X102.85962 Y-59.3860 Z0.2')
+                    size: 100, 40
+                    size_hint: None, None
+                Button:
+                    text: 'T3'
+                    on_press: self.parent.send('G0 F15000 X0 Y118.7721 Z0.2')
+                    size: 100, 40
+                    size_hint: None, None
+
 ''')
+
+# TODO need to make macros configurable and stored in a configuration file
+class MacrosWidget(StackLayout):
+    """adds macro buttons"""
+    def __init__(self, **kwargs):
+        super(MacrosWidget, self).__init__(**kwargs)
+        self.app = App.get_running_app()
+        # for i in range(25):
+        #     btn = Button(text=str(i), size= (80, 40), size_hint=(None, None))
+        #     self.add_widget(btn)
+
+    def send(self, s):
+        self.app.comms.write('{}\n'.format(s))
 
 class ExtruderWidget(BoxLayout):
     def __init__(self, **kwargs):
