@@ -12,9 +12,10 @@ import serial.tools.list_ports
 async_main_loop= None
 
 class SerialConnection(asyncio.Protocol):
-    def __init__(self, cb):
+    def __init__(self, cb, f):
         super().__init__()
         self.cb = cb
+        self.f= f
         self.cnt= 0
         self.log = logging.getLogger() #.getChild('SerialConnection')
         self.log.info('SerialConnection: creating SerialCOnnection')
@@ -85,13 +86,12 @@ class SerialConnection(asyncio.Protocol):
             self.log.error("SerialConnection: Got decode error on data {}: {}".format(repr(data), err))
             self.cb.incoming_data(repr(data)) # send it upstream anyway
 
-
     def connection_lost(self, exc):
         self.log.debug('SerialConnection: port closed')
         self.tsk.cancel() # stop the writer task
+        self.transport.close()
+        self.f.set_result('Disconnected')
         self.cb.connected(False)
-        # self.transport.loop.stop()
-        async_main_loop.stop()
 
     def pause_writing(self):
         self.log.debug('SerialConnection: pause writing')
@@ -126,12 +126,16 @@ class Comms():
         return t
 
     def connected(self, b):
-        ''' called by the serial connection to indicate when connectde and disconnected '''
+        ''' called by the serial connection to indicate when connected and disconnected '''
         if b:
             self.app.root.connected()
         else:
-            self.proto= None
-            self.app.root.disconnected()
+            self.proto= None # no proto now
+            self._stream_pause(False, True) # abort the stream if one is running
+            if self.timer: # stop the timer if we have one
+                self.timer.cancel()
+
+            self.app.root.disconnected() # tell upstream we disconnected
 
     def disconnect(self):
         ''' called by ui thread to disconnect '''
@@ -168,12 +172,12 @@ class Comms():
             if self.file_streamer:
                 self.file_streamer.cancel()
 
+            # we need to close the transport, this will cause mailopp to stop and thread to exit as well
             async_main_loop.call_soon_threadsafe(self.proto.transport.close)
 
-        if async_main_loop and async_main_loop.is_running():
-            if self.timer:
-                self.timer.cancel()
-            async_main_loop.call_soon_threadsafe(async_main_loop.stop)
+        # else:
+        #     if async_main_loop and async_main_loop.is_running():
+        #         async_main_loop.call_soon_threadsafe(async_main_loop.stop)
 
     def get_ports(self):
         return [port for port in serial.tools.list_ports.comports() if port[2] != 'n/a']
@@ -190,10 +194,13 @@ class Comms():
         asyncio.set_event_loop(newloop)
         loop = asyncio.get_event_loop()
         async_main_loop = loop
-        sc_factory = functools.partial(SerialConnection, cb=self) # uses partial so we can pass a parameter
+        f = asyncio.Future()
+        sc_factory = functools.partial(SerialConnection, cb=self, f= f) # uses partial so we can pass a parameter
         serial_conn = serial_asyncio.create_serial_connection(loop, sc_factory, self.port, baudrate=115200)
         try:
             _, self.proto = loop.run_until_complete(serial_conn) # sets up connection returning transport and protocol handler
+            self.log.debug('Comms: serial connection task completed')
+
             # this is when we are really setup and ready to go
             self.connected(True)
 
@@ -203,9 +210,21 @@ class Comms():
                 # start a timer to get the reports
                 self.timer = loop.call_later(5, self._get_reports)
 
-            loop.run_forever()
+            # wait until we are disconnected
+            self.log.debug('Comms: waiting until disconnection')
+            loop.run_until_complete(f)
+
+            # we wait until all tasks are complete
+            pending = asyncio.Task.all_tasks()
+            self.log.debug('Comms: waiting for all tasks to complete: {}'.format(pending))
+            loop.run_until_complete(asyncio.gather(*pending))
+            #loop.run_forever()
+
+        except asyncio.CancelledError:
+            pass
 
         except Exception as err:
+            #self.log.error('Comms: {}'.format(traceback.format_exc()))
             self.log.error("Comms: Got serial error opening port: {0}".format(err))
             self.app.root.async_display(">>> Connect failed: {0}".format(err))
             self.app.root.disconnected()
@@ -345,7 +364,8 @@ class Comms():
         if self.proto:
             self.proto.flush_queue()
 
-        self.app.root.alarm_state(s)
+        # call upstream after we have allowed stream to stop
+        async_main_loop.call_soon(self.app.root.alarm_state, s)
 
     def stream_gcode(self, fn, progress=None):
         ''' called from external thread to start streaming a file '''
@@ -416,6 +436,9 @@ class Comms():
                         self.log.debug('Comms: okcntr wait cancelled')
                         break
 
+                if self.abort_stream:
+                    break
+
                 # send the line
                 self._write(line)
                 linecnt += 1
@@ -433,7 +456,7 @@ class Comms():
                 self.log.error("Comms: Stream file exception: {}".format(err))
 
         finally:
-            self.log.info('Comms: Streaming complete')
+            self.log.info('Comms: Streaming complete: {}'.format(success))
             if f:
                 yield from f.close()
 
@@ -503,9 +526,8 @@ if __name__ == "__main__":
 
         def alarm_state(self, s):
             self.ok= False
-            self.end_event.set()
-
-
+            # in this case we do want to disconnect
+            comms.proto.transport.close()
 
     if len(sys.argv) < 3:
         print("Usage: {} port file".format(sys.argv[0]));
@@ -526,7 +548,7 @@ if __name__ == "__main__":
 
     start= None
     def display_progress(n):
-        global start
+        global start, nlines
         if not start:
             start= datetime.datetime.now()
 
@@ -550,17 +572,20 @@ if __name__ == "__main__":
                 app.end_event.wait() # wait for streaming to complete
 
                 print("File sent: {}".format('Ok' if app.ok else 'Failed'))
-                comms.stop()
-                t.join()
+                now=datetime.datetime.now()
+                et= (now-start).seconds
+                print("Elapsed time: {:02d}:{:02d}:{:02d}".format(int(et//3600), int(et%3600)//60, int(et%60)))
 
             else:
                 print("Error: Failed to connect")
-                comms.stop()
+
         else:
             print("Error: Connection timed out")
-            comms.stop()
 
     except KeyboardInterrupt:
         print("Interrupted")
-        comms.stop()
 
+    finally:
+        # now stop the comms if it is connected or running
+        comms.stop()
+        t.join()
