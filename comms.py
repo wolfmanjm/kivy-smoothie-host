@@ -170,11 +170,10 @@ class Comms():
 
             async_main_loop.call_soon_threadsafe(self.proto.transport.close)
 
-        else:
-            if async_main_loop:
-                if self.timer:
-                    self.timer.cancel()
-                async_main_loop.call_soon_threadsafe(async_main_loop.stop)
+        if async_main_loop and async_main_loop.is_running():
+            if self.timer:
+                self.timer.cancel()
+            async_main_loop.call_soon_threadsafe(async_main_loop.stop)
 
     def get_ports(self):
         return [port for port in serial.tools.list_ports.comports() if port[2] != 'n/a']
@@ -241,8 +240,11 @@ class Comms():
             s= s.rstrip() # strip off \n
 
             if s in 'ok':
-                if self.okcnt:
-                    self.okcnt.release()
+                if self.ping_pong:
+                    if self.okcnt:
+                        self.okcnt.release()
+                else:
+                    self.okcnt += 1
 
             elif "error" in s or "!!" in s or "ALARM" in s or "ERROR" in s:
                 self.handle_alarm(s)
@@ -363,7 +365,7 @@ class Comms():
     def _stream_pause(self, pause, do_abort):
         if do_abort:
             self.abort_stream= True # aborts stream
-            if self.okcnt:
+            if self.ping_pong and self.okcnt:
                 self.okcnt.release() # release it in case it is waiting for ok so it can abort
         elif pause:
             self.pause_stream= True #.clear() # pauses stream
@@ -379,6 +381,8 @@ class Comms():
         self.pause_stream= False #.set() # start out not paused
         if self.ping_pong:
             self.okcnt= asyncio.Semaphore(1)
+        else:
+            self.okcnt= 0
 
         f= None
         success= False
@@ -405,7 +409,7 @@ class Comms():
                     break
 
                 # wait for ok... (Note we interleave read from file with wait for ok)
-                if self.ping_pong:
+                if self.ping_pong and self.okcnt:
                     try:
                         yield from self.okcnt.acquire()
                     except:
@@ -416,7 +420,12 @@ class Comms():
                 self._write(line)
                 linecnt += 1
                 if self.progress:
-                    self.progress(linecnt)
+                    if self.ping_pong:
+                        # number of lines sent
+                        self.progress(linecnt)
+                    else:
+                        # number of lines ok'd
+                        self.progress(self.okcnt)
 
             success= not self.abort_stream
 
@@ -428,8 +437,21 @@ class Comms():
             if f:
                 yield from f.close()
 
+            if success and not self.ping_pong:
+                self.log.debug('Comms: Waiting for okcnt to catch up: {} vs {}'.format(self.okcnt, linecnt))
+                # we have to wait for all lines to be ack'd
+                while self.okcnt < linecnt:
+                    if self.progress:
+                        self.progress(self.okcnt)
+                    if self.abort_stream:
+                        success= False
+                        break
+
+                    yield from asyncio.sleep(1)
+
             self.file_streamer= None
             self.progress= None
+
             # notify upstream that we are done
             self.app.root.stream_finished(success)
 
