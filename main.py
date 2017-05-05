@@ -319,7 +319,7 @@ class KbdWidget(GridLayout):
 class MainWindow(BoxLayout):
     status= StringProperty('Idle')
     wcs= ListProperty([0,0,0])
-    eta= StringProperty('--:--')
+    eta= StringProperty('--:--:--')
     is_printing= BooleanProperty(False)
 
     def __init__(self, **kwargs):
@@ -352,7 +352,7 @@ class MainWindow(BoxLayout):
 
     def connect(self):
         if self.app.is_connected:
-            self.add_line_to_log("Disconnecting...")
+            self.add_line_to_log("Disconnect...")
             self.app.comms.disconnect()
         else:
             port= self.config.get('General', 'serial_port') if not self.app.use_com_port else self.app.use_com_port

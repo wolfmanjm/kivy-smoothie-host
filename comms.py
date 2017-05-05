@@ -91,7 +91,6 @@ class SerialConnection(asyncio.Protocol):
         self.tsk.cancel() # stop the writer task
         self.transport.close()
         self.f.set_result('Disconnected')
-        self.cb.connected(False)
 
     def pause_writing(self):
         self.log.debug('SerialConnection: pause writing')
@@ -124,18 +123,6 @@ class Comms():
         t= threading.Thread(target=self.run_async_loop)
         t.start()
         return t
-
-    def connected(self, b):
-        ''' called by the serial connection to indicate when connected and disconnected '''
-        if b:
-            self.app.root.connected()
-        else:
-            self.proto= None # no proto now
-            self._stream_pause(False, True) # abort the stream if one is running
-            if self.timer: # stop the timer if we have one
-                self.timer.cancel()
-
-            self.app.root.disconnected() # tell upstream we disconnected
 
     def disconnect(self):
         ''' called by ui thread to disconnect '''
@@ -201,8 +188,8 @@ class Comms():
             _, self.proto = loop.run_until_complete(serial_conn) # sets up connection returning transport and protocol handler
             self.log.debug('Comms: serial connection task completed')
 
-            # this is when we are really setup and ready to go
-            self.connected(True)
+            # this is when we are really setup and ready to go, notify upstream
+            self.app.root.connected()
 
             if self.reports:
                 # issue a version command to get things started
@@ -213,6 +200,15 @@ class Comms():
             # wait until we are disconnected
             self.log.debug('Comms: waiting until disconnection')
             loop.run_until_complete(f)
+
+            # clean up and notify upstream we have been disconnected
+            self.proto= None # no proto now
+            self._stream_pause(False, True) # abort the stream if one is running
+            if self.timer: # stop the timer if we have one
+                self.timer.cancel()
+                self.timer= None
+
+            self.app.root.disconnected() # tell upstream we disconnected
 
             # we wait until all tasks are complete
             pending = asyncio.Task.all_tasks()
@@ -230,8 +226,6 @@ class Comms():
             self.app.root.disconnected()
 
         finally:
-            if self.timer:
-                self.timer.cancel()
             loop.close()
             async_main_loop= None
             self.log.debug('Comms: asyncio thread Exiting...')
