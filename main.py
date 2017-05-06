@@ -87,7 +87,6 @@ Builder.load_string('''
                     on_press: page_layout.page= 2
                 ActionButton:
                     text: 'Macros'
-                    important: True
                     group: 'winds'
                     on_press: page_layout.page= 3
 
@@ -203,12 +202,12 @@ class ExtruderWidget(BoxLayout):
             return
 
         if type == 'bed':
-            self.ids.set_bed_temp.text= '{}'.format(self.last_bed_temp + float(value))
+            self.ids.set_bed_temp.text= '{:1.1f}'.format(self.last_bed_temp + float(value))
             if self.ids.bed_switch.active:
                 # update temp
                 self.set_temp(type, self.ids.set_bed_temp.text)
         else:
-            self.ids.set_hotend_temp.text= '{}'.format(self.last_hotend_temp + float(value))
+            self.ids.set_hotend_temp.text= '{:1.1f}'.format(self.last_hotend_temp + float(value))
             if self.ids.hotend_switch.active:
                 # update temp
                 self.set_temp(type, self.ids.set_hotend_temp.text)
