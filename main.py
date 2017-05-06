@@ -50,44 +50,46 @@ Builder.load_string('''
         ActionView:
             use_separator: True
             ActionPrevious:
-                title: 'Smoothie Host'
+                title: 'Smoopi'
                 with_previous: False
             ActionOverflow:
 
             ActionToggleButton:
                 id: connect_button
                 text: 'Connect'
+                important: True
                 on_press: root.connect()
             ActionButton:
                 id: print_but
                 disabled: not app.is_connected
                 text: 'Print' # also 'Pause'/'Resume'
+                important: True
                 on_press: root.start_print()
             ActionButton:
                 disabled: not root.is_printing
                 text: 'Abort'
+                important: True
                 on_press: root.abort_print()
 
-            ActionButton:
-                text: 'Console'
-                important: True
-                group: 'winds'
-                on_press: page_layout.page= 0
-            ActionButton:
-                text: 'Jog'
-                important: True
-                group: 'winds'
-                on_press: page_layout.page= 1
-            ActionButton:
-                text: 'Extruder'
-                important: True
-                group: 'winds'
-                on_press: page_layout.page= 2
-            ActionButton:
-                text: 'Macros'
-                important: True
-                group: 'winds'
-                on_press: page_layout.page= 3
+            ActionGroup:
+                text: 'Modes'
+                ActionButton:
+                    text: 'Console'
+                    group: 'winds'
+                    on_press: page_layout.page= 0
+                ActionButton:
+                    text: 'Jog'
+                    group: 'winds'
+                    on_press: page_layout.page= 1
+                ActionButton:
+                    text: 'Extruder'
+                    group: 'winds'
+                    on_press: page_layout.page= 2
+                ActionButton:
+                    text: 'Macros'
+                    important: True
+                    group: 'winds'
+                    on_press: page_layout.page= 3
 
             ActionGroup:
                 text: 'System'
@@ -531,7 +533,7 @@ class MainWindow(BoxLayout):
                 eta= 0
 
             #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
-            self.eta= '{} {:.1%}'.format(datetime.timedelta(seconds=int(eta)), n/self.nlines)
+            self.eta= '{} | {:.1%}'.format(datetime.timedelta(seconds=int(eta)), n/self.nlines)
 
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)

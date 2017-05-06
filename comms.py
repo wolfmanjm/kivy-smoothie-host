@@ -437,7 +437,7 @@ class Comms():
                 # send the line
                 self._write(line)
                 linecnt += 1
-                if self.progress:
+                if self.progress and linecnt%10 == 0: # update every 10 lines
                     if self.ping_pong:
                         # number of lines sent
                         self.progress(linecnt)
