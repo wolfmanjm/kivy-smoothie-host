@@ -137,7 +137,7 @@ Builder.load_string('''
                     width: status.texture_size[0]
                 Label:
                     id: wcs
-                    text: 'X: {} Y: {} Z: {}'.format(*root.wcs)
+                    text: 'X{:1.1f} Y{:1.1f} Z{:1.1f}'.format(*root.wcs)
                     color: 0,0,0,1
                 Label:
                     id: eta
