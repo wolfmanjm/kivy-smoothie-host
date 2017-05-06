@@ -180,8 +180,8 @@ class ExtruderWidget(BoxLayout):
     def __init__(self, **kwargs):
         super(ExtruderWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.last_bed_temp= self.app.config.getint('Extruder', 'last_bed_temp')
-        self.last_hotend_temp= self.app.config.getint('Extruder', 'last_hotend_temp')
+        self.last_bed_temp= self.app.config.getfloat('Extruder', 'last_bed_temp')
+        self.last_hotend_temp= self.app.config.getfloat('Extruder', 'last_hotend_temp')
 
     def switch_active(self, instance, type, on, value):
         if on:
@@ -203,21 +203,21 @@ class ExtruderWidget(BoxLayout):
             return
 
         if type == 'bed':
-            self.ids.set_bed_temp.text= '{}'.format(int(self.last_bed_temp) + int(value))
+            self.ids.set_bed_temp.text= '{}'.format(self.last_bed_temp + float(value))
             if self.ids.bed_switch.active:
                 # update temp
                 self.set_temp(type, self.ids.set_bed_temp.text)
         else:
-            self.ids.set_hotend_temp.text= '{}'.format(self.last_hotend_temp + int(value))
+            self.ids.set_hotend_temp.text= '{}'.format(self.last_hotend_temp + float(value))
             if self.ids.hotend_switch.active:
                 # update temp
                 self.set_temp(type, self.ids.set_hotend_temp.text)
 
     def set_last_temp(self, type, value):
         if type == 'bed':
-            self.last_bed_temp= int(value)
+            self.last_bed_temp= float(value)
         else:
-            self.last_hotend_temp= int(value)
+            self.last_hotend_temp= float(value)
 
         self.app.config.set('Extruder', 'last_{}_temp'.format(type), value)
         self.app.config.write()
