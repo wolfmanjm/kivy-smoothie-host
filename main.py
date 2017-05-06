@@ -83,6 +83,11 @@ Builder.load_string('''
                 important: True
                 group: 'winds'
                 on_press: page_layout.page= 2
+            ActionButton:
+                text: 'Macros'
+                important: True
+                group: 'winds'
+                on_press: page_layout.page= 3
 
             ActionGroup:
                 text: 'System'
@@ -126,6 +131,8 @@ Builder.load_string('''
                     id: status
                     text: root.status
                     color: 0,0,0,1
+                    size_hint_x: None
+                    width: status.texture_size[0]
                 Label:
                     id: wcs
                     text: 'X: {} Y: {} Z: {}'.format(*root.wcs)
@@ -410,8 +417,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def alarm_state(self, s):
         ''' called when smoothie is in Alarm state and it is sent a gcode '''
-        if not '!!' in s:
-            self.add_line_to_log("! Alarm state: {}".format(s))
+        self.add_line_to_log("! Alarm state: {}".format(s))
 
     def ask_exit(self):
         # are you sure?
@@ -510,6 +516,7 @@ class MainWindow(BoxLayout):
         self.display(">>> Print ended at : {}".format(now.strftime('%x %X')))
         et= datetime.timedelta(seconds= int((now-self.start_print_time).seconds))
         self.display(">>> Elapsed time: {}".format(et))
+        self.eta= '--:--:--'
 
     @mainthread
     def display_progress(self, n):
@@ -524,7 +531,7 @@ class MainWindow(BoxLayout):
                 eta= 0
 
             #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
-            self.eta= str(datetime.timedelta(seconds=int(eta)))
+            self.eta= '{} {:.1%}'.format(datetime.timedelta(seconds=int(eta)), n/self.nlines)
 
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)

@@ -113,6 +113,7 @@ class Comms():
         self.okcnt= None
         self.ping_pong= True # ping pong protocol for streaming
         self.file_streamer= None
+        self.report_rate= 1 # TODO make configurable
 
         self.log = logging.getLogger() #.getChild('Comms')
         #logging.getLogger().setLevel(logging.DEBUG)
@@ -150,7 +151,7 @@ class Comms():
         if self.proto:
            asyncio.async(self.proto.send_message('M105\n', True))
            asyncio.async(self.proto.send_message('?', True))
-           self.timer = async_main_loop.call_later(5, self._get_reports)
+           self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
@@ -196,7 +197,7 @@ class Comms():
                 # issue a version command to get things started
                 self._write('version\n')
                 # start a timer to get the reports
-                self.timer = loop.call_later(5, self._get_reports)
+                self.timer = loop.call_later(self.report_rate, self._get_reports)
 
             # wait until we are disconnected
             self.log.debug('Comms: waiting until disconnection')
