@@ -8,6 +8,7 @@ import sys
 import re
 import traceback
 import serial.tools.list_ports
+import subprocess
 
 async_main_loop= None
 
@@ -474,10 +475,7 @@ class Comms():
 
         return success
 
-if __name__ == "__main__":
-    import subprocess
-    import datetime
-
+    @staticmethod
     def file_len(fname):
         ''' use external process to quickly find total number of G/M lines in file '''
         p = subprocess.Popen(['grep', '-c', "^[GM]", fname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -485,6 +483,9 @@ if __name__ == "__main__":
         if p.returncode != 0:
             raise IOError(err)
         return int(result.strip().split()[0])
+
+if __name__ == "__main__":
+    import datetime
 
     ''' a standalone streamer to test it with '''
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -535,9 +536,10 @@ if __name__ == "__main__":
 
 
     try:
-        nlines= file_len(sys.argv[2]) # get number of lines so we can do progress and ETA
+        nlines= Comms.file_len(sys.argv[2]) # get number of lines so we can do progress and ETA
         print('number of lines: {}'.format(nlines))
     except:
+        print('Exception: {}'.format(traceback.format_exc()))
         nlines= None
 
     start= None
@@ -545,18 +547,19 @@ if __name__ == "__main__":
         global start, nlines
         if not start:
             start= datetime.datetime.now()
+            print("Print started at: {}".format(start.strftime('%x %X')))
 
         if nlines:
             now=datetime.datetime.now()
             d= (now-start).seconds
-            if n > 10 and d > 1:
+            if n > 10 and d > 10:
                 # we have to wait a bit to get reasonable estimates
                 lps= n/d
                 eta= (nlines-n)/lps
             else:
                 eta= 0
-
-            print("progress: {}/{} {:.1%} ETA {:02d}:{:02d}:{:02d}".format(n, nlines, n/nlines, int(eta//3600), int(eta%3600)//60, int(eta%60)))
+            et= datetime.timedelta(seconds=int(eta))
+            print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
 
     try:
         t= comms.connect(sys.argv[1])
@@ -567,8 +570,9 @@ if __name__ == "__main__":
 
                 print("File sent: {}".format('Ok' if app.ok else 'Failed'))
                 now=datetime.datetime.now()
-                et= (now-start).seconds
-                print("Elapsed time: {:02d}:{:02d}:{:02d}".format(int(et//3600), int(et%3600)//60, int(et%60)))
+                print("Print ended at : {}".format(now.strftime('%x %X')))
+                et= datetime.timedelta(seconds= int((now-start).seconds))
+                print("Elapsed time: {}".format(et))
 
             else:
                 print("Error: Failed to connect")

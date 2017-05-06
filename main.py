@@ -31,6 +31,7 @@ import queue
 import math
 import os
 import sys
+import datetime
 
 Window.softinput_mode = 'below_target'
 
@@ -407,14 +408,6 @@ class MainWindow(BoxLayout):
         self.wcs= wpos
 
     @mainthread
-    def stream_finished(self, ok):
-        ''' called when streaming gcode has finished, ok is True if it completed '''
-        self.ids.print_but.text= 'Print'
-        self.is_printing= False
-        self.display('>>> printing finished {}'.format('ok' if ok else 'abnormally'))
-
-
-    @mainthread
     def alarm_state(self, s):
         ''' called when smoothie is in Alarm state and it is sent a gcode '''
         if not '!!' in s:
@@ -483,9 +476,19 @@ class MainWindow(BoxLayout):
         # start comms thread to stream the file
         # set comms.ping_pong to False for fast stream mode
         Logger.info('MainWindow: printing file: {}'.format(file_path))
-        self.display('>>> started printing file: {}'.format(file_path))
 
-        self.app.comms.stream_gcode(file_path)
+        try:
+            self.nlines= Comms.file_len(file_path) # get number of lines so we can do progress and ETA
+            Logger.debug('MainWindow: number of lines: {}'.format(self.nlines))
+        except:
+            Logger.warning('MainWindow: exception in file_len: {}'.format(traceback.format_exc()))
+            self.nlines= None
+
+        self.start_print_time= datetime.datetime.now()
+        self.display('>>> Printing file: {}, {} lines'.format(file_path, self.nlines))
+        self.display('>>> Print started at: {}'.format(self.start_print_time.strftime('%x %X')))
+
+        self.app.comms.stream_gcode(file_path, progress= lambda x: self.display_progress(x))
         if directory != self.last_path:
             self.last_path= directory
             self.config.set('General', 'last_gcode_path', directory)
@@ -496,6 +499,32 @@ class MainWindow(BoxLayout):
         self.ids.print_but.text= 'Pause'
         self.is_printing= True
         self.paused= False
+
+    @mainthread
+    def stream_finished(self, ok):
+        ''' called when streaming gcode has finished, ok is True if it completed '''
+        self.ids.print_but.text= 'Print'
+        self.is_printing= False
+        now= datetime.datetime.now()
+        self.display('>>> printing finished {}'.format('ok' if ok else 'abnormally'))
+        self.display(">>> Print ended at : {}".format(now.strftime('%x %X')))
+        et= datetime.timedelta(seconds= int((now-self.start_print_time).seconds))
+        self.display(">>> Elapsed time: {}".format(et))
+
+    @mainthread
+    def display_progress(self, n):
+        if self.nlines:
+            now= datetime.datetime.now()
+            d= (now-self.start_print_time).seconds
+            if n > 10 and d > 10:
+                # we have to wait a bit to get reasonable estimates
+                lps= n/d
+                eta= (self.nlines-n)/lps
+            else:
+                eta= 0
+
+            #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
+            self.eta= str(datetime.timedelta(seconds=int(eta)))
 
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)
