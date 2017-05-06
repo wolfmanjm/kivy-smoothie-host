@@ -102,18 +102,17 @@ class SerialConnection(asyncio.Protocol):
         self.log.debug('SerialConnection: ' + 'resume writing')
 
 class Comms():
-    def __init__(self, app, reports=True):
+    def __init__(self, app, reportrate=1):
         self.app = app
         self.proto = None
         self.timer= None
         self._fragment= None
-        self.reports= reports
         self.abort_stream= False
         self.pause_stream= False #asyncio.Event()
         self.okcnt= None
         self.ping_pong= True # ping pong protocol for streaming
         self.file_streamer= None
-        self.report_rate= 1 # TODO make configurable
+        self.report_rate= reportrate
 
         self.log = logging.getLogger() #.getChild('Comms')
         #logging.getLogger().setLevel(logging.DEBUG)
@@ -193,7 +192,7 @@ class Comms():
             # this is when we are really setup and ready to go, notify upstream
             self.app.root.connected()
 
-            if self.reports:
+            if self.report_rate > 0:
                 # issue a version command to get things started
                 self._write('version\n')
                 # start a timer to get the reports
@@ -530,7 +529,7 @@ if __name__ == "__main__":
         exit(0)
 
     app= CommsApp()
-    comms= Comms(app, False) # Don't start the report query timer when streaming
+    comms= Comms(app, 0) # Don't start the report query timer when streaming
     if len(sys.argv) > 3:
         comms.ping_pong= False
         print('Fast Stream')

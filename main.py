@@ -539,7 +539,6 @@ class SmoothieHost(App):
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
         super(SmoothieHost, self).__init__(**kwargs)
-        self.comms= Comms(self)
         if len(sys.argv) > 1:
             # override com port
             self.use_com_port= sys.argv[1]
@@ -550,7 +549,8 @@ class SmoothieHost(App):
         config.setdefaults('General', {
             'last_gcode_path': os.path.expanduser("~"),
             'last_print_file': '',
-            'serial_port': '/dev/ttyACM0'
+            'serial_port': '/dev/ttyACM0',
+            'report_rate': '1'
         })
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',
@@ -564,6 +564,7 @@ class SmoothieHost(App):
         self.comms.stop(); # stop the aysnc loop
 
     def build(self):
+        self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         return MainWindow()
 
 
