@@ -260,7 +260,7 @@ class Comms():
                 else:
                     self.okcnt += 1
 
-            elif "error" in s or "!!" in s or "ALARM" in s or "ERROR" in s:
+            elif "!!" in s or "ALARM" in s or "ERROR" in s:
                 self.handle_alarm(s)
 
             elif "ok C:" in s:
