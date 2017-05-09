@@ -95,7 +95,7 @@ class GcodeViewerScreen(Screen):
         n= 1 if self.last_target_layer <= 1 else self.last_target_layer-1
         self.parse_gcode_file(self.app.gcode_file, n, True)
 
-    extract_gcode= re.compile("(G|X|Y|Z|I|J|K)(-?\d*\.?\d+\.?)")
+    extract_gcode= re.compile("(G|X|Y|Z|I|J|K|E)(-?\d*\.?\d+\.?)")
     def parse_gcode_file(self, fn, target_layer= 0, one_layer= False):
         # open file parse gcode and draw
         Logger.debug("GcodeViewerScreen: parsing file {}". format(fn))
@@ -123,11 +123,11 @@ class GcodeViewerScreen(Screen):
         self.canv.add(PushMatrix())
 
         with open(fn) as f:
-            if self.last_file_pos:
-                # jump to last read position
-                f.seek(self.last_file_pos)
-                self.last_file_pos= None
-                print('Jumped to Saved position: {}'.format(self.last_file_pos))
+            # if self.last_file_pos:
+            #     # jump to last read position
+            #     f.seek(self.last_file_pos)
+            #     self.last_file_pos= None
+            #     print('Jumped to Saved position: {}'.format(self.last_file_pos))
 
             for l in f:
                 l = l.strip()
@@ -149,6 +149,8 @@ class GcodeViewerScreen(Screen):
 
                 # only deal with G0/1/2/3
                 if d['G'] > 3: continue
+
+                # TODO handle first move when lastpso is not valid yet
 
                 # see if it is 3d printing (ie has an E axis on a G1)
                 if not has_e and ('E' in d and 'G' in d and d['G'] == 1): has_e= True
@@ -177,8 +179,9 @@ class GcodeViewerScreen(Screen):
                     continue
 
                 if layer > target_layer and one_layer:
+                    # FIXME for some reason this does not work, -- not counting layers
                     #self.last_file_pos= f.tell()
-                    print('Saved position: {}'.format(self.last_file_pos))
+                    #print('Saved position: {}'.format(self.last_file_pos))
                     self.current_z= lastpos[2]
                     break
 
@@ -203,27 +206,32 @@ class GcodeViewerScreen(Screen):
                 # in slicer generated files there is no G0 so we need a way to know when to draw, so if there is an E then draw else don't
                 if gcode == 0:
                     #print("move to: {}, {}, {}".format(x, y, z))
-                    # TODO draw moves in red
-                    pass
+                    # draw moves in red
+                    self.canv.add(Color(1, 0, 0))
+                    self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, cap='none', joint='none'))
 
                 elif gcode == 1:
-                    # for 3d printers (has_e) only draw if there is an E
-                    if ('X' in d or 'Y' in d) and (not has_e or 'E' in d):
-                        #print("draw to: {}, {}, {}".format(x, y, z))
-                        if len(points) < 2:
-                            points.append(lastpos[0])
-                            points.append(lastpos[1])
+                    if ('X' in d or 'Y' in d):
+                        # for 3d printers (has_e) only draw if there is an E
+                        if not has_e or 'E' in d:
+                            #print("draw to: {}, {}, {}".format(x, y, z))
+                            # if len(points) < 2:
+                            #     points.append(lastpos[0])
+                            #     points.append(lastpos[1])
 
-                        points.append(x)
-                        points.append(y)
-                        self.canv.add(Color(0, 0, 0))
-                        self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
-                        points= []
+                            # points.append(x)
+                            # points.append(y)
+                            # self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                            # points= []
+                            # if we collect points then use above
+                            self.canv.add(Color(0, 0, 0))
+                            self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, cap='none', joint='none'))
 
-                    else: # treat as G0
-                        # TODO draw moves in red
-                        #print("move to: {}, {}, {}".format(x, y, z))
-                        pass
+                        else:
+                            # treat as G0 and draw moves in red
+                            #print("move to: {}, {}, {}".format(x, y, z))
+                            self.canv.add(Color(1, 0, 0))
+                            self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, cap='none', joint='none'))
 
                 elif gcode in [2, 3]:
                     # arc starts at lastpos, center is relative to start I,J, ends at X,Y if specified otherwise 360
