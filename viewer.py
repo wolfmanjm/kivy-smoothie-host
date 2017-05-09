@@ -61,9 +61,13 @@ Builder.load_string('''
                 text: 'Clear'
                 on_press: root.clear()
             ToggleButton:
-                id: select_but
-                text: 'Set WCS'
-                on_press: root.select_mode= self.state == 'down'
+                id: set_wpos_but
+                text: 'Set WPOS'
+                on_press: root.set_wcs(self.state == 'down')
+            ToggleButton:
+                id: move_gantry_but
+                text: 'Move Gantry'
+                on_press: root.move_gantry(self.state == 'down')
 
 
 <StartScreen>:
@@ -329,6 +333,7 @@ class GcodeViewerScreen(Screen):
         self.ids.surface.top= Window.height
 
     select_mode= BooleanProperty(False)
+    set_wpos_mode= BooleanProperty(True)
 
     def on_touch_down(self, touch):
         #print(self.ids.surface.bbox)
@@ -376,15 +381,30 @@ class GcodeViewerScreen(Screen):
             ud = touch.ud
             self.canvas.remove_group(ud['group'])
             self.select_mode= False
-            self.ids.select_but.state= 'normal'
+            self.ids.set_wpos_but.state= 'normal'
+            self.ids.move_gantry_but.state= 'normal'
 
             # convert touch coords to local scatter widget coords
             pos= self.ids.surface.to_widget(touch.x, touch.y)
             # convert to original model coordinates (mm), need to take into account scale and translate
-            print('Set WCS to: {}, {}'.format((pos[0]-self.tx)/self.scale, (pos[1]-self.ty)/self.scale))
+            wpos= ((pos[0]-self.tx)/self.scale, (pos[1]-self.ty)/self.scale)
+            if self.set_wpos_mode:
+                print('Set WCS to: {}, {}'.format(wpos[0], wpos[1]))
+                print('G10 L20 P0 X{} Y{}'.format(wpos[0], wpos[1]))
+            else:
+                print('Move Gantry to: {}, {}'.format(wpos[0], wpos[1]))
+                print('G0 X{} Y{}'.format(wpos[0], wpos[1]))
 
         else:
             return super(GcodeViewerScreen, self).on_touch_up(touch)
+
+    def move_gantry(self, on):
+        self.set_wpos_mode= False
+        self.select_mode= on
+
+    def set_wcs(self, on):
+        self.set_wpos_mode= True
+        self.select_mode= on
 
 
 class StartScreen(Screen):
