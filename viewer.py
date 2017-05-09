@@ -288,9 +288,24 @@ class GcodeViewerScreen(Screen):
         dx= max_x-min_x
         dy= max_y-min_y
 
-         # add in the translation
-        self.canv.insert(1, Translate(self.ids.surface.center[0]-min_x-dx/2, self.ids.surface.center[1]-min_y-dy/2))
-        scale= self.ids.surface.width/dx if dx > dy else self.ids.surface.height/dy
+        # pad by a few pixels
+        dx += 4
+        dy += 4
+
+        # add in the translation
+        self.canv.insert(1, Translate(self.ids.surface.center[0]-min_x+1-dx/2, self.ids.surface.center[1]-min_y+1-dy/2))
+
+        # scale the drawing to fit the screen
+        if dx > dy:
+            scale= self.ids.surface.width/dx
+            if dy*scale > self.ids.surface.height:
+                scale *= self.ids.surface.height/(dy*scale)
+        else:
+            scale= self.ids.surface.height/dy
+            if dx*scale > self.ids.surface.width:
+                scale *= self.ids.surface.width/(dx*scale)
+
+        Logger.debug("Size: {}, Scale by {}".format((dx, dy), scale))
         self.canv.insert(2, Scale(scale))
         self.canv.add(PopMatrix())
 
