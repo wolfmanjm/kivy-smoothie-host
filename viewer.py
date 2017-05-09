@@ -4,7 +4,10 @@ from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.graphics import Color, Line, Scale, Translate, PopMatrix, PushMatrix, Rectangle
-
+from kivy.graphics import InstructionGroup
+from kivy.properties import NumericProperty
+from kivy.graphics.transformation import Matrix
+from kivy.core.window import Window
 
 import logging
 import sys
@@ -14,15 +17,48 @@ import math
 Builder.load_string('''
 
 <GcodeViewerScreen>:
-    on_enter: self.parse_gcode_file(app.gcode_file)
-    Scatter:
-        id: surface
-        do_rotation: False
-        canvas.before:
-            Color:
-                rgb: 1, 1, 1, 1
-            Rectangle:
-                size: self.size
+    #on_enter: self.parse_gcode_file(app.gcode_file, 1, True)
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            pos_hint: {'top': 1}
+            Scatter:
+                pos_hint: {'top': 1}
+                id: surface
+                do_rotation: False
+                canvas.before:
+                    Color:
+                        rgb: 1, 1, 1, 1
+                    Rectangle:
+                        size: self.size
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 40
+            Label:
+                canvas.before:
+                    Color:
+                        rgb: 0, 1, 0, 1
+                    Rectangle:
+                        size: self.size
+                id: z_value
+                text: 'Z{}'.format(round(root.current_z, 1))
+                size_hint_x: None
+                width: self.texture_size[0]
+            Button:
+                text: 'First Layer'
+                on_press: root.parse_gcode_file(app.gcode_file, 1, True)
+            Button:
+                text: 'Prev Layer'
+                on_press: root.prev_layer()
+            Button:
+                text: 'Next Layer'
+                on_press: root.next_layer()
+            Button:
+                text: 'Clear'
+                on_press: root.clear()
+
 
 <StartScreen>:
     on_leave: print('leaving start')
@@ -33,16 +69,40 @@ Builder.load_string('''
 
 
 class GcodeViewerScreen(Screen):
+    current_z= NumericProperty(0)
+
     def __init__(self, **kwargs):
         super(GcodeViewerScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.last_file_pos= None
+        self.canv = InstructionGroup()
+        self.ids.surface.canvas.add(self.canv)
+        self.transform= self.ids.surface.transform
+        self.bind(pos=self._redraw, size=self._redraw)
+        self.last_target_layer= 0
+
+    def _redraw(self, instance, value):
+        self.ids.surface.canvas.add(self.canv)
+
+    def clear(self):
+        self.canv.clear()
+        self.ids.surface.canvas.remove(self.canv)
+
+    def next_layer(self):
+        self.parse_gcode_file(self.app.gcode_file, self.last_target_layer+1, True)
+
+    def prev_layer(self):
+        n= 1 if self.last_target_layer <= 1 else self.last_target_layer-1
+        self.parse_gcode_file(self.app.gcode_file, n, True)
 
     extract_gcode= re.compile("(G|X|Y|Z|I|J|K)(-?\d*\.?\d+\.?)")
-    def parse_gcode_file(self, fn):
+    def parse_gcode_file(self, fn, target_layer= 0, one_layer= False):
         # open file parse gcode and draw
         Logger.debug("GcodeViewerScreen: parsing file {}". format(fn))
-        lastpos= [0,0,0] # XYZ
+        lastpos= [0,0,-1] # XYZ
+        lastz= -1
         laste= 0
+        layer= 0
         last_gcode= -1
         points= []
         max_x= float('nan')
@@ -50,8 +110,25 @@ class GcodeViewerScreen(Screen):
         min_x= float('nan')
         min_y= float('nan')
         has_e= False
+        self.last_target_layer= target_layer
+
+        # reset scale and translation
+        m= Matrix()
+        m.identity()
+        self.ids.surface.transform= m
+
+        # remove all instructions from canvas
+        self.canv.clear()
+
+        self.canv.add(PushMatrix())
 
         with open(fn) as f:
+            if self.last_file_pos:
+                # jump to last read position
+                f.seek(self.last_file_pos)
+                self.last_file_pos= None
+                print('Jumped to Saved position: {}'.format(self.last_file_pos))
+
             for l in f:
                 l = l.strip()
                 if not l: continue
@@ -84,8 +161,26 @@ class GcodeViewerScreen(Screen):
 
                 e= laste if 'E' not in d else float(d['E'])
 
-                # TODO handle layers (when Z changes)
-                #if z > 1: break
+                # handle layers (when Z changes)
+                if lastz < 0 and z > 0:
+                    # first layer
+                    lastz= z
+                    layer= 1
+
+                if z > lastz:
+                    # count layers
+                    layer += 1
+                    lastz= z
+
+                # wait until we get to the requested layer
+                if layer < target_layer:
+                    continue
+
+                if layer > target_layer and one_layer:
+                    #self.last_file_pos= f.tell()
+                    print('Saved position: {}'.format(self.last_file_pos))
+                    self.current_z= lastpos[2]
+                    break
 
                 # find bounding box
                 if math.isnan(min_x) or x < min_x: min_x= x
@@ -94,6 +189,8 @@ class GcodeViewerScreen(Screen):
                 if math.isnan(max_y) or y > max_y: max_y= y
 
                 gcode= d['G']
+
+                # TODO accumulating vertices is more efficient but seems to not work at some point
                 # if last_gcode != gcode or (gcode == 1 and has_e and 'E' not in d):
                 #     # flush vertices
                 #     if points:
@@ -106,24 +203,25 @@ class GcodeViewerScreen(Screen):
                 # in slicer generated files there is no G0 so we need a way to know when to draw, so if there is an E then draw else don't
                 if gcode == 0:
                     #print("move to: {}, {}, {}".format(x, y, z))
+                    # TODO draw moves in red
                     pass
 
                 elif gcode == 1:
                     # for 3d printers (has_e) only draw if there is an E
                     if ('X' in d or 'Y' in d) and (not has_e or 'E' in d):
                         #print("draw to: {}, {}, {}".format(x, y, z))
-                        # FIXME do not really want to draw this if it was a G0 last
                         if len(points) < 2:
                             points.append(lastpos[0])
                             points.append(lastpos[1])
 
                         points.append(x)
                         points.append(y)
-                        self.ids.surface.canvas.add(Color(0, 0, 0))
-                        self.ids.surface.canvas.add(Line(points=points, width= 1, cap='none', joint='none'))
+                        self.canv.add(Color(0, 0, 0))
+                        self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
                         points= []
 
                     else: # treat as G0
+                        # TODO draw moves in red
                         #print("move to: {}, {}, {}".format(x, y, z))
                         pass
 
@@ -180,8 +278,8 @@ class GcodeViewerScreen(Screen):
 
                         #print(ast, aen)
 
-                    self.ids.surface.canvas.add(Color(0, 0, 0))
-                    self.ids.surface.canvas.add(Line(ellipse=(sx, sy, w, h, ast, aen), width=1, cap= 'none', joint='round'))
+                    self.canv.add(Color(0, 0, 0))
+                    self.canv.add(Line(ellipse=(sx, sy, w, h, ast, aen), width=1, cap= 'none', joint='round'))
 
                 # always remember last position
                 lastpos= [x, y, z]
@@ -189,13 +287,15 @@ class GcodeViewerScreen(Screen):
         # center the drawing and scale it
         dx= max_x-min_x
         dy= max_y-min_y
-        self.ids.surface.canvas.before.add(PushMatrix())
-        self.ids.surface.canvas.before.add(Translate(self.ids.surface.center[0]-min_x-dx/2, self.ids.surface.center[1]-min_y-dy/2))
-        self.ids.surface.canvas.after.add(PopMatrix())
-        if dx > dy:
-            self.ids.surface.scale= self.ids.surface.width/dx
-        else:
-            self.ids.surface.scale= self.ids.surface.height/dy
+
+         # add in the translation
+        self.canv.insert(1, Translate(self.ids.surface.center[0]-min_x-dx/2, self.ids.surface.center[1]-min_y-dy/2))
+        scale= self.ids.surface.width/dx if dx > dy else self.ids.surface.height/dy
+        self.canv.insert(2, Scale(scale))
+        self.canv.add(PopMatrix())
+
+        # not sure why we need to do this
+        self.ids.surface.top= Window.height
 
 
 class StartScreen(Screen):
