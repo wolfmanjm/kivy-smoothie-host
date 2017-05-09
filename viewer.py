@@ -5,9 +5,11 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.graphics import Color, Line, Scale, Translate, PopMatrix, PushMatrix, Rectangle
 from kivy.graphics import InstructionGroup
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, BooleanProperty
 from kivy.graphics.transformation import Matrix
 from kivy.core.window import Window
+from kivy.uix.boxlayout import BoxLayout
+
 
 import logging
 import sys
@@ -23,8 +25,8 @@ Builder.load_string('''
         BoxLayout:
             pos_hint: {'top': 1}
             Scatter:
-                pos_hint: {'top': 1}
                 id: surface
+                do_collide_after_children: True
                 do_rotation: False
                 canvas.before:
                     Color:
@@ -58,6 +60,10 @@ Builder.load_string('''
             Button:
                 text: 'Clear'
                 on_press: root.clear()
+            ToggleButton:
+                id: select_but
+                text: 'Set WCS'
+                on_press: root.select_mode= self.state == 'down'
 
 
 <StartScreen>:
@@ -66,7 +72,6 @@ Builder.load_string('''
         text: 'press me'
         on_press: root.manager.current = 'gcode'
 ''')
-
 
 class GcodeViewerScreen(Screen):
     current_z= NumericProperty(0)
@@ -301,7 +306,9 @@ class GcodeViewerScreen(Screen):
         dy += 4
 
         # add in the translation
-        self.canv.insert(1, Translate(self.ids.surface.center[0]-min_x+1-dx/2, self.ids.surface.center[1]-min_y+1-dy/2))
+        self.tx= self.ids.surface.center[0]-min_x+1-dx/2
+        self.ty= self.ids.surface.center[1]-min_y+1-dy/2
+        self.canv.insert(1, Translate(self.tx, self.ty))
 
         # scale the drawing to fit the screen
         if dx > dy:
@@ -313,12 +320,71 @@ class GcodeViewerScreen(Screen):
             if dx*scale > self.ids.surface.width:
                 scale *= self.ids.surface.width/(dx*scale)
 
+        self.scale= scale
         Logger.debug("Size: {}, Scale by {}".format((dx, dy), scale))
         self.canv.insert(2, Scale(scale))
         self.canv.add(PopMatrix())
 
         # not sure why we need to do this
         self.ids.surface.top= Window.height
+
+    select_mode= BooleanProperty(False)
+
+    def on_touch_down(self, touch):
+        #print(self.ids.surface.bbox)
+        # if within the scatter and we are in select mode...
+        if self.ids.surface.collide_point(touch.x, touch.y) and self.select_mode:
+            pos= (touch.x, touch.y)
+            ud = touch.ud
+            ud['group'] = g = str(touch.uid)
+
+            with self.canvas:
+                Color(0, 0, 1, mode='rgb', group=g)
+                ud['crossx'] = [
+                    Rectangle(pos=(pos[0], 0), size=(1, self.height), group=g),
+                    Rectangle(pos=(0, pos[1]), size=(self.width, 1), group=g),
+                    Line(circle=(pos[0], pos[1], 20), group=g),
+                ]
+
+            touch.grab(self)
+            return True
+
+        else:
+            return super(GcodeViewerScreen, self).on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        if self.select_mode:
+            if touch.grab_current is not self:
+                return
+
+            pos= (touch.x, touch.y)
+            ud = touch.ud
+            ud['crossx'][0].pos = pos[0], 0
+            ud['crossx'][1].pos = 0, pos[1]
+            ud['crossx'][2].circle = (pos[0], pos[1], 20)
+
+        else:
+            return super(GcodeViewerScreen, self).on_touch_move(touch)
+
+
+    def on_touch_up(self, touch):
+        if self.select_mode:
+            if touch.grab_current is not self:
+                return
+
+            touch.ungrab(self)
+            ud = touch.ud
+            self.canvas.remove_group(ud['group'])
+            self.select_mode= False
+            self.ids.select_but.state= 'normal'
+
+            # convert touch coords to local scatter widget coords
+            pos= self.ids.surface.to_widget(touch.x, touch.y)
+            # convert to original model coordinates (mm), need to take into account scale and translate
+            print('Set WCS to: {}, {}'.format((pos[0]-self.tx)/self.scale, (pos[1]-self.ty)/self.scale))
+
+        else:
+            return super(GcodeViewerScreen, self).on_touch_up(touch)
 
 
 class StartScreen(Screen):
