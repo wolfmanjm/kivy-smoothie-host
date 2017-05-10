@@ -89,13 +89,17 @@ class GcodeViewerScreen(Screen):
         self.transform= self.ids.surface.transform
         self.bind(pos=self._redraw, size=self._redraw)
         self.last_target_layer= 0
+        self.tx= 0
+        self.ty= 0
+        self.scale= 1.0
 
     def _redraw(self, instance, value):
+        self.ids.surface.canvas.remove(self.canv)
         self.ids.surface.canvas.add(self.canv)
 
     def clear(self):
         self.canv.clear()
-        self.ids.surface.canvas.remove(self.canv)
+        self.last_target_layer= 0
 
     def next_layer(self):
         self.parse_gcode_file(self.app.gcode_file, self.last_target_layer+1, True)
@@ -119,6 +123,7 @@ class GcodeViewerScreen(Screen):
         min_x= float('nan')
         min_y= float('nan')
         has_e= False
+
         self.last_target_layer= target_layer
 
         # reset scale and translation
@@ -202,15 +207,16 @@ class GcodeViewerScreen(Screen):
 
                 gcode= d['G']
 
-                # TODO accumulating vertices is more efficient but seems to not work at some point
-                # if last_gcode != gcode or (gcode == 1 and has_e and 'E' not in d):
-                #     # flush vertices
-                #     if points:
-                #         self.ids.surface.canvas.add(Color(0, 0, 0))
-                #         self.ids.surface.canvas.add(Line(points=points, width= 1, cap='none', joint='none'))
-                #         points= []
-                #     last_gcode= gcode
+                # accumulating vertices is more efficient but we need to flush them at some point
+                # Here we flush them if we encounter a new G code like G3 following G1
+                if last_gcode != gcode:
+                    # flush vertices
+                    if points:
+                        self.canv.add(Color(0, 0, 0))
+                        self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                        points= []
 
+                last_gcode= gcode
 
                 # in slicer generated files there is no G0 so we need a way to know when to draw, so if there is an E then draw else don't
                 if gcode == 0:
@@ -223,24 +229,36 @@ class GcodeViewerScreen(Screen):
                     if ('X' in d or 'Y' in d):
                         # for 3d printers (has_e) only draw if there is an E
                         if not has_e or 'E' in d:
+                            # if a CNC gcode file or there is an E in the G1 (3d printing)
                             #print("draw to: {}, {}, {}".format(x, y, z))
-                            # if len(points) < 2:
-                            #     points.append(lastpos[0])
-                            #     points.append(lastpos[1])
+                            # collect points but don't draw them yet
+                            if len(points) < 2:
+                                points.append(lastpos[0])
+                                points.append(lastpos[1])
 
-                            # points.append(x)
-                            # points.append(y)
-                            # self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
-                            # points= []
-                            # if we collect points then use above
-                            self.canv.add(Color(0, 0, 0))
-                            self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, cap='none', joint='none'))
+                            points.append(x)
+                            points.append(y)
 
                         else:
-                            # treat as G0 and draw moves in red
+                            # a G1 with no E, treat as G0 and draw moves in red
                             #print("move to: {}, {}, {}".format(x, y, z))
+                            if points:
+                                # draw accumulated points upto this point
+                                self.canv.add(Color(0, 0, 0))
+                                self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                                points= []
+                            # now draw the move in red
                             self.canv.add(Color(1, 0, 0))
                             self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, cap='none', joint='none'))
+
+                    else:
+                        # A G1 with no X or Y, maybe E only move (retract) or Z move (layer change)
+                        if points:
+                            # draw accumulated points upto this point
+                            self.canv.add(Color(0, 0, 0))
+                            self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                            points= []
+
 
                 elif gcode in [2, 3]:
                     # arc starts at lastpos, center is relative to start I,J, ends at X,Y if specified otherwise 360
@@ -300,6 +318,14 @@ class GcodeViewerScreen(Screen):
 
                 # always remember last position
                 lastpos= [x, y, z]
+                laste= e
+
+        # flush any points not yet drawn
+        if points:
+            # draw accumulated points upto this point
+            self.canv.add(Color(0, 0, 0))
+            self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+            points= []
 
         # center the drawing and scale it
         dx= max_x-min_x
