@@ -343,7 +343,7 @@ class GcodeViewerScreen(Screen):
             ud = touch.ud
             ud['group'] = g = str(touch.uid)
 
-            with self.canvas:
+            with self.canvas.after:
                 Color(0, 0, 1, mode='rgb', group=g)
                 ud['crossx'] = [
                     Rectangle(pos=(pos[0], 0), size=(1, self.height), group=g),
@@ -379,7 +379,7 @@ class GcodeViewerScreen(Screen):
 
             touch.ungrab(self)
             ud = touch.ud
-            self.canvas.remove_group(ud['group'])
+            self.canvas.after.remove_group(ud['group'])
             self.select_mode= False
             self.ids.set_wpos_but.state= 'normal'
             self.ids.move_gantry_but.state= 'normal'
