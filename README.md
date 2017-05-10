@@ -74,4 +74,6 @@ Run as
 ![Extruder Screen](screen1.png)
 ![Command Screen](screen2.png)
 ![Jog Screen](screen3.png)
+![Macro Screen](macro-screen.png)
+![Gcode Viewer Screen](viewerscreen.png)
 
