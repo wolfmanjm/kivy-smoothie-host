@@ -12,13 +12,6 @@
         text: root.text
 
 <ArrowButton>:
-    # canvas.before:
-    #     Color:
-    #         rgba: 1, 0, 0, 1
-    #     Rectangle:
-    #         pos: self.pos
-    #         size: self.size
-
     canvas:
         Color:
             rgba: [0.75,0.75,0.75, 1] if root.state == 'normal' else [0,1,1,1]
@@ -197,14 +190,52 @@
             on_press: root.handle_action('H', 0)
 
         GridLayout:
-            pos_hint: {'center_x': 0.1, 'center_y': 0.95}
-            size_hint: 0.2, None
+            pos_hint: {'left': 1, 'top': 1}
+            size_hint: 0.4, 0.5
             cols: 2
+            spacing: 4,4
             CheckBox:
                 id: x10cb
+                size_hint: None, None
+                size: 20, 20
             Label:
-                text: "x10"
+                text: "Jog x10"
+                size_hint: None, None
+                size: self.texture_size
                 #active: True
+            TextInput:
+                id: xy_feedrate
+                multiline: False
+                size_hint_y: None
+                height: self.minimum_height
+                input_type: 'number'
+                input_filter: 'float'
+                text: root.xy_feedrate
+                on_text_validate: root.update_xy_feedrate()
+            Label:
+                text: 'mm/min XY'
+                size_hint: None, None
+                size: self.texture_size[0], xy_feedrate.minimum_height
+            TextInput:
+                id: z_feedrate
+                multiline: False
+                size_hint_y: None
+                height: self.minimum_height
+                input_type: 'number'
+                input_filter: 'float'
+                text: root.z_feedrate
+                on_text_validate: root.update_z_feedrate()
+            Label:
+                text: 'mm/min Z'
+                size_hint: None, None
+                size: self.texture_size[0], xy_feedrate.minimum_height
+
+            Button:
+                text: 'Motors Off'
+                size_hint: None, None
+                size: self.texture_size[0], 40
+                on_press: root.motors_off()
+
         # Label:
         #     pos_hint: {'left': 1, 'bottom': 1}
         #     canvas.before:

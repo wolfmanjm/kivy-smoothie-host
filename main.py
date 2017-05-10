@@ -286,20 +286,41 @@ class ArrowButton(ButtonBehavior, Widget):
     #     return Vector.in_bbox((x, y), bmin, bmax)
 
 class JogRoseWidget(BoxLayout):
+    xy_feedrate= StringProperty()
+    z_feedrate= StringProperty()
+
     def __init__(self, **kwargs):
         super(JogRoseWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.xy_feedrate= self.app.config.get('Jog', 'xy_feedrate')
+        self.z_feedrate= self.app.config.get('Jog', 'z_feedrate')
 
     def handle_action(self, axis, v):
         x10= self.x10_cb.active
         if x10:
             v *= 10
         if axis == 'O':
-            self.app.comms.write('G0 X0 Y0\n')
+            self.app.comms.write('G0 X0 Y0 F{}\n'.format(self.xy_feedrate))
         elif axis == 'H':
             self.app.comms.write('G28\n')
         else:
-            self.app.comms.write('G91 G0 {}{} G90\n'.format(axis, v))
+            fr= self.z_feedrate if axis == 'Z' else self.xy_feedrate
+            self.app.comms.write('G91 G0 {}{} F{} G90\n'.format(axis, v, fr))
+
+    def update_xy_feedrate(self):
+        fr= self.ids.xy_feedrate.text
+        self.app.config.set('Jog', 'xy_feedrate', fr)
+        self.app.config.write()
+        self.xy_feedrate= fr
+
+    def update_z_feedrate(self):
+        fr= self.ids.z_feedrate.text
+        self.app.config.set('Jog', 'z_feedrate', fr)
+        self.app.config.write()
+        self.z_feedrate= fr
+
+    def motors_off(self):
+        self.app.comms.write('M18')
 
 class KbdWidget(GridLayout):
     def __init__(self, **kwargs):
@@ -558,6 +579,10 @@ class SmoothieHost(App):
             'last_hotend_temp': '185',
             'length': '20',
             'speed': '300'
+        })
+        config.setdefaults('Jog', {
+            'xy_feedrate': '3000',
+            'z_feedrate': '300'
         })
 
     def on_stop(self):
