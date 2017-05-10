@@ -76,19 +76,19 @@ Builder.load_string('''
                 ActionButton:
                     text: 'Console'
                     group: 'winds'
-                    on_press: page_layout.page= 0
+                    on_press: page_layout.index= 0
                 ActionButton:
                     text: 'Jog'
                     group: 'winds'
-                    on_press: page_layout.page= 1
+                    on_press: page_layout.index= 1
                 ActionButton:
                     text: 'Extruder'
                     group: 'winds'
-                    on_press: page_layout.page= 2
+                    on_press: page_layout.index= 2
                 ActionButton:
                     text: 'Macros'
                     group: 'winds'
-                    on_press: page_layout.page= 3
+                    on_press: page_layout.index= 3
 
             ActionGroup:
                 text: 'System'
@@ -144,10 +144,12 @@ Builder.load_string('''
                     color: 0,0,0,1
 
         # Right panel
-        PageLayout:
+        Carousel:
             id: page_layout
             border: 30
-            swipe_threshold: .25
+            direction: 'top'
+            loop: True
+
             KbdWidget:
                 id: kbd_widget
 
