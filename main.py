@@ -149,6 +149,7 @@ Builder.load_string('''
             border: 30
             direction: 'top'
             loop: True
+            ignore_perpendicular_swipes: True
 
             KbdWidget:
                 id: kbd_widget

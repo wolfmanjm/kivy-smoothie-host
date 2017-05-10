@@ -17,6 +17,19 @@ I'm was running with the very first RPI model A, but it runs pretty slowly.
 I upgraded to an RPI-3 Model B and it runs much better, so I recommend them they are only about $10 more expensive.
 I suspect an RPI-2 Model B will also run pretty well.
 
+## Usage
+
+The left screen is the console and displays messages from smoothie, the right screen is a selection of panels (Modes) which can be switched to by swiping up or down
+(or use the modes menu to select the panel you want) you can scroll up and down by swiping up or down.
+
+There is a status bar at the bottom left showing status, DRO and print ETA when printing.
+
+The Console panel has a keyboard for entering gcodes and if you touch the edit field a keyboard will pop up for typing commands (non gcodes).
+The Extruder Panel is used to control temperatures and extuder.
+The Jog Panel has the usual jog controls.
+The Macro Panel is user configurable buttons panel to control whatever you want. (Edit the macro.kv file)
+
+There will be a gcode visualizer panel that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode.
 
 ## Install on RPI
 
