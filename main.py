@@ -171,9 +171,6 @@ class MacrosWidget(StackLayout):
     def __init__(self, **kwargs):
         super(MacrosWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        # for i in range(25):
-        #     btn = Button(text=str(i), size= (80, 40), size_hint=(None, None))
-        #     self.add_widget(btn)
 
     def send(self, s):
         self.app.comms.write('{}\n'.format(s))

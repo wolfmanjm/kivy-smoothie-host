@@ -1,3 +1,13 @@
+<MacroButton@Button>:
+    size: 100, 40
+    size_hint: None, None
+    on_press: self.parent.send(self.cmd)
+
+<MacroToggleButton@ToggleButton>:
+    size: 100, 40
+    size_hint: None, None
+    on_press: self.parent.send(self.oncmd if self.state == 'normal' else self.offcmd)
+
 <MacrosWidget>:
     orientation: 'tb-lr'
     spacing: 10, 10
@@ -9,61 +19,51 @@
             pos: self.pos
             size: self.size
 
-    ToggleButton:
+    MacroToggleButton:
+        id: power_but
         text: 'Power on' if self.state == 'normal' else 'Power off'
-        size: 100, 40
-        size_hint: None, None
-        on_press: root.send('M81' if self.state == 'normal' else 'M80')
+        oncmd: 'M81'
+        offcmd: 'M80'
 
-    ToggleButton:
+    MacroToggleButton:
         text: 'Fan on' if self.state == 'normal' else 'Fan off'
-        size: 100, 40
-        size_hint: None, None
-        on_press: root.send('M107' if self.state == 'normal' else 'M106 S255')
+        oncmd: 'M107'
+        offcmd: 'M106 S255'
 
-    Button:
+    MacroButton:
         text: 'Settings'
-        on_press: root.send('M503')
-        size: 100, 40
-        size_hint: None, None
-    Button:
+        cmd: 'M503'
+
+    MacroButton:
         text: 'Get Pos'
-        on_press: root.send('get pos')
-        size: 100, 40
-        size_hint: None, None
-    Button:
+        cmd: 'get pos'
+
+    MacroButton:
         text: 'CZ'
-        on_press: root.send('G0 F15000 X0 Y0 Z0')
-        size: 100, 40
-        size_hint: None, None
-    Button:
+        cmd: 'G0 F15000 X0 Y0 Z0'
+
+    MacroButton:
         text: 'C'
-        on_press: root.send('G0 F15000 X0 Y0 Z0.2')
-        size: 100, 40
-        size_hint: None, None
-    Button:
+        cmd: 'G0 F15000 X0 Y0 Z0.2'
+
+    MacroButton:
         text: 'T1'
-        on_press: root.send('G0 F15000 X-102.85962 Y-59.3860 Z0.2')
-        size: 100, 40
-        size_hint: None, None
-    Button:
+        cmd: 'G0 F15000 X-102.85962 Y-59.3860 Z0.2'
+
+    MacroButton:
         text: 'T2'
-        on_press: root.send('G0 F15000 X102.85962 Y-59.3860 Z0.2')
-        size: 100, 40
-        size_hint: None, None
-    Button:
+        cmd: 'G0 F15000 X102.85962 Y-59.3860 Z0.2'
+
+    MacroButton:
         text: 'T3'
-        on_press: root.send('G0 F15000 X0 Y118.7721 Z0.2')
-        size: 100, 40
-        size_hint: None, None
-    Button:
+        cmd: 'G0 F15000 X0 Y118.7721 Z0.2'
+
+    MacroButton:
         text: 'Kill'
-        on_press: root.send('\x18') # ^X
-        color: 1,0,0,1
-        size: 100, 40
-        size_hint: None, None
-    Button:
+        color: 1, 0, 0, 1
+        cmd: '\x18' # ^X
+
+    MacroButton:
         text: 'Clear Alarm'
-        on_press: root.send('$X')
-        size: 100, 40
-        size_hint: None, None
+        cmd: '$X'
+
