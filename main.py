@@ -172,8 +172,17 @@ class MacrosWidget(StackLayout):
         super(MacrosWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
+    # def check_macros(self):
+    #     # periodically check the state of the toggle macro buttons
+    #     for i in self.ids:
+    #         if self.ids[i].check:
+    #             # sends this, but then how to get response?
+    #             print(self.ids[i].check)
+    #             # check response and compare state with current state and toggle to match state if necessary
+
     def send(self, s):
         self.app.comms.write('{}\n'.format(s))
+
 
 class ExtruderWidget(BoxLayout):
     def __init__(self, **kwargs):

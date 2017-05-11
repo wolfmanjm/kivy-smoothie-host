@@ -7,6 +7,7 @@
     size: 100, 40
     size_hint: None, None
     on_press: self.parent.send(self.oncmd if self.state == 'normal' else self.offcmd)
+    check:''
 
 <MacrosWidget>:
     orientation: 'tb-lr'
@@ -24,11 +25,14 @@
         text: 'Power on' if self.state == 'normal' else 'Power off'
         oncmd: 'M81'
         offcmd: 'M80'
+        check: 'switch psu'
 
     MacroToggleButton:
+        id: fan_but
         text: 'Fan on' if self.state == 'normal' else 'Fan off'
         oncmd: 'M107'
         offcmd: 'M106 S255'
+        check: 'switch fan'
 
     MacroButton:
         text: 'Settings'
