@@ -29,10 +29,20 @@ Builder.load_string('''
                 do_collide_after_children: True
                 do_rotation: False
                 canvas.before:
+                    ScissorPush:
+                        # without this we can see the scatter underneath the buttons in the rest of the window
+                        x: self.parent.pos[0]
+                        y: self.parent.pos[1]
+                        width: self.parent.width
+                        height: self.parent.height
+
                     Color:
                         rgb: 1, 1, 1, 1
                     Rectangle:
                         size: self.size
+
+                canvas.after:
+                    ScissorPop:
 
         BoxLayout:
             orientation: 'horizontal'
@@ -100,6 +110,12 @@ class GcodeViewerScreen(Screen):
     def clear(self):
         self.canv.clear()
         self.last_target_layer= 0
+        # reset scale and translation
+        m= Matrix()
+        m.identity()
+        self.ids.surface.transform= m
+        # not sure why we need to do this
+        self.ids.surface.top= Window.height
 
     def next_layer(self):
         self.parse_gcode_file(self.app.gcode_file, self.last_target_layer+1, True)
@@ -351,7 +367,6 @@ class GcodeViewerScreen(Screen):
                 scale *= self.ids.surface.width/(dx*scale)
 
         self.scale= scale
-        Logger.debug("Size: {}, Scale by {}".format((dx, dy), scale))
         self.canv.insert(2, Scale(scale))
         self.canv.add(PopMatrix())
 
