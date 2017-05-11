@@ -12,10 +12,13 @@
         orientation: 'horizontal'
         size_hint_y: None
         height: 130
+        # size_hint_x: None
+        # width: 180 * 2
 
         BoxLayout:
             orientation: 'vertical'
             DialGauge:
+                pos_hint: {'center_x': 0.5}
                 id: hotend_dg
                 dial_diameter: 180
 
@@ -58,8 +61,8 @@
 
         BoxLayout:
             orientation: 'vertical'
-
             DialGauge:
+                pos_hint: {'center_x': 0.5}
                 id: bed_dg
                 dial_diameter: 180
 

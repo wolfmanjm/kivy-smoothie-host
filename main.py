@@ -369,7 +369,7 @@ class MainWindow(BoxLayout):
         Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
 
     def my_callback(self, dt):
-        self.ids.page_layout.page= 1 # switch to jog screen
+        self.ids.page_layout.index= 1 # switch to jog screen
 
     def add_line_to_log(self, s):
         ''' Add lines to the log window, which is trimmed to the last 200 lines '''
