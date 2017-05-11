@@ -61,7 +61,7 @@ Builder.load_string('''
                 on_press: root.connect()
             ActionButton:
                 id: print_but
-                disabled: not app.is_connected
+                #disabled: not app.is_connected
                 text: 'Print' # also 'Pause'/'Resume'
                 important: True
                 on_press: root.start_print()
