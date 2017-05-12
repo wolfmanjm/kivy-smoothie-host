@@ -79,20 +79,21 @@ class LoadDialog(FloatLayout):
 
 class FileDialog(FloatLayout):
     """File Dialog"""
-    def __init__(self, arg):
+    def __init__(self):
         super(FileDialog, self).__init__()
-        self.cb = arg
+        self.cb = None
 
     def dismiss_popup(self):
         self._popup.dismiss()
 
-    def open(self, path= None):
+    def open(self, path= None, title= "File to Print", cb= None):
+        self.cb= cb
         content = LoadDialog(load=self.load, cancel=self.dismiss_popup, path=path if path else os.path.expanduser("~"))
-        self._popup = Popup(title="File to Print", content=content,
+        self._popup = Popup(title=title, content=content,
                             size_hint=(0.9, 0.9))
         self._popup.open()
 
     def load(self, path, filename):
         self.dismiss_popup()
-        if len(filename) > 0:
+        if len(filename) > 0 and self.cb:
             self.cb(filename[0], path)

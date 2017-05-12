@@ -67,7 +67,7 @@ Builder.load_string('''
                 on_press: root.connect()
             ActionButton:
                 id: print_but
-                #disabled: not app.is_connected
+                disabled: not app.is_connected
                 text: 'Print' # also 'Pause'/'Resume'
                 important: True
                 on_press: root.start_print()
@@ -523,8 +523,8 @@ class MainWindow(BoxLayout):
                 self.ids.print_but.text= 'Pause'
         else:
             # get file to print
-            f= FileDialog(self._start_print)
-            f.open(self.last_path)
+            f= FileDialog()
+            f.open(self.last_path, cb= self._start_print)
 
     def _start_print(self, file_path, directory):
         # start comms thread to stream the file
@@ -583,8 +583,8 @@ class MainWindow(BoxLayout):
 
     def show_viewer(self):
         # get file to view
-        f= FileDialog(self._show_viewer)
-        f.open(self.last_path)
+        f= FileDialog()
+        f.open(self.last_path, title= 'File to View', cb= self._show_viewer)
 
     def _show_viewer(self, file_path, directory):
         self.app.gcode_file= file_path
