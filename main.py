@@ -33,6 +33,8 @@ import os
 import sys
 import datetime
 
+import subprocess
+
 Window.softinput_mode = 'below_target'
 
 Builder.load_string('''
@@ -70,6 +72,9 @@ Builder.load_string('''
                 text: 'Abort'
                 important: True
                 on_press: root.abort_print()
+            ActionButton:
+                text: 'Viewer'
+                on_press: root.run_viewer()
 
             ActionGroup:
                 text: 'Modes'
@@ -571,6 +576,10 @@ class MainWindow(BoxLayout):
 
             #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
             self.eta= '{} | {:.1%}'.format(datetime.timedelta(seconds=int(eta)), n/self.nlines)
+
+
+    def run_viewer(self):
+        subprocess.Popen(['python3', 'viewer.py'])
 
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)

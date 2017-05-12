@@ -78,7 +78,9 @@ Builder.load_string('''
                 id: move_gantry_but
                 text: 'Move Gantry'
                 on_press: root.move_gantry(self.state == 'down')
-
+            Button:
+                text: 'Quit'
+                on_press: app.stop()
 
 <StartScreen>:
     on_leave: print('leaving start')
@@ -448,6 +450,7 @@ class GcodeViewerScreen(Screen):
         self.select_mode= on
 
 
+
 class StartScreen(Screen):
     pass
 
@@ -468,5 +471,5 @@ class GcodeViewerApp(App):
         #logging.getLogger().setLevel(logging.DEBUG)
         return self.sm
 
-
-GcodeViewerApp().run()
+if __name__ == '__main__':
+    GcodeViewerApp().run()
