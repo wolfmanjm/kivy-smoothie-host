@@ -3,6 +3,7 @@ import kivy
 from kivy.app import App
 from kivy.lang import Builder
 
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -26,6 +27,7 @@ from comms import Comms
 from message_box import MessageBox
 from selection_box import SelectionBox
 from file_dialog import FileDialog
+from viewer import GcodeViewerScreen
 
 import queue
 import math
@@ -33,7 +35,6 @@ import os
 import sys
 import datetime
 
-import subprocess
 
 Window.softinput_mode = 'below_target'
 
@@ -45,6 +46,9 @@ Builder.load_string('''
 # <Widget>:
 #     # set default font size
 #     font_size: dp(12)
+<MainScreen>:
+    MainWindow:
+
 <MainWindow>:
     orientation: 'vertical'
     ActionBar:
@@ -74,7 +78,7 @@ Builder.load_string('''
                 on_press: root.abort_print()
             ActionButton:
                 text: 'Viewer'
-                on_press: root.run_viewer()
+                on_press: root.show_viewer()
 
             ActionGroup:
                 text: 'Modes'
@@ -577,9 +581,17 @@ class MainWindow(BoxLayout):
             #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
             self.eta= '{} | {:.1%}'.format(datetime.timedelta(seconds=int(eta)), n/self.nlines)
 
+    def show_viewer(self):
+        # get file to view
+        f= FileDialog(self._show_viewer)
+        f.open(self.last_path)
 
-    def run_viewer(self):
-        subprocess.Popen(['python3', 'viewer.py'])
+    def _show_viewer(self, file_path, directory):
+        self.app.gcode_file= file_path
+        self.app.sm.current= 'viewer'
+
+class MainScreen(Screen):
+    pass
 
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)
@@ -617,7 +629,12 @@ class SmoothieHost(App):
 
     def build(self):
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
-        return MainWindow()
+        self.gcode_file= self.config.get('General', 'last_print_file')
+
+        self.sm = ScreenManager()
+        self.sm.add_widget(MainScreen(name='main'))
+        self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
+        return self.sm
 
 
 SmoothieHost().run()

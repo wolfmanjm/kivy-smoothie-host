@@ -17,9 +17,9 @@ import re
 import math
 
 Builder.load_string('''
-
 <GcodeViewerScreen>:
-    #on_enter: self.parse_gcode_file(app.gcode_file, 1, True)
+    on_enter: self.parse_gcode_file(app.gcode_file, 1, True)
+    on_leave: root.clear()
     BoxLayout:
         orientation: 'vertical'
         BoxLayout:
@@ -79,20 +79,14 @@ Builder.load_string('''
                 text: 'Move Gantry'
                 on_press: root.move_gantry(self.state == 'down')
             Button:
-                text: 'Quit'
-                on_press: app.stop()
-
-<StartScreen>:
-    on_leave: print('leaving start')
-    Button:
-        text: 'press me'
-        on_press: root.manager.current = 'gcode'
+                text: 'Back'
+                on_press: root.manager.current = 'main'
 ''')
 
 class GcodeViewerScreen(Screen):
     current_z= NumericProperty(0)
 
-    def __init__(self, **kwargs):
+    def __init__(self, comms= None, **kwargs):
         super(GcodeViewerScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.last_file_pos= None
@@ -104,6 +98,7 @@ class GcodeViewerScreen(Screen):
         self.tx= 0
         self.ty= 0
         self.scale= 1.0
+        self.comms= comms
 
     def _redraw(self, instance, value):
         self.ids.surface.canvas.remove(self.canv)
@@ -182,7 +177,7 @@ class GcodeViewerScreen(Screen):
                 # only deal with G0/1/2/3
                 if d['G'] > 3: continue
 
-                # TODO handle first move when lastpso is not valid yet
+                # TODO handle first move when lastpos is not valid yet
 
                 # see if it is 3d printing (ie has an E axis on a G1)
                 if not has_e and ('E' in d and 'G' in d and d['G'] == 1): has_e= True
@@ -195,6 +190,7 @@ class GcodeViewerScreen(Screen):
 
                 e= laste if 'E' not in d else float(d['E'])
 
+                # TODO fix for CNC where Z decreases for each layer
                 # handle layers (when Z changes)
                 if lastz < 0 and z > 0:
                     # first layer
@@ -432,11 +428,17 @@ class GcodeViewerScreen(Screen):
             # convert to original model coordinates (mm), need to take into account scale and translate
             wpos= ((pos[0]-self.tx)/self.scale, (pos[1]-self.ty)/self.scale)
             if self.set_wpos_mode:
-                print('Set WCS to: {}, {}'.format(wpos[0], wpos[1]))
-                print('G10 L20 P0 X{} Y{}'.format(wpos[0], wpos[1]))
+                if self.comms:
+                    self.comms.write('G10 L20 P0 X{} Y{}'.format(wpos[0], wpos[1]))
+                else:
+                    print('Set WCS to: {}, {}'.format(wpos[0], wpos[1]))
+                    print('G10 L20 P0 X{} Y{}'.format(wpos[0], wpos[1]))
             else:
-                print('Move Gantry to: {}, {}'.format(wpos[0], wpos[1]))
-                print('G0 X{} Y{}'.format(wpos[0], wpos[1]))
+                if self.comms:
+                    self.comms.write('G0 X{} Y{}'.format(wpos[0], wpos[1]))
+                else:
+                    print('Move Gantry to: {}, {}'.format(wpos[0], wpos[1]))
+                    print('G0 X{} Y{}'.format(wpos[0], wpos[1]))
 
         else:
             return super(GcodeViewerScreen, self).on_touch_up(touch)
@@ -450,26 +452,34 @@ class GcodeViewerScreen(Screen):
         self.select_mode= on
 
 
-
-class StartScreen(Screen):
-    pass
-
-class GcodeViewerApp(App):
-    def __init__(self, **kwargs):
-        super(GcodeViewerApp, self).__init__(**kwargs)
-        if len(sys.argv) > 1:
-            self.gcode_file= sys.argv[1]
-        else:
-            self.gcode_file= 'tests/test.gcode' #'circle-test.g'
-
-    def build(self):
-        self.sm = ScreenManager()
-        self.sm.add_widget(StartScreen(name='start'))
-        self.sm.add_widget(GcodeViewerScreen(name='gcode'))
-        level = LOG_LEVELS.get('debug')
-        Logger.setLevel(level=level)
-        #logging.getLogger().setLevel(logging.DEBUG)
-        return self.sm
-
 if __name__ == '__main__':
+
+    Builder.load_string('''
+<StartScreen>:
+    on_leave: print('leaving start')
+    Button:
+        text: 'press me'
+        on_press: root.manager.current = 'gcode'
+''')
+
+    class StartScreen(Screen):
+        pass
+
+    class GcodeViewerApp(App):
+        def __init__(self, **kwargs):
+            super(GcodeViewerApp, self).__init__(**kwargs)
+            if len(sys.argv) > 1:
+                self.gcode_file= sys.argv[1]
+            else:
+                self.gcode_file= 'tests/test.gcode' #'circle-test.g'
+
+        def build(self):
+            self.sm = ScreenManager()
+            self.sm.add_widget(StartScreen(name='main'))
+            self.sm.add_widget(GcodeViewerScreen(name='gcode'))
+            level = LOG_LEVELS.get('debug')
+            Logger.setLevel(level=level)
+            #logging.getLogger().setLevel(logging.DEBUG)
+            return self.sm
+
     GcodeViewerApp().run()
