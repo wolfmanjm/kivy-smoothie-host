@@ -174,15 +174,14 @@ class MacrosWidget(StackLayout):
 
     # def check_macros(self):
     #     # periodically check the state of the toggle macro buttons
-    #     for i in self.ids:
-    #         if self.ids[i].check:
+    #     for i in self.children:
+    #         if i.__class__ == Factory.MacroToggleButton:
     #             # sends this, but then how to get response?
-    #             print(self.ids[i].check)
+    #             print(i.check)
     #             # check response and compare state with current state and toggle to match state if necessary
 
     def send(self, s):
         self.app.comms.write('{}\n'.format(s))
-
 
 class ExtruderWidget(BoxLayout):
     def __init__(self, **kwargs):
@@ -391,12 +390,21 @@ class MainWindow(BoxLayout):
 
     def connect(self):
         if self.app.is_connected:
-            self.add_line_to_log("Disconnect...")
-            self.app.comms.disconnect()
+            if self.is_printing:
+                mb = MessageBox(text='Disconenct when printing - Are you Sure?', cb= lambda b: self._disconnect(b))
+                mb.open()
+            else:
+                self._disconnect()
+
         else:
             port= self.config.get('General', 'serial_port') if not self.app.use_com_port else self.app.use_com_port
             self.add_line_to_log("Connecting to {}...".format(port))
             self.app.comms.connect(port)
+
+    def _disconnect(self, b= True):
+        if b:
+            self.add_line_to_log("Disconnect...")
+            self.app.comms.disconnect()
 
     def display(self, data):
         self.add_line_to_log(data)
