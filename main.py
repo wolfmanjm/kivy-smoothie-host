@@ -400,7 +400,7 @@ class MainWindow(BoxLayout):
     def connect(self):
         if self.app.is_connected:
             if self.is_printing:
-                mb = MessageBox(text='Disconenct when printing - Are you Sure?', cb= lambda b: self._disconnect(b))
+                mb = MessageBox(text='Disconenct when printing - Are you Sure?', cb= self._disconnect)
                 mb.open()
             else:
                 self._disconnect()
@@ -469,17 +469,16 @@ class MainWindow(BoxLayout):
 
     def ask_exit(self):
         # are you sure?
-        mb = MessageBox(text='Exit - Are you Sure?', cb= lambda b: self._do_exit(b))
+        mb = MessageBox(text='Exit - Are you Sure?', cb= self._do_exit)
         mb.open()
 
     def _do_exit(self, ok):
         if ok:
-            self.app.comms.stop()
-            exit()
+            self.app.stop()
 
     def ask_shutdown(self):
         # are you sure?
-        mb = MessageBox(text='Shutdown - Are you Sure?', cb= lambda b: self._do_shutdown(b))
+        mb = MessageBox(text='Shutdown - Are you Sure?', cb=self._do_shutdown)
         mb.open()
 
     def _do_shutdown(self, ok):
@@ -493,7 +492,7 @@ class MainWindow(BoxLayout):
         for p in l:
             ports.append(p.device)
 
-        sb = SelectionBox(text='Select port to open', values= ports, cb= lambda b: self._change_port(b))
+        sb = SelectionBox(text='Select port to open', values= ports, cb= self._change_port)
         sb.open()
 
     def _change_port(self, s):
@@ -504,7 +503,7 @@ class MainWindow(BoxLayout):
 
     def abort_print(self):
         # are you sure?
-        mb = MessageBox(text='Abort - Are you Sure?', cb= lambda b: self._abort_print(b))
+        mb = MessageBox(text='Abort - Are you Sure?', cb= self._abort_print)
         mb.open()
 
     def _abort_print(self, ok):
