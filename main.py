@@ -184,17 +184,21 @@ class MacrosWidget(StackLayout):
         super(MacrosWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
         # we do this so the kv defined buttons are loaded first
-        Clock.schedule_once(self.load_user_buttons)
+        Clock.schedule_once(self._load_user_buttons)
 
-    def load_user_buttons(self, *args):
+    def _load_user_buttons(self, *args):
         # load user defined macros
-        config = configparser.ConfigParser()
-        config.read('macros.ini')
-        for key in config['macro buttons']:
-            btn = Factory.MacroButton()
-            btn.text= key
-            btn.bind(on_press= partial(self.send, config['macro buttons'][key]))
-            self.add_widget(btn)
+        try:
+            config = configparser.ConfigParser()
+            config.read('macros.ini')
+            for key in config['macro buttons']:
+                btn = Factory.MacroButton()
+                btn.text= key
+                btn.bind(on_press= partial(self.send, config['macro buttons'][key]))
+                self.add_widget(btn)
+        except:
+            Logger.warning('MacrosWidget: exception parsing config file')
+
 
     # def check_macros(self):
     #     # periodically check the state of the toggle macro buttons
