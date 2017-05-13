@@ -1,7 +1,6 @@
 <MacroButton@Button>:
     size: 100, 40
     size_hint: None, None
-    on_press: self.parent.send(self.cmd)
 
 <MacroToggleButton@ToggleButton>:
     size: 100, 40
@@ -35,39 +34,10 @@
         check: 'switch fan'
 
     MacroButton:
-        text: 'Settings'
-        cmd: 'M503'
-
-    MacroButton:
-        text: 'Get Pos'
-        cmd: 'get pos'
-
-    MacroButton:
-        text: 'CZ'
-        cmd: 'G0 F15000 X0 Y0 Z0'
-
-    MacroButton:
-        text: 'C'
-        cmd: 'G0 F15000 X0 Y0 Z0.2'
-
-    MacroButton:
-        text: 'T1'
-        cmd: 'G0 F15000 X-102.85962 Y-59.3860 Z0.2'
-
-    MacroButton:
-        text: 'T2'
-        cmd: 'G0 F15000 X102.85962 Y-59.3860 Z0.2'
-
-    MacroButton:
-        text: 'T3'
-        cmd: 'G0 F15000 X0 Y118.7721 Z0.2'
-
-    MacroButton:
         text: 'Kill'
         color: 1, 0, 0, 1
-        cmd: '\x18' # ^X
+        on_press: root.send('\x18') # ^X
 
     MacroButton:
         text: 'Clear Alarm'
-        cmd: '$X'
-
+        on_press: root.send('$X')

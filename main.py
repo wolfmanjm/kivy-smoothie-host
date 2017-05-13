@@ -34,7 +34,8 @@ import math
 import os
 import sys
 import datetime
-
+import configparser
+from functools import partial
 
 Window.softinput_mode = 'below_target'
 
@@ -174,12 +175,26 @@ Builder.load_string('''
                 id: macros
 ''')
 
-# TODO need to make macros configurable and stored in a configuration file
+# user defined macros are configurable and stored in a configuration file called macros.ini
+# format is:-
+# button name = command to send
 class MacrosWidget(StackLayout):
     """adds macro buttons"""
     def __init__(self, **kwargs):
         super(MacrosWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        # we do this so the kv defined buttons are loaded first
+        Clock.schedule_once(self.load_user_buttons)
+
+    def load_user_buttons(self, *args):
+        # load user defined macros
+        config = configparser.ConfigParser()
+        config.read('macros.ini')
+        for key in config['macro buttons']:
+            btn = Factory.MacroButton()
+            btn.text= key
+            btn.bind(on_press= partial(self.send, config['macro buttons'][key]))
+            self.add_widget(btn)
 
     # def check_macros(self):
     #     # periodically check the state of the toggle macro buttons
@@ -189,8 +204,8 @@ class MacrosWidget(StackLayout):
     #             print(i.check)
     #             # check response and compare state with current state and toggle to match state if necessary
 
-    def send(self, s):
-        self.app.comms.write('{}\n'.format(s))
+    def send(self, cmd, *args):
+        self.app.comms.write('{}\n'.format(cmd))
 
 class ExtruderWidget(BoxLayout):
     def __init__(self, **kwargs):
