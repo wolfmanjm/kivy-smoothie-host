@@ -190,7 +190,7 @@ class Comms():
         f = asyncio.Future()
         sc_factory = functools.partial(SerialConnection, cb=self, f= f) # uses partial so we can pass a parameter
 
-        # if tcp connection port will be net://ipaddress:port
+        # if tcp connection port will be net://ipaddress[:port]
         # otherwise it will be serial:///dev/ttyACM0 or serial://COM2:
         if self.port.startswith('net://'):
             self.net_connection= True

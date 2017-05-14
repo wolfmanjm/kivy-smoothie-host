@@ -40,7 +40,7 @@ Builder.load_string('''
             height: sp(48)
             #is_open: True
             text: root.value
-            focus: True
+            #focus: True
 
         BoxLayout:
             size_hint_y: None

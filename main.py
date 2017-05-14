@@ -533,8 +533,9 @@ class MainWindow(BoxLayout):
                 self.config.write()
 
     def _new_network_port(self, s):
-        self.config.set('General', 'serial_port', 'net://{}'.format(s))
-        self.config.write()
+        if s:
+            self.config.set('General', 'serial_port', 'net://{}'.format(s))
+            self.config.write()
 
     def abort_print(self):
         # are you sure?
