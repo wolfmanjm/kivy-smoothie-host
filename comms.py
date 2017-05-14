@@ -184,13 +184,39 @@ class Comms():
         async_main_loop = loop
         f = asyncio.Future()
         sc_factory = functools.partial(SerialConnection, cb=self, f= f) # uses partial so we can pass a parameter
-        serial_conn = serial_asyncio.create_serial_connection(loop, sc_factory, self.port, baudrate=115200)
+
+        # if tcp connection port will be net://ipaddress:port
+        # otherwise it will be serial:///dev/ttyACM0 or serial://COM2:
+        if self.port.startswith('net://'):
+            self.net_connection= True
+            ip= self.port.split(':')
+            if len(ip) < 3:
+                loop.close()
+                self.log.error('Not a valid network address: {}'.format(self.port))
+                raise ValueError('{} is not a valid network address, use ipaddress:port"'.format(self.port))
+
+            self.ipaddress= ip[1][2:]
+            self.port= ip[2]
+            self.log.info('Connecting to Network connection at {}:{}'.format(self.ipaddress, self.port))
+            serial_conn= loop.create_connection(sc_factory, self.ipaddress, self.port)
+            self.ping_pong= False # do not use ping pong for network connections
+
+        elif self.port.startswith('serial://'):
+            self.net_connection= False
+            self.port= self.port[9:]
+            serial_conn = serial_asyncio.create_serial_connection(loop, sc_factory, self.port, baudrate=115200)
+
+        else:
+            loop.close()
+            self.log.error('Not a valid connection port: {}'.format(self.port))
+            raise ValueError('{} unknown connection type, use "serial://" or "net://"'.format(self.port))
+
         try:
             _, self.proto = loop.run_until_complete(serial_conn) # sets up connection returning transport and protocol handler
             self.log.debug('Comms: serial connection task completed')
 
             # this is when we are really setup and ready to go, notify upstream
-            self.app.root.connected()
+            self.app.get_mw().connected()
 
             if self.report_rate > 0:
                 # issue a version command to get things started
@@ -209,7 +235,7 @@ class Comms():
                 self.timer.cancel()
                 self.timer= None
 
-            self.app.root.disconnected() # tell upstream we disconnected
+            self.app.get_mw().disconnected() # tell upstream we disconnected
 
             # we wait until all tasks are complete
             pending = asyncio.Task.all_tasks()
@@ -223,8 +249,8 @@ class Comms():
         except Exception as err:
             #self.log.error('Comms: {}'.format(traceback.format_exc()))
             self.log.error("Comms: Got serial error opening port: {0}".format(err))
-            self.app.root.async_display(">>> Connect failed: {0}".format(err))
-            self.app.root.disconnected()
+            self.app.get_mw().async_display(">>> Connect failed: {0}".format(err))
+            self.app.get_mw().disconnected()
 
         finally:
             loop.close()
@@ -279,22 +305,22 @@ class Comms():
                 if pos >= 0:
                     act= s[pos+7:].strip() # extract action command
                     if act in 'pause':
-                        self.app.root.async_display('>>> Smoothie requested Pause')
+                        self.app.get_mw().async_display('>>> Smoothie requested Pause')
                         self._stream_pause(True, False)
                     elif act in 'resume':
-                        self.app.root.async_display('>>> Smoothie requested Resume')
+                        self.app.get_mw().async_display('>>> Smoothie requested Resume')
                         self._stream_pause(False, False)
                     elif act in 'disconnect':
-                        self.app.root.async_display('>>> Smoothie requested Disconnect')
+                        self.app.get_mw().async_display('>>> Smoothie requested Disconnect')
                         self.disconnect()
                     else:
                         self.log.warning('Comms: unknown action command: {}'.format(act))
 
                 else:
-                    self.app.root.async_display('{}'.format(s))
+                    self.app.get_mw().async_display('{}'.format(s))
 
             else:
-                self.app.root.async_display('{}'.format(s))
+                self.app.get_mw().async_display('{}'.format(s))
 
     # Handle parsing of temp readings (Lifted mostly from Pronterface)
     tempreport_exp = re.compile("([TB]\d*):([-+]?\d*\.?\d*)(?: ?\/)?([-+]?\d*\.?\d*)")
@@ -322,7 +348,7 @@ class Comms():
                 bed_setpoint = float(temps["B"][1])
 
             self.log.debug('Comms: got temps hotend:{}, bed:{}, hotend_setpoint:{}, bed_setpoint:{}'.format(hotend_temp, bed_temp, hotend_setpoint, bed_setpoint))
-            self.app.root.update_temps(hotend_temp, hotend_setpoint, bed_temp, bed_setpoint)
+            self.app.get_mw().update_temps(hotend_temp, hotend_setpoint, bed_temp, bed_setpoint)
 
         except:
             self.log.error(traceback.format_exc())
@@ -335,7 +361,7 @@ class Comms():
             y= float(l[3][2:])
             z= float(l[4][2:])
             self.log.debug('Comms: got pos: X {}, Y {} Z {}'.format(x, y, z))
-            #self.app.root.update_position(x, y, z)
+            #self.app.get_mw().update_position(x, y, z)
 
     def handle_status(self, s):
         #<Idle,MPos:68.9980,-49.9240,40.0000,WPos:68.9980,-49.9240,40.0000>
@@ -349,7 +375,7 @@ class Comms():
             # strip off wpos
             wpos= (float(sl[4][5:]), float(sl[5]), float(sl[6][:-1]))
             self.log.debug('Comms: got status:{}, mpos:{},{},{}, wpos:{},{},{}'.format(status, mpos[0], mpos[1], mpos[2], wpos[0], wpos[1], wpos[2]))
-            self.app.root.update_status(status, mpos, wpos)
+            self.app.get_mw().update_status(status, mpos, wpos)
 
     def handle_alarm(self, s):
         ''' handle case where smoothie sends us !! or an error of some sort '''
@@ -360,7 +386,7 @@ class Comms():
             self.proto.flush_queue()
 
         # call upstream after we have allowed stream to stop
-        async_main_loop.call_soon(self.app.root.alarm_state, s)
+        async_main_loop.call_soon(self.app.get_mw().alarm_state, s)
 
     def stream_gcode(self, fn, progress=None):
         ''' called from external thread to start streaming a file '''
@@ -471,7 +497,7 @@ class Comms():
             self.progress= None
 
             # notify upstream that we are done
-            self.app.root.stream_finished(success)
+            self.app.get_mw().stream_finished(success)
 
         return success
 

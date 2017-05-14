@@ -25,6 +25,7 @@ from kivy.core.window import Window
 
 from comms import Comms
 from message_box import MessageBox
+from input_box import InputBox
 from selection_box import SelectionBox
 from file_dialog import FileDialog
 from viewer import GcodeViewerScreen
@@ -44,11 +45,14 @@ Builder.load_string('''
 #:include kbd.kv
 #:include extruder.kv
 #:include macros.kv
+
 # <Widget>:
 #     # set default font size
 #     font_size: dp(12)
+
 <MainScreen>:
     MainWindow:
+        id: main_window
 
 <MainWindow>:
     orientation: 'vertical'
@@ -364,7 +368,7 @@ class KbdWidget(GridLayout):
         self.app = App.get_running_app()
 
     def _add_line_to_log(self, s):
-        self.app.root.add_line_to_log(s)
+        self.app.get_mw().add_line_to_log(s)
 
     def do_action(self, key):
         if key == 'Send':
@@ -419,7 +423,7 @@ class MainWindow(BoxLayout):
     def connect(self):
         if self.app.is_connected:
             if self.is_printing:
-                mb = MessageBox(text='Disconenct when printing - Are you Sure?', cb= self._disconnect)
+                mb = MessageBox(text='Disconnect when printing - Are you Sure?', cb= self._disconnect)
                 mb.open()
             else:
                 self._disconnect()
@@ -511,14 +515,26 @@ class MainWindow(BoxLayout):
         for p in l:
             ports.append(p.device)
 
+        ports.append('network...')
+
         sb = SelectionBox(text='Select port to open', values= ports, cb= self._change_port)
         sb.open()
 
     def _change_port(self, s):
         if s:
             Logger.info('MainWindow: Selected port {}'.format(s))
-            self.config.set('General', 'serial_port', s)
-            self.config.write()
+
+            if s.startswith('network'):
+                mb = InputBox(text='Enter network address as "ipaddress:port"', cb=self._new_network_port)
+                mb.open()
+
+            else:
+                self.config.set('General', 'serial_port', 'serial://{}'.format(s))
+                self.config.write()
+
+    def _new_network_port(self, s):
+        self.config.set('General', 'serial_port', 'net://{}'.format(s))
+        self.config.write()
 
     def abort_print(self):
         # are you sure?
@@ -627,7 +643,7 @@ class SmoothieHost(App):
         config.setdefaults('General', {
             'last_gcode_path': os.path.expanduser("~"),
             'last_print_file': '',
-            'serial_port': '/dev/ttyACM0',
+            'serial_port': 'serial:///dev/ttyACM0',
             'report_rate': '1'
         })
         config.setdefaults('Extruder', {
@@ -645,10 +661,13 @@ class SmoothieHost(App):
         # The Kivy event loop is about to stop, stop the async main loop
         self.comms.stop(); # stop the aysnc loop
 
+    def get_mw(self):
+        ms= self.sm.get_screen('main')
+        return ms.ids.main_window
+
     def build(self):
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
-
         self.sm = ScreenManager()
         self.sm.add_widget(MainScreen(name='main'))
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
