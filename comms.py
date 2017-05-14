@@ -138,6 +138,7 @@ class Comms():
             #asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
         else:
             self.log.warning('Comms: Cannot write to closed connection: ' + data)
+            #self.app.get_mw().async_display("<<< {}".format(data))
 
     def _write(self, data):
         # calls the send_message in Serial Connection proto which is a queue

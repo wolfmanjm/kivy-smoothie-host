@@ -662,6 +662,7 @@ class SmoothieHost(App):
         self.comms.stop(); # stop the aysnc loop
 
     def get_mw(self):
+        ''' returns the main window instance '''
         ms= self.sm.get_screen('main')
         return ms.ids.main_window
 

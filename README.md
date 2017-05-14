@@ -19,6 +19,10 @@ I suspect an RPI-2 Model B will also run pretty well.
 
 ## Usage
 
+To select the port to connect to click the System menu and select Port, then select the serial port from the list, or for a network connection select Network...
+then enter the host or ip followed by the port :23, eg smoothieip:23 or 192.168.0.2:23.
+Once you have selected a port to connect to it is ssave in the ini file, and you can then click the connect menu item to connect.
+
 The left screen is the console and displays messages from smoothie, the right screen is a selection of panels (Modes) which can be switched to by swiping up or down
 (or use the modes menu to select the panel you want) you can scroll up and down by swiping up or down.
 
@@ -27,9 +31,13 @@ There is a status bar at the bottom left showing status, DRO and print ETA when 
 The Console panel has a keyboard for entering gcodes and if you touch the edit field a keyboard will pop up for typing commands (non gcodes).
 The Extruder Panel is used to control temperatures and extuder.
 The Jog Panel has the usual jog controls.
-The Macro Panel is user configurable buttons panel to control whatever you want. (Edit the macro.kv file)
+The Macro Panel is user configurable buttons panel to control whatever you want. (Edit the macros.ini file)
+There is a ''sample-macros.ini'' just copy that to macros.ini and edit as appropriate to define your own macro buttons.
 
-There will be a gcode visualizer panel that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode.
+There is a gcode visualizer panel that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
+Click the Viewer menu item, select the file to view, then the layers can be moved up or down.
+To set the WPOS as a point in the view click the set WPOS button then touch the screen and cross haors will appear and track your finger, release on the point and that point will be set as WPOS. To move the gantry to a point on the view click the move gantry button then touch and drag until you get the poijt and release and the gantry will move to that point.
+
 
 ## Install on RPI
 
