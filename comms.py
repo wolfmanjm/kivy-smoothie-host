@@ -79,13 +79,16 @@ class SerialConnection(asyncio.Protocol):
 
     def data_received(self, data):
         #print('data received', repr(data))
+        str= ''
         try:
             # FIXME this is a problem when it splits utf-8, may need to get whole lines here anyway
-            self.cb.incoming_data(data.decode('utf-8'))
-
+            str= data.decode('utf-8')
         except Exception as err:
             self.log.error("SerialConnection: Got decode error on data {}: {}".format(repr(data), err))
-            self.cb.incoming_data(repr(data)) # send it upstream anyway
+            str= repr(data) # send it upstream anyway
+
+        self.cb.incoming_data(str)
+
 
     def connection_lost(self, exc):
         self.log.debug('SerialConnection: port closed')
@@ -150,7 +153,7 @@ class Comms():
         # calls the send_message in Serial Connection proto which is a queue
         if self.proto:
            asyncio.async(self.proto.send_message('M105\n', True))
-           asyncio.async(self.proto.send_message('?', True))
+           asyncio.async(self.proto.send_message('?' if not self.net_connection else 'get status\n', True))
            self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
 
     def stop(self):
@@ -190,15 +193,15 @@ class Comms():
         # otherwise it will be serial:///dev/ttyACM0 or serial://COM2:
         if self.port.startswith('net://'):
             self.net_connection= True
-            ip= self.port.split(':')
-            if len(ip) < 3:
-                loop.close()
-                self.log.error('Not a valid network address: {}'.format(self.port))
-                raise ValueError('{} is not a valid network address, use ipaddress:port"'.format(self.port))
+            ip= self.port[6:]
+            ip= ip.split(':')
+            if len(ip) == 1:
+                self.port= 23
+            else:
+                self.port= ip[1]
 
-            self.ipaddress= ip[1][2:]
-            self.port= ip[2]
-            self.log.info('Connecting to Network connection at {}:{}'.format(self.ipaddress, self.port))
+            self.ipaddress= ip[0]
+            self.log.info('Connecting to Network at {} port {}'.format(self.ipaddress, self.port))
             serial_conn= loop.create_connection(sc_factory, self.ipaddress, self.port)
             self.ping_pong= False # do not use ping pong for network connections
 
@@ -210,6 +213,7 @@ class Comms():
         else:
             loop.close()
             self.log.error('Not a valid connection port: {}'.format(self.port))
+            self.app.get_mw().async_display('>>> Connect failed: unknown connection type, use "serial://" or "net://"'.format(self.port))
             raise ValueError('{} unknown connection type, use "serial://" or "net://"'.format(self.port))
 
         try:
@@ -284,7 +288,7 @@ class Comms():
                 if self.ping_pong:
                     if self.okcnt:
                         self.okcnt.release()
-                else:
+                elif self.okcnt is not None:
                     self.okcnt += 1
 
             elif "!!" in s or "ALARM" in s or "ERROR" in s:
@@ -478,7 +482,6 @@ class Comms():
                 self.log.error("Comms: Stream file exception: {}".format(err))
 
         finally:
-            self.log.info('Comms: Streaming complete: {}'.format(success))
             if f:
                 yield from f.close()
 
@@ -496,9 +499,12 @@ class Comms():
 
             self.file_streamer= None
             self.progress= None
+            self.okcnt= None
 
             # notify upstream that we are done
             self.app.get_mw().stream_finished(success)
+
+            self.log.info('Comms: Streaming complete: {}'.format(success))
 
         return success
 
@@ -550,6 +556,9 @@ if __name__ == "__main__":
             self.ok= False
             # in this case we do want to disconnect
             comms.proto.transport.close()
+
+        def get_mw(self):
+            return self
 
     if len(sys.argv) < 3:
         print("Usage: {} port file".format(sys.argv[0]));

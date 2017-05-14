@@ -525,7 +525,7 @@ class MainWindow(BoxLayout):
             Logger.info('MainWindow: Selected port {}'.format(s))
 
             if s.startswith('network'):
-                mb = InputBox(text='Enter network address as "ipaddress:port"', cb=self._new_network_port)
+                mb = InputBox(text='Enter network address as "ipaddress[:port]"', cb=self._new_network_port)
                 mb.open()
 
             else:
