@@ -28,15 +28,15 @@ The left screen is the console and displays messages from smoothie, the right sc
 
 There is a status bar at the bottom left showing status, DRO and print ETA when printing.
 
-The Console panel has a keyboard for entering gcodes and if you touch the edit field a keyboard will pop up for typing commands (non gcodes).
-The Extruder Panel is used to control temperatures and extuder.
-The Jog Panel has the usual jog controls.
-The Macro Panel is user configurable buttons panel to control whatever you want. (Edit the macros.ini file)
-There is a ''sample-macros.ini'' just copy that to macros.ini and edit as appropriate to define your own macro buttons.
+- The Console panel has a keyboard for entering gcodes and if you touch the edit field a keyboard will pop up for typing commands (non gcodes).
+- The Extruder Panel is used to control temperatures and extuder.
+- The Jog Panel has the usual jog controls.
+- The Macro Panel is user configurable buttons panel to control whatever you want. (Edit the `macros.ini` file)
+  There is a `sample-macros.ini` just copy that to `macros.ini` and edit as appropriate to define your own macro buttons.
 
-There is a gcode visualizer panel that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
+There is a gcode visualizer window that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
 Click the Viewer menu item, select the file to view, then the layers can be moved up or down.
-To set the WPOS as a point in the view click the set WPOS button then touch the screen and cross haors will appear and track your finger, release on the point and that point will be set as WPOS. To move the gantry to a point on the view click the move gantry button then touch and drag until you get the poijt and release and the gantry will move to that point.
+To set the WPOS as a point in the view click the set WPOS button then touch the screen and cross haors will appear and track your finger, release on the point and that point will be set as WPOS. To move the gantry to a point on the view click the move gantry button then touch and drag until you get the point and release and the gantry will move to that point.
 
 
 ## Install on RPI
