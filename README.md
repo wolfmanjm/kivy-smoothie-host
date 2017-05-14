@@ -20,7 +20,7 @@ I suspect an RPI-2 Model B will also run pretty well.
 ## Usage
 
 To select the port to connect to click the System menu and select Port, then select the serial port from the list, or for a network connection select Network...
-then enter the host or ip followed by the port :23, eg smoothieip:23 or 192.168.0.2:23.
+then enter the host or ip optionally followed by the port :23 (23 is the default if not specified), eg smoothieip or 192.168.0.2:23
 Once you have selected a port to connect to it is ssave in the ini file, and you can then click the connect menu item to connect.
 
 The left screen is the console and displays messages from smoothie, the right screen is a selection of panels (Modes) which can be switched to by swiping up or down

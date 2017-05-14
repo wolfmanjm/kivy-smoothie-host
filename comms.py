@@ -180,6 +180,7 @@ class Comms():
 
         if async_main_loop:
             self.log.error("Comms: Already running cannot connect again")
+            self.app.get_mw().async_display('>>> Already running cannot connect again')
             return
 
         newloop = asyncio.new_event_loop()
@@ -214,7 +215,10 @@ class Comms():
             loop.close()
             self.log.error('Not a valid connection port: {}'.format(self.port))
             self.app.get_mw().async_display('>>> Connect failed: unknown connection type, use "serial://" or "net://"'.format(self.port))
-            raise ValueError('{} unknown connection type, use "serial://" or "net://"'.format(self.port))
+            self.app.get_mw().disconnected()
+            loop.close()
+            async_main_loop= None
+            return
 
         try:
             _, self.proto = loop.run_until_complete(serial_conn) # sets up connection returning transport and protocol handler

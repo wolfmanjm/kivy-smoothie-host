@@ -513,7 +513,7 @@ class MainWindow(BoxLayout):
         l= self.app.comms.get_ports()
         ports= [self.config.get('General', 'serial_port')] # current port is first in list
         for p in l:
-            ports.append(p.device)
+            ports.append('serial://{}'.format(p.device))
 
         ports.append('network...')
 
@@ -529,7 +529,7 @@ class MainWindow(BoxLayout):
                 mb.open()
 
             else:
-                self.config.set('General', 'serial_port', 'serial://{}'.format(s))
+                self.config.set('General', 'serial_port', s)
                 self.config.write()
 
     def _new_network_port(self, s):
