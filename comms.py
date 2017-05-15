@@ -16,83 +16,43 @@ async_main_loop= None
 class SerialConnection(asyncio.Protocol):
     def __init__(self, cb, f, is_net= False):
         super().__init__()
+        self.log = logging.getLogger() #.getChild('SerialConnection')
+        self.log.debug('SerialConnection: creating SerialConnection')
         self.cb = cb
         self.f= f
         self.cnt= 0
-        self.log = logging.getLogger() #.getChild('SerialConnection')
-        self.log.info('SerialConnection: creating SerialConnection')
-        self.queue = asyncio.Queue(maxsize=64)
-        self.hipri_queue = asyncio.Queue()
-        self._ready = asyncio.Event()
-        self._msg_ready = asyncio.Semaphore(value=0)
-        self.tsk= asyncio.async(self._send_messages())  # Or asyncio.ensure_future if using 3.4.3+
         self.flush= False
         self.is_net= is_net
         self._paused = False
         self._drain_waiter = None
         self._connection_lost = False
-
-    @asyncio.coroutine
-    def _send_messages(self):
-        ''' Send messages to the board as they become available. '''
-        # checks high priority queue first
-        yield from self._ready.wait()
-        self.log.debug("SerialConnection: send_messages Ready!")
-        while True:
-            # every message added to one of the queues increments the semaphore
-            yield from self._msg_ready.acquire()
-
-            if self.flush:
-                while not self.hipri_queue.empty():
-                    self.hipri_queue.get_nowait()
-                while not self.queue.empty():
-                    self.queue.get_nowait()
-                self.flush= False
-                continue
-
-            # see which queue, try hipri queue first
-            if not self.hipri_queue.empty():
-                data = self.hipri_queue.get_nowait()
-                self.transport.write(data.encode('utf-8'))
-                self.log.debug('SerialConnection: hipri message sent: {!r}'.format(data))
-
-            elif not self.queue.empty():
-                # see if anything on normal queue and send it
-                data = self.queue.get_nowait()
-                self.transport.write(data.encode('utf-8'))
-                self.log.debug('SerialConnection: normal message sent: {!r}'.format(data))
+        self.transport= None
 
     def connection_made(self, transport):
         self.transport = transport
-        self.log.debug('SerialConnection: port opened: ' + str(transport))
-        # if self.is_net:
-        #     # we don't want to buffer the entire file on the host
-        #     transport.get_extra_info('socket').setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
-        #     self.log.info("SerialConnection: Setting net tx buf to 2048")
-        # else:
-        #     #transport.serial.rts = False  # You can manipulate Serial object via transport
-        #     pass
-        #print(transport.get_write_buffer_limits())
+        self.log.debug('SerialConnection: port opened: {}'.format(transport))
+        if self.is_net:
+            # we don't want to buffer the entire file on the host
+            transport.get_extra_info('socket').setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+            self.log.info("SerialConnection: Setting net tx buf to 2048")
+        else:
+            #transport.serial.rts = False  # You can manipulate Serial object via transport
+            pass
         if self.is_net:
             # for net we want to limit how much we queue up otherwise the whole file gets queued
             # this also gives us more progress more often
             transport.set_write_buffer_limits(high=1024, low=256)
-
-        self._ready.set()
+            self.log.info('Buffer limits: {}'.format(transport.get_write_buffer_limits()))
 
     def flush_queue(self):
-        self.flush= True
-        self._msg_ready.release()
+        # if self.transport:
+        #     self.transport.abort()
+        pass
 
-    @asyncio.coroutine
     def send_message(self, data, hipri=False):
         """ Feed a message to the sender coroutine. """
-        self.log.debug('SerialConnection: send_message - hipri: ' + str(hipri))
-        self._msg_ready.release()
-        if hipri:
-            yield from self.hipri_queue.put(data)
-        else:
-            yield from self.queue.put(data)
+        self.log.debug('SerialConnection: send_message: {}'.format(data))
+        self.transport.write(data.encode('utf-8'))
 
     def data_received(self, data):
         #print('data received', repr(data))
@@ -121,7 +81,6 @@ class SerialConnection(asyncio.Protocol):
                     else:
                         waiter.set_exception(exc)
 
-        self.tsk.cancel() # stop the writer task
         self.transport.close()
         self.f.set_result('Disconnected')
 
@@ -198,16 +157,16 @@ class Comms():
             #self.app.get_mw().async_display("<<< {}".format(data))
 
     def _write(self, data):
-        # calls the send_message in Serial Connection proto which is a queue
+        # calls the send_message in Serial Connection proto
         #self.log.debug('Comms: _write ' + data)
         if self.proto:
-           asyncio.async(self.proto.send_message(data))
+           self.proto.send_message(data)
 
     def _get_reports(self):
-        # calls the send_message in Serial Connection proto which is a queue
+        # calls the send_message in Serial Connection proto
         if self.proto:
-           asyncio.async(self.proto.send_message('M105\n', True))
-           asyncio.async(self.proto.send_message('?' if not self.net_connection else 'get status\n', True))
+           self.proto.send_message('M105\n', True)
+           self.proto.send_message('?' if not self.net_connection else 'get status\n', True)
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
@@ -217,7 +176,7 @@ class Comms():
             if self.file_streamer:
                 self.file_streamer.cancel()
 
-            # we need to close the transport, this will cause mailopp to stop and thread to exit as well
+            # we need to close the transport, this will cause mainloop to stop and thread to exit as well
             async_main_loop.call_soon_threadsafe(self.proto.transport.close)
 
         # else:
