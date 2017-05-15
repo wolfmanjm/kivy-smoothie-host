@@ -432,6 +432,7 @@ class Comms():
     def _stream_pause(self, pause, do_abort):
         if self.file_streamer:
             if do_abort:
+                self.pause_stream= False
                 self.abort_stream= True # aborts stream
                 if self.ping_pong and self.okcnt:
                     self.okcnt.release() # release it in case it is waiting for ok so it can abort
@@ -464,14 +465,22 @@ class Comms():
             f = yield from aiofiles.open(fn, mode='r')
             while True:
                 #yield from self.pause_stream.wait() # wait for pause to be released
-                # needed to do it this way as the Event did nto seem to work it would pause but not unpause
+                # needed to do it this way as the Event did not seem to work it would pause but not unpause
+                # TODO maybe use Future here to wait for unpause
+                # create future when pause then yeikd from it here then delete it
                 while self.pause_stream:
                    yield from asyncio.sleep(1)
+                   if self.abort_stream:
+                        break
+
 
                 line = yield from f.readline()
 
                 if not line:
                     # EOF
+                    break
+
+                if self.abort_stream:
                     break
 
                 l= line.strip()
@@ -506,6 +515,9 @@ class Comms():
 
                 # if the buffers are full then wait until we can send some more
                 yield from self.proto._drain_helper()
+
+                if self.abort_stream:
+                    break
 
                 linecnt += 1
                 if self.progress and linecnt%10 == 0: # update every 10 lines
