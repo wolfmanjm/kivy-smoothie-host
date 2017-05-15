@@ -2,7 +2,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.uix.popup import Popup
 from kivy.lang import Builder
-from kivy.uix.filechooser import FileSystemLocal
+from kivy.uix.filechooser import FileSystemLocal, FileSystemAbstract
 from kivy.factory import Factory
 
 import os
@@ -17,6 +17,43 @@ class FileSystemLocalEx(FileSystemLocal):
 
 Factory.register('filesystem', cls=FileSystemLocalEx)
 
+class FileSystemSDCard(FileSystemAbstract):
+    '''Implementation of :class:`FileSystemAbstract` for sdcard files. '''
+    def __init__(self, **kwargs):
+        super(FileSystemSDCard, self).__init__(**kwargs)
+        self.app = App.get_running_app()
+        _files= []
+
+    def open(self):
+        self._done= False
+        self.app.comms.register_watch_callback(start_query='File List', end_query='End Files', cb= _dir_list)
+        self.app.comms.write('M20') # request file list from smoothie
+
+    def _dir_list(self, file):
+        if file:
+            _files.append(file)
+        else:
+            self._done= True
+
+    def listdir(self, fn):
+        # for f in _files:
+        #     yield f
+        if not self._done:
+            # wait somehow
+            pass
+
+        return _files
+
+    def getsize(self, fn):
+        return 0
+
+    def is_hidden(self, fn):
+        return basename(fn).startswith('.')
+
+    def is_dir(self, fn):
+        return fn.endswith('/')
+
+Factory.register('filesystemsd', cls=FileSystemSDCard)
 
 Builder.load_string('''
 #:import Factory kivy.factory.Factory

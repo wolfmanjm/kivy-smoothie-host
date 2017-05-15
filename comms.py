@@ -9,23 +9,28 @@ import re
 import traceback
 import serial.tools.list_ports
 import subprocess
+import socket
 
 async_main_loop= None
 
 class SerialConnection(asyncio.Protocol):
-    def __init__(self, cb, f):
+    def __init__(self, cb, f, is_net= False):
         super().__init__()
         self.cb = cb
         self.f= f
         self.cnt= 0
         self.log = logging.getLogger() #.getChild('SerialConnection')
-        self.log.info('SerialConnection: creating SerialCOnnection')
-        self.queue = asyncio.Queue(maxsize=100)
+        self.log.info('SerialConnection: creating SerialConnection')
+        self.queue = asyncio.Queue(maxsize=64)
         self.hipri_queue = asyncio.Queue()
         self._ready = asyncio.Event()
         self._msg_ready = asyncio.Semaphore(value=0)
         self.tsk= asyncio.async(self._send_messages())  # Or asyncio.ensure_future if using 3.4.3+
         self.flush= False
+        self.is_net= is_net
+        self._paused = False
+        self._drain_waiter = None
+        self._connection_lost = False
 
     @asyncio.coroutine
     def _send_messages(self):
@@ -49,18 +54,30 @@ class SerialConnection(asyncio.Protocol):
             if not self.hipri_queue.empty():
                 data = self.hipri_queue.get_nowait()
                 self.transport.write(data.encode('utf-8'))
-                self.log.debug('hipri message sent: {!r}'.format(data))
+                self.log.debug('SerialConnection: hipri message sent: {!r}'.format(data))
 
             elif not self.queue.empty():
                 # see if anything on normal queue and send it
                 data = self.queue.get_nowait()
                 self.transport.write(data.encode('utf-8'))
-                self.log.debug('normal message sent: {!r}'.format(data))
+                self.log.debug('SerialConnection: normal message sent: {!r}'.format(data))
 
     def connection_made(self, transport):
         self.transport = transport
         self.log.debug('SerialConnection: port opened: ' + str(transport))
-        #transport.serial.rts = False  # You can manipulate Serial object via transport
+        # if self.is_net:
+        #     # we don't want to buffer the entire file on the host
+        #     transport.get_extra_info('socket').setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
+        #     self.log.info("SerialConnection: Setting net tx buf to 2048")
+        # else:
+        #     #transport.serial.rts = False  # You can manipulate Serial object via transport
+        #     pass
+        #print(transport.get_write_buffer_limits())
+        if self.is_net:
+            # for net we want to limit how much we queue up otherwise the whole file gets queued
+            # this also gives us more progress more often
+            transport.set_write_buffer_limits(high=1024, low=256)
+
         self._ready.set()
 
     def flush_queue(self):
@@ -89,20 +106,57 @@ class SerialConnection(asyncio.Protocol):
 
         self.cb.incoming_data(str)
 
-
     def connection_lost(self, exc):
         self.log.debug('SerialConnection: port closed')
+        self._connection_lost = True
+
+        # Wake up the writer if currently paused.
+        if self._paused:
+            waiter = self._drain_waiter
+            if waiter:
+                self._drain_waiter = None
+                if not waiter.done():
+                    if exc is None:
+                        waiter.set_result(None)
+                    else:
+                        waiter.set_exception(exc)
+
         self.tsk.cancel() # stop the writer task
         self.transport.close()
         self.f.set_result('Disconnected')
 
+    @asyncio.coroutine
+    def _drain_helper(self):
+        if self._connection_lost:
+            raise ConnectionResetError('Connection lost')
+        if not self._paused:
+            return
+        waiter = self._drain_waiter
+        assert waiter is None or waiter.cancelled()
+        waiter = asyncio.Future()
+        self._drain_waiter = waiter
+        yield from waiter
+
     def pause_writing(self):
-        self.log.debug('SerialConnection: pause writing')
-        self.log.debug('SerialConnection: ' + self.transport.get_write_buffer_size())
+        self.log.debug('SerialConnection: pause writing: {}'.format(self.transport.get_write_buffer_size()))
+        if not self.is_net:
+            return
+        # we only do this pause stream stuff for net
+        assert not self._paused
+        self._paused = True
 
     def resume_writing(self):
-        self.log.debug(self.transport.get_write_buffer_size())
-        self.log.debug('SerialConnection: ' + 'resume writing')
+        self.log.debug('SerialConnection: resume writing: {}'.format(self.transport.get_write_buffer_size()))
+        if not self.is_net:
+            return
+        # we only do this pause stream stuff for net
+        assert self._paused
+        self._paused = False
+        waiter = self._drain_waiter
+        if waiter is not None:
+            self._drain_waiter = None
+            if not waiter.done():
+                waiter.set_result(None)
 
 class Comms():
     def __init__(self, app, reportrate=1):
@@ -154,7 +208,6 @@ class Comms():
         if self.proto:
            asyncio.async(self.proto.send_message('M105\n', True))
            asyncio.async(self.proto.send_message('?' if not self.net_connection else 'get status\n', True))
-           self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
@@ -188,11 +241,11 @@ class Comms():
         loop = asyncio.get_event_loop()
         async_main_loop = loop
         f = asyncio.Future()
-        sc_factory = functools.partial(SerialConnection, cb=self, f= f) # uses partial so we can pass a parameter
 
         # if tcp connection port will be net://ipaddress[:port]
         # otherwise it will be serial:///dev/ttyACM0 or serial://COM2:
         if self.port.startswith('net://'):
+            sc_factory = functools.partial(SerialConnection, cb=self, f= f, is_net= True) # uses partial so we can pass a parameter
             self.net_connection= True
             ip= self.port[6:]
             ip= ip.split(':')
@@ -207,6 +260,7 @@ class Comms():
             self.ping_pong= False # do not use ping pong for network connections
 
         elif self.port.startswith('serial://'):
+            sc_factory = functools.partial(SerialConnection, cb=self, f= f) # uses partial so we can pass a parameter
             self.net_connection= False
             self.port= self.port[9:]
             serial_conn = serial_asyncio.create_serial_connection(loop, sc_factory, self.port, baudrate=115200)
@@ -221,7 +275,7 @@ class Comms():
             return
 
         try:
-            _, self.proto = loop.run_until_complete(serial_conn) # sets up connection returning transport and protocol handler
+            transport, self.proto = loop.run_until_complete(serial_conn) # sets up connection returning transport and protocol handler
             self.log.debug('Comms: serial connection task completed')
 
             # this is when we are really setup and ready to go, notify upstream
@@ -386,6 +440,10 @@ class Comms():
             self.log.debug('Comms: got status:{}, mpos:{},{},{}, wpos:{},{},{}'.format(status, mpos[0], mpos[1], mpos[2], wpos[0], wpos[1], wpos[2]))
             self.app.get_mw().update_status(status, mpos, wpos)
 
+        # schedule next report
+        self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
+
+
     def handle_alarm(self, s):
         ''' handle case where smoothie sends us !! or an error of some sort '''
         self.log.warning('Comms: got error: {}'.format(s))
@@ -471,6 +529,19 @@ class Comms():
 
                 # send the line
                 self._write(line)
+                # when streaming we need to yeild until the flow control is dealt with
+                if self.proto._connection_lost:
+                    # Yield to the event loop so connection_lost() may be
+                    # called.  Without this, _drain_helper() would return
+                    # immediately, and code that calls
+                    #     write(...); yield from drain()
+                    # in a loop would never call connection_lost(), so it
+                    # would not see an error when the socket is closed.
+                    yield
+
+                # if the buffers are full then wait until we can send some more
+                yield from self.proto._drain_helper()
+
                 linecnt += 1
                 if self.progress and linecnt%10 == 0: # update every 10 lines
                     if self.ping_pong:
@@ -515,6 +586,7 @@ class Comms():
     @staticmethod
     def file_len(fname):
         ''' use external process to quickly find total number of G/M lines in file '''
+        # TODO if windows use a slow python method
         p = subprocess.Popen(['grep', '-c', "^[GM]", fname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         result, err = p.communicate()
         if p.returncode != 0:
@@ -611,8 +683,9 @@ if __name__ == "__main__":
                 print("File sent: {}".format('Ok' if app.ok else 'Failed'))
                 now=datetime.datetime.now()
                 print("Print ended at : {}".format(now.strftime('%x %X')))
-                et= datetime.timedelta(seconds= int((now-start).seconds))
-                print("Elapsed time: {}".format(et))
+                if start:
+                    et= datetime.timedelta(seconds= int((now-start).seconds))
+                    print("Elapsed time: {}".format(et))
 
             else:
                 print("Error: Failed to connect")
@@ -622,6 +695,7 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         print("Interrupted")
+        #comms._stream_pause(False, True)
 
     finally:
         # now stop the comms if it is connected or running
