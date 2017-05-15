@@ -35,14 +35,13 @@ class SerialConnection(asyncio.Protocol):
             # we don't want to buffer the entire file on the host
             transport.get_extra_info('socket').setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
             self.log.info("SerialConnection: Setting net tx buf to 2048")
-        else:
-            #transport.serial.rts = False  # You can manipulate Serial object via transport
-            pass
-        if self.is_net:
             # for net we want to limit how much we queue up otherwise the whole file gets queued
             # this also gives us more progress more often
             transport.set_write_buffer_limits(high=1024, low=256)
             self.log.info('Buffer limits: {}'.format(transport.get_write_buffer_limits()))
+        else:
+            #transport.serial.rts = False  # You can manipulate Serial object via transport
+            pass
 
     def flush_queue(self):
         # if self.transport:
