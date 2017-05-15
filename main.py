@@ -423,7 +423,7 @@ class MainWindow(BoxLayout):
     def connect(self):
         if self.app.is_connected:
             if self.is_printing:
-                mb = MessageBox(text='Disconnect when printing - Are you Sure?', cb= self._disconnect)
+                mb = MessageBox(text='Cannot Disconnect while printing - Abort first, then wait')
                 mb.open()
             else:
                 self._disconnect()
@@ -458,6 +458,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def connected(self):
         Logger.debug("MainWindow: Connected...")
+        self.add_line_to_log("...Connected")
         self.app.is_connected= True
         self.ids.connect_button.state= 'down'
         self.ids.connect_button.text= "Disconnect"
@@ -472,6 +473,7 @@ class MainWindow(BoxLayout):
         self.is_printing= False
         self.ids.connect_button.state= 'normal'
         self.ids.connect_button.text= "Connect"
+        self.add_line_to_log("...Disconnected")
 
     @mainthread
     def update_temps(self, he, hesp, be, besp):
