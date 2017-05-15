@@ -46,7 +46,8 @@ class SerialConnection(asyncio.Protocol):
     def flush_queue(self):
         # if self.transport:
         #     self.transport.abort()
-        pass
+        # TODO does not do anything at the moment possible is to do transport.abort() but that closes the connection
+        self.flush= True
 
     def send_message(self, data, hipri=False):
         """ Feed a message to the sender coroutine. """
@@ -276,7 +277,7 @@ class Comms():
         finally:
             loop.close()
             async_main_loop= None
-            self.log.debug('Comms: asyncio thread Exiting...')
+            self.log.info('Comms: comms thread Exiting...')
 
     # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
     # Note the data could be a line fragment and we need to only process complete lines terminated with \n
@@ -429,14 +430,20 @@ class Comms():
         async_main_loop.call_soon_threadsafe(self._stream_pause, pause, do_abort)
 
     def _stream_pause(self, pause, do_abort):
-        if do_abort:
-            self.abort_stream= True # aborts stream
-            if self.ping_pong and self.okcnt:
-                self.okcnt.release() # release it in case it is waiting for ok so it can abort
-        elif pause:
-            self.pause_stream= True #.clear() # pauses stream
-        else:
-            self.pause_stream= False #.set() # releases pause on stream
+        if self.file_streamer:
+            if do_abort:
+                self.abort_stream= True # aborts stream
+                if self.ping_pong and self.okcnt:
+                    self.okcnt.release() # release it in case it is waiting for ok so it can abort
+                self.log.info('Comms: Aborting Stream')
+
+            elif pause:
+                self.pause_stream= True #.clear() # pauses stream
+                self.log.info('Comms: Pausing Stream')
+
+            else:
+                self.pause_stream= False #.set() # releases pause on stream
+                self.log.info('Comms: Resuming Stream')
 
     @asyncio.coroutine
     def stream_file(self, fn):
