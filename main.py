@@ -23,6 +23,8 @@ from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.core.window import Window
 
+from mpg_knob import Knob
+
 from comms import Comms
 from message_box import MessageBox
 from input_box import InputBox
@@ -30,6 +32,7 @@ from selection_box import SelectionBox
 from file_dialog import FileDialog
 from viewer import GcodeViewerScreen
 
+import traceback
 import queue
 import math
 import os
@@ -45,6 +48,7 @@ Builder.load_string('''
 #:include kbd.kv
 #:include extruder.kv
 #:include macros.kv
+#:include mpg.kv
 
 # <Widget>:
 #     # set default font size
@@ -149,8 +153,8 @@ Builder.load_string('''
                     size_hint_x: None
                     width: status.texture_size[0]
                 Label:
-                    id: wcs
-                    text: 'X{:1.1f} Y{:1.1f} Z{:1.1f}'.format(*root.wcs)
+                    id: wpos
+                    text: 'X{:1.1f} Y{:1.1f} Z{:1.1f}'.format(*root.wpos)
                     color: 0,0,0,1
                 Label:
                     id: eta
@@ -170,6 +174,10 @@ Builder.load_string('''
 
             JogRoseWidget:
                 id: jog_rose
+                disabled: root.is_printing
+
+            MPGWidget:
+                id: mpg_widget
                 disabled: root.is_printing
 
             ExtruderWidget:
@@ -195,13 +203,13 @@ class MacrosWidget(StackLayout):
         try:
             config = configparser.ConfigParser()
             config.read('macros.ini')
-            for key in config['macro buttons']:
+            for (key, v) in config.items('macro buttons'):
                 btn = Factory.MacroButton()
                 btn.text= key
-                btn.bind(on_press= partial(self.send, config['macro buttons'][key]))
+                btn.bind(on_press= partial(self.send, v))
                 self.add_widget(btn)
         except:
-            Logger.warning('MacrosWidget: exception parsing config file')
+            Logger.warning('MacrosWidget: exception parsing config file: {}'.format(traceback.format_exc()))
 
 
     # def check_macros(self):
@@ -312,6 +320,26 @@ class ExtruderWidget(BoxLayout):
         Logger.debug('Extruder: reverse {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
         self.app.comms.write('G91 G0 E-{0} F{1} G90\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
 
+class MPGWidget(RelativeLayout):
+    """docstring for MPGWidget"""
+    last_pos= NumericProperty(0)
+    selected_axis= StringProperty('X')
+
+    def __init__(self, **kwargs):
+        super(MPGWidget, self).__init__(**kwargs)
+        self.app = App.get_running_app()
+
+    def handle_action(self):
+        print('released')
+
+    def handle_change(self, ticks):
+        print('change: {}'.format(ticks))
+        pos= self.last_pos + ticks
+        axis= self.selected_axis
+        print('axis: {}, pos: {}'.format(axis, pos))
+        #self.ids.pos_lab.text= '{:08.3f}'.format(pos)
+        self.last_pos= pos
+
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()
     def collide_point(self, x, y):
@@ -388,7 +416,7 @@ class KbdWidget(GridLayout):
 
 class MainWindow(BoxLayout):
     status= StringProperty('Idle')
-    wcs= ListProperty([0,0,0])
+    wpos= ListProperty([0,0,0])
     eta= StringProperty('--:--:--')
     is_printing= BooleanProperty(False)
 
@@ -485,7 +513,8 @@ class MainWindow(BoxLayout):
     @mainthread
     def update_status(self, stat, mpos, wpos):
         self.status= stat
-        self.wcs= wpos
+        self.wpos= wpos
+        self.app.wpos= wpos
 
     @mainthread
     def alarm_state(self, s):
@@ -632,6 +661,7 @@ class MainScreen(Screen):
 
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)
+    wpos= ListProperty([0,0,0])
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):

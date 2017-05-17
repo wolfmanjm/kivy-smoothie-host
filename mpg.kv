@@ -1,0 +1,57 @@
+<MPGWidget>:
+    # RelativeLayout
+    canvas.before:
+        Color:
+            rgba: 0.5, 0.5, 0.5, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'horizontal'
+        pos_hint: {'top': 1.0}
+        size_hint_y: None
+        height: 56
+        padding: 8
+        spacing: 8
+        ToggleButton:
+            text: 'X'
+            group: 'axis'
+            state: 'down'
+            size_hint_y: None
+            height: 40
+            on_state: if self.state == 'down': root.selected_axis= self.text
+        ToggleButton:
+            text: 'Y'
+            group: 'axis'
+            size_hint_y: None
+            height: 40
+            on_state: if self.state == 'down': root.selected_axis= self.text
+        ToggleButton:
+            text: 'Z'
+            group: 'axis'
+            size_hint_y: None
+            height: 40
+            on_state: if self.state == 'down': root.selected_axis= self.text
+
+    Label:
+        pos_hint: {'top': 0.9}
+        id: pos_lab
+        text: '{:+09.3f}'.format(root.last_pos)
+        font_size: '70sp'
+        font_name: "data/fonts/RobotoMono-Regular.ttf"
+        size_hint_y: None
+        height: self.texture_size[1]
+
+    Knob:
+        pos_hint: {'center_x': 0.5, 'y': 0.0}
+        size: 300, 300
+        min: 0
+        max: 100
+        step: 1
+        value: 0  # Default position of knob.
+        knobimg_source: "img/knob_metal.png"  # Knob texture
+        show_label: False  # Show central label
+        show_marker: False  # Do not show surrounding marker
+        on_tick: root.handle_change(self.ticks)
+        on_release: root.handle_action()
