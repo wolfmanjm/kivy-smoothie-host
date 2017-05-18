@@ -336,7 +336,8 @@ class MPGWidget(RelativeLayout):
             # normal mode
             cmd1= 'G91 G0' if self.ids.abs_mode_tb.state == 'down' else 'G0'
             cmd2= 'G90' if self.ids.abs_mode_tb.state == 'down' else ''
-            print('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
+            #print('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
+            self.app.comms.write('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
 
     def handle_change(self, ticks):
         pos= self.last_pos + (ticks/100.0 if self.ids.fine_cb.active else ticks/10.0)
@@ -344,11 +345,12 @@ class MPGWidget(RelativeLayout):
         #print('axis: {}, pos: {}'.format(axis, pos))
         #self.ids.pos_lab.text= '{:08.3f}'.format(pos)
         self.last_pos= pos
+        # TODO disable if delta or corexy
         #MPG mode
         if self.ids.mpg_mode_tb.state == 'down':
-            d= 1 if ticks < 0 else 0
+            d= 0 if ticks < 0 else 1
             for x in range(0,abs(ticks)):
-                print('step {} {} 32'.format(self.selected_axis.lower(), d))
+                self.app.comms.write('step {} {} 32'.format(self.selected_axis.lower(), d))
 
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()
