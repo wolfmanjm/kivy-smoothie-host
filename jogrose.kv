@@ -81,7 +81,7 @@
                 on_press: root.handle_action('Z', 0.1)
 
         MyGridV:
-            pos_hint: {'right': 1.0, 'bottom': 1.0}
+            pos_hint: {'right': 1.0, 'y': 0}
             size: 50, 100
 
             Button:
@@ -116,7 +116,7 @@
                 on_press: root.handle_action('Y', 0.1)
 
         MyGridV:
-            pos_hint: {'center_x': 0.5, 'bottom': 1.0}
+            pos_hint: {'center_x': 0.5, 'y': 0.0}
 
             Button:
                 size_hint: None, None
@@ -136,7 +136,7 @@
                 on_press: root.handle_action('Y', -10)
 
         MyGridH:
-            pos_hint: {'left': 1, 'center_y': 0.5}
+            pos_hint: {'x': 0.0, 'center_y': 0.5}
 
             ArrowButton:
                 size_hint: None, None
@@ -190,7 +190,7 @@
             on_press: root.handle_action('H', 0)
 
         GridLayout:
-            pos_hint: {'left': 1, 'top': 1}
+            pos_hint: {'x': 0.0, 'top': 1}
             size_hint: 0.4, 0.5
             cols: 2
             spacing: 4,4
@@ -216,19 +216,6 @@
                 text: 'mm/min XY'
                 size_hint: None, None
                 size: self.texture_size[0], xy_feedrate.minimum_height
-            TextInput:
-                id: z_feedrate
-                multiline: False
-                size_hint_y: None
-                height: self.minimum_height
-                input_type: 'number'
-                input_filter: 'float'
-                text: root.z_feedrate
-                on_text_validate: root.update_z_feedrate()
-            Label:
-                text: 'mm/min Z'
-                size_hint: None, None
-                size: self.texture_size[0], xy_feedrate.minimum_height
 
             Button:
                 text: 'Motors Off'
@@ -237,7 +224,7 @@
                 on_press: root.motors_off()
 
         # Label:
-        #     pos_hint: {'left': 1, 'bottom': 1}
+        #     pos_hint: {'left': 1, 'y': 0}
         #     canvas.before:
         #         PushMatrix
         #         Rotate:
