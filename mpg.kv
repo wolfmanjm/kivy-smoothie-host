@@ -73,6 +73,13 @@
         size: 80, 40
         on_press: root.handle_action()
 
+    Button:
+        pos_hint: {'right': 0.99, 'y': 0.6}
+        text: 'Zero'
+        size_hint: None, None
+        size: 80, 40
+        on_press: root.last_pos= 0
+
     ToggleButton:
         id: mpg_mode_tb
         pos_hint: {'x': 0.01, 'y': 0.01}
