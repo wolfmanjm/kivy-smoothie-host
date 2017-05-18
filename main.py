@@ -330,7 +330,13 @@ class MPGWidget(RelativeLayout):
         self.app = App.get_running_app()
 
     def handle_action(self):
-        print('released')
+        # if in non MPG mode then issue G0 in abs or rel depending on settings
+        # if in MPG mode then issue step commands when they occur
+        if not self.ids.mpg_mode_tb.state == 'down':
+            # normal mode
+            cmd1= 'G91 G0' if self.ids.abs_mode_tb.state == 'down' else 'G0'
+            cmd2= 'G90' if self.ids.abs_mode_tb.state == 'down' else ''
+            print('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
 
     def handle_change(self, ticks):
         pos= self.last_pos + (ticks/100.0 if self.ids.fine_cb.active else ticks/10.0)
@@ -338,6 +344,11 @@ class MPGWidget(RelativeLayout):
         #print('axis: {}, pos: {}'.format(axis, pos))
         #self.ids.pos_lab.text= '{:08.3f}'.format(pos)
         self.last_pos= pos
+        #MPG mode
+        if self.ids.mpg_mode_tb.state == 'down':
+            d= 1 if ticks < 0 else 0
+            for x in range(0,abs(ticks)):
+                print('step {} {} 32'.format(self.selected_axis.lower(), d))
 
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()

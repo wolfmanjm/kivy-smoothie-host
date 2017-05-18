@@ -33,8 +33,15 @@
             size_hint_y: None
             height: 40
             on_state: if self.state == 'down': root.selected_axis= self.text
-        CheckBox:
-            id: fine_cb
+        GridLayout:
+            cols: 2
+            CheckBox:
+                id: fine_cb
+            Label:
+                text: 'Fine'
+                size_hint_x: None
+                width: self.texture_size[0]
+
 
     Label:
         pos_hint: {'top': 0.9}
@@ -60,7 +67,23 @@
 
     Button:
         pos_hint: {'right': 0.99, 'y': 0.01}
+        disabled: mpg_mode_tb.state == 'down'
         text: 'Run'
         size_hint: None, None
         size: 80, 40
         on_press: root.handle_action()
+
+    ToggleButton:
+        id: mpg_mode_tb
+        pos_hint: {'x': 0.01, 'y': 0.01}
+        text: 'MPG Mode'
+        size_hint: None, None
+        size: 80, 40
+
+    ToggleButton:
+        id: abs_mode_tb
+        disabled: mpg_mode_tb.state == 'down'
+        pos_hint: {'x': 0.01, 'y': 0.6}
+        text: 'REL' if self.state == 'down' else 'ABS'
+        size_hint: None, None
+        size: 80, 40
