@@ -33,6 +33,8 @@
             size_hint_y: None
             height: 40
             on_state: if self.state == 'down': root.selected_axis= self.text
+        CheckBox:
+            id: fine_cb
 
     Label:
         pos_hint: {'top': 0.9}
