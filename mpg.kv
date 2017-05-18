@@ -56,4 +56,11 @@
         show_label: False  # Show central label
         show_marker: False  # Do not show surrounding marker
         on_tick: root.handle_change(self.ticks)
-        on_release: root.handle_action()
+        #on_release: root.handle_action()
+
+    Button:
+        pos_hint: {'right': 0.99, 'y': 0.01}
+        text: 'Run'
+        size_hint: None, None
+        size: 80, 40
+        on_press: root.handle_action()

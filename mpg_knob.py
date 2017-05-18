@@ -291,17 +291,21 @@ class Knob(Widget):
         if first:
             self._start_angle= angle
             self._last_angle= angle
-            print('start angle= {}'.format(self._start_angle))
+            #print('start angle= {}'.format(self._start_angle))
 
-        print("angle= {}, direction= {}, clicks= {}".format(angle, self._last_angle <= angle, abs(self._last_angle-angle)))
+        #print("angle= {}, direction= {}, clicks= {}".format(angle, self._last_angle <= angle, abs(self._last_angle-angle)))
         t= angle-self._last_angle
+        # handle wrap around
         if t > 270:
             t= t - 360
         if t < -270:
             t= t + 360
-        self.ticks= t
-        self._last_angle= angle
-        self.dispatch('on_tick')
+
+        if abs(t) >= 1.0:
+            # only issue event every full degree
+            self.ticks= int(t)
+            self._last_angle= angle
+            self.dispatch('on_tick')
 
         # original handle absolute position
         self._angle_step    =   (self.step*360)/(self.max - self.min)

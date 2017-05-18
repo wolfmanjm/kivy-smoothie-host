@@ -333,10 +333,9 @@ class MPGWidget(RelativeLayout):
         print('released')
 
     def handle_change(self, ticks):
-        print('change: {}'.format(ticks))
-        pos= self.last_pos + (ticks/10.0 if self.ids.fine_cb.active else ticks)
+        pos= self.last_pos + (ticks/100.0 if self.ids.fine_cb.active else ticks/10.0)
         axis= self.selected_axis
-        print('axis: {}, pos: {}'.format(axis, pos))
+        #print('axis: {}, pos: {}'.format(axis, pos))
         #self.ids.pos_lab.text= '{:08.3f}'.format(pos)
         self.last_pos= pos
 
