@@ -100,13 +100,17 @@ Builder.load_string('''
                     group: 'winds'
                     on_press: page_layout.index= 1
                 ActionButton:
-                    text: 'Extruder'
+                    text: 'MPG'
                     group: 'winds'
                     on_press: page_layout.index= 2
                 ActionButton:
-                    text: 'Macros'
+                    text: 'Extruder'
                     group: 'winds'
                     on_press: page_layout.index= 3
+                ActionButton:
+                    text: 'Macros'
+                    group: 'winds'
+                    on_press: page_layout.index= 4
 
             ActionGroup:
                 text: 'System'
