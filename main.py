@@ -129,9 +129,9 @@ Builder.load_string('''
 
     BoxLayout:
         orientation: 'horizontal'
-
         # Left panel
         BoxLayout:
+            size_hint_x: 0.4
             orientation: 'vertical'
             ScrollView:
                 scroll_y: 0
@@ -172,23 +172,23 @@ Builder.load_string('''
             direction: 'top'
             loop: True
             ignore_perpendicular_swipes: True
+            BoxLayout:
+                JogRoseWidget:
+                    id: jog_rose
+                    disabled: root.is_printing
+                MPGWidget:
+                    id: mpg_widget
+                    disabled: root.is_printing
+            BoxLayout:
+                ExtruderWidget:
+                    id: extruder
+                Widget:
 
-            KbdWidget:
-                id: kbd_widget
-
-            JogRoseWidget:
-                id: jog_rose
-                disabled: root.is_printing
-
-            MPGWidget:
-                id: mpg_widget
-                disabled: root.is_printing
-
-            ExtruderWidget:
-                id: extruder
-
-            MacrosWidget:
-                id: macros
+            BoxLayout:
+                KbdWidget:
+                    id: kbd_widget
+                MacrosWidget:
+                    id: macros
 ''')
 
 # user defined macros are configurable and stored in a configuration file called macros.ini
@@ -439,7 +439,7 @@ class MainWindow(BoxLayout):
         self.paused= False
 
         #print('font size: {}'.format(self.ids.log_window.font_size))
-        Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
+        #Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
 
     def my_callback(self, dt):
         self.ids.page_layout.index= 1 # switch to jog screen
@@ -707,6 +707,7 @@ class SmoothieHost(App):
         return ms.ids.main_window
 
     def build(self):
+        Window.size= (1280, 480)
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
         self.sm = ScreenManager()
