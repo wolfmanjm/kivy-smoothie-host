@@ -47,16 +47,20 @@ Recommended to do a sudo apt-get update and sudo apt-get upgrade.
 You need the latest python serial and pyserial-asyncio from here https://github.com/pyserial/pyserial-asyncio.git
 (git install).
 
-(make sure pip is installed.. sudo apt-get python3-pip)
+(make sure pip3 is installed.. sudo apt-get python3-pip)
 
 - sudo python3 -m pip install --upgrade pyserial
 - python3 -m pip install --user aiofiles
+(or simply pip3 install pyserial aiofiles)
 
 Install the asyncio stuff:-
 (May first need to do sudo apt-get python3-setuptools)
 - git clone https://github.com/pyserial/pyserial-asyncio.git
 - cd pyserial-asyncio/
 - python3 setup.py install --user
+alternatively this may work (make sure it is at least version 0.4)...
+- pip install pyserial-asyncio
+
 
 Run with...
 
@@ -72,12 +76,12 @@ https://kivy.org/docs/installation/installation.html
 2. sudo apt-get update
 3. sudo apt-get install python3-kivy
 
-Install pyserial which you probably alrady have:-
+Install pyserial which you probably already have:-
 (make sure pip is installed.. sudo apt-get python3-pip)
 
 4. sudo python3 -m pip install --upgrade pyserial
 
-Install the asyncio stuff:-
+Install the asyncio stuff to a user repo :-
 (May first need to do sudo apt-get python3-setuptools)
 5. git clone https://github.com/pyserial/pyserial-asyncio.git
 6. cd pyserial-asyncio/
@@ -85,6 +89,8 @@ Install the asyncio stuff:-
 
 Install the aio file stuff
 8. python3 -m pip install --user aiofiles
+
+(or simply install globally `sudo pip3 install pyserial pyserial-asyncio aiofiles`)
 
 Run as
 > cd kivy-smoothie-host
