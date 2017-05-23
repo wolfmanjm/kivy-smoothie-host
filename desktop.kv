@@ -19,7 +19,7 @@
         ActionView:
             use_separator: True
             ActionPrevious:
-                title: 'Smoopi'
+                title: 'Smoopie'
                 with_previous: False
             ActionOverflow:
 
@@ -42,29 +42,6 @@
             ActionButton:
                 text: 'Viewer'
                 on_press: root.show_viewer()
-
-            ActionGroup:
-                text: 'Modes'
-                ActionButton:
-                    text: 'Console'
-                    group: 'winds'
-                    on_press: page_layout.index= 0
-                ActionButton:
-                    text: 'Jog'
-                    group: 'winds'
-                    on_press: page_layout.index= 1
-                ActionButton:
-                    text: 'MPG'
-                    group: 'winds'
-                    on_press: page_layout.index= 2
-                ActionButton:
-                    text: 'Extruder'
-                    group: 'winds'
-                    on_press: page_layout.index= 3
-                ActionButton:
-                    text: 'Macros'
-                    group: 'winds'
-                    on_press: page_layout.index= 4
 
             ActionGroup:
                 text: 'System'
@@ -120,26 +97,36 @@
                     color: 0,0,0,1
 
         # Right panel
-        Carousel:
-            id: page_layout
-            border: 30
-            direction: 'top'
-            loop: True
-            ignore_perpendicular_swipes: True
-            BoxLayout:
-                JogRoseWidget:
-                    id: jog_rose
-                    disabled: root.is_printing
-                MPGWidget:
-                    id: mpg_widget
-                    disabled: root.is_printing
-            BoxLayout:
-                ExtruderWidget:
-                    id: extruder
-                Widget:
+        TabbedPanel:
+            id: tabbed_panel
+            do_default_tab: False
 
-            BoxLayout:
-                KbdWidget:
-                    id: kbd_widget
-                MacrosWidget:
-                    id: macros
+            TabbedPanelItem:
+                id: jogs
+                text: 'jogs'
+                BoxLayout:
+                    JogRoseWidget:
+                        id: jog_rose
+                        disabled: root.is_printing
+                    MPGWidget:
+                        id: mpg_widget
+                        disabled: root.is_printing
+
+            TabbedPanelItem:
+                id: extruders
+                text: 'extruders'
+                BoxLayout:
+                    ExtruderWidget:
+                        id: extruder
+                    Widget:
+
+            TabbedPanelItem:
+                id: commands
+                text: 'commands'
+                BoxLayout:
+                    KbdWidget:
+                        id: kbd_widget
+                    MacrosWidget:
+                        id: macros
+
+

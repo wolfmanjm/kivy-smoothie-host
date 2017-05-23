@@ -519,6 +519,7 @@ class MainWindow(BoxLayout):
         self.app.gcode_file= file_path
         self.app.sm.current= 'viewer'
 
+
 class MainScreen(Screen):
     pass
 
@@ -568,7 +569,7 @@ class SmoothieHost(App):
             self.is_desktop= True
             # load the layouts for the desktop screen
             Builder.load_file('desktop.kv')
-            Window.size= (1280, 480)
+            Window.size= (1280, 520)
         else:
             self.is_desktop= False
             # load the layouts for rpi 7" touch screen
