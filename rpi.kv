@@ -1,0 +1,145 @@
+#:include jogrose.kv
+#:include kbd.kv
+#:include extruder.kv
+#:include macros.kv
+#:include mpg.kv
+
+# <Widget>:
+#     # set default font size
+#     font_size: dp(12)
+
+<MainScreen>:
+    MainWindow:
+        id: main_window
+
+<MainWindow>:
+    orientation: 'vertical'
+    ActionBar:
+        pos_hint: {'top':1}
+        ActionView:
+            use_separator: True
+            ActionPrevious:
+                title: 'Smoopi'
+                with_previous: False
+            ActionOverflow:
+
+            ActionToggleButton:
+                id: connect_button
+                text: 'Connect'
+                important: True
+                on_press: root.connect()
+            ActionButton:
+                id: print_but
+                disabled: not app.is_connected
+                text: 'Print' # also 'Pause'/'Resume'
+                important: True
+                on_press: root.start_print()
+            ActionButton:
+                disabled: not root.is_printing
+                text: 'Abort'
+                important: True
+                on_press: root.abort_print()
+            ActionButton:
+                text: 'Viewer'
+                on_press: root.show_viewer()
+
+            ActionGroup:
+                text: 'Modes'
+                ActionButton:
+                    text: 'Console'
+                    group: 'winds'
+                    on_press: page_layout.index= 0
+                ActionButton:
+                    text: 'Jog'
+                    group: 'winds'
+                    on_press: page_layout.index= 1
+                ActionButton:
+                    text: 'MPG'
+                    group: 'winds'
+                    on_press: page_layout.index= 2
+                ActionButton:
+                    text: 'Extruder'
+                    group: 'winds'
+                    on_press: page_layout.index= 3
+                ActionButton:
+                    text: 'Macros'
+                    group: 'winds'
+                    on_press: page_layout.index= 4
+
+            ActionGroup:
+                text: 'System'
+                mode: 'spinner'
+                ActionButton:
+                    text: 'Select Port'
+                    disabled: app.is_connected
+                    on_press: root.change_port()
+                ActionButton:
+                    text: 'Quit'
+                    on_press: root.ask_exit()
+                ActionButton:
+                    text: 'Shutdown'
+                    on_press: root.ask_shutdown()
+
+
+    BoxLayout:
+        orientation: 'horizontal'
+
+        # Left panel
+        BoxLayout:
+            orientation: 'vertical'
+            ScrollView:
+                scroll_y: 0
+                Label:
+                    id: log_window
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    text_size: self.width, None
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                size: status.texture_size
+                canvas.before:
+                    Color:
+                        rgba: 1,1,1,1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                Label:
+                    id: status
+                    text: root.status
+                    color: 0,0,0,1
+                    size_hint_x: None
+                    width: status.texture_size[0]
+                Label:
+                    id: wpos
+                    text: 'X{:1.1f} Y{:1.1f} Z{:1.1f}'.format(*root.wpos)
+                    color: 0,0,0,1
+                Label:
+                    id: eta
+                    text: 'ETA: {}'.format(root.eta)
+                    color: 0,0,0,1
+
+        # Right panel
+        Carousel:
+            id: page_layout
+            border: 30
+            direction: 'top'
+            loop: True
+            ignore_perpendicular_swipes: True
+
+            KbdWidget:
+                id: kbd_widget
+
+            JogRoseWidget:
+                id: jog_rose
+                disabled: root.is_printing
+
+            MPGWidget:
+                id: mpg_widget
+                disabled: root.is_printing
+
+            ExtruderWidget:
+                id: extruder
+
+            MacrosWidget:
+                id: macros
