@@ -43,153 +43,8 @@ from functools import partial
 
 Window.softinput_mode = 'below_target'
 
-Builder.load_string('''
-#:include jogrose.kv
-#:include kbd.kv
-#:include extruder.kv
-#:include macros.kv
-#:include mpg.kv
-
-# <Widget>:
-#     # set default font size
-#     font_size: dp(12)
-
-<MainScreen>:
-    MainWindow:
-        id: main_window
-
-<MainWindow>:
-    orientation: 'vertical'
-    ActionBar:
-        pos_hint: {'top':1}
-        ActionView:
-            use_separator: True
-            ActionPrevious:
-                title: 'Smoopi'
-                with_previous: False
-            ActionOverflow:
-
-            ActionToggleButton:
-                id: connect_button
-                text: 'Connect'
-                important: True
-                on_press: root.connect()
-            ActionButton:
-                id: print_but
-                disabled: not app.is_connected
-                text: 'Print' # also 'Pause'/'Resume'
-                important: True
-                on_press: root.start_print()
-            ActionButton:
-                disabled: not root.is_printing
-                text: 'Abort'
-                important: True
-                on_press: root.abort_print()
-            ActionButton:
-                text: 'Viewer'
-                on_press: root.show_viewer()
-
-            ActionGroup:
-                text: 'Modes'
-                ActionButton:
-                    text: 'Console'
-                    group: 'winds'
-                    on_press: page_layout.index= 0
-                ActionButton:
-                    text: 'Jog'
-                    group: 'winds'
-                    on_press: page_layout.index= 1
-                ActionButton:
-                    text: 'MPG'
-                    group: 'winds'
-                    on_press: page_layout.index= 2
-                ActionButton:
-                    text: 'Extruder'
-                    group: 'winds'
-                    on_press: page_layout.index= 3
-                ActionButton:
-                    text: 'Macros'
-                    group: 'winds'
-                    on_press: page_layout.index= 4
-
-            ActionGroup:
-                text: 'System'
-                mode: 'spinner'
-                ActionButton:
-                    text: 'Select Port'
-                    disabled: app.is_connected
-                    on_press: root.change_port()
-                ActionButton:
-                    text: 'Quit'
-                    on_press: root.ask_exit()
-                ActionButton:
-                    text: 'Shutdown'
-                    on_press: root.ask_shutdown()
-
-
-    BoxLayout:
-        orientation: 'horizontal'
-        # Left panel
-        BoxLayout:
-            size_hint_x: 0.4
-            orientation: 'vertical'
-            ScrollView:
-                scroll_y: 0
-                Label:
-                    id: log_window
-                    size_hint_y: None
-                    height: self.texture_size[1]
-                    text_size: self.width, None
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: None
-                size: status.texture_size
-                canvas.before:
-                    Color:
-                        rgba: 1,1,1,1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                Label:
-                    id: status
-                    text: root.status
-                    color: 0,0,0,1
-                    size_hint_x: None
-                    width: status.texture_size[0]
-                Label:
-                    id: wpos
-                    text: 'X{:1.1f} Y{:1.1f} Z{:1.1f}'.format(*root.wpos)
-                    color: 0,0,0,1
-                Label:
-                    id: eta
-                    text: 'ETA: {}'.format(root.eta)
-                    color: 0,0,0,1
-
-        # Right panel
-        Carousel:
-            id: page_layout
-            border: 30
-            direction: 'top'
-            loop: True
-            ignore_perpendicular_swipes: True
-            BoxLayout:
-                JogRoseWidget:
-                    id: jog_rose
-                    disabled: root.is_printing
-                MPGWidget:
-                    id: mpg_widget
-                    disabled: root.is_printing
-            BoxLayout:
-                ExtruderWidget:
-                    id: extruder
-                Widget:
-
-            BoxLayout:
-                KbdWidget:
-                    id: kbd_widget
-                MacrosWidget:
-                    id: macros
-''')
+# load the layouts for the desktop screen
+Builder.load_file('desktop.kv')
 
 # user defined macros are configurable and stored in a configuration file called macros.ini
 # format is:-
@@ -228,6 +83,9 @@ class MacrosWidget(StackLayout):
         self.app.comms.write('{}\n'.format(cmd))
 
 class ExtruderWidget(BoxLayout):
+    bed_dg= ObjectProperty()
+    hotend_dg= ObjectProperty()
+
     def __init__(self, **kwargs):
         super(ExtruderWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
@@ -284,23 +142,23 @@ class ExtruderWidget(BoxLayout):
         ''' called to update the temperature display'''
         if type == 'bed':
             if temp:
-                self.ids.bed_dg.value= temp
+                self.bed_dg.value= temp
             if not math.isnan(setpoint):
                 if setpoint > 0:
                     self.ids.set_bed_temp.text= str(setpoint)
-                    self.ids.bed_dg.setpoint_value= setpoint
+                    self.bed_dg.setpoint_value= setpoint
                 else:
-                    self.ids.bed_dg.setpoint_value= float('nan')
+                    self.bed_dg.setpoint_value= float('nan')
 
         elif type == 'hotend':
             if temp:
-                self.ids.hotend_dg.value= temp
+                self.hotend_dg.value= temp
             if not math.isnan(setpoint):
                 if setpoint > 0:
                     self.ids.set_hotend_temp.text= str(setpoint)
-                    self.ids.hotend_dg.setpoint_value= setpoint
+                    self.hotend_dg.setpoint_value= setpoint
                 else:
-                    self.ids.hotend_dg.setpoint_value= float('nan')
+                    self.hotend_dg.setpoint_value= float('nan')
 
 
         else:
@@ -378,7 +236,7 @@ class JogRoseWidget(BoxLayout):
         self.xy_feedrate= self.app.config.get('Jog', 'xy_feedrate')
 
     def handle_action(self, axis, v):
-        x10= self.x10_cb.active
+        x10= self.ids.x10cb.active
         if x10:
             v *= 10
         if axis == 'O':
