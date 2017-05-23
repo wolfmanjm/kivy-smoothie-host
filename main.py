@@ -43,9 +43,6 @@ from functools import partial
 
 Window.softinput_mode = 'below_target'
 
-# load the layouts for the desktop screen
-Builder.load_file('desktop.kv')
-
 # user defined macros are configurable and stored in a configuration file called macros.ini
 # format is:-
 # button name = command to send
@@ -528,6 +525,7 @@ class MainScreen(Screen):
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)
     wpos= ListProperty([0,0,0])
+    is_desktop= BooleanProperty(False)
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
@@ -543,7 +541,8 @@ class SmoothieHost(App):
             'last_gcode_path': os.path.expanduser("~"),
             'last_print_file': '',
             'serial_port': 'serial:///dev/ttyACM0',
-            'report_rate': '1'
+            'report_rate': '1',
+            'desktop': 'false'
         })
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',
@@ -565,7 +564,16 @@ class SmoothieHost(App):
         return ms.ids.main_window
 
     def build(self):
-        Window.size= (1280, 480)
+        if self.config.getboolean('General', 'desktop'):
+            self.is_desktop= True
+            # load the layouts for the desktop screen
+            Builder.load_file('desktop.kv')
+            Window.size= (1280, 480)
+        else:
+            self.is_desktop= False
+            # load the layouts for rpi 7" touch screen
+            Builder.load_file('rpi.kv')
+
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
         self.sm = ScreenManager()
