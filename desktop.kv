@@ -71,6 +71,13 @@
                     size_hint_y: None
                     height: self.texture_size[1]
                     text_size: self.width, None
+            TextInput:
+                id: entry
+                multiline: False
+                size_hint_y: None
+                height: self.minimum_height
+                on_text_validate: app.get_mw().add_line_to_log('<< {}'.format(self.text)); app.comms.write('{}\n'.format(self.text)); self.text= ''
+
             BoxLayout:
                 orientation: 'horizontal'
                 size_hint_y: None
@@ -128,9 +135,8 @@
                     id: commands
                     text: 'commands'
                     BoxLayout:
-                        KbdWidget:
-                            id: kbd_widget
                         MacrosWidget:
                             id: macros
+                        Widget:
 
 
