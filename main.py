@@ -259,7 +259,7 @@ class KbdWidget(GridLayout):
         self.app = App.get_running_app()
 
     def _add_line_to_log(self, s):
-        self.app.get_mw().add_line_to_log(s)
+        self.app.main_window.add_line_to_log(s)
 
     def do_action(self, key):
         if key == 'Send':
@@ -527,6 +527,7 @@ class SmoothieHost(App):
     is_connected= BooleanProperty(False)
     wpos= ListProperty([0,0,0])
     is_desktop= BooleanProperty(False)
+    main_window= ObjectProperty()
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
@@ -559,17 +560,13 @@ class SmoothieHost(App):
         # The Kivy event loop is about to stop, stop the async main loop
         self.comms.stop(); # stop the aysnc loop
 
-    def get_mw(self):
-        ''' returns the main window instance '''
-        ms= self.sm.get_screen('main')
-        return ms.ids.main_window
-
     def build(self):
         if self.config.getboolean('General', 'desktop'):
             self.is_desktop= True
             # load the layouts for the desktop screen
             Builder.load_file('desktop.kv')
-            Window.size= (1280, 520)
+            #Window.size= (1280, 1024)
+            Window.size= (1200, 768)
         else:
             self.is_desktop= False
             # load the layouts for rpi 7" touch screen
@@ -578,8 +575,10 @@ class SmoothieHost(App):
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
         self.sm = ScreenManager()
-        self.sm.add_widget(MainScreen(name='main'))
+        ms= MainScreen(name='main')
+        self.sm.add_widget(ms)
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
+        self.main_window= ms.ids.main_window
         return self.sm
 
 

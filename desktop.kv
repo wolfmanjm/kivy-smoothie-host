@@ -62,7 +62,7 @@
         # Left panel
         orientation: 'horizontal'
         BoxLayout:
-            size_hint_x: 0.4
+            size_hint_x: 0.5
             orientation: 'vertical'
             ScrollView:
                 scroll_y: 0
@@ -76,7 +76,7 @@
                 multiline: False
                 size_hint_y: None
                 height: self.minimum_height
-                on_text_validate: app.get_mw().add_line_to_log('<< {}'.format(self.text)); app.comms.write('{}\n'.format(self.text)); self.text= ''
+                on_text_validate: app.main_window.add_line_to_log('<< {}'.format(self.text)); app.comms.write('{}\n'.format(self.text)); self.text= ''
 
             BoxLayout:
                 orientation: 'horizontal'
