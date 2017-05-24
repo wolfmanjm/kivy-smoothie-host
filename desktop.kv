@@ -59,8 +59,8 @@
 
 
     BoxLayout:
-        orientation: 'horizontal'
         # Left panel
+        orientation: 'horizontal'
         BoxLayout:
             size_hint_x: 0.4
             orientation: 'vertical'
@@ -96,37 +96,41 @@
                     text: 'ETA: {}'.format(root.eta)
                     color: 0,0,0,1
 
-        # Right panel
-        TabbedPanel:
-            id: tabbed_panel
-            do_default_tab: False
+        Splitter:
+            # Right panel
+            max_size: 1000
+            min_size: 790
+            #on_release: print('{}'.format(self.size))
+            TabbedPanel:
+                id: tabbed_panel
+                do_default_tab: False
 
-            TabbedPanelItem:
-                id: jogs
-                text: 'jogs'
-                BoxLayout:
-                    JogRoseWidget:
-                        id: jog_rose
-                        disabled: root.is_printing
-                    MPGWidget:
-                        id: mpg_widget
-                        disabled: root.is_printing
+                TabbedPanelItem:
+                    id: jogs
+                    text: 'jogs'
+                    BoxLayout:
+                        JogRoseWidget:
+                            id: jog_rose
+                            disabled: root.is_printing
+                        MPGWidget:
+                            id: mpg_widget
+                            disabled: root.is_printing
 
-            TabbedPanelItem:
-                id: extruders
-                text: 'extruders'
-                BoxLayout:
-                    ExtruderWidget:
-                        id: extruder
-                    Widget:
+                TabbedPanelItem:
+                    id: extruders
+                    text: 'extruders'
+                    BoxLayout:
+                        ExtruderWidget:
+                            id: extruder
+                        Widget:
 
-            TabbedPanelItem:
-                id: commands
-                text: 'commands'
-                BoxLayout:
-                    KbdWidget:
-                        id: kbd_widget
-                    MacrosWidget:
-                        id: macros
+                TabbedPanelItem:
+                    id: commands
+                    text: 'commands'
+                    BoxLayout:
+                        KbdWidget:
+                            id: kbd_widget
+                        MacrosWidget:
+                            id: macros
 
 
