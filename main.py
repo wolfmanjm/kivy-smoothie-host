@@ -22,6 +22,7 @@ from kivy.clock import Clock, mainthread
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.core.window import Window
+from kivy.config import ConfigParser
 
 from mpg_knob import Knob
 
@@ -546,7 +547,8 @@ class SmoothieHost(App):
             'last_print_file': '',
             'serial_port': 'serial:///dev/ttyACM0',
             'report_rate': '1',
-            'desktop': 'false'
+            'desktop': 'false',
+            'cnc': 'false'
         })
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',
@@ -557,6 +559,37 @@ class SmoothieHost(App):
         config.setdefaults('Jog', {
             'xy_feedrate': '3000'
         })
+
+    def build_settings(self, settings):
+        jsondata = """
+            [
+                { "type": "title",
+                  "title": "General Settings" },
+
+                { "type": "bool",
+                  "title": "Desktop Layout",
+                  "desc": "Turn on for a Desktop layout, otherwise it is RPI 7in touch screen layout",
+                  "section": "General",
+                  "key": "desktop"
+                },
+
+                { "type": "bool",
+                  "title": "CNC layout",
+                  "desc": "Turn on for a CNC layout, otherwise it is a 3D printer Layout",
+                  "section": "General",
+                  "key": "cnc"
+                },
+
+                { "type": "numeric",
+                  "title": "Report rate",
+                  "desc": "Rate in seconds to query for status from Smoothie",
+                  "section": "General",
+                  "key": "report_rate" }
+            ]
+        """
+        config = ConfigParser()
+        config.read('smoothiehost.ini')
+        settings.add_json_panel('SmooPie application', config, data=jsondata)
 
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop
@@ -573,6 +606,11 @@ class SmoothieHost(App):
             self.is_desktop= False
             # load the layouts for rpi 7" touch screen
             Builder.load_file('rpi.kv')
+
+        if self.config.getboolean('General', 'cnc'):
+            self.is_cnc= True
+        else:
+            self.is_cnc= False
 
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')

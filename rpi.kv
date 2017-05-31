@@ -74,6 +74,9 @@
                     disabled: app.is_connected
                     on_press: root.change_port()
                 ActionButton:
+                    text: 'Settings'
+                    on_press: app.open_settings()
+                ActionButton:
                     text: 'Quit'
                     on_press: root.ask_exit()
                 ActionButton:
