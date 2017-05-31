@@ -318,7 +318,10 @@ class Comms():
                 self.handle_temperature(s)
 
             elif s.startswith('<'):
-                self.handle_status(s)
+                try:
+                    self.handle_status(s)
+                except:
+                    self.log.error("Comms: error parsing status")
 
             elif s.startswith('//'):
                 # ignore comments but display them
@@ -386,18 +389,51 @@ class Comms():
             #self.app.main_window.update_position(x, y, z)
 
     def handle_status(self, s):
-        #<Idle,MPos:68.9980,-49.9240,40.0000,WPos:68.9980,-49.9240,40.0000>
-        sl= s.split(',')
-        if len(sl) >= 7:
-            # strip off status
-            status= sl[0]
-            status= status[1:]
-            # strip off mpos
-            mpos= (float(sl[1][5:]), float(sl[2]), float(sl[3]))
-            # strip off wpos
-            wpos= (float(sl[4][5:]), float(sl[5]), float(sl[6][:-1]))
-            self.log.debug('Comms: got status:{}, mpos:{},{},{}, wpos:{},{},{}'.format(status, mpos[0], mpos[1], mpos[2], wpos[0], wpos[1], wpos[2]))
-            self.app.main_window.update_status(status, mpos, wpos)
+        #<Idle,MPos:68.9980,-49.9240,40.0000,[12,3456,]WPos:68.9980,-49.9240,40.0000[,F:12345,12,S:1.2]>
+        n= s.find('MPos:')
+        if n < 0: raise ValueError
+
+        # strip off status
+        status= s[0:n-1]
+
+        m= s.find(',WPos:', n)
+        if m < 0: raise ValueError
+
+        # strip off mpos
+        mp= s[n+5:m-1]
+        sl= mp.split(',')
+        mpos= [float(x) for x in sl]
+
+        n= s.find(',F:', m)
+        if m < 0: # no F:
+            wp= s[m+6:-1]
+        else:
+            wp= s[m+6:n-1]
+
+        # strip off wpos
+        sl= wp.split(',')
+        wpos= [float(x) for x in sl]
+
+        fr= None
+        sr= None
+        if n >= 0:
+            m= s.find(',S:', n)
+            if m < 0: # no S:
+                wp= s[n+3:-1]
+            else:
+                wp= s[n+3:m-1]
+
+            # strip off F
+            fr= float(wp)
+
+            # strip off s
+            if m >= 0:
+                sr= float(s[m+3:-1])
+
+
+        self.log.debug('Comms: got status:{} | mpos:{} | wpos:{} | F:{} | S:{}'.format(status, mpos, wpos, fr, sr))
+
+        self.app.main_window.update_status(status, mpos, wpos, fr, sr)
 
         # schedule next report
         self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
@@ -570,7 +606,9 @@ class Comms():
             raise IOError(err)
         return int(result.strip().split()[0])
 
+
 if __name__ == "__main__":
+
     import datetime
 
     ''' a standalone streamer to test it with '''

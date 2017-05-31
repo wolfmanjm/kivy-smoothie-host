@@ -374,10 +374,12 @@ class MainWindow(BoxLayout):
             self.ids.extruder.update_temp('bed', be, besp)
 
     @mainthread
-    def update_status(self, stat, mpos, wpos):
+    def update_status(self, stat, mpos, wpos, fr, sr):
         self.status= stat
         self.wpos= wpos
         self.app.wpos= wpos
+        self.fr= fr
+        self.sr= sr
 
     @mainthread
     def alarm_state(self, s):
