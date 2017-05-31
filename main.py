@@ -44,6 +44,31 @@ from functools import partial
 
 Window.softinput_mode = 'below_target'
 
+
+class DROWidget(RelativeLayout):
+    """docstring for DROWidget"""
+    def __init__(self, **kwargs):
+        super(DROWidget, self).__init__(**kwargs)
+        self.app = App.get_running_app()
+
+    def enter_wpos(self, axis, v):
+        i= ord('x') - ord(axis)
+        try:
+            # needed becuase the filter does not allow -ive numbers WTF!!!
+            f= float(v.strip())
+        except:
+            Logger.warning("DROWidget: invalid float input: {}".format(v))
+            self.app.wpos[i] = self.app.wpos[i] # set it back to what it was
+            return
+
+        Logger.debug("DROWidget: Set axis {} wpos to {}".format(axis, f))
+        self.app.comms.write('G10 L20 P0 {}{}'.format(axis.upper(), f))
+        self.app.wpos[i] = f
+
+    def select_wcs(self, v):
+        self.app.comms.write(v)
+
+
 # user defined macros are configurable and stored in a configuration file called macros.ini
 # format is:-
 # button name = command to send
@@ -379,6 +404,7 @@ class MainWindow(BoxLayout):
         self.status= stat
         self.wpos= wpos
         self.app.wpos= wpos
+        self.app.mpos= mpos
         self.fr= fr
         self.sr= sr
 
@@ -529,6 +555,7 @@ class MainScreen(Screen):
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)
     wpos= ListProperty([0,0,0])
+    mpos= ListProperty([0,0,0])
     is_desktop= BooleanProperty(False)
     main_window= ObjectProperty()
 
@@ -612,6 +639,7 @@ class SmoothieHost(App):
         else:
             self.is_cnc= False
 
+
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
         self.sm = ScreenManager()
@@ -619,6 +647,17 @@ class SmoothieHost(App):
         self.sm.add_widget(ms)
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
         self.main_window= ms.ids.main_window
+
+        # setup for cnc or 3d printer
+        # TODO need to also remove from tabs or actionbar
+        # if self.is_cnc:
+        #     # remove Extruder panel
+        #     self.main_window.ids.page_layout.remove_widget(self.main_window.ids.extruder)
+
+        # else:
+        #     # remove MPG panel
+        #     self.main_window.ids.page_layout.remove_widget(self.main_window.ids.mpg_widget)
+
         return self.sm
 
 

@@ -1,0 +1,109 @@
+<DROTextInput@TextInput>:
+    multiline: False
+    input_type: 'number'
+    #input_filter: 'float'
+    font_size: '19sp'
+    font_name: "data/fonts/RobotoMono-Regular.ttf"
+
+<DROWidget>:
+    canvas.before:
+        Color:
+            rgba: 0.5, 0.5, 0.5, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    GridLayout:
+        cols: 4
+        row_force_default: True
+        row_default_height: 40
+        padding: 4
+        spacing: 4
+        Label:
+            text: '    '
+            size_hint_x: None
+            size: self.texture_size
+        Label:
+            text: 'X'
+        Label:
+            text: 'Y'
+        Label:
+            text: 'Z'
+
+        Label:
+            text: 'MPOS'
+            size_hint_x: None
+            size: self.texture_size
+        DROTextInput:
+            readonly: True
+            is_focusable: False
+            text: '{:+09.3f}'.format(app.mpos[0])
+        DROTextInput:
+            readonly: True
+            is_focusable: False
+            text: '{:+09.3f}'.format(app.mpos[1])
+        DROTextInput:
+            readonly: True
+            is_focusable: False
+            text: '{:+09.3f}'.format(app.mpos[2])
+
+        Label:
+            text: 'WPOS'
+            size_hint_x: None
+            size: self.texture_size
+        DROTextInput:
+            text: '{:+09.3f}'.format(app.wpos[0])
+            on_text_validate: root.enter_wpos('x', self.text)
+        DROTextInput:
+            text: '{:+09.3f}'.format(app.wpos[1])
+            on_text_validate: root.enter_wpos('y', self.text)
+        DROTextInput:
+            text: '{:+09.3f}'.format(app.wpos[2])
+            on_text_validate: root.enter_wpos('z', self.text)
+
+        Label:
+            text: ''
+            size_hint_x: None
+            size: self.texture_size
+        Button:
+            text: 'X=0'
+            on_press: root.enter_wpos('x', '0')
+        Button:
+            text: 'Y=0'
+            on_press: root.enter_wpos('y', '0')
+        Button:
+            text: 'Z=0'
+            on_press: root.enter_wpos('z', '0')
+
+    BoxLayout:
+        pos_hint: {'y': 0.48}
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: 40
+        ToggleButton:
+            text: 'G54'
+            group: 'wcs_group'
+            state: 'down'
+            on_press: if self.state == 'down': root.select_wcs(self.text)
+
+        ToggleButton:
+            text: 'G55'
+            group: 'wcs_group'
+            on_press: if self.state == 'down': root.select_wcs(self.text)
+        ToggleButton:
+            text: 'G56'
+            group: 'wcs_group'
+            on_press: if self.state == 'down': root.select_wcs(self.text)
+        ToggleButton:
+            text: 'G57'
+            group: 'wcs_group'
+            on_press: if self.state == 'down': root.select_wcs(self.text)
+        ToggleButton:
+            text: 'G58'
+            group: 'wcs_group'
+            on_press: if self.state == 'down': root.select_wcs(self.text)
+        ToggleButton:
+            text: 'G59'
+            group: 'wcs_group'
+            on_press: if self.state == 'down': root.select_wcs(self.text)
+

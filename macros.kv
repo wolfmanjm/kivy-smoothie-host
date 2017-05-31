@@ -41,3 +41,10 @@
     MacroButton:
         text: 'Clear Alarm'
         on_press: root.send('$X')
+
+    MacroToggleButton:
+        id: feed_hold_but
+        text: 'Feed Hold' if self.state == 'normal' else 'Resume'
+        oncmd: '~'
+        offcmd: '!'
+        check: 'feed hold'
