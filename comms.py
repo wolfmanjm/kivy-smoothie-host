@@ -389,51 +389,26 @@ class Comms():
             #self.app.main_window.update_position(x, y, z)
 
     def handle_status(self, s):
-        #<Idle,MPos:68.9980,-49.9240,40.0000,[12,3456,]WPos:68.9980,-49.9240,40.0000[,F:12345,12,S:1.2]>
-        n= s.find('MPos:')
-        if n < 0: raise ValueError
+        #<Idle|MPos:68.9980,-49.9240,40.0000,12.3456|WPos:68.9980,-49.9240,40.0000|F:12345.12|S:1.2>
+        s= s[1:-1] # strip off < .. >
+
+        # split fields
+        l= s.split('|')
 
         # strip off status
-        status= s[0:n-1]
+        status= l[0]
 
-        m= s.find(',WPos:', n)
-        if m < 0: raise ValueError
+        # strip of rest into a dict
+        d= {}
+        for x in l[1:]:
+            m= x.split(':')
+            if len(m) != 2:
+                raise ValueError
+            d[m[0]]= [float(y) for y in m[1].split(',')]
 
-        # strip off mpos
-        mp= s[n+5:m-1]
-        sl= mp.split(',')
-        mpos= [float(x) for x in sl]
+        self.log.debug('Comms: got status:{} - rest: {}'.format(status, d))
 
-        n= s.find(',F:', m)
-        if m < 0: # no F:
-            wp= s[m+6:-1]
-        else:
-            wp= s[m+6:n-1]
-
-        # strip off wpos
-        sl= wp.split(',')
-        wpos= [float(x) for x in sl]
-
-        fr= None
-        sr= None
-        if n >= 0:
-            m= s.find(',S:', n)
-            if m < 0: # no S:
-                wp= s[n+3:-1]
-            else:
-                wp= s[n+3:m-1]
-
-            # strip off F
-            fr= float(wp)
-
-            # strip off s
-            if m >= 0:
-                sr= float(s[m+3:-1])
-
-
-        self.log.debug('Comms: got status:{} | mpos:{} | wpos:{} | F:{} | S:{}'.format(status, mpos, wpos, fr, sr))
-
-        self.app.main_window.update_status(status, mpos, wpos, fr, sr)
+        self.app.main_window.update_status(status, d)
 
         # schedule next report
         self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)

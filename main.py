@@ -400,13 +400,23 @@ class MainWindow(BoxLayout):
             self.ids.extruder.update_temp('bed', be, besp)
 
     @mainthread
-    def update_status(self, stat, mpos, wpos, fr, sr):
+    def update_status(self, stat, d):
         self.status= stat
-        self.wpos= wpos
-        self.app.wpos= wpos
-        self.app.mpos= mpos
-        self.fr= fr
-        self.sr= sr
+        if 'WPos' in d:
+            self.wpos= d['WPos']
+            self.app.wpos= self.wpos
+
+        if 'MPos' in d:
+            self.app.mpos= d['MPos']
+
+        if 'F' in d:
+            self.app.fr= d['F'][0]
+
+        if 'S' in d:
+            self.app.fs= d['S'][0]
+
+        if 'L' in d:
+            self.app.lp= d['L'][0]
 
     @mainthread
     def alarm_state(self, s):
@@ -556,6 +566,10 @@ class SmoothieHost(App):
     is_connected= BooleanProperty(False)
     wpos= ListProperty([0,0,0])
     mpos= ListProperty([0,0,0])
+    fr= NumericProperty(0)
+    sr= NumericProperty(0)
+    lp= NumericProperty(0)
+
     is_desktop= BooleanProperty(False)
     main_window= ObjectProperty()
 
