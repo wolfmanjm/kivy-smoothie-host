@@ -13,8 +13,6 @@
             pos: self.pos
             size: self.size
 
-    orientation: 'vertical'
-
     GridLayout:
         pos_hint: {'top': 1}
         size_hint_y: 0.5
@@ -114,7 +112,7 @@
     GridLayout:
         pos_hint: {'y': 0.0}
         size_hint_y: 0.1
-        cols: 4
+        cols: 6
         row_force_default: True
         row_default_height: 40
         padding: 4
@@ -127,4 +125,8 @@
             text: 'Power'
         Label:
             text: '{:6.1f}'.format(app.sr)
+        Label:
+            text: 'Laser'
+        Label:
+            text: '{:6.1f}'.format(app.lp)
 

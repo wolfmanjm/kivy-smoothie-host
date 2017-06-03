@@ -1,5 +1,5 @@
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import StringProperty, ObjectProperty
+from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
 from kivy.uix.popup import Popup
 from kivy.lang import Builder
 from kivy.uix.filechooser import FileSystemLocal, FileSystemAbstract
@@ -18,40 +18,54 @@ class FileSystemLocalEx(FileSystemLocal):
 Factory.register('filesystem', cls=FileSystemLocalEx)
 
 class FileSystemSDCard(FileSystemAbstract):
-    '''Implementation of :class:`FileSystemAbstract` for sdcard files. '''
+    '''
+        Implementation of :class:`FileSystemAbstract` for sdcard files.
+
+        We need to read the SDCard directory in full then populate this with a call to open(files)
+        where files is a dict with { filename: {'size': nnn, 'isdir': False}, ..., }
+
+        As there appears no way to do a non blocking file system that is remote and is fetched a line at a time.
+
+        Also because if this we can only show one directory, so we show the root /sd/ only.
+
+        If there were a way to delay listdir and make a remote call get the results then return the listdir we could allow
+        traversal.
+
+        The only other way is to read the entire sdcard directory tree into the dict, which is not really a practical option.
+    '''
+
     def __init__(self, **kwargs):
         super(FileSystemSDCard, self).__init__(**kwargs)
-        self.app = App.get_running_app()
-        _files= []
+        self._files= None
 
-    def open(self):
-        self._done= False
-        self.app.comms.register_watch_callback(start_query='File List', end_query='End Files', cb= _dir_list)
-        self.app.comms.write('M20') # request file list from smoothie
-
-    def _dir_list(self, file):
-        if file:
-            _files.append(file)
-        else:
-            self._done= True
+    def open(self, files):
+        ''' files is a dict with { filename: {size: nnn, isdir: False}, ..., } '''
+        self._files= files
 
     def listdir(self, fn):
-        # for f in _files:
-        #     yield f
-        if not self._done:
-            # wait somehow
-            pass
+        if self._files is None:
+            return []
 
-        return _files
+        return self._files.keys()
+
 
     def getsize(self, fn):
-        return 0
+        if self._files is None:
+            return 0
+
+        return self._files[fn]['size']
 
     def is_hidden(self, fn):
-        return basename(fn).startswith('.')
+        return False
 
     def is_dir(self, fn):
-        return fn.endswith('/')
+        if self._files is None:
+            return False
+
+        if fn.startswith('../'):
+            return True
+
+        return self._files[fn]['isdir']
 
 Factory.register('filesystemsd', cls=FileSystemSDCard)
 
@@ -67,9 +81,10 @@ Builder.load_string('''
             multiselect: False
             path: root.path
             title: 'File to print'
+            filter_dirs: not root.show_dirs
             filters: ['*.g', '*.gcode', '*.nc']
             sort_func: lambda a, b: root.sort_folders_first(sort_type.state == 'normal', reverse.state == 'down', a, b)
-            file_system: Factory.filesystem()
+            file_system: root.filesystem
             FileChooserIconLayout
             FileChooserListLayout
 
@@ -104,6 +119,8 @@ class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
     cancel = ObjectProperty(None)
     path= StringProperty()
+    filesystem= ObjectProperty()
+    show_dirs= BooleanProperty(True)
 
     def sort_folders_first(self, b, r, files, filesystem):
         if b:
@@ -123,11 +140,23 @@ class FileDialog(FloatLayout):
     def dismiss_popup(self):
         self._popup.dismiss()
 
-    def open(self, path= None, title= "File to Print", cb= None):
+    def open(self, path= None, title= "File to Print", file_list= None, cb= None):
+
         self.cb= cb
-        content = LoadDialog(load=self.load, cancel=self.dismiss_popup, path=path if path else os.path.expanduser("~"))
-        self._popup = Popup(title=title, content=content,
-                            size_hint=(0.9, 0.9))
+
+        if file_list is not None:
+            print("{}: {}".format(title, file_list))
+            fs= Factory.filesystemsd()
+            fs.open(file_list)
+            path= '/sd/'
+            show_dirs= False
+        else:
+            fs= Factory.filesystem()
+            show_dirs= True
+
+        content = LoadDialog(load=self.load, cancel=self.dismiss_popup, path=path if path else os.path.expanduser("~"), filesystem= fs, show_dirs= show_dirs)
+
+        self._popup = Popup(title=title, content=content, size_hint=(0.9, 0.9))
         self._popup.open()
 
     def load(self, path, filename):

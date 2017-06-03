@@ -46,7 +46,7 @@ Window.softinput_mode = 'below_target'
 
 
 class DROWidget(RelativeLayout):
-    """docstring for DROWidget"""
+    """DROWidget Shows reltime information in a DRO style"""
     def __init__(self, **kwargs):
         super(DROWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
@@ -62,11 +62,11 @@ class DROWidget(RelativeLayout):
             return
 
         Logger.debug("DROWidget: Set axis {} wpos to {}".format(axis, f))
-        self.app.comms.write('G10 L20 P0 {}{}'.format(axis.upper(), f))
+        self.app.comms.write('G10 L20 P0 {}{}\n'.format(axis.upper(), f))
         self.app.wpos[i] = f
 
     def select_wcs(self, v):
-        self.app.comms.write(v)
+        self.app.comms.write('{}\n'.format(v))
 
 
 # user defined macros are configurable and stored in a configuration file called macros.ini
@@ -222,7 +222,7 @@ class MPGWidget(RelativeLayout):
             cmd1= 'G91 G0' if self.ids.abs_mode_tb.state == 'down' else 'G0'
             cmd2= 'G90' if self.ids.abs_mode_tb.state == 'down' else ''
             #print('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
-            self.app.comms.write('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
+            self.app.comms.write('{} {}{} {}\n'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
 
     def handle_change(self, ticks):
         pos= self.last_pos + (ticks/100.0 if self.ids.fine_cb.active else ticks/10.0)
@@ -235,7 +235,7 @@ class MPGWidget(RelativeLayout):
         if self.ids.mpg_mode_tb.state == 'down':
             d= 0 if ticks < 0 else 1
             for x in range(0,abs(ticks)):
-                self.app.comms.write('step {} {} 32'.format(self.selected_axis.lower(), d))
+                self.app.comms.write('step {} {} 32\n'.format(self.selected_axis.lower(), d))
 
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()
@@ -277,7 +277,7 @@ class JogRoseWidget(BoxLayout):
         self.xy_feedrate= fr
 
     def motors_off(self):
-        self.app.comms.write('M18')
+        self.app.comms.write('M18\n')
 
 class KbdWidget(GridLayout):
     def __init__(self, **kwargs):
@@ -413,7 +413,7 @@ class MainWindow(BoxLayout):
             self.app.fr= d['F'][0]
 
         if 'S' in d:
-            self.app.fs= d['S'][0]
+            self.app.sr= d['S'][0]
 
         if 'L' in d:
             self.app.lp= d['L'][0]
@@ -549,6 +549,30 @@ class MainWindow(BoxLayout):
             #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
             self.eta= '{} | {:.1%}'.format(datetime.timedelta(seconds=int(eta)), n/self.nlines)
 
+    def list_sdcard(self):
+        if self.app.comms.list_sdcard(self._list_sdcard_results):
+            # TODO open waiting dialog
+            pass
+
+    @mainthread
+    def _list_sdcard_results(self, l):
+        # dismiss waiting dialog
+        fl= {}
+        for f in l:
+            f= '/sd/{}'.format(f)
+            if f.endswith('/'):
+                fl[f[:-1]]= {'size': 0, 'isdir': True}
+            else:
+                fl[f]= {'size': 0, 'isdir': False}
+
+        # get file to print
+        f= FileDialog()
+        f.open(title= 'SD File to print', file_list= fl, cb= self._start_sd_print)
+
+    def _start_sd_print(self, file_path, directory):
+        Logger.info("MainWindow: SDcard print: {}".format(file_path))
+        self.app.comms.write('play {}\n'.format(file_path))
+
     def show_viewer(self):
         # get file to view
         f= FileDialog()
@@ -642,7 +666,7 @@ class SmoothieHost(App):
             # load the layouts for the desktop screen
             Builder.load_file('desktop.kv')
             #Window.size= (1280, 1024)
-            Window.size= (1200, 768)
+            Window.size= (1024, 768)
         else:
             self.is_desktop= False
             # load the layouts for rpi 7" touch screen

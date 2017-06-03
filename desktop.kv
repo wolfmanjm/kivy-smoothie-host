@@ -3,6 +3,7 @@
 #:include extruder.kv
 #:include macros.kv
 #:include mpg.kv
+#:include dro.kv
 
 # <Widget>:
 #     # set default font size
@@ -34,6 +35,12 @@
                 text: 'Print' # also 'Pause'/'Resume'
                 important: True
                 on_press: root.start_print()
+            ActionButton:
+                id: sdprint_but
+                #disabled: not app.is_connected
+                text: 'SD Print' # also 'Pause'/'Resume'
+                important: True
+                on_press: root.list_sdcard()
             ActionButton:
                 disabled: not root.is_printing
                 text: 'Abort'
@@ -108,38 +115,47 @@
 
         Splitter:
             # Right panel
-            max_size: 1000
-            min_size: 790
-            #on_release: print('{}'.format(self.size))
-            TabbedPanel:
-                id: tabbed_panel
-                do_default_tab: False
+            max_size: 525
+            min_size: 400
+            size_hint_x: None
+            width: 520
+            on_release: print('{}'.format(self.size))
 
-                TabbedPanelItem:
-                    id: jogs
-                    text: 'jogs'
-                    BoxLayout:
+            BoxLayout:
+                orientation: 'vertical'
+                TabbedPanel:
+                    id: tabbed_panel
+                    do_default_tab: False
+
+                    TabbedPanelItem:
+                        id: jog
+                        text: 'jog'
                         JogRoseWidget:
                             id: jog_rose
                             disabled: root.is_printing
+
+                    TabbedPanelItem:
+                        id: mpg
+                        text: 'MPG'
                         MPGWidget:
                             id: mpg_widget
                             disabled: root.is_printing
 
-                TabbedPanelItem:
-                    id: extruders
-                    text: 'extruders'
-                    BoxLayout:
+                    TabbedPanelItem:
+                        id: extruder
+                        text: 'extruder'
                         ExtruderWidget:
                             id: extruder
-                        Widget:
 
-                TabbedPanelItem:
-                    id: commands
-                    text: 'commands'
-                    BoxLayout:
-                        MacrosWidget:
-                            id: macros
-                        Widget:
+                    TabbedPanelItem:
+                        id: dro
+                        text: 'DRO'
+                        DROWidget:
+                            id: dro_widget
+                MacrosWidget:
+                    size_hint_y: 0.45
+                    id: macros
+
+
 
 

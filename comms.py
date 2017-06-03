@@ -129,6 +129,7 @@ class Comms():
         self.ping_pong= True # ping pong protocol for streaming
         self.file_streamer= None
         self.report_rate= reportrate
+        self._reroute_incoming_data_to= None
 
         self.log = logging.getLogger() #.getChild('Comms')
         #logging.getLogger().setLevel(logging.DEBUG)
@@ -279,6 +280,73 @@ class Comms():
             async_main_loop= None
             self.log.info('Comms: comms thread Exiting...')
 
+    def list_sdcard(self, done_cb):
+        ''' Issue a ls /sd and send results back to done_cb '''
+        self.log.debug('Comms: list_sdcard')
+        if self.proto and async_main_loop:
+            async_main_loop.call_soon_threadsafe(self._list_sdcard, done_cb)
+        else:
+            self.log.warning('Comms: Cannot list sd on a closed connection')
+            return False
+
+        return True
+
+    def _list_sdcard(self, done_cb):
+        asyncio.async(self._parse_sdcard_list(done_cb))
+
+    @asyncio.coroutine
+    def _parse_sdcard_list(self, done_cb):
+        self.log.debug('Comms: _parse_sdcard_list')
+
+        if self.timer:
+            # temorarily turn off status timer so we don't get unexpected lines in our file list
+            self.timer.cancel()
+            self.timer= None
+            restart_timer= True
+        else:
+            restart_timer= False
+
+        # setup callback to receieve and parse listing data
+        files= []
+        f= asyncio.Future()
+        self._reroute_incoming_data_to= lambda x: self._rcv_sdcard_line(x, files, f)
+
+        # issue command
+        self._write('M20\n')
+
+        # wait for it to complete and get all the lines
+        # add a long timeout in case it fails and we don't want to wait for ever
+        try:
+            yield from asyncio.wait_for(f, 10)
+
+        except asyncio.TimeoutError:
+            self.log.warning("Comms: Timeout waiting for sd card list")
+            files= []
+
+        # turn off rerouting
+        self._reroute_incoming_data_to= None
+
+        if restart_timer:
+            self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
+
+        # call upstream callback with results
+        done_cb(files)
+
+    def _rcv_sdcard_line(self, l, files, f):
+        # accumulate the file list, called with each line recieved
+
+        if l.startswith('Begin file list') or l == 'ok':
+            # ignore these lines
+            return
+
+        if l.startswith('End file list'):
+            # signal we are done (TODO should we wait for the ok?)
+            f.set_result(None)
+
+        else:
+            # accumulate the incoming lines
+            files.append(l)
+
     # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
     # Note the data could be a line fragment and we need to only process complete lines terminated with \n
     tempreading_exp = re.compile("(^T:| T:)")
@@ -287,6 +355,7 @@ class Comms():
         l= data.splitlines(1)
         self.log.debug('Comms: incoming_data: {}'.format(l))
 
+        # process incoming data
         for s in l:
             if self._fragment:
                 # handle line fragment
@@ -298,9 +367,14 @@ class Comms():
                 self._fragment= s
                 break
 
-            # process a complete line
             s= s.rstrip() # strip off \n
 
+            # send the line to he requested destination for processing
+            if self._reroute_incoming_data_to is not None:
+                self._reroute_incoming_data_to(s)
+                continue
+
+            # process a complete line
             if s in 'ok':
                 if self.ping_pong:
                     if self.okcnt:
@@ -389,6 +463,7 @@ class Comms():
             #self.app.main_window.update_position(x, y, z)
 
     def handle_status(self, s):
+        # requires 'new_status_format true' in smoothie config
         #<Idle|MPos:68.9980,-49.9240,40.0000,12.3456|WPos:68.9980,-49.9240,40.0000|F:12345.12|S:1.2>
         s= s[1:-1] # strip off < .. >
 
@@ -398,13 +473,15 @@ class Comms():
         # strip off status
         status= l[0]
 
-        # strip of rest into a dict
-        d= {}
-        for x in l[1:]:
-            m= x.split(':')
-            if len(m) != 2:
-                raise ValueError
-            d[m[0]]= [float(y) for y in m[1].split(',')]
+        # strip of rest into a dict of name: [values,...,]
+        d= { a: [float(y) for y in b.split(',')] for a, b in [x.split(':') for x in l[1:]] }
+
+        # d= {}
+        # for x in l[1:]:
+        #     m= x.split(':')
+        #     if len(m) != 2:
+        #         raise ValueError
+        #     d[m[0]]= [float(y) for y in m[1].split(',')]
 
         self.log.debug('Comms: got status:{} - rest: {}'.format(status, d))
 
@@ -599,6 +676,7 @@ if __name__ == "__main__":
             self.end_event= threading.Event()
             self.is_connected= False
             self.ok= False
+            self.main_window= self
 
         def connected(self):
             self.log.debug("CommsApp: Connected...")
@@ -623,8 +701,6 @@ if __name__ == "__main__":
             # in this case we do want to disconnect
             comms.proto.transport.close()
 
-        def get_mw(self):
-            return self
 
     if len(sys.argv) < 3:
         print("Usage: {} port file".format(sys.argv[0]));
@@ -635,7 +711,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 3:
         comms.ping_pong= False
         print('Fast Stream')
-
 
     try:
         nlines= Comms.file_len(sys.argv[2]) # get number of lines so we can do progress and ETA
@@ -667,6 +742,7 @@ if __name__ == "__main__":
         t= comms.connect(sys.argv[1])
         if app.start_event.wait(5): # wait for connected as it is in a separate thread
             if app.is_connected:
+
                 comms.stream_gcode(sys.argv[2], progress=lambda x: display_progress(x))
                 app.end_event.wait() # wait for streaming to complete
 
