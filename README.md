@@ -59,7 +59,7 @@ Run with...
 
 > kivy main.py
 
-### On linux Desktop (and maybe windows/macos)
+## On linux Desktop (and maybe windows/macos)
 
 Install kivy for python3 from your distro:-
 
@@ -79,6 +79,13 @@ sudo pip3 install pyserial pyserial-asyncio aiofiles
 Run as
 > cd kivy-smoothie-host
 > python3 main.py
+
+## Smoothie version required
+
+This requires the ltest FirmwareBin/firmware-latest.bin from Smoothie github, and thise 
+must be added to your cinfig...
+
+```new_status_format true  # uses new query format for ?```
 
 
 # Screen shots
