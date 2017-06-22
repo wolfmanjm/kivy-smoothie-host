@@ -82,8 +82,8 @@ Run as
 
 ## Smoothie version required
 
-This requires the ltest FirmwareBin/firmware-latest.bin from Smoothie github, and thise 
-must be added to your cinfig...
+This requires the latest FirmwareBin/firmware-latest.bin from Smoothie github, and this 
+must be added to your config...
 
 ```new_status_format true  # uses new query format for ?```
 
