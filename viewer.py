@@ -60,12 +60,15 @@ Builder.load_string('''
                 width: self.texture_size[0]
             Button:
                 text: 'First Layer'
+                disabled: root.cam_mode
                 on_press: root.parse_gcode_file(app.gcode_file, 1, True)
             Button:
                 text: 'Prev Layer'
+                disabled: root.cam_mode
                 on_press: root.prev_layer()
             Button:
                 text: 'Next Layer'
+                disabled: root.cam_mode
                 on_press: root.next_layer()
             Button:
                 text: 'Clear'
@@ -74,6 +77,10 @@ Builder.load_string('''
                 id: set_wpos_but
                 text: 'Set WPOS'
                 on_press: root.set_wcs(self.state == 'down')
+            ToggleButton:
+                id: cam_but
+                text: 'CAM mode'
+                on_press: root.set_cam(self.state == 'down')
             ToggleButton:
                 id: move_gantry_but
                 text: 'Move Gantry'
@@ -126,7 +133,7 @@ class GcodeViewerScreen(Screen):
         # open file parse gcode and draw
         Logger.debug("GcodeViewerScreen: parsing file {}". format(fn))
         lastpos= [0,0,-1] # XYZ
-        lastz= -1
+        lastz= None
         laste= 0
         layer= 0
         last_gcode= -1
@@ -148,7 +155,8 @@ class GcodeViewerScreen(Screen):
         self.canv.clear()
 
         self.canv.add(PushMatrix())
-
+        modal_g= 0
+        cnt= 0
         with open(fn) as f:
             # if self.last_file_pos:
             #     # jump to last read position
@@ -157,17 +165,21 @@ class GcodeViewerScreen(Screen):
             #     print('Jumped to Saved position: {}'.format(self.last_file_pos))
 
             for l in f:
+                cnt += 1
                 l = l.strip()
                 if not l: continue
                 if l.startswith(';'): continue
                 p= l.find(';')
                 if p >= 0: l= l[:p]
                 matches = self.extract_gcode.findall(l)
-                #print(matches)
+                if len(matches) == 0: continue
+
+                #print(cnt, matches)
                 d= dict((m[0], float(m[1])) for m in matches)
 
-                # ignore lines with no G
-                if 'G' not in d: continue
+                # handle modal commands
+                if 'G' not in d and ('X' in d or 'Y' in d) :
+                    d['G'] = modal_g
 
                 # G92 E0 resets E
                 if 'G' in d and d['G'] == 92 and 'E' in d:
@@ -176,6 +188,8 @@ class GcodeViewerScreen(Screen):
 
                 # only deal with G0/1/2/3
                 if d['G'] > 3: continue
+
+                modal_g= d['G']
 
                 # TODO handle first move when lastpos is not valid yet
 
@@ -190,28 +204,29 @@ class GcodeViewerScreen(Screen):
 
                 e= laste if 'E' not in d else float(d['E'])
 
-                # TODO fix for CNC where Z decreases for each layer
-                # handle layers (when Z changes)
-                if lastz < 0 and z > 0:
-                    # first layer
-                    lastz= z
-                    layer= 1
+                if not self.cam_mode :
+                    # handle layers (when Z changes)
+                    if lastz is None:
+                        # first layer
+                        lastz= z
+                        layer= 1
 
-                if z > lastz:
-                    # count layers
-                    layer += 1
-                    lastz= z
+                    if z != lastz:
+                        # count layers
+                        layer += 1
+                        lastz= z
 
-                # wait until we get to the requested layer
-                if layer < target_layer:
-                    continue
+                    # wait until we get to the requested layer
+                    if layer != target_layer:
+                        continue
 
-                if layer > target_layer and one_layer:
-                    # FIXME for some reason this does not work, -- not counting layers
-                    #self.last_file_pos= f.tell()
-                    #print('Saved position: {}'.format(self.last_file_pos))
+                    if layer > target_layer and one_layer:
+                        # FIXME for some reason this does not work, -- not counting layers
+                        #self.last_file_pos= f.tell()
+                        #print('Saved position: {}'.format(self.last_file_pos))
+                        break
+
                     self.current_z= lastpos[2]
-                    break
 
                 # find bounding box
                 if math.isnan(min_x) or x < min_x: min_x= x
@@ -344,28 +359,34 @@ class GcodeViewerScreen(Screen):
         # center the drawing and scale it
         dx= max_x-min_x
         dy= max_y-min_y
+        if dx == 0 or dy == 0 :
+            Logger.warning("GcodeViewerScreen: size is bad, maybe need cam mode")
+            return
 
-        # pad by a few pixels
         dx += 4
         dy += 4
+        Logger.debug("GcodeViewerScreen: dx= {}, dy= {}".format(dx, dy))
 
-        # add in the translation
-        self.tx= self.ids.surface.center[0]-min_x+1-dx/2
-        self.ty= self.ids.surface.center[1]-min_y+1-dy/2
+        # add in the translation to center object
+        self.tx= -min_x - dx/2
+        self.ty= -min_y - dy/2
         self.canv.insert(1, Translate(self.tx, self.ty))
+        Logger.debug("GcodeViewerScreen: tx= {}, ty= {}".format(self.tx, self.ty))
 
         # scale the drawing to fit the screen
-        if dx > dy:
-            scale= self.ids.surface.width/dx
-            if dy*scale > self.ids.surface.height:
-                scale *= self.ids.surface.height/(dy*scale)
+        if abs(dx) > abs(dy):
+            scale= self.ids.surface.width/abs(dx)
+            if abs(dy)*scale > self.ids.surface.height:
+                scale *= self.ids.surface.height/(abs(dy)*scale)
         else:
-            scale= self.ids.surface.height/dy
-            if dx*scale > self.ids.surface.width:
-                scale *= self.ids.surface.width/(dx*scale)
+            scale= self.ids.surface.height/abs(dy)
+            if abs(dx)*scale > self.ids.surface.width:
+                scale *= self.ids.surface.width/(abs(dx)*scale)
 
         self.scale= scale
-        self.canv.insert(2, Scale(scale))
+        self.canv.insert(1, Scale(scale))
+        # translate to center of canvas
+        self.canv.insert(1, Translate(self.ids.surface.center[0], self.ids.surface.center[1]))
         self.canv.add(PopMatrix())
 
         # not sure why we need to do this
@@ -373,6 +394,7 @@ class GcodeViewerScreen(Screen):
 
     select_mode= BooleanProperty(False)
     set_wpos_mode= BooleanProperty(True)
+    cam_mode= BooleanProperty(False)
 
     def on_touch_down(self, touch):
         #print(self.ids.surface.bbox)
@@ -451,6 +473,10 @@ class GcodeViewerScreen(Screen):
         self.set_wpos_mode= True
         self.select_mode= on
 
+    def set_cam(self, on):
+        self.cam_mode= on
+        self.parse_gcode_file(self.app.gcode_file, 0, True)
+
 
 if __name__ == '__main__':
 
@@ -471,7 +497,7 @@ if __name__ == '__main__':
             if len(sys.argv) > 1:
                 self.gcode_file= sys.argv[1]
             else:
-                self.gcode_file= 'tests/test.gcode' #'circle-test.g'
+                self.gcode_file= 'test.gcode' #'circle-test.g'
 
         def build(self):
             self.sm = ScreenManager()

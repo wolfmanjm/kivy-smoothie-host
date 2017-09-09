@@ -469,6 +469,10 @@ class Comms():
 
         # split fields
         l= s.split('|')
+        if len(l) < 3:
+            self.log.warning('Comms: old status report - set new_status_format')
+            self.app.main_window.update_status("ERROR", "set new_status_format true")
+            return
 
         # strip off status
         status= l[0]

@@ -82,7 +82,7 @@ Builder.load_string('''
             path: root.path
             title: 'File to print'
             filter_dirs: not root.show_dirs
-            filters: ['*.g', '*.gcode', '*.nc']
+            filters: ['*.g', '*.gcode', '*.nc', '*.ngc']
             sort_func: lambda a, b: root.sort_folders_first(sort_type.state == 'normal', reverse.state == 'down', a, b)
             file_system: root.filesystem
             FileChooserIconLayout
