@@ -265,7 +265,10 @@ class JogRoseWidget(BoxLayout):
         if axis == 'O':
             self.app.comms.write('M120 G0 X0 Y0 F{} M121\n'.format(self.xy_feedrate))
         elif axis == 'H':
-            self.app.comms.write('G28\n')
+            if self.app.is_cnc:
+                self.app.comms.write('$H\n')
+            else:
+                self.app.comms.write('G28\n')
         else:
             fr= self.xy_feedrate
             self.app.comms.write('M120 G91 G0 {}{} F{} M121\n'.format(axis, v, fr))
@@ -595,6 +598,7 @@ class SmoothieHost(App):
     lp= NumericProperty(0)
 
     is_desktop= BooleanProperty(False)
+    is_cnc= BooleanProperty(False)
     main_window= ObjectProperty()
 
     #Factory.register('Comms', cls=Comms)
