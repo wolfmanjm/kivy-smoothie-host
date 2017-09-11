@@ -12,6 +12,80 @@
     bed_dg: bed_dg
 
     BoxLayout:
+        orientation: 'vertical'
+        padding: 10, 5
+
+        BoxLayout:
+            padding: 10, 5
+            orientation: 'horizontal'
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    halign: 'left'
+                    # valign: 'bottom'
+                    text_size: self.size
+                    size_hint_y: None
+                    size: self.texture_size
+                    text: 'Length:'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    size: 40, extrude_length.minimum_height
+                    TextInput:
+                        id: extrude_length
+                        multiline: False
+                        size_hint_y: None
+                        size: 40, self.minimum_height
+                        input_type: 'number'
+                        input_filter: 'float'
+                        text: app.config.get('Extruder', 'length')
+                        on_text_validate: root.update_length()
+                    Label:
+                        size_hint_y: None
+                        size: 40, extrude_length.minimum_height
+                        text: 'mm @'
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    halign: 'left'
+                    text_size: self.size
+                    size_hint_y: None
+                    size: self.texture_size
+                    text: 'Speed:'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    size: 40, extrude_speed.minimum_height
+                    TextInput:
+                        id: extrude_speed
+                        multiline: False
+                        size_hint_y: None
+                        size: 40, self.minimum_height
+                        input_type: 'number'
+                        input_filter: 'float'
+                        text: app.config.get('Extruder', 'speed')
+                        on_text_validate: root.update_speed()
+                    Label:
+                        size_hint_y: None
+                        size: 40, extrude_speed.minimum_height
+                        text: 'mm/min'
+        BoxLayout:
+            spacing: 10
+            orientation: 'horizontal'
+            Button:
+                size_hint_y: None
+                size: 40, 40
+                text: 'Extrude'
+                disabled: not app.is_connected
+                on_press: root.extrude()
+            Button:
+                size_hint_y: None
+                text: 'Reverse'
+                disabled: not app.is_connected
+                size: 40, 40
+                on_press: root.reverse()
+
+    BoxLayout:
         orientation: 'horizontal'
         size_hint_y: None
         height: 130
@@ -158,79 +232,6 @@
             on_value: root.adjust_temp('bed', self.value)
 
 
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 10, 5
-
-        BoxLayout:
-            padding: 10, 5
-            orientation: 'horizontal'
-            BoxLayout:
-                orientation: 'vertical'
-                Label:
-                    halign: 'left'
-                    # valign: 'bottom'
-                    text_size: self.size
-                    size_hint_y: None
-                    size: self.texture_size
-                    text: 'Length:'
-                BoxLayout:
-                    orientation: 'horizontal'
-                    size_hint_y: None
-                    size: 40, extrude_length.minimum_height
-                    TextInput:
-                        id: extrude_length
-                        multiline: False
-                        size_hint_y: None
-                        size: 40, self.minimum_height
-                        input_type: 'number'
-                        input_filter: 'float'
-                        text: app.config.get('Extruder', 'length')
-                        on_text_validate: root.update_length()
-                    Label:
-                        size_hint_y: None
-                        size: 40, extrude_length.minimum_height
-                        text: 'mm @'
-            BoxLayout:
-                orientation: 'vertical'
-                Label:
-                    halign: 'left'
-                    text_size: self.size
-                    size_hint_y: None
-                    size: self.texture_size
-                    text: 'Speed:'
-                BoxLayout:
-                    orientation: 'horizontal'
-                    size_hint_y: None
-                    size: 40, extrude_speed.minimum_height
-                    TextInput:
-                        id: extrude_speed
-                        multiline: False
-                        size_hint_y: None
-                        size: 40, self.minimum_height
-                        input_type: 'number'
-                        input_filter: 'float'
-                        text: app.config.get('Extruder', 'speed')
-                        on_text_validate: root.update_speed()
-                    Label:
-                        size_hint_y: None
-                        size: 40, extrude_speed.minimum_height
-                        text: 'mm/min'
-        BoxLayout:
-            spacing: 10
-            orientation: 'horizontal'
-            Button:
-                size_hint_y: None
-                size: 40, 40
-                text: 'Extrude'
-                disabled: not app.is_connected
-                on_press: root.extrude()
-            Button:
-                size_hint_y: None
-                text: 'Reverse'
-                disabled: not app.is_connected
-                size: 40, 40
-                on_press: root.reverse()
 
     Widget:
         # uses up rest of space bit like a spring in other layouts
