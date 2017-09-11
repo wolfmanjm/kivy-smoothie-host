@@ -692,13 +692,13 @@ class SmoothieHost(App):
 
         # setup for cnc or 3d printer
         # TODO need to also remove from tabs or actionbar
-        # if self.is_cnc:
-        #     # remove Extruder panel
-        #     self.main_window.ids.page_layout.remove_widget(self.main_window.ids.extruder)
+        if self.is_cnc:
+            # remove Extruder panel
+            self.main_window.ids.page_layout.remove_widget(self.main_window.ids.extruder)
 
-        # else:
-        #     # remove MPG panel
-        #     self.main_window.ids.page_layout.remove_widget(self.main_window.ids.mpg_widget)
+        else:
+            # remove MPG panel
+            self.main_window.ids.page_layout.remove_widget(self.main_window.ids.mpg_widget)
 
         return self.sm
 

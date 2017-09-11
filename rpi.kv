@@ -57,19 +57,21 @@
                 ActionButton:
                     text: 'MPG'
                     group: 'winds'
+                    disabled: not app.is_cnc
                     on_press: page_layout.index= 2
                 ActionButton:
                     text: 'Extruder'
                     group: 'winds'
-                    on_press: page_layout.index= 3
+                    disabled: app.is_cnc
+                    on_press: page_layout.index= 2
                 ActionButton:
                     text: 'Macros'
                     group: 'winds'
-                    on_press: page_layout.index= 4
+                    on_press: page_layout.index= 3
                 ActionButton:
                     text: 'DRO'
                     group: 'winds'
-                    on_press: page_layout.index= 5
+                    on_press: page_layout.index= 4
 
             ActionGroup:
                 text: 'System'
