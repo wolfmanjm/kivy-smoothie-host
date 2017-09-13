@@ -52,7 +52,7 @@ class DROWidget(RelativeLayout):
         self.app = App.get_running_app()
 
     def enter_wpos(self, axis, v):
-        i= ord('x') - ord(axis)
+        i= ord(axis) - ord('x')
         try:
             # needed becuase the filter does not allow -ive numbers WTF!!!
             f= float(v.strip())

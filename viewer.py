@@ -74,13 +74,13 @@ Builder.load_string('''
                 text: 'Clear'
                 on_press: root.clear()
             ToggleButton:
-                id: set_wpos_but
-                text: 'Set WPOS'
-                on_press: root.set_wcs(self.state == 'down')
-            ToggleButton:
                 id: cam_but
                 text: 'CAM mode'
                 on_press: root.set_cam(self.state == 'down')
+            ToggleButton:
+                id: set_wpos_but
+                text: 'Set WPOS'
+                on_press: root.set_wcs(self.state == 'down')
             ToggleButton:
                 id: move_gantry_but
                 text: 'Move Gantry'

@@ -54,6 +54,8 @@ If you have jessie installed and just want kivy for rpi then...
 (make sure pip3 is installed.. sudo apt-get python3-pip)
 
 - sudo python3 -m pip install pyserial pyserial-asyncio aiofiles
+or
+- pip3 install pyserial pyserial-asyncio aiofiles
 
 Run with...
 
