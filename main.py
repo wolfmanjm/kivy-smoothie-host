@@ -288,7 +288,7 @@ class KbdWidget(GridLayout):
         self.app = App.get_running_app()
 
     def _add_line_to_log(self, s):
-        self.app.main_window.add_line_to_log(s)
+        self.app.main_window.async_display(s)
 
     def do_action(self, key):
         if key == 'Send':
