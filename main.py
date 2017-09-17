@@ -660,6 +660,14 @@ class SmoothieHost(App):
         config.read('smoothiehost.ini')
         settings.add_json_panel('SmooPie application', config, data=jsondata)
 
+    def on_config_change(self, config, section, key, value):
+        #print("config changed: {} - {}: {}".format(section, key, value))
+        token = (section, key)
+        if token == ('General', 'cnc'):
+            self.is_cnc = value == "1"
+            print("cnc changed to {}".format(self.is_cnc))
+
+
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop
         self.comms.stop(); # stop the aysnc loop
