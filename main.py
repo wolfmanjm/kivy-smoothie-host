@@ -58,7 +58,8 @@ class DROWidget(RelativeLayout):
             f= float(v.strip())
         except:
             Logger.warning("DROWidget: invalid float input: {}".format(v))
-            self.app.wpos[i] = self.app.wpos[i] # set it back to what it was
+            # set the display back to what it was, this looks odd but it forces the display to update
+            self.app.wpos[i] = self.app.wpos[i]
             return
 
         Logger.debug("DROWidget: Set axis {} wpos to {}".format(axis, f))
@@ -665,8 +666,6 @@ class SmoothieHost(App):
         token = (section, key)
         if token == ('General', 'cnc'):
             self.is_cnc = value == "1"
-            print("cnc changed to {}".format(self.is_cnc))
-
 
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop

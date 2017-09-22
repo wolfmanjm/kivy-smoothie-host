@@ -21,18 +21,22 @@ I suspect an RPI-2 Model B will also run pretty well.
 
 To select the port to connect to click the System menu and select Port, then select the serial port from the list, or for a network connection select Network...
 then enter the host or ip optionally followed by the port :23 (23 is the default if not specified), eg smoothieip or 192.168.0.2:23
-Once you have selected a port to connect to it is ssave in the ini file, and you can then click the connect menu item to connect.
+Once you have selected a port to connect to it is saved in the ini file, and you can then click the connect menu item to connect.
 
 The left screen is the console and displays messages from smoothie, the right screen is a selection of panels (Modes) which can be switched to by swiping up or down
 (or use the modes menu to select the panel you want) you can scroll up and down by swiping up or down.
 
 There is a status bar at the bottom left showing status, DRO and print ETA when printing.
 
+You can select 3d printer mode or CNC mode from the Settings menu, this can affect what Panels are available amongst other minor changes.
+
 - The Console panel has a keyboard for entering gcodes and if you touch the edit field a keyboard will pop up for typing commands (non gcodes).
 - The Extruder Panel is used to control temperatures and extuder.
 - The Jog Panel has the usual jog controls.
 - The Macro Panel is user configurable buttons panel to control whatever you want. (Edit the `macros.ini` file)
   There is a `sample-macros.ini` just copy that to `macros.ini` and edit as appropriate to define your own macro buttons.
+- The DRO Panel shows current MCS and WCS, and allows easy selection of the WCS to use, and allows setting of WCS
+- The MPG Panel (in CNC mode) is a simulation of an MPG pendant, it allows control of movement via a simulated rotary knob.
 
 There is a gcode visualizer window that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
 Click the Viewer menu item, select the file to view, then the layers can be moved up or down.

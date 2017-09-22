@@ -49,29 +49,29 @@
                 ActionButton:
                     text: 'Console'
                     group: 'winds'
-                    on_press: page_layout.index= 0
+                    on_press: page_layout.index= 2
                 ActionButton:
                     text: 'Jog'
                     group: 'winds'
-                    on_press: page_layout.index= 1
+                    on_press: page_layout.index= 0
                 ActionButton:
                     text: 'MPG'
                     group: 'winds'
                     disabled: not app.is_cnc
-                    on_press: page_layout.index= 2
+                    on_press: page_layout.index= 3
                 ActionButton:
                     text: 'Extruder'
                     group: 'winds'
                     disabled: app.is_cnc
-                    on_press: page_layout.index= 2
+                    on_press: page_layout.index= 3
                 ActionButton:
                     text: 'Macros'
                     group: 'winds'
-                    on_press: page_layout.index= 3
+                    on_press: page_layout.index= 4
                 ActionButton:
                     text: 'DRO'
                     group: 'winds'
-                    on_press: page_layout.index= 4
+                    on_press: page_layout.index= 1
 
             ActionGroup:
                 text: 'System'
@@ -136,13 +136,18 @@
             direction: 'top'
             loop: True
             ignore_perpendicular_swipes: True
-
-            KbdWidget:
-                id: kbd_widget
+            #scroll_distance: 10
+            min_move: 0.1
 
             JogRoseWidget:
                 id: jog_rose
                 disabled: root.is_printing
+
+            DROWidget:
+                id: dro_widget
+
+            KbdWidget:
+                id: kbd_widget
 
             MPGWidget:
                 id: mpg_widget
@@ -154,5 +159,3 @@
             MacrosWidget:
                 id: macros
 
-            DROWidget:
-                id: dro_widget
