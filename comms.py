@@ -130,6 +130,8 @@ class Comms():
         self.file_streamer= None
         self.report_rate= reportrate
         self._reroute_incoming_data_to= None
+        self.is_streaming= False
+        self.do_query= False
 
         self.log = logging.getLogger() #.getChild('Comms')
         #logging.getLogger().setLevel(logging.DEBUG)
@@ -164,10 +166,18 @@ class Comms():
            self.proto.send_message(data)
 
     def _get_reports(self):
+        if self.is_streaming:
+            # when streaming we do not send the query here
+            self.do_query= True;
+        else:
+            self.send_query()
+
+    def send_query(self):
         # calls the send_message in Serial Connection proto
         if self.proto:
-           self.proto.send_message('M105\n', True)
-           self.proto.send_message('?' if not self.net_connection else 'get status\n', True)
+            if not self.app.is_cnc:
+                self.proto.send_message('M105\n', True)
+        self.proto.send_message('?' if not self.net_connection else 'get status\n', True)
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
@@ -243,7 +253,7 @@ class Comms():
 
             if self.report_rate > 0:
                 # issue a version command to get things started
-                self._write('version\n')
+                self._write('\nversion\n')
                 # start a timer to get the reports
                 self.timer = loop.call_later(self.report_rate, self._get_reports)
 
@@ -375,7 +385,13 @@ class Comms():
                 continue
 
             # process a complete line
-            if s in 'ok':
+            if "ok C:" in s:
+                self.handle_position(s)
+
+            elif "ok T:" in s or self.tempreading_exp.findall(s):
+                self.handle_temperature(s)
+
+            elif s.startswith('ok'):
                 if self.ping_pong:
                     if self.okcnt:
                         self.okcnt.release()
@@ -385,12 +401,6 @@ class Comms():
             elif "!!" in s or "ALARM" in s or "ERROR" in s:
                 self.handle_alarm(s)
 
-            elif "ok C:" in s:
-                self.handle_position(s)
-
-            elif "ok T:" in s or self.tempreading_exp.findall(s):
-                self.handle_temperature(s)
-
             elif s.startswith('<'):
                 try:
                     self.handle_status(s)
@@ -399,7 +409,7 @@ class Comms():
 
             elif s.startswith('//'):
                 # ignore comments but display them
-                # TODO handle // action:pause etc
+                # handle // action:pause etc
                 pos= s.find('action:')
                 if pos >= 0:
                     act= s[pos+7:].strip() # extract action command
@@ -540,9 +550,8 @@ class Comms():
 
     @asyncio.coroutine
     def stream_file(self, fn):
-
         self.log.info('Comms: Streaming file {} to port'.format(fn))
-
+        self.is_streaming= True;
         self.abort_stream= False
         self.pause_stream= False #.set() # start out not paused
         if self.ping_pong:
@@ -559,12 +568,11 @@ class Comms():
                 #yield from self.pause_stream.wait() # wait for pause to be released
                 # needed to do it this way as the Event did not seem to work it would pause but not unpause
                 # TODO maybe use Future here to wait for unpause
-                # create future when pause then yeikd from it here then delete it
+                # create future when pause then yield from it here then delete it
                 while self.pause_stream:
                    yield from asyncio.sleep(1)
                    if self.abort_stream:
                         break
-
 
                 line = yield from f.readline()
 
@@ -595,6 +603,7 @@ class Comms():
 
                 # send the line
                 self._write(line)
+
                 # when streaming we need to yeild until the flow control is dealt with
                 if self.proto._connection_lost:
                     # Yield to the event loop so connection_lost() may be
@@ -620,6 +629,13 @@ class Comms():
                         # number of lines ok'd
                         self.progress(self.okcnt)
 
+                # send query if ready, don't query if in fast stream mode though
+                if self.ping_pong and self.do_query:
+                    self.do_query= False
+                    self.send_query()
+                    # if the buffers are full then wait until we can send some more
+                    yield from self.proto._drain_helper()
+
             success= not self.abort_stream
 
         except Exception as err:
@@ -644,6 +660,7 @@ class Comms():
             self.file_streamer= None
             self.progress= None
             self.okcnt= None
+            self.is_streaming= False
 
             # notify upstream that we are done
             self.app.main_window.stream_finished(success)

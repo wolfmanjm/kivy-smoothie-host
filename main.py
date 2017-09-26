@@ -697,15 +697,16 @@ class SmoothieHost(App):
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
         self.main_window= ms.ids.main_window
 
-        # setup for cnc or 3d printer
-        # TODO need to also remove from tabs or actionbar
-        if self.is_cnc:
-            # remove Extruder panel
-            self.main_window.ids.page_layout.remove_widget(self.main_window.ids.extruder)
+        if not self.is_desktop:
+            # setup for cnc or 3d printer
+            # TODO need to also remove from tabs or actionbar
+            if self.is_cnc:
+                # remove Extruder panel
+                self.main_window.ids.page_layout.remove_widget(self.main_window.ids.extruder)
 
-        else:
-            # remove MPG panel
-            self.main_window.ids.page_layout.remove_widget(self.main_window.ids.mpg_widget)
+            else:
+                # remove MPG panel
+                self.main_window.ids.page_layout.remove_widget(self.main_window.ids.mpg_widget)
 
         return self.sm
 
