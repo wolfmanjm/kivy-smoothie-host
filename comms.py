@@ -379,7 +379,9 @@ class Comms():
 
             s= s.rstrip() # strip off \n
 
-            # send the line to he requested destination for processing
+            if len(s) == 0: continue
+
+            # send the line to the requested destination for processing
             if self._reroute_incoming_data_to is not None:
                 self._reroute_incoming_data_to(s)
                 continue
@@ -590,7 +592,8 @@ class Comms():
                 if self.abort_stream:
                     break
 
-                # wait for ok... (Note we interleave read from file with wait for ok)
+                # wait for ok from previous line
+                # Note we interleave read from file with wait for ok
                 if self.ping_pong and self.okcnt:
                     try:
                         yield from self.okcnt.acquire()
