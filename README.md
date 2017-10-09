@@ -48,7 +48,7 @@ To set the WPOS as a point in the view click the set WPOS button then touch the 
 I use kivypi from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box.
 Recommended to do a sudo apt-get update and sudo apt-get upgrade.
 
-If you have jessie installed and just want kivy for rpi then...
+If you do not have kivypi, but have jessie installed and just want kivy for rpi then...
 
     $ echo "deb http://archive.mitako.eu/ jessie main" > /etc/apt/sources.list.d/mitako.list
     $ curl -L http://archive.mitako.eu/archive-mitako.gpg.key | apt-key add -
