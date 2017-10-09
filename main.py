@@ -444,7 +444,7 @@ class MainWindow(BoxLayout):
     def _do_shutdown(self, ok):
         if ok:
             #sys.system('sudo halt -p')
-            self.do_exit(True)
+            self._do_exit(True)
 
     def change_port(self):
         l= self.app.comms.get_ports()
