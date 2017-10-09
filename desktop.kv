@@ -37,7 +37,7 @@
                 on_press: root.start_print()
             ActionButton:
                 id: sdprint_but
-                #disabled: not app.is_connected
+                disabled: not app.is_connected
                 text: 'SD Print' # also 'Pause'/'Resume'
                 important: True
                 on_press: root.list_sdcard()
