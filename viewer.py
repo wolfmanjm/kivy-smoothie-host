@@ -92,6 +92,9 @@ Builder.load_string('''
 
 class GcodeViewerScreen(Screen):
     current_z= NumericProperty(0)
+    select_mode= BooleanProperty(False)
+    set_wpos_mode= BooleanProperty(True)
+    cam_mode= BooleanProperty(False)
 
     def __init__(self, comms= None, **kwargs):
         super(GcodeViewerScreen, self).__init__(**kwargs)
@@ -106,6 +109,7 @@ class GcodeViewerScreen(Screen):
         self.ty= 0
         self.scale= 1.0
         self.comms= comms
+        self.cam_mode= self.app.is_cnc
 
     def _redraw(self, instance, value):
         self.ids.surface.canvas.remove(self.canv)
@@ -391,10 +395,6 @@ class GcodeViewerScreen(Screen):
 
         # not sure why we need to do this
         self.ids.surface.top= Window.height
-
-    select_mode= BooleanProperty(False)
-    set_wpos_mode= BooleanProperty(True)
-    cam_mode= BooleanProperty(False)
 
     def on_touch_down(self, touch):
         #print(self.ids.surface.bbox)
