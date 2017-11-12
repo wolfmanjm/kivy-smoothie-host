@@ -589,6 +589,24 @@ class Comms():
                 if l.startswith(';') or len(l) == 0:
                     continue
 
+                # handle inline gcode commands to host
+                if l.startswith('(cmd '):
+                    s= l[5:-1] # get rest of line except terminating )
+                    if 'image' in s:
+                        fn= s[6:]
+                        self.app.main_window.change_image(fn)
+                    elif 'text' in s:
+                        t= s[5:]
+                        self.app.main_window.async_display(t)
+                    elif 'prompt' in s:
+                        self._stream_pause(True, False) # we need to pause the stream
+                        t= s[7:]
+                        self.app.main_window.pause_prompt(t)
+                    else:
+                        self.log.debug('Comms: unknown inline command: {}'.format(s))
+
+                    continue
+
                 if self.abort_stream:
                     break
 

@@ -553,6 +553,20 @@ class MainWindow(BoxLayout):
             #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
             self.eta= '{} | {:.1%}'.format(datetime.timedelta(seconds=int(eta)), n/self.nlines)
 
+    @mainthread
+    def change_image(self, fn):
+        self.app.main_window.ids.image.source= fn
+        self.app.main_window.ids.image.reload()
+
+    @mainthread
+    def pause_prompt(self, msg):
+        # put up dialog and unpause when ok clicked
+        mb = MessageBox(text=msg, cb= self._unpause)
+        mb.open()
+
+    def _unpause(self, ok):
+        self.app.comms.stream_pause(False)
+
     def list_sdcard(self):
         if self.app.comms.list_sdcard(self._list_sdcard_results):
             # TODO open waiting dialog
