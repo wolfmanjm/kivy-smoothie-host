@@ -560,12 +560,12 @@ class MainWindow(BoxLayout):
 
     @mainthread
     def pause_prompt(self, msg):
-        # put up dialog and unpause when ok clicked
-        mb = MessageBox(text=msg, cb= self._unpause)
-        mb.open()
-
-    def _unpause(self, ok):
-        self.app.comms.stream_pause(False)
+        # Print is paused by gcode command
+        if not self.paused:
+            self.paused= True
+            #self.app.comms.stream_pause(True) we already did this
+            self.ids.print_but.text= 'Resume'
+            self.display("Print paused \'{}\', tap resume to continue".format(msg))
 
     def list_sdcard(self):
         if self.app.comms.list_sdcard(self._list_sdcard_results):

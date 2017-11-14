@@ -598,9 +598,9 @@ class Comms():
                     elif 'text' in s:
                         t= s[5:]
                         self.app.main_window.async_display(t)
-                    elif 'prompt' in s:
+                    elif 'pause' in s:
                         self._stream_pause(True, False) # we need to pause the stream
-                        t= s[7:]
+                        t= s[6:]
                         self.app.main_window.pause_prompt(t)
                     else:
                         self.log.debug('Comms: unknown inline command: {}'.format(s))
