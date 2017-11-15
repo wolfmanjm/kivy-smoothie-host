@@ -23,6 +23,8 @@ from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.core.window import Window
 from kivy.config import ConfigParser
+from kivy.core.audio import SoundLoader
+
 
 from mpg_knob import Knob
 
@@ -625,6 +627,8 @@ class SmoothieHost(App):
         else:
             self.use_com_port= None
 
+        self.sound= None
+
     def build_config(self, config):
         config.setdefaults('General', {
             'last_gcode_path': os.path.expanduser("~"),
@@ -724,6 +728,10 @@ class SmoothieHost(App):
 
         return self.sm
 
+    def sound_alarm(self):
+        self.sound = SoundLoader.load('alert.wav')
+        if self.sound:
+            self.sound.play()
 
 SmoothieHost().run()
 

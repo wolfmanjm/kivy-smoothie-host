@@ -602,6 +602,8 @@ class Comms():
                         self._stream_pause(True, False) # we need to pause the stream
                         t= s[6:]
                         self.app.main_window.pause_prompt(t)
+                    elif 'alarm' in s:
+                        self.app.sound_alarm()
                     else:
                         self.log.debug('Comms: unknown inline command: {}'.format(s))
 
