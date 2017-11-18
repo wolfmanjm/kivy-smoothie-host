@@ -628,6 +628,7 @@ class SmoothieHost(App):
             self.use_com_port= None
 
         self.sound= None
+        self.alarm_timer= None
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -732,6 +733,26 @@ class SmoothieHost(App):
         self.sound = SoundLoader.load('alert.wav')
         if self.sound:
             self.sound.play()
+            self.alarm_timer = Clock.schedule_interval(self._sound_alarm, self.sound.length + 2)
+
+    def _sound_alarm(self, dt):
+        if self.sound:
+            self.sound.play()
+
+    def cancel_sound_alarm(self):
+        flag= False
+        if self.alarm_timer:
+            self.alarm_timer.cancel()
+            self.alarm_timer= None
+            flag= True
+
+        if self.sound:
+            self.sound.stop()
+            self.sound.unload()
+            self.sound= None
+            flag= True
+
+        return flag
 
 SmoothieHost().run()
 
