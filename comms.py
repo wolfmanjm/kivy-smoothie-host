@@ -589,6 +589,22 @@ class Comms():
                 if l.startswith(';') or len(l) == 0:
                     continue
 
+
+                if self.abort_stream:
+                    break
+
+                # wait for ok from previous line
+                # Note we interleave read from file with wait for ok
+                if self.ping_pong and self.okcnt:
+                    try:
+                        yield from self.okcnt.acquire()
+                    except:
+                        self.log.debug('Comms: okcntr wait cancelled')
+                        break
+
+                if self.abort_stream:
+                    break
+
                 # handle inline gcode commands to host
                 if l.startswith('(cmd '):
                     s= l[5:-1] # get rest of line except terminating )
@@ -607,27 +623,11 @@ class Comms():
                     else:
                         self.log.debug('Comms: unknown inline command: {}'.format(s))
 
-                    continue
-
-                if self.abort_stream:
-                    break
-
-                # wait for ok from previous line
-                # Note we interleave read from file with wait for ok
-                if self.ping_pong and self.okcnt:
-                    try:
-                        yield from self.okcnt.acquire()
-                    except:
-                        self.log.debug('Comms: okcntr wait cancelled')
-                        break
-
-                if self.abort_stream:
-                    break
 
                 # send the line
                 self._write(line)
 
-                # when streaming we need to yeild until the flow control is dealt with
+                # when streaming we need to yield until the flow control is dealt with
                 if self.proto._connection_lost:
                     # Yield to the event loop so connection_lost() may be
                     # called.  Without this, _drain_helper() would return
