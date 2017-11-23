@@ -613,6 +613,7 @@ class SmoothieHost(App):
     fr= NumericProperty(0)
     sr= NumericProperty(0)
     lp= NumericProperty(0)
+    volume= NumericProperty(100)
 
     is_desktop= BooleanProperty(False)
     is_cnc= BooleanProperty(False)
@@ -637,7 +638,8 @@ class SmoothieHost(App):
             'serial_port': 'serial:///dev/ttyACM0',
             'report_rate': '1',
             'desktop': 'false',
-            'cnc': 'false'
+            'cnc': 'false',
+            'volume': '100'
         })
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',
@@ -673,7 +675,13 @@ class SmoothieHost(App):
                   "title": "Report rate",
                   "desc": "Rate in seconds to query for status from Smoothie",
                   "section": "General",
-                  "key": "report_rate" }
+                  "key": "report_rate" },
+
+                { "type": "numeric",
+                  "title": "Alert Volume",
+                  "desc": "Volume for alert sound, 0-100%",
+                  "section": "General",
+                  "key": "volume" }
             ]
         """
         config = ConfigParser()
@@ -685,6 +693,8 @@ class SmoothieHost(App):
         token = (section, key)
         if token == ('General', 'cnc'):
             self.is_cnc = value == "1"
+        elif token == ('General', 'volume'):
+            self.volume = value
 
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop
@@ -710,6 +720,7 @@ class SmoothieHost(App):
 
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
+        self.volume= self.config.getfloat('General', 'volume')
         self.sm = ScreenManager()
         ms= MainScreen(name='main')
         self.sm.add_widget(ms)
@@ -732,6 +743,7 @@ class SmoothieHost(App):
     def sound_alarm(self):
         self.sound = SoundLoader.load('alert.wav')
         if self.sound:
+            self.sound.volume= self.volume/100.0
             self.sound.play()
             self.alarm_timer = Clock.schedule_interval(self._sound_alarm, self.sound.length + 2)
 
