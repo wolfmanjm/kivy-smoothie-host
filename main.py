@@ -613,7 +613,6 @@ class SmoothieHost(App):
     fr= NumericProperty(0)
     sr= NumericProperty(0)
     lp= NumericProperty(0)
-    volume= NumericProperty(100)
 
     is_desktop= BooleanProperty(False)
     is_cnc= BooleanProperty(False)
@@ -694,7 +693,7 @@ class SmoothieHost(App):
         if token == ('General', 'cnc'):
             self.is_cnc = value == "1"
         elif token == ('General', 'volume'):
-            self.volume = value
+            self.volume = float(value)
 
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop
