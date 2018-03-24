@@ -71,6 +71,28 @@ NOTE make sure the ~/.kivy/config.ini has the following set so the virtual keybo
     keyboard_mode = systemanddock
     desktop = 0
 
+To allow the program to shutdown the RPI when the shutdown menu entry is selected you need to do the following, unless smoopi is running as root/superuser.
+
+
+    Use policykit (make sure policykit-1 is installed).
+
+    Create as root /etc/polkit-1/localauthority/50-local.d/all_all_users_to_shutdown_reboot.pkla with the 
+    following content:
+
+    [Allow all users to shutdown and reboot]
+    Identity=unix-user:*
+    Action=org.freedesktop.login1.power-off;org.freedesktop.login1.power-off-multiple-sessions;org.freedesktop.login1.reboot;org.freedesktop.login1.reboot-multiple-sessions
+    ResultAny=yes
+
+To autostart smoopi on boot but run as the sysop user follwo the following directions...
+
+Install runit (sudo apt-get install runit)
+create a directory /home/sysop/sv/smoopi
+add the following files....
+(TBD)
+
+This has the side effect of restarting smoopi if it crashes.
+
 
 
 ## On linux Desktop (and maybe windows/macos)
