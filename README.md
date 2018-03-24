@@ -84,14 +84,18 @@ To allow the program to shutdown the RPI when the shutdown menu entry is selecte
     Action=org.freedesktop.login1.power-off;org.freedesktop.login1.power-off-multiple-sessions;org.freedesktop.login1.reboot;org.freedesktop.login1.reboot-multiple-sessions
     ResultAny=yes
 
-To autostart smoopi on boot but run as the sysop user follwo the following directions...
+To autostart smoopi on boot but run as the sysop user follow the following directions...
 
-Install runit (sudo apt-get install runit)
-create a directory /home/sysop/sv/smoopi
-add the following files....
-(TBD)
+1. Install runit (sudo apt-get install runit)
+2. in the sysop home directory run ```tar xvf runit_setup.tar```
+3. sudo ln -s /home/sysop/sv/smoopi /etc/service
 
-This has the side effect of restarting smoopi if it crashes.
+smoopi is now managed by runit. (This has the side effect of restarting smoopi if it crashes).
+
+The smoopi app will start, and will also start on boot. (To stop it you type ```sudo sv stop /etc/service/smoopi```)
+
+To add a button to boot and to shutdown the rpi install a NORMALLY OPEN push button on pins 5 and 6 on the header, 
+then you need to add the shutdown script to autostart... ```sudo ln -s /home/sysop/sv/shutdown /etc/service```
 
 
 
