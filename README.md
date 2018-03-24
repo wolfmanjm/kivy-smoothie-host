@@ -87,14 +87,14 @@ To allow the program to shutdown the RPI when the shutdown menu entry is selecte
 To autostart smoopi on boot but run as the sysop user follow the following directions...
 
 1. Install runit (sudo apt-get install runit)
-2. in the sysop home directory run ```tar xvf runit_setup.tar```
+2. in the sysop home directory run ```tar xvf INSTALLDIR/runit_setup.tar``` (where INSTALLDIR is where you checked out the smoopi source)
 3. sudo ln -s /home/sysop/sv/smoopi /etc/service
 
 smoopi is now managed by runit. (This has the side effect of restarting smoopi if it crashes).
 
 The smoopi app will start, and will also start on boot. (To stop it you type ```sudo sv stop /etc/service/smoopi```)
 
-To add a button to boot and to shutdown the rpi install a NORMALLY OPEN push button on pins 5 and 6 on the header, 
+Optionally to add a button to boot and to shutdown the rpi install a NORMALLY OPEN push button on pins 5 and 6 on the header, 
 then you need to add the shutdown script to autostart... ```sudo ln -s /home/sysop/sv/shutdown /etc/service```
 
 
