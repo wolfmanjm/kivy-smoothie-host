@@ -443,7 +443,7 @@ class MainWindow(BoxLayout):
 
     def _do_shutdown(self, ok):
         if ok:
-            #sys.system('sudo halt -p')
+            os.system('/sbin/shutdown -h now')
             self._do_exit(True)
 
     def change_port(self):
