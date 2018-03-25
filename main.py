@@ -557,7 +557,7 @@ class MainWindow(BoxLayout):
                 eta= 0
 
             #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
-            self.eta= '{} | {:.1%}'.format(datetime.timedelta(seconds=int(eta)), n/self.nlines)
+            self.eta= '{} | {:.1%} | Z{}'.format(datetime.timedelta(seconds=int(eta)), n/self.nlines, self.app.wpos[2])
 
     def list_sdcard(self):
         if self.app.comms.list_sdcard(self._list_sdcard_results):
