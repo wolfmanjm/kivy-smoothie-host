@@ -510,10 +510,13 @@ class Comms():
     def handle_alarm(self, s):
         ''' handle case where smoothie sends us !! or an error of some sort '''
         self.log.warning('Comms: got error: {}'.format(s))
-        # abort any streaming immediately
-        self._stream_pause(False, True)
-        if self.proto:
-            self.proto.flush_queue()
+        # pause any streaming immediately, (let operator decide to abort or not)
+        self._stream_pause(True, False)
+        
+        # NOTE old way was to abort, but we could resume if we can fix the error
+        #self._stream_pause(False, True)
+        #if self.proto:
+        #    self.proto.flush_queue()
 
         # call upstream after we have allowed stream to stop
         async_main_loop.call_soon(self.app.main_window.alarm_state, s)

@@ -425,7 +425,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def alarm_state(self, s):
         ''' called when smoothie is in Alarm state and it is sent a gcode '''
-        self.add_line_to_log("! Alarm state: {}".format(s))
+        self.add_line_to_log("! Alarm state: {}, Streaming Paused, Abort or Continue as needed".format(s))
 
     def ask_exit(self):
         # are you sure?
