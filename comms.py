@@ -166,18 +166,18 @@ class Comms():
            self.proto.send_message(data)
 
     def _get_reports(self):
-        if self.is_streaming:
-            # when streaming we do not send the query here
-            self.do_query= True;
-        else:
-            self.send_query()
+#         if self.is_streaming:
+#             # when streaming we do not send the query here
+#             self.do_query= True;
+#         else:
+#             self.send_query()
+        self.send_query()
 
     def send_query(self):
         # calls the send_message in Serial Connection proto
-        if self.proto:
-            if not self.app.is_cnc:
-                self.proto.send_message('M105\n', True)
-        self.proto.send_message('?' if not self.net_connection else 'get status\n', True)
+        if not self.app.is_cnc:
+            self._write('M105\n')
+        self._write('?' if not self.net_connection else 'get status\n')
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
@@ -400,15 +400,15 @@ class Comms():
                 elif self.okcnt is not None:
                     self.okcnt += 1
 
-            elif "!!" in s or "ALARM" in s or "ERROR" in s or "error:" in s:
-                self.handle_alarm(s)
-
             elif s.startswith('<'):
                 try:
                     self.handle_status(s)
                 except:
                     self.log.error("Comms: error parsing status")
 
+            elif "!!" in s or "ALARM" in s or "ERROR" in s or "error:" in s:
+                self.handle_alarm(s)
+ 
             elif s.startswith('//'):
                 # ignore comments but display them
                 # handle // action:pause etc
@@ -579,6 +579,13 @@ class Comms():
                    if self.abort_stream:
                         break
 
+                # send query if ready, don't query if in fast stream mode though
+#                 if self.ping_pong and self.do_query:
+#                     self.do_query= False
+#                     self.send_query()
+#                     # if the buffers are full then wait until we can send some more
+#                     yield from self.proto._drain_helper()
+                        
                 line = yield from f.readline()
 
                 if not line:
@@ -635,13 +642,6 @@ class Comms():
                         # number of lines ok'd
                         self.progress(self.okcnt)
 
-                # send query if ready, don't query if in fast stream mode though
-                if self.ping_pong and self.do_query:
-                    self.do_query= False
-                    self.send_query()
-                    # if the buffers are full then wait until we can send some more
-                    yield from self.proto._drain_helper()
-
             success= not self.abort_stream
 
         except Exception as err:
@@ -667,6 +667,7 @@ class Comms():
             self.progress= None
             self.okcnt= None
             self.is_streaming= False
+            self.do_query= False
 
             # notify upstream that we are done
             self.app.main_window.stream_finished(success)
