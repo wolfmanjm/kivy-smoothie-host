@@ -400,7 +400,7 @@ class Comms():
                 elif self.okcnt is not None:
                     self.okcnt += 1
 
-            elif "!!" in s or "ALARM" in s or "ERROR" in s:
+            elif "!!" in s or "ALARM" in s or "ERROR" in s or "error:" in s:
                 self.handle_alarm(s)
 
             elif s.startswith('<'):
