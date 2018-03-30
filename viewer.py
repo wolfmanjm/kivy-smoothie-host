@@ -90,6 +90,10 @@ Builder.load_string('''
                 on_press: root.manager.current = 'main'
 ''')
 
+XY = 0
+XZ = 1
+CNC_accuracy = 0.01
+
 class GcodeViewerScreen(Screen):
     current_z= NumericProperty(0)
     select_mode= BooleanProperty(False)
@@ -110,6 +114,7 @@ class GcodeViewerScreen(Screen):
         self.scale= 1.0
         self.comms= comms
         self.cam_mode= self.app.is_cnc
+        self.rval= 0.0
 
     def _redraw(self, instance, value):
         self.ids.surface.canvas.remove(self.canv)
@@ -132,6 +137,56 @@ class GcodeViewerScreen(Screen):
         n= 1 if self.last_target_layer <= 1 else self.last_target_layer-1
         self.parse_gcode_file(self.app.gcode_file, n, True)
 
+
+    #----------------------------------------------------------------------
+    # Return center x,y,z,r for arc motions 2,3 and set self.rval
+    # Cribbed from bCNC
+    #----------------------------------------------------------------------
+    def motionCenter(self, gcode, plane, xyz_cur, xyz_val, ival, jval, kval= 0.0):
+        if self.rval>0.0:
+            if plane == XY:
+                x  = xyz_cur[0]
+                y  = xyz_cur[1]
+                xv = xyz_val[0]
+                yv = xyz_val[1]
+            elif plane == XZ:
+                x  = xyz_cur[0]
+                y  = xyz_cur[2]
+                xv = xyz_val[0]
+                yv = xyz_val[2]
+            else:
+                x  = xyz_cur[1]
+                y  = xyz_cur[2]
+                xv = xyz_val[1]
+                yv = xyz_val[2]
+
+            ABx = xv-x
+            ABy = yv-y
+            Cx  = 0.5*(x+xv)
+            Cy  = 0.5*(y+yv)
+            AB  = math.sqrt(ABx**2 + ABy**2)
+            try: OC  = math.sqrt(self.rval**2 - AB**2/4.0)
+            except: OC = 0.0
+            if gcode==2: OC = -OC  # CW
+            if AB != 0.0:
+                return Cx-OC*ABy/AB, Cy + OC*ABx/AB
+            else:
+                # Error!!!
+                return x,y
+        else:
+            # Center
+            xc = xyz_cur[0] + ival
+            yc = xyz_cur[1] + jval
+            zc = xyz_cur[2] + kval
+            self.rval = math.sqrt(ival**2 + jval**2 + kval**2)
+
+            if plane == XY:
+                return xc,yc
+            elif plane == XZ:
+                return xc,zc
+            else:
+                return yc,zc
+
     extract_gcode= re.compile("(G|X|Y|Z|I|J|K|E)(-?\d*\.?\d+\.?)")
     def parse_gcode_file(self, fn, target_layer= 0, one_layer= False):
         # open file parse gcode and draw
@@ -147,6 +202,7 @@ class GcodeViewerScreen(Screen):
         min_x= float('nan')
         min_y= float('nan')
         has_e= False
+        plane= XY
 
         self.last_target_layer= target_layer
 
@@ -173,6 +229,7 @@ class GcodeViewerScreen(Screen):
                 l = l.strip()
                 if not l: continue
                 if l.startswith(';'): continue
+                if l.startswith('('): continue
                 p= l.find(';')
                 if p >= 0: l= l[:p]
                 matches = self.extract_gcode.findall(l)
@@ -205,6 +262,7 @@ class GcodeViewerScreen(Screen):
                 z= lastpos[2] if 'Z' not in d else float(d['Z'])
                 i= 0.0 if 'I' not in d else float(d['I'])
                 j= 0.0 if 'J' not in d else float(d['J'])
+                self.rval= 0.0 if 'R' not in d else float(d['R'])
 
                 e= laste if 'E' not in d else float(d['E'])
 
@@ -293,61 +351,89 @@ class GcodeViewerScreen(Screen):
                             points= []
 
 
-                elif gcode in [2, 3]:
-                    # arc starts at lastpos, center is relative to start I,J, ends at X,Y if specified otherwise 360
-                    r= math.hypot(i, j)
-                    w= r*2
-                    h= r*2
-                    cx= round(lastpos[0]+i, 4)
-                    cy= round(lastpos[1]+j, 4)
-                    sx= cx - r
-                    sy= cy - r
-                    ast= 0
-                    aen= 360
-                    #print(r, cx, cy)
-                    #print(lastpos, x, y)
-                    # if XY specified then it is an arc
-                    if 'X' in d or 'Y' in d:
-                        # arc start angle
-                        if lastpos[0] < cx and lastpos[1] <= cy:
-                            rad= round(abs(i)/r, 4)
-                            ast= -90 - math.degrees(math.acos(round(rad, 4)))
-                        elif lastpos[0] < cx and lastpos[1] > cy:
-                            rad= round(abs(i)/r, 4)
-                            ast= -math.degrees(math.acos(round(rad, 4)))
-                        elif lastpos[0] >= cx and lastpos[1] <= cy:
-                            rad= round(abs(j)/r, 4)
-                            ast= 180 - math.degrees(math.acos(round(rad, 4)))
-                        else:
-                            rad= round(abs(j)/r, 4)
-                            ast= math.degrees(math.acos(round(rad, 4)))
+                elif gcode in [2, 3]: # CW=2,CCW=3 circle
+                    # code cribbed from bCNC
+                    xyz= []
+                    xyz.append((lastpos[0],lastpos[1],lastpos[2]))
+                    uc,vc = self.motionCenter(gcode, plane, lastpos, [x,y,z], i, j)
 
-                        # arc end angle
-                        dx= round(x-cx, 4)
-                        dy= round(y-cy, 4)
-                        #print(dx, dy)
-                        if dx < 0 and dy > 0:
-                            rad= round(abs(dx)/r, 4)
-                            aen= -math.degrees(math.acos(round(rad, 4)))
-                        elif dx < 0 and dy <= 0:
-                            rad= round(abs(dx)/r, 4)
-                            aen= -90-math.degrees(math.acos(round(rad, 4)))
-                        elif dx >= 0 and dy <= 0:
-                            rad= round(abs(dy)/r, 4)
-                            aen= 180-math.degrees(math.acos(round(rad, 4)))
-                        else:
-                            rad= round(abs(dy)/r, 4)
-                            aen= math.degrees(math.acos(round(rad, 4)))
+                    if plane == XY:
+                        u0 = lastpos[0]
+                        v0 = lastpos[1]
+                        w0 = lastpos[2]
+                        u1 = x
+                        v1 = y
+                        w1 = z
+                    elif plane == XZ:
+                        u0 = lastpos[0]
+                        v0 = lastpos[2]
+                        w0 = lastpos[1]
+                        u1 = x
+                        v1 = z
+                        w1 = y
+                        gcode = 5-gcode # flip 2-3 when XZ plane is used
+                    else:
+                        u0 = lastpos[1]
+                        v0 = lastpos[2]
+                        w0 = lastpos[0]
+                        u1 = y
+                        v1 = z
+                        w1 = x
+                    phi0 = math.atan2(v0-vc, u0-uc)
+                    phi1 = math.atan2(v1-vc, u1-uc)
+                    try:
+                        sagitta = 1.0-CNC_accuracy/self.rval
+                    except ZeroDivisionError:
+                        sagitta = 0.0
+                    if sagitta>0.0:
+                        df = 2.0*math.acos(sagitta)
+                        df = min(df, math.pi/4.0)
+                    else:
+                        df = math.pi/4.0
 
-                        #print(ast, aen)
-                        if gcode == 2 and aen < ast:
-                            aen += 360
-                        if gcode == 3 and ast < aen: aen= aen-360
+                    if gcode==2:
+                        if phi1>=phi0-1e-10: phi1 -= 2.0*math.pi
+                        ws  = (w1-w0)/(phi1-phi0)
+                        phi = phi0 - df
+                        while phi>phi1:
+                            u = uc + self.rval*math.cos(phi)
+                            v = vc + self.rval*math.sin(phi)
+                            w = w0 + (phi-phi0)*ws
+                            phi -= df
+                            if plane == XY:
+                                xyz.append((u,v,w))
+                            elif plane == XZ:
+                                xyz.append((u,w,v))
+                            else:
+                                xyz.append((w,u,v))
+                    else:
+                        if phi1<=phi0+1e-10: phi1 += 2.0*math.pi
+                        ws  = (w1-w0)/(phi1-phi0)
+                        phi = phi0 + df
+                        while phi<phi1:
+                            u = uc + self.rval*math.cos(phi)
+                            v = vc + self.rval*math.sin(phi)
+                            w = w0 + (phi-phi0)*ws
+                            phi += df
+                            if plane == XY:
+                                xyz.append((u,v,w))
+                            elif plane == XZ:
+                                xyz.append((u,w,v))
+                            else:
+                                xyz.append((w,u,v))
 
-                        #print(ast, aen)
+                    xyz.append((x,y,z))
+                    # plot the points
+                    points= []
+                    for t in xyz:
+                        x1,y1,z1 = t
+                        points.append(x1)
+                        points.append(y1)
 
                     self.canv.add(Color(0, 0, 0))
-                    self.canv.add(Line(ellipse=(sx, sy, w, h, ast, aen), width=1, cap= 'none', joint='round'))
+                    self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                    points= []
+
 
                 # always remember last position
                 lastpos= [x, y, z]
