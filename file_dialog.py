@@ -76,11 +76,16 @@ Builder.load_string('''
         size: root.size
         pos: root.pos
         orientation: "vertical"
+
+        Label:
+            size_hint: None, None
+            size: self.texture_size[0], 40
+            text: filechooser.path
+
         FileChooser:
             id: filechooser
             multiselect: False
             path: root.path
-            title: 'File to print'
             filter_dirs: not root.show_dirs
             filters: ['*.g', '*.gcode', '*.nc', '*.ngc']
             sort_func: lambda a, b: root.sort_folders_first(sort_type.state == 'normal', reverse.state == 'down', a, b)
