@@ -71,6 +71,9 @@ NOTE make sure the ```/home/sysop/.kivy/config.ini``` has the following set so t
     keyboard_mode = systemanddock
     desktop = 0
 
+If your config.ini is empty then here is an example that works https://gist.github.com/4f9c23c7e66f391b8c2d32c01e8a8d14
+
+
 To allow the program to shutdown the RPI when the shutdown menu entry is selected you need to do the following, unless smoopi is running as root/superuser.
 
 
