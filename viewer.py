@@ -10,7 +10,7 @@ from kivy.graphics.transformation import Matrix
 from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
-
+from kivy.core.text import Label as CoreLabel
 
 import logging
 import sys
@@ -510,6 +510,13 @@ class GcodeViewerScreen(Screen):
             self.tool_canv.add(Line(circle=(self.app.wpos[0], self.app.wpos[1], 5/self.scale)))
             self.tool_canv.add(PopMatrix())
 
+    def transform_pos(self, posx, posy):
+        # convert touch coords to local scatter widget coords
+        pos= self.ids.surface.to_widget(posx, posy)
+        # convert to original model coordinates (mm), need to take into account scale and translate
+        wpos= ((pos[0]-self.tx)/self.scale, (pos[1]-self.ty)/self.scale)
+        return wpos
+
     def on_touch_down(self, touch):
         #print(self.ids.surface.bbox)
         # if within the scatter and we are in select mode...
@@ -518,12 +525,16 @@ class GcodeViewerScreen(Screen):
             ud = touch.ud
             ud['group'] = g = str(touch.uid)
 
+            label = CoreLabel(text="{:1.4f},{:1.4f}".format(self.transform_pos(touch.x, touch.y)[0], self.transform_pos(touch.x, touch.y)[1]))
+            label.refresh()
+            texture= label.texture
             with self.canvas.after:
                 Color(0, 0, 1, mode='rgb', group=g)
                 ud['crossx'] = [
                     Rectangle(pos=(pos[0], 0), size=(1, self.height), group=g),
                     Rectangle(pos=(0, pos[1]), size=(self.width, 1), group=g),
                     Line(circle=(pos[0], pos[1], 20), group=g),
+                    Rectangle(texture=texture, pos=(pos[0]-texture.size[0]/2, pos[1]-40), size=texture.size, group=g)
                 ]
 
             touch.grab(self)
@@ -542,6 +553,11 @@ class GcodeViewerScreen(Screen):
             ud['crossx'][0].pos = pos[0], 0
             ud['crossx'][1].pos = 0, pos[1]
             ud['crossx'][2].circle = (pos[0], pos[1], 20)
+            label = CoreLabel(text="{:1.4f},{:1.4f}".format(self.transform_pos(pos[0], pos[1])[0], self.transform_pos(pos[0], pos[1])[1]))
+            label.refresh()
+            texture= label.texture
+            ud['crossx'][3].texture= texture
+            ud['crossx'][3].pos= pos[0]-texture.size[0]/2, pos[1]-40
 
         else:
             return super(GcodeViewerScreen, self).on_touch_move(touch)
@@ -559,10 +575,8 @@ class GcodeViewerScreen(Screen):
             self.ids.set_wpos_but.state= 'normal'
             self.ids.move_gantry_but.state= 'normal'
 
-            # convert touch coords to local scatter widget coords
-            pos= self.ids.surface.to_widget(touch.x, touch.y)
             # convert to original model coordinates (mm), need to take into account scale and translate
-            wpos= ((pos[0]-self.tx)/self.scale, (pos[1]-self.ty)/self.scale)
+            wpos= self.transform_pos(touch.x, touch.y)
             if self.set_wpos_mode:
                 if self.comms:
                     self.comms.write('G10 L20 P0 X{} Y{}'.format(wpos[0], wpos[1]))
