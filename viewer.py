@@ -578,6 +578,7 @@ if __name__ == '__main__':
         pass
 
     class GcodeViewerApp(App):
+        is_cnc= BooleanProperty(False)
         def __init__(self, **kwargs):
             super(GcodeViewerApp, self).__init__(**kwargs)
             if len(sys.argv) > 1:
