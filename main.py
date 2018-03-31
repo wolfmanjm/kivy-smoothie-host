@@ -521,8 +521,10 @@ class MainWindow(BoxLayout):
         self.display('>>> Print started at: {}'.format(self.start_print_time.strftime('%x %X')))
 
         self.app.comms.stream_gcode(file_path, progress= lambda x: self.display_progress(x))
-        self.last_path= directory
-        self.config.set('General', 'last_gcode_path', directory)
+        if directory != self.last_path:
+            self.last_path= directory
+            self.config.set('General', 'last_gcode_path', directory)
+
         self.config.set('General', 'last_print_file', file_path)
         self.config.write()
 
@@ -589,9 +591,10 @@ class MainWindow(BoxLayout):
     def _show_viewer(self, file_path, directory):
         self.app.gcode_file= file_path
         self.app.sm.current= 'viewer'
-        self.last_path= directory
-        self.config.set('General', 'last_gcode_path', directory)
-        self.app.config.write()
+        if directory != self.last_path:
+            self.last_path= directory
+            self.config.set('General', 'last_gcode_path', directory)
+            self.app.config.write()
 
 
 class MainScreen(Screen):
