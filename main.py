@@ -406,6 +406,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def update_status(self, stat, d):
         self.status= stat
+        self.app.status= stat
         if 'WPos' in d:
             self.wpos= d['WPos']
             self.app.wpos= self.wpos
@@ -525,6 +526,7 @@ class MainWindow(BoxLayout):
             self.last_path= directory
             self.config.set('General', 'last_gcode_path', directory)
 
+        self.app.gcode_file= file_path
         self.config.set('General', 'last_print_file', file_path)
         self.config.write()
 
@@ -584,9 +586,12 @@ class MainWindow(BoxLayout):
         self.app.comms.write('play {}\n'.format(file_path))
 
     def show_viewer(self):
-        # get file to view
-        f= FileDialog()
-        f.open(self.last_path, title= 'File to View', cb= self._show_viewer)
+        if self.is_printing:
+            self._show_viewer(self.app.gcode_file, self.last_path)
+        else:
+            # get file to view
+            f= FileDialog()
+            f.open(self.last_path, title= 'File to View', cb= self._show_viewer)
 
     def _show_viewer(self, file_path, directory):
         self.app.gcode_file= file_path
@@ -602,6 +607,7 @@ class MainScreen(Screen):
 
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)
+    status= StringProperty("")
     wpos= ListProperty([0,0,0])
     mpos= ListProperty([0,0,0])
     fr= NumericProperty(0)

@@ -9,6 +9,7 @@ from kivy.properties import NumericProperty, BooleanProperty
 from kivy.graphics.transformation import Matrix
 from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
+from kivy.clock import Clock
 
 
 import logging
@@ -106,6 +107,8 @@ class GcodeViewerScreen(Screen):
         self.last_file_pos= None
         self.canv = InstructionGroup()
         self.ids.surface.canvas.add(self.canv)
+        self.tool_canv= InstructionGroup()
+        self.ids.surface.canvas.add(self.tool_canv)
         self.transform= self.ids.surface.transform
         self.bind(pos=self._redraw, size=self._redraw)
         self.last_target_layer= 0
@@ -115,13 +118,20 @@ class GcodeViewerScreen(Screen):
         self.comms= comms
         self.cam_mode= self.app.is_cnc
         self.rval= 0.0
+        self.timer= None
 
     def _redraw(self, instance, value):
         self.ids.surface.canvas.remove(self.canv)
         self.ids.surface.canvas.add(self.canv)
 
     def clear(self):
+        if self.timer:
+            self.timer.cancel()
+            self.timer= None
+
+        self.is_visible= False
         self.canv.clear()
+        self.tool_canv.clear()
         self.last_target_layer= 0
         # reset scale and translation
         m= Matrix()
@@ -203,6 +213,7 @@ class GcodeViewerScreen(Screen):
         min_y= float('nan')
         has_e= False
         plane= XY
+        self.is_visible= True
 
         self.last_target_layer= target_layer
 
@@ -481,6 +492,23 @@ class GcodeViewerScreen(Screen):
 
         # not sure why we need to do this
         self.ids.surface.top= Window.height
+
+        if not self.timer and self.app.status == "Run":
+            self.timer= Clock.schedule_interval(self.update, 0.5)
+
+    def update(self, dt):
+        if not self.is_visible: return
+
+        # follow the tool path
+        self.tool_canv.clear()
+        if self.app.status == "Run":
+            self.tool_canv.add(PushMatrix())
+            self.tool_canv.add(Translate(self.ids.surface.center[0], self.ids.surface.center[1]))
+            self.tool_canv.add(Scale(self.scale))
+            self.tool_canv.add(Translate(self.tx, self.ty))
+            self.tool_canv.add(Color(1, 0, 0))
+            self.tool_canv.add(Line(circle=(self.app.wpos[0], self.app.wpos[1], 5/self.scale)))
+            self.tool_canv.add(PopMatrix())
 
     def on_touch_down(self, touch):
         #print(self.ids.surface.bbox)
