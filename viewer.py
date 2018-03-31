@@ -92,7 +92,7 @@ Builder.load_string('''
 
 XY = 0
 XZ = 1
-CNC_accuracy = 0.01
+CNC_accuracy = 0.001
 
 class GcodeViewerScreen(Screen):
     current_z= NumericProperty(0)
