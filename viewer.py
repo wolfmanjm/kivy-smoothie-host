@@ -486,8 +486,10 @@ class GcodeViewerScreen(Screen):
         self.scale= scale
         self.canv.insert(1, Scale(scale))
         # translate to center of canvas
+        self.offs= self.ids.surface.center
         self.canv.insert(1, Translate(self.ids.surface.center[0], self.ids.surface.center[1]))
         Logger.debug("GcodeViewerScreen: cx= {}, cy= {}".format(self.ids.surface.center[0], self.ids.surface.center[1]))
+        Logger.debug("GcodeViewerScreen: sx= {}, sy= {}".format(self.ids.surface.size[0], self.ids.surface.size[1]))
 
         # tool position marker
         x= self.app.wpos[0]
@@ -520,10 +522,10 @@ class GcodeViewerScreen(Screen):
         g[6].pos= x-r/2, y
 
     def transform_pos(self, posx, posy):
-        # convert touch coords to local scatter widget coords
+        # convert touch coords to local scatter widget coords, relative to lower bottom corner
         pos= self.ids.surface.to_widget(posx, posy)
         # convert to original model coordinates (mm), need to take into account scale and translate
-        wpos= ((pos[0] - self.ids.surface.center[0]) / self.scale - self.tx, (pos[1] - self.ids.surface.center[1]) / self.scale - self.ty)
+        wpos= ((pos[0] - self.offs[0]) / self.scale - self.tx, (pos[1] - self.offs[1]) / self.scale - self.ty)
         return wpos
 
     def on_touch_down(self, touch):
