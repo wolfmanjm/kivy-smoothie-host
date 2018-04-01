@@ -5,7 +5,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.graphics import Color, Line, Scale, Translate, PopMatrix, PushMatrix, Rectangle
 from kivy.graphics import InstructionGroup
-from kivy.properties import NumericProperty, BooleanProperty
+from kivy.properties import NumericProperty, BooleanProperty, ListProperty
 from kivy.graphics.transformation import Matrix
 from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
@@ -107,8 +107,6 @@ class GcodeViewerScreen(Screen):
         self.last_file_pos= None
         self.canv = InstructionGroup()
         self.ids.surface.canvas.add(self.canv)
-        self.tool_canv= InstructionGroup()
-        self.ids.surface.canvas.add(self.tool_canv)
         self.transform= self.ids.surface.transform
         self.bind(pos=self._redraw, size=self._redraw)
         self.last_target_layer= 0
@@ -131,7 +129,7 @@ class GcodeViewerScreen(Screen):
 
         self.is_visible= False
         self.canv.clear()
-        self.tool_canv.clear()
+
         self.last_target_layer= 0
         # reset scale and translation
         m= Matrix()
@@ -484,37 +482,48 @@ class GcodeViewerScreen(Screen):
             if abs(dx)*scale > self.ids.surface.width:
                 scale *= self.ids.surface.width/(abs(dx)*scale)
 
+        Logger.debug("GcodeViewerScreen: scale= {}".format(scale))
         self.scale= scale
         self.canv.insert(1, Scale(scale))
         # translate to center of canvas
         self.canv.insert(1, Translate(self.ids.surface.center[0], self.ids.surface.center[1]))
+        Logger.debug("GcodeViewerScreen: cx= {}, cy= {}".format(self.ids.surface.center[0], self.ids.surface.center[1]))
+
+        # tool position marker
+        x= self.app.wpos[0]
+        y= self.app.wpos[1]
+        r= 10/scale
+        self.canv.add(Color(1, 0, 0, mode='rgb', group="tool")),
+        self.canv.add(Line(circle=(x, y, r), group="tool")),
+        self.canv.add(Rectangle(pos=(x, y-r/2), size=(1/scale, r), group="tool")),
+        self.canv.add(Rectangle(pos=(x-r/2, y), size=(r, 1/scale), group="tool"))
+
         self.canv.add(PopMatrix())
 
         # not sure why we need to do this
         self.ids.surface.top= Window.height
 
-        if not self.timer and self.app.status == "Run":
+        if not self.timer: # and self.app.status == "Run":
             self.timer= Clock.schedule_interval(self.update, 0.5)
 
     def update(self, dt):
         if not self.is_visible: return
 
         # follow the tool path
-        self.tool_canv.clear()
-        if self.app.status == "Run":
-            self.tool_canv.add(PushMatrix())
-            self.tool_canv.add(Translate(self.ids.surface.center[0], self.ids.surface.center[1]))
-            self.tool_canv.add(Scale(self.scale))
-            self.tool_canv.add(Translate(self.tx, self.ty))
-            self.tool_canv.add(Color(1, 0, 0))
-            self.tool_canv.add(Line(circle=(self.app.wpos[0], self.app.wpos[1], 5/self.scale)))
-            self.tool_canv.add(PopMatrix())
+        #self.canv.remove_group("tool")
+        x= self.app.wpos[0]
+        y= self.app.wpos[1]
+        r= 10/self.scale
+        g= self.canv.get_group("tool")
+        g[2].circle= (x, y, r)
+        g[4].pos= x, y-r/2
+        g[6].pos= x-r/2, y
 
     def transform_pos(self, posx, posy):
         # convert touch coords to local scatter widget coords
         pos= self.ids.surface.to_widget(posx, posy)
         # convert to original model coordinates (mm), need to take into account scale and translate
-        wpos= ((pos[0]-self.tx)/self.scale, (pos[1]-self.ty)/self.scale)
+        wpos= ((pos[0] - self.ids.surface.center[0]) / self.scale - self.tx, (pos[1] - self.ids.surface.center[1]) / self.scale - self.ty)
         return wpos
 
     def on_touch_down(self, touch):
@@ -525,7 +534,7 @@ class GcodeViewerScreen(Screen):
             ud = touch.ud
             ud['group'] = g = str(touch.uid)
 
-            label = CoreLabel(text="{:1.4f},{:1.4f}".format(self.transform_pos(touch.x, touch.y)[0], self.transform_pos(touch.x, touch.y)[1]))
+            label = CoreLabel(text="{:1.3f},{:1.3f}".format(self.transform_pos(touch.x, touch.y)[0], self.transform_pos(touch.x, touch.y)[1]))
             label.refresh()
             texture= label.texture
             with self.canvas.after:
@@ -549,11 +558,13 @@ class GcodeViewerScreen(Screen):
                 return
 
             pos= (touch.x, touch.y)
+            print(self.ids.surface.to_widget(pos[0], pos[1]))
+            print(self.transform_pos(pos[0], pos[1])[0], self.transform_pos(pos[0], pos[1])[1])
             ud = touch.ud
             ud['crossx'][0].pos = pos[0], 0
             ud['crossx'][1].pos = 0, pos[1]
             ud['crossx'][2].circle = (pos[0], pos[1], 20)
-            label = CoreLabel(text="{:1.4f},{:1.4f}".format(self.transform_pos(pos[0], pos[1])[0], self.transform_pos(pos[0], pos[1])[1]))
+            label = CoreLabel(text="{:1.3f},{:1.3f}".format(self.transform_pos(pos[0], pos[1])[0], self.transform_pos(pos[0], pos[1])[1]))
             label.refresh()
             texture= label.texture
             ud['crossx'][3].texture= texture
@@ -621,6 +632,7 @@ if __name__ == '__main__':
 
     class GcodeViewerApp(App):
         is_cnc= BooleanProperty(False)
+        wpos= ListProperty([0,0,0])
         def __init__(self, **kwargs):
             super(GcodeViewerApp, self).__init__(**kwargs)
             if len(sys.argv) > 1:
@@ -634,7 +646,7 @@ if __name__ == '__main__':
             self.sm.add_widget(GcodeViewerScreen(name='gcode'))
             level = LOG_LEVELS.get('debug')
             Logger.setLevel(level=level)
-            #logging.getLogger().setLevel(logging.DEBUG)
+            logging.getLogger().setLevel(logging.DEBUG)
             return self.sm
 
     GcodeViewerApp().run()
