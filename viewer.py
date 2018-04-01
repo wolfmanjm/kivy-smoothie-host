@@ -199,7 +199,7 @@ class GcodeViewerScreen(Screen):
     def parse_gcode_file(self, fn, target_layer= 0, one_layer= False):
         # open file parse gcode and draw
         Logger.debug("GcodeViewerScreen: parsing file {}". format(fn))
-        lastpos= [0,0,-1] # XYZ
+        lastpos= [self.app.wpos[0],self.app.wpos[1],-1] # XYZ, set to initial tool position
         lastz= None
         laste= 0
         layer= 0
@@ -261,8 +261,6 @@ class GcodeViewerScreen(Screen):
 
                 modal_g= d['G']
 
-                # TODO handle first move when lastpos is not valid yet
-
                 # see if it is 3d printing (ie has an E axis on a G1)
                 if not has_e and ('E' in d and 'G' in d and d['G'] == 1): has_e= True
 
@@ -321,9 +319,9 @@ class GcodeViewerScreen(Screen):
                 # in slicer generated files there is no G0 so we need a way to know when to draw, so if there is an E then draw else don't
                 if gcode == 0:
                     #print("move to: {}, {}, {}".format(x, y, z))
-                    # draw moves in red
+                    # draw moves in dashed red
                     self.canv.add(Color(1, 0, 0))
-                    self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, cap='none', joint='none'))
+                    self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, dash_offset= 1, cap='none', joint='none'))
 
                 elif gcode == 1:
                     if ('X' in d or 'Y' in d):
@@ -491,11 +489,16 @@ class GcodeViewerScreen(Screen):
         Logger.debug("GcodeViewerScreen: cx= {}, cy= {}".format(self.ids.surface.center[0], self.ids.surface.center[1]))
         Logger.debug("GcodeViewerScreen: sx= {}, sy= {}".format(self.ids.surface.size[0], self.ids.surface.size[1]))
 
+        # axis Markers
+        self.canv.add(Color(0, 0, 1, mode='rgb'))
+        self.canv.add(Rectangle(pos=(0, -10), size=(1/scale, self.ids.surface.height/scale)))
+        self.canv.add(Rectangle(pos=(-10, 0), size=(self.ids.surface.width/scale, 1/scale)))
+
         # tool position marker
         x= self.app.wpos[0]
         y= self.app.wpos[1]
         r= 10/scale
-        self.canv.add(Color(1, 0, 0, mode='rgb', group="tool")),
+        self.canv.add(Color(0, 1, 0, mode='rgb', group="tool")),
         self.canv.add(Line(circle=(x, y, r), group="tool")),
         self.canv.add(Rectangle(pos=(x, y-r/2), size=(1/scale, r), group="tool")),
         self.canv.add(Rectangle(pos=(x-r/2, y), size=(r, 1/scale), group="tool"))
@@ -560,8 +563,6 @@ class GcodeViewerScreen(Screen):
                 return
 
             pos= (touch.x, touch.y)
-            print(self.ids.surface.to_widget(pos[0], pos[1]))
-            print(self.transform_pos(pos[0], pos[1])[0], self.transform_pos(pos[0], pos[1])[1])
             ud = touch.ud
             ud['crossx'][0].pos = pos[0], 0
             ud['crossx'][1].pos = 0, pos[1]
