@@ -251,9 +251,10 @@ class Comms():
             # this is when we are really setup and ready to go, notify upstream
             self.app.main_window.connected()
 
+            # issue a M115 command to get things started
+            self._write('\nM115\n')
+
             if self.report_rate > 0:
-                # issue a version command to get things started
-                self._write('\nversion\n')
                 # start a timer to get the reports
                 self.timer = loop.call_later(self.report_rate, self._get_reports)
 
@@ -289,6 +290,19 @@ class Comms():
             loop.close()
             async_main_loop= None
             self.log.info('Comms: comms thread Exiting...')
+
+    def _parse_m115(self, s):
+        # split fields
+        l= s.split(',')
+
+        # parse into a dict of name: value
+        d= {y[0].strip():y[1].strip() for y in [x.split(':', 1) for x in l]}
+        if not 'X-CNC' in d: d['X-CNC']= 0
+        if not 'FIRMWARE_NAME' in d: d['FIRMWARE_NAME']= 'UNKNOWN'
+        if not 'FIRMWARE_VERSION' in d: d['FIRMWARE_VERSION']= 'UNKNOWN'
+
+        self.log.info("Comms: Firmware: {}, Version: {}, CNC: {}".format(d['FIRMWARE_NAME'], d['FIRMWARE_VERSION'], 'Yes' if d['X-CNC'] else 'No'))
+        self.app.main_window.async_display(s)
 
     def list_sdcard(self, done_cb):
         ''' Issue a ls /sd and send results back to done_cb '''
@@ -406,9 +420,9 @@ class Comms():
                 except:
                     self.log.error("Comms: error parsing status")
 
-            elif "!!" in s or "ALARM" in s or "ERROR" in s or "error:" in s:
+            elif "!!" in s or "ALARM" in s or "ERROR" in s or "error:Alarm lock" in s:
                 self.handle_alarm(s)
- 
+
             elif s.startswith('//'):
                 # ignore comments but display them
                 # handle // action:pause etc
@@ -429,6 +443,10 @@ class Comms():
 
                 else:
                     self.app.main_window.async_display('{}'.format(s))
+
+            elif "FIRMWARE_NAME" in s:
+                # process the response to M115
+                self._parse_m115(s)
 
             else:
                 self.app.main_window.async_display('{}'.format(s))
@@ -512,7 +530,7 @@ class Comms():
         self.log.warning('Comms: got error: {}'.format(s))
         # pause any streaming immediately, (let operator decide to abort or not)
         self._stream_pause(True, False)
-        
+
         # NOTE old way was to abort, but we could resume if we can fix the error
         #self._stream_pause(False, True)
         #if self.proto:
@@ -585,7 +603,7 @@ class Comms():
 #                     self.send_query()
 #                     # if the buffers are full then wait until we can send some more
 #                     yield from self.proto._drain_helper()
-                        
+
                 line = yield from f.readline()
 
                 if not line:
