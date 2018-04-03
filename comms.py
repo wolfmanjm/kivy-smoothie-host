@@ -444,7 +444,7 @@ class Comms():
                 else:
                     self.app.main_window.async_display('{}'.format(s))
 
-            elif "FIRMWARE_NAME" in s:
+            elif "FIRMWARE_NAME:" in s:
                 # process the response to M115
                 self._parse_m115(s)
 
@@ -710,6 +710,7 @@ class Comms():
 if __name__ == "__main__":
 
     import datetime
+    from time import sleep
 
     ''' a standalone streamer to test it with '''
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -725,6 +726,8 @@ if __name__ == "__main__":
             self.is_connected= False
             self.ok= False
             self.main_window= self
+            self.timer= None
+            self.is_cnc= True
 
         def connected(self):
             self.log.debug("CommsApp: Connected...")
@@ -749,6 +752,8 @@ if __name__ == "__main__":
             # in this case we do want to disconnect
             comms.proto.transport.close()
 
+        def update_status(self, stat, d):
+            pass
 
     if len(sys.argv) < 3:
         print("Usage: {} port file".format(sys.argv[0]));
@@ -790,6 +795,8 @@ if __name__ == "__main__":
         t= comms.connect(sys.argv[1])
         if app.start_event.wait(5): # wait for connected as it is in a separate thread
             if app.is_connected:
+                # wait for startup to clear up any incoming oks
+                sleep(5) # Time in seconds.
 
                 comms.stream_gcode(sys.argv[2], progress=lambda x: display_progress(x))
                 app.end_event.wait() # wait for streaming to complete
