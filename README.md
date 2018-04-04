@@ -125,11 +125,7 @@ Run as
 
 ## Smoothie version required
 
-This requires the latest FirmwareBin/firmware-latest.bin from Smoothie github, and this
-must be added to your config...
-
-```new_status_format true  # uses new query format for ?```
-
+This requires the latest FirmwareBin/firmware-latest.bin from Smoothie github, (or FirmwareBin/firmware-cnc-latest.bin).
 
 # Screen shots
 ![Extruder Screen](screen1.png)
