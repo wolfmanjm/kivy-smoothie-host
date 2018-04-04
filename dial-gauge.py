@@ -15,6 +15,7 @@ from kivy.core.text import Label as CoreLabel
 import math
 
 Builder.load_string('''
+#: import math math
 <DialGauge>:
     id: dial_gauge
 
@@ -80,7 +81,7 @@ Builder.load_string('''
 
     # Display the Value
     Label:
-        text: str(int(float(dial_gauge.value))) + '°c' if dial_gauge.show_value else ''
+        text: '????' if math.isinf(dial_gauge.value) or math.isnan(dial_gauge.value) else str(int(float(dial_gauge.value))) + '°c' if dial_gauge.show_value else ''
         pos: dial_gauge.dial_center[0]-self.size[0]/2+dial_gauge.value_offset_pos[0], dial_gauge.dial_center[1]-self.size[1]/2+dial_gauge.value_offset_pos[1]
         size: self.texture_size
         font_size: dial_gauge.value_font_size
@@ -164,14 +165,15 @@ if __name__ == '__main__':
         size: 60, 40
         pos_hint: {'left': 0, 'center_y': 0.3}
         text: 'Test'
-        on_press: print(root.ids.dg.pos)
+        #on_press: print(root.ids.dg.pos)
+        on_press: root.ids.dg.value= float('nan')
 
     Slider:
         size_hint: None, None
         size: 500, 40
         pos_hint: {'left': 0, 'bottom': 0}
         orientation: 'horizontal'
-        min: dg.scale_min
+        min: dg.scale_min-10
         max: dg.scale_max
         value: dg.scale_min
         on_value: dg.value= self.value
@@ -245,6 +247,7 @@ class DialGauge(Widget):
 
     def value_to_angle(self, v):
         ''' convert the given value to the angle required for the scale '''
+        if math.isnan(v) or math.isinf(v) or v < self.scale_min : v= self.scale_min
         return -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * ((float(v)-self.scale_min) / (self.scale_max-self.scale_min)))
 
     def _redraw(self, instance, value):
@@ -332,7 +335,7 @@ class DialGauge(Widget):
             self.canvas.after.remove(self.setpoint_canvas)
             self.setpoint_canvas= None
 
-        if math.isnan(self.setpoint_value):
+        if math.isnan(self.setpoint_value) or math.isinf(self.setpoint_value):
             return
 
         v= self.value_to_angle(self.setpoint_value)

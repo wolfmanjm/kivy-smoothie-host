@@ -397,13 +397,6 @@ class MainWindow(BoxLayout):
         self.add_line_to_log("...Disconnected")
 
     @mainthread
-    def update_temps(self, he, hesp, be, besp):
-        if he:
-            self.ids.extruder.update_temp('hotend', he, hesp)
-        if be:
-            self.ids.extruder.update_temp('bed', be, besp)
-
-    @mainthread
     def update_status(self, stat, d):
         self.status= stat
         self.app.status= stat
@@ -422,6 +415,14 @@ class MainWindow(BoxLayout):
 
         if 'L' in d:
             self.app.lp= d['L'][0]
+
+        # extract temperature readings
+        if 'T' in d:
+            self.ids.extruder.update_temp('hotend', d['T'][0], d['T'][1])
+
+        if 'B' in d:
+            self.ids.extruder.update_temp('bed', d['B'][0], d['B'][1])
+
 
     @mainthread
     def alarm_state(self, s):

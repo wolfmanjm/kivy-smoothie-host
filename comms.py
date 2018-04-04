@@ -166,17 +166,10 @@ class Comms():
            self.proto.send_message(data)
 
     def _get_reports(self):
-#         if self.is_streaming:
-#             # when streaming we do not send the query here
-#             self.do_query= True;
-#         else:
-#             self.send_query()
         self.send_query()
 
     def send_query(self):
         # calls the send_message in Serial Connection proto
-        if not self.app.is_cnc:
-            self._write('M105\n')
         self._write('?' if not self.net_connection else 'get status\n')
 
     def stop(self):
@@ -301,7 +294,7 @@ class Comms():
         if not 'FIRMWARE_NAME' in d: d['FIRMWARE_NAME']= 'UNKNOWN'
         if not 'FIRMWARE_VERSION' in d: d['FIRMWARE_VERSION']= 'UNKNOWN'
 
-        self.log.info("Comms: Firmware: {}, Version: {}, CNC: {}".format(d['FIRMWARE_NAME'], d['FIRMWARE_VERSION'], 'Yes' if d['X-CNC'] else 'No'))
+        self.log.info("Comms: Firmware: {}, Version: {}, CNC: {}".format(d['FIRMWARE_NAME'], d['FIRMWARE_VERSION'], 'Yes' if d['X-CNC'] == 1 else 'No'))
         self.app.main_window.async_display(s)
 
     def list_sdcard(self, done_cb):
@@ -405,7 +398,7 @@ class Comms():
                 self.handle_position(s)
 
             elif "ok T:" in s or self.tempreading_exp.findall(s):
-                self.handle_temperature(s)
+                self.app.main_window.async_display('{}'.format(s))
 
             elif s.startswith('ok'):
                 if self.ping_pong:
@@ -451,37 +444,6 @@ class Comms():
             else:
                 self.app.main_window.async_display('{}'.format(s))
 
-    # Handle parsing of temp readings (Lifted mostly from Pronterface)
-    tempreport_exp = re.compile("([TB]\d*):([-+]?\d*\.?\d*)(?: ?\/)?([-+]?\d*\.?\d*)")
-    def parse_temperature(self, s):
-        matches = self.tempreport_exp.findall(s)
-        return dict((m[0], (m[1], m[2])) for m in matches)
-
-    def handle_temperature(self, s):
-        # ok T:19.8 /0.0 @0 B:20.1 /0.0 @0
-        hotend_setpoint= None
-        bed_setpoint= None
-        hotend_temp= None
-        bed_temp= None
-
-        try:
-            temps = self.parse_temperature(s)
-            if "T" in temps and temps["T"][0]:
-                hotend_temp = float(temps["T"][0])
-
-            if "T" in temps and temps["T"][1]:
-                hotend_setpoint = float(temps["T"][1])
-
-            bed_temp = float(temps["B"][0]) if "B" in temps and temps["B"][0] else None
-            if "B" in temps and temps["B"][1]:
-                bed_setpoint = float(temps["B"][1])
-
-            self.log.debug('Comms: got temps hotend:{}, bed:{}, hotend_setpoint:{}, bed_setpoint:{}'.format(hotend_temp, bed_temp, hotend_setpoint, bed_setpoint))
-            self.app.main_window.update_temps(hotend_temp, hotend_setpoint, bed_temp, bed_setpoint)
-
-        except:
-            self.log.error(traceback.format_exc())
-
     def handle_position(self, s):
         # ok C: X:0.0000 Y:0.0000 Z:0.0000
         l= s.split(' ')
@@ -495,6 +457,7 @@ class Comms():
     def handle_status(self, s):
         # requires 'new_status_format true' in smoothie config
         #<Idle|MPos:68.9980,-49.9240,40.0000,12.3456|WPos:68.9980,-49.9240,40.0000|F:12345.12|S:1.2>
+        # if temp readings are enabled then also returns T:25.0,0.0|B:25.2,0.0
         s= s[1:-1] # strip off < .. >
 
         # split fields
@@ -596,13 +559,6 @@ class Comms():
                    yield from asyncio.sleep(1)
                    if self.abort_stream:
                         break
-
-                # send query if ready, don't query if in fast stream mode though
-#                 if self.ping_pong and self.do_query:
-#                     self.do_query= False
-#                     self.send_query()
-#                     # if the buffers are full then wait until we can send some more
-#                     yield from self.proto._drain_helper()
 
                 line = yield from f.readline()
 
