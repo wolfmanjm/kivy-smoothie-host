@@ -556,8 +556,10 @@ class Comms():
                 # TODO maybe use Future here to wait for unpause
                 # create future when pause then yield from it here then delete it
                 while self.pause_stream:
-                   yield from asyncio.sleep(1)
-                   if self.abort_stream:
+                    yield from asyncio.sleep(1)
+                    if self.progress:
+                        self.progress(linecnt)
+                    if self.abort_stream:
                         break
 
                 line = yield from f.readline()
@@ -624,6 +626,9 @@ class Comms():
         finally:
             if f:
                 yield from f.close()
+
+            if self.abort_stream:
+                self._write('\x18')
 
             if success and not self.ping_pong:
                 self.log.debug('Comms: Waiting for okcnt to catch up: {} vs {}'.format(self.okcnt, linecnt))
