@@ -51,24 +51,20 @@ class NumericInput(TextInput):
 
     def on_focus(self, i, v):
         if v:
-            self.m_keyboard = Window.request_keyboard(self._keyboard_close, self, input_type=self.input_type)
-            if self.m_keyboard.widget: # and self.input_type == 'number':
-                self.m_keyboard.widget.layout= "numeric.json"
             self._last= self.text
             self.text= ""
             self.show_keyboard()
+            if self.keyboard.widget:
+                self.keyboard.widget.layout= "numeric.json"
+                self.m_keyboard= self.keyboard.widget
         else:
             if self.text == "": self.text= self._last
             self.hide_keyboard()
-            self.m_keyboard.widget.layout= "qwerty"
+            self.m_keyboard.layout= "qwerty"
 
 
     def on_parent(self, widget, parent):
         self.keyboard_mode= 'managed'
-
-    def _keyboard_close(self):
-        #self.m_keyboard.widget.layout= "qwerty"
-        pass
 
 class DROWidget(RelativeLayout):
     """DROWidget Shows reltime information in a DRO style"""
