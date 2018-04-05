@@ -1,4 +1,7 @@
 #: import DialGauge dial-gauge
+
+<NumericInput>
+
 <ExtruderWidget>:
     orientation: 'vertical'
     canvas.before:
@@ -31,7 +34,7 @@
                     orientation: 'horizontal'
                     size_hint_y: None
                     size: 40, extrude_length.minimum_height
-                    TextInput:
+                    NumericInput:
                         id: extrude_length
                         multiline: False
                         size_hint_y: None
@@ -56,7 +59,7 @@
                     orientation: 'horizontal'
                     size_hint_y: None
                     size: 40, extrude_speed.minimum_height
-                    TextInput:
+                    NumericInput:
                         id: extrude_speed
                         multiline: False
                         size_hint_y: None
