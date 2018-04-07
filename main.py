@@ -281,7 +281,7 @@ class JogRoseWidget(BoxLayout):
         self.xy_feedrate= self.app.config.get('Jog', 'xy_feedrate')
 
     def handle_action(self, axis, v):
-        x10= self.ids.x10cb.active
+        x10= self.ids.x10cb.activeb
         if x10:
             v *= 10
         if axis == 'O':
@@ -748,6 +748,32 @@ class SmoothieHost(App):
 
         return self.sm
 
+    def blank_screen(self):
+        ok= False
+        try:
+            with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
+                f.write('1\n')
+            ok= True
+        except:
+            pass
+
+        if ok:
+            self._blanked= True
+            self.sm.bind(on_touch_down=self._on_touch_down)
+        else:
+            self._blanked= False
+
+    def _on_touch_down(self, a, b):
+        print("_on touch down")
+        self.sm.unbind(on_touch_down=self._on_touch_down)
+        try:
+            with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
+                f.write('0\n')
+            self._blanked= False
+        except:
+            pass
+
+        return True
 
 SmoothieHost().run()
 
