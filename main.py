@@ -281,7 +281,7 @@ class JogRoseWidget(BoxLayout):
         self.xy_feedrate= self.app.config.get('Jog', 'xy_feedrate')
 
     def handle_action(self, axis, v):
-        x10= self.ids.x10cb.activeb
+        x10= self.ids.x10cb.active
         if x10:
             v *= 10
         if axis == 'O':
