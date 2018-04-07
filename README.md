@@ -93,12 +93,27 @@ To autostart smoopi on boot but run as the sysop user follow the following direc
 2. in the sysop home directory run ```tar xvf INSTALLDIR/runit_setup.tar``` (where INSTALLDIR is where you checked out the smoopi source)
 3. sudo ln -s /home/sysop/sv/smoopi /etc/service
 
+To allow Smoopi to connect to the smoothie when auto start by runit you need to do this...
+    
+    sudo jove /etc/udev/rules.d/90-smoothie.rules
+    and add this...
+
+    SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6015", MODE="0666"
+    SUBSYSTEM=="tty", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6015", MODE="0666", SYMLINK+="smoothie%n"
+
+
 smoopi is now managed by runit. (This has the side effect of restarting smoopi if it crashes).
 
 The smoopi app will start, and will also start on boot. (To stop it you type ```sudo sv stop /etc/service/smoopi```)
 
 Optionally to add a button to boot and to shutdown the rpi install a NORMALLY OPEN push button on pins 5 and 6 on the header, 
 then you need to add the shutdown script to autostart... ```sudo ln -s /home/sysop/sv/shutdown /etc/service```
+
+To allow Smoopi to turn on/off the backlight you need to do this...
+
+    sudo nano /etc/udev/rules.d/backlight-permissions.rules
+    and add this...
+    SUBSYSTEM=="backlight",RUN+="/bin/chmod 666 /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power"
 
 
 
