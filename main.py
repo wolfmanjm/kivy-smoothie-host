@@ -32,6 +32,7 @@ from input_box import InputBox
 from selection_box import SelectionBox
 from file_dialog import FileDialog
 from viewer import GcodeViewerScreen
+from web_server import ProgressServer
 
 import traceback
 import queue
@@ -629,7 +630,7 @@ class MainScreen(Screen):
 
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)
-    status= StringProperty("")
+    status= StringProperty("Not Connected")
     wpos= ListProperty([0,0,0])
     mpos= ListProperty([0,0,0])
     fr= NumericProperty(0)
@@ -648,6 +649,7 @@ class SmoothieHost(App):
             self.use_com_port= sys.argv[1]
         else:
             self.use_com_port= None
+        self.webserver= False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -656,7 +658,8 @@ class SmoothieHost(App):
             'serial_port': 'serial:///dev/ttyACM0',
             'report_rate': '1',
             'desktop': 'false',
-            'cnc': 'false'
+            'cnc': 'false',
+            'webserver': 'false'
         })
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',
@@ -692,7 +695,14 @@ class SmoothieHost(App):
                   "title": "Report rate",
                   "desc": "Rate in seconds to query for status from Smoothie",
                   "section": "General",
-                  "key": "report_rate" }
+                  "key": "report_rate" },
+
+                { "type": "bool",
+                  "title": "Web Server",
+                  "desc": "Turn on Web server to remotely check progress",
+                  "section": "General",
+                  "key": "webserver"
+                }
             ]
         """
         config = ConfigParser()
@@ -708,6 +718,8 @@ class SmoothieHost(App):
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop
         self.comms.stop(); # stop the aysnc loop
+        if self.is_webserver:
+            self.webserver.stop()
 
     def build(self):
         if self.config.getboolean('General', 'desktop'):
@@ -726,6 +738,7 @@ class SmoothieHost(App):
         else:
             self.is_cnc= False
 
+        self.is_webserver= self.config.getboolean('General', 'webserver')
 
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
@@ -745,6 +758,10 @@ class SmoothieHost(App):
             else:
                 # remove MPG panel
                 self.main_window.ids.page_layout.remove_widget(self.main_window.ids.mpg_widget)
+
+        if self.is_webserver:
+            self.webserver= ProgressServer()
+            self.webserver.start(self, 8000)
 
         return self.sm
 
