@@ -654,6 +654,7 @@ class SmoothieHost(App):
         else:
             self.use_com_port= None
         self.webserver= False
+        self.show_video= False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -663,7 +664,8 @@ class SmoothieHost(App):
             'report_rate': '1',
             'desktop': 'false',
             'cnc': 'false',
-            'webserver': 'false'
+            'webserver': 'false',
+            'show_video': 'false'
         })
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',
@@ -706,8 +708,17 @@ class SmoothieHost(App):
                   "desc": "Turn on Web server to remotely check progress",
                   "section": "General",
                   "key": "webserver"
+                },
+
+                { "type": "bool",
+                  "title": "Show Video",
+                  "desc": "Display mjpeg video in web progress",
+                  "section": "General",
+                  "key": "show_video"
                 }
             ]
+
+
         """
         config = ConfigParser()
         config.read('smoothiehost.ini')
@@ -743,6 +754,7 @@ class SmoothieHost(App):
             self.is_cnc= False
 
         self.is_webserver= self.config.getboolean('General', 'webserver')
+        self.show_video= self.config.getboolean('General', 'show_video')
 
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')

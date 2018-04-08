@@ -25,6 +25,9 @@ def make_request_handler_class(app):
             else:
                 self.wfile.write("{} - Not Printing".format(status).encode("utf-8"))
 
+            if MyRequestHandler.m_app.show_video:
+                self.wfile.write('\r\n<hr><center><img src="./?action=stream" /></center>\r\n'.encode("utf-8"))
+
 
         def do_POST(self):
             # Doesn't do anything with posted data
