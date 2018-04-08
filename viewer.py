@@ -201,8 +201,9 @@ class GcodeViewerScreen(Screen):
         Logger.debug("GcodeViewerScreen: parsing file {}". format(fn))
         lastpos= [self.app.wpos[0],self.app.wpos[1],-1] # XYZ, set to initial tool position
         lastz= None
+        lastdeltaz= None
         laste= 0
-        layer= 0
+        layer= -1
         last_gcode= -1
         points= []
         max_x= float('nan')
@@ -226,6 +227,8 @@ class GcodeViewerScreen(Screen):
         self.canv.add(PushMatrix())
         modal_g= 0
         cnt= 0
+        found_layer= False
+
         with open(fn) as f:
             # if self.last_file_pos:
             #     # jump to last read position
@@ -275,10 +278,16 @@ class GcodeViewerScreen(Screen):
 
                 if not self.cam_mode :
                     # handle layers (when Z changes)
+                    if z == -1:
+                        # no z seen yet
+                        layer= -1
+                        continue
+
                     if lastz is None:
                         # first layer
                         lastz= z
                         layer= 1
+
 
                     if z != lastz:
                         # count layers
@@ -287,6 +296,7 @@ class GcodeViewerScreen(Screen):
 
                     # wait until we get to the requested layer
                     if layer != target_layer:
+                        lastpos[2]= z
                         continue
 
                     if layer > target_layer and one_layer:
@@ -295,7 +305,11 @@ class GcodeViewerScreen(Screen):
                         #print('Saved position: {}'.format(self.last_file_pos))
                         break
 
-                    self.current_z= lastpos[2]
+                    self.current_z= z
+
+                found_layer= True
+
+                Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}".format(x, y, z))
 
                 # find bounding box
                 if math.isnan(min_x) or x < min_x: min_x= x
@@ -446,6 +460,13 @@ class GcodeViewerScreen(Screen):
                 lastpos= [x, y, z]
                 laste= e
 
+        if not found_layer:
+            # we hit the end of file before finding the layer we want
+            Logger.info("GcodeViewerScreen: last layer was at {}".format(lastz))
+            if self.timer: self.timer.cancel()
+            self.last_target_layer-=1
+            return
+
         # flush any points not yet drawn
         if points:
             # draw accumulated points upto this point
@@ -458,6 +479,7 @@ class GcodeViewerScreen(Screen):
         dy= max_y-min_y
         if dx == 0 or dy == 0 :
             Logger.warning("GcodeViewerScreen: size is bad, maybe need cam mode")
+            if self.timer: self.timer.cancel()
             return
 
         dx += 4
