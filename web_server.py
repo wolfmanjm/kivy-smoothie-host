@@ -5,11 +5,24 @@ import logging
 from kivy.logger import Logger
 import traceback
 import threading
+import socket
 
-def make_request_handler_class(app):
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
+def make_request_handler_class(app, ip):
     class MyRequestHandler(BaseHTTPRequestHandler):
         m_app= app
-
+        m_ip= ip
         def _set_headers(self):
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
@@ -26,8 +39,7 @@ def make_request_handler_class(app):
                 self.wfile.write("{} - Not Printing".format(status).encode("utf-8"))
 
             if MyRequestHandler.m_app.show_video:
-                self.wfile.write('\r\n<hr><center><img src="./?action=stream" /></center>\r\n'.encode("utf-8"))
-
+                self.wfile.write('\r\n<hr><center><img src="{}:8080/?action=stream" /></center>\r\n'.format(MyRequestHandler.m_ip).encode("utf-8"))
 
         def do_POST(self):
             # Doesn't do anything with posted data
@@ -44,7 +56,8 @@ class ProgressServer(object):
         t.start()
 
     def _start(self):
-        RequestHandlerClass = make_request_handler_class(self.app)
+        ip= get_ip()
+        RequestHandlerClass = make_request_handler_class(self.app, ip)
         self.myServer = HTTPServer(("", self.port), RequestHandlerClass)
         Logger.info("ProgressServer: Web Server Starting - %s:%s" % ("", self.port))
 
