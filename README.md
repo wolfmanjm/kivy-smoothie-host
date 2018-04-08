@@ -115,7 +115,10 @@ To allow Smoopi to turn on/off the backlight you need to do this...
     and add this...
     SUBSYSTEM=="backlight",RUN+="/bin/chmod 666 /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power"
 
-
+### Builtin webserver and optional video
+In Settings you can turn on the webserver which will simply allow you to get current progress from any web browser, nothing fancy.
+Also in Settings you can enable the video option which uses mjpg-streamer 
+(which needs to be built and installed, See octoprint for instructions on that). If enabled and running then the video will show up in the progress web page.
 
 ## On linux Desktop (and maybe windows/macos)
 
