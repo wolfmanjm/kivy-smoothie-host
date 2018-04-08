@@ -309,6 +309,7 @@ class KbdWidget(GridLayout):
     def __init__(self, **kwargs):
         super(KbdWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.last_command= ""
 
     def _add_line_to_log(self, s):
         self.app.main_window.async_display(s)
@@ -318,7 +319,10 @@ class KbdWidget(GridLayout):
             #Logger.debug("KbdWidget: Sending {}".format(self.display.text))
             self._add_line_to_log('<< {}'.format(self.display.text))
             self.app.comms.write('{}\n'.format(self.display.text))
+            self.last_command = self.display.text
             self.display.text = ''
+        elif key == 'Repeat':
+            self.display.text = self.last_command
         elif key == 'BS':
             self.display.text = self.display.text[:-1]
         else:
