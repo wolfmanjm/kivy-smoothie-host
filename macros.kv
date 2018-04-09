@@ -48,3 +48,8 @@
         oncmd: '~'
         offcmd: '!'
         check: 'feed hold'
+
+    MacroButton:
+        text: 'Reprint Last'
+        disabled: app.gcode_file == ''
+        on_press: app.main_window.reprint()

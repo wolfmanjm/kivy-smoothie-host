@@ -565,6 +565,9 @@ class MainWindow(BoxLayout):
         self.is_printing= True
         self.paused= False
 
+    def reprint(self):
+        self._start_print(self.app.gcode_file, self.last_path)
+
     @mainthread
     def stream_finished(self, ok):
         ''' called when streaming gcode has finished, ok is True if it completed '''
@@ -648,6 +651,7 @@ class SmoothieHost(App):
     is_desktop= BooleanProperty(False)
     is_cnc= BooleanProperty(False)
     main_window= ObjectProperty()
+    gcode_file= StringProperty()
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
