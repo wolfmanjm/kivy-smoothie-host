@@ -745,6 +745,9 @@ class SmoothieHost(App):
         if self.is_webserver:
             self.webserver.stop()
 
+    def on_start(self):
+        self.config.update_config('smoothiehost.ini')
+
     def build(self):
         if self.config.getboolean('General', 'desktop'):
             self.is_desktop= True
