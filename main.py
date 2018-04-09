@@ -746,6 +746,7 @@ class SmoothieHost(App):
             self.webserver.stop()
 
     def on_start(self):
+        # in case we added something to the defaults, make sure they are written to the ini file
         self.config.update_config('smoothiehost.ini')
 
     def build(self):
