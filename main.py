@@ -667,9 +667,7 @@ class SmoothieHost(App):
             'serial_port': 'serial:///dev/ttyACM0',
             'report_rate': '1',
             'desktop': 'false',
-            'cnc': 'false',
-            'webserver': 'false',
-            'show_video': 'false'
+            'cnc': 'false'
         })
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',
@@ -679,6 +677,10 @@ class SmoothieHost(App):
         })
         config.setdefaults('Jog', {
             'xy_feedrate': '3000'
+        })
+        config.setdefaults('Web', {
+            'webserver': 'false',
+            'show_video': 'false'
         })
 
     def build_settings(self, settings):
@@ -707,17 +709,20 @@ class SmoothieHost(App):
                   "section": "General",
                   "key": "report_rate" },
 
+                { "type": "title",
+                  "title": "Web Settings" },
+
                 { "type": "bool",
                   "title": "Web Server",
                   "desc": "Turn on Web server to remotely check progress",
-                  "section": "General",
+                  "section": "Web",
                   "key": "webserver"
                 },
 
                 { "type": "bool",
                   "title": "Show Video",
                   "desc": "Display mjpeg video in web progress",
-                  "section": "General",
+                  "section": "Web",
                   "key": "show_video"
                 }
             ]
@@ -757,8 +762,8 @@ class SmoothieHost(App):
         else:
             self.is_cnc= False
 
-        self.is_webserver= self.config.getboolean('General', 'webserver')
-        self.show_video= self.config.getboolean('General', 'show_video')
+        self.is_webserver= self.config.getboolean('Web', 'webserver')
+        self.show_video= self.config.getboolean('Web', 'show_video')
 
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
