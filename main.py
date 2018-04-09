@@ -550,9 +550,13 @@ class MainWindow(BoxLayout):
 
         self.start_print_time= datetime.datetime.now()
         self.display('>>> Printing file: {}, {} lines'.format(file_path, self.nlines))
-        self.display('>>> Print started at: {}'.format(self.start_print_time.strftime('%x %X')))
 
-        self.app.comms.stream_gcode(file_path, progress= lambda x: self.display_progress(x))
+        if self.app.comms.stream_gcode(file_path, progress= lambda x: self.display_progress(x)):
+            self.display('>>> Print started at: {}'.format(self.start_print_time.strftime('%x %X')))
+        else:
+            self.display('WARNING Unable to start print')
+            return
+
         if directory != self.last_path:
             self.last_path= directory
             self.config.set('General', 'last_gcode_path', directory)
