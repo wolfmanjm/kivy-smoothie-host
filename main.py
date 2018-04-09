@@ -195,6 +195,8 @@ class ExtruderWidget(BoxLayout):
                     self.bed_dg.setpoint_value= setpoint
                 else:
                     self.bed_dg.setpoint_value= float('nan')
+                    if self.bed_switch.active:
+                        self.bed_switch.active= False
 
         elif type == 'hotend':
             if temp:
@@ -205,6 +207,8 @@ class ExtruderWidget(BoxLayout):
                     self.hotend_dg.setpoint_value= setpoint
                 else:
                     self.hotend_dg.setpoint_value= float('nan')
+                    if self.hotend_switch.active:
+                        self.hotend_switch.active= False
 
 
         else:
@@ -586,7 +590,7 @@ class MainWindow(BoxLayout):
                 eta= 0
 
             #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
-            self.eta= '{} | {:.1%} | Z{}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n/self.nlines, self.app.wpos[2])
+            self.eta= '{} | {:.1%} | Z{:.2}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n/self.nlines, float(self.app.wpos[2]))
 
     def list_sdcard(self):
         if self.app.comms.list_sdcard(self._list_sdcard_results):
