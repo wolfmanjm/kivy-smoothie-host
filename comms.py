@@ -441,6 +441,11 @@ class Comms():
                 # process the response to M115
                 self._parse_m115(s)
 
+            elif s.startswith("switch "):
+                # switch fan is 0
+                n, x, v= s[7:].split(' ')
+                self.app.main_window.ids.macros.switch_response(n, v)
+
             else:
                 self.app.main_window.async_display('{}'.format(s))
 

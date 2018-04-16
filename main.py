@@ -116,14 +116,28 @@ class MacrosWidget(StackLayout):
         except:
             Logger.warning('MacrosWidget: exception parsing config file: {}'.format(traceback.format_exc()))
 
+    def update_buttons(self):
+        # check the state of the toggle macro buttons
+        for i in self.children:
+            if i.__class__ == Factory.MacroToggleButton:
+                # sends this, the response will be caught by comms as switch xxx is yyy
+                if i.check != '':
+                    self.send(i.check)
 
-    # def check_macros(self):
-    #     # periodically check the state of the toggle macro buttons
-    #     for i in self.children:
-    #         if i.__class__ == Factory.MacroToggleButton:
-    #             # sends this, but then how to get response?
-    #             print(i.check)
-    #             # check response and compare state with current state and toggle to match state if necessary
+    @mainthread
+    def switch_response(self, name, value):
+        # check response and compare state with current state and toggle to match state if necessary
+        if name == 'psu':
+            if value == '0' and self.ids.power_but.state != 'normal':
+                self.ids.power_but.state = 'normal'
+            elif value == '1' and self.ids.power_but.state == 'normal':
+                self.ids.power_but.state = 'pressed'
+
+        elif name == 'fan':
+            if value == '0' and self.ids.fan_but.state != 'normal':
+                self.ids.fan_but.state = 'normal'
+            elif value == '1' and self.ids.fan_but.state == 'normal':
+                self.ids.fan_but.state = 'pressed'
 
     def send(self, cmd, *args):
         self.app.comms.write('{}\n'.format(cmd))
@@ -358,6 +372,11 @@ class MainWindow(BoxLayout):
 
     def my_callback(self, dt):
         self.ids.page_layout.index= 1 # switch to jog screen
+
+    def switched_to(self, instance, value):
+        # we switched to a new screen
+        if value == 4: # macros screen
+            self.ids.macros.update_buttons()
 
     def add_line_to_log(self, s):
         ''' Add lines to the log window, which is trimmed to the last 200 lines '''
