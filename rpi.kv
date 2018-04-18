@@ -110,6 +110,7 @@
             id: tc
             carousel: carousel
             macros: macros
+            extruder_tab: tab6
             do_default_tab: False
             tab_pos: 'top_mid'
             tab_width: 65
@@ -141,13 +142,13 @@
                     id: macros
                     tab: tab4
 
-                ExtruderWidget:
-                    id: extruder
-                    tab: tab5
-
                 MPGWidget:
                     id: mpg_widget
                     disabled: root.is_printing
+                    tab: tab5
+
+                ExtruderWidget:
+                    id: extruder
                     tab: tab6
 
             TabbedPanelItem:
@@ -168,10 +169,10 @@
                 slide: 3
             TabbedPanelItem:
                 id: tab5
-                text: 'Extruder'
+                text: 'MPG'
                 slide: 4
             TabbedPanelItem:
                 id: tab6
-                text: 'MPG'
+                text: 'Extruder'
                 slide: 5
 

@@ -825,13 +825,15 @@ class SmoothieHost(App):
 
         if not self.is_desktop:
             # setup for cnc or 3d printer
-            # TODO need to also remove from tabs or actionbar
+            # TODO need to also remove from tabs in desktop
             if self.is_cnc:
-                # remove Extruder panel
+                # remove Extruder panel from carousel and tab
+                self.main_window.ids.tc.remove_widget(self.main_window.ids.tc.extruder_tab)
                 self.main_window.ids.carousel.remove_widget(self.main_window.ids.extruder)
 
             # else:
             #     # remove MPG panel
+            #     self.main_window.ids.tc.remove_widget(self.main_window.ids.tc.mpg_tab)
             #     self.main_window.ids.carousel.remove_widget(self.main_window.ids.mpg_widget)
 
         if self.is_webserver:
