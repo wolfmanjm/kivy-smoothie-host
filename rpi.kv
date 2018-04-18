@@ -9,6 +9,8 @@
 #     # set default font size
 #     font_size: dp(12)
 
+<TabbedCarousel>
+
 <MainScreen>:
     MainWindow:
         id: main_window
@@ -43,35 +45,6 @@
             ActionButton:
                 text: 'Viewer'
                 on_press: root.show_viewer()
-
-            ActionGroup:
-                text: 'Modes'
-                ActionButton:
-                    text: 'Console'
-                    group: 'winds'
-                    on_press: page_layout.index= 2
-                ActionButton:
-                    text: 'Jog'
-                    group: 'winds'
-                    on_press: page_layout.index= 0
-                ActionButton:
-                    text: 'MPG'
-                    group: 'winds'
-                    disabled: not app.is_cnc
-                    on_press: page_layout.index= 3
-                ActionButton:
-                    text: 'Extruder'
-                    group: 'winds'
-                    disabled: app.is_cnc
-                    on_press: page_layout.index= 3
-                ActionButton:
-                    text: 'Macros'
-                    group: 'winds'
-                    on_press: page_layout.index= 4
-                ActionButton:
-                    text: 'DRO'
-                    group: 'winds'
-                    on_press: page_layout.index= 1
 
             ActionGroup:
                 text: 'System'
@@ -133,33 +106,72 @@
                     color: 0,0,0,1
 
         # Right panel
-        Carousel:
-            id: page_layout
-            border: 30
-            direction: 'top'
-            loop: True
-            ignore_perpendicular_swipes: True
-            #scroll_distance: 10
-            min_move: 0.1
-            on_index: root.switched_to(*args)
+        TabbedCarousel:
+            id: tc
+            carousel: carousel
+            macros: macros
+            do_default_tab: False
+            tab_pos: 'top_mid'
+            tab_width: 65
+            tab_height: 30
+            Carousel:
+                on_index: tc.on_index(*args)
+                id: carousel
+                border: 30
+                direction: 'top'
+                loop: True
+                ignore_perpendicular_swipes: True
+                #scroll_distance: 10
+                min_move: 0.1
 
-            JogRoseWidget:
-                id: jog_rose
-                disabled: root.is_printing
+                JogRoseWidget:
+                    id: jog_rose
+                    tab: tab1
+                    disabled: root.is_printing
 
-            DROWidget:
-                id: dro_widget
+                DROWidget:
+                    id: dro_widget
+                    tab: tab2
 
-            KbdWidget:
-                id: kbd_widget
+                KbdWidget:
+                    id: kbd_widget
+                    tab: tab3
 
-            MPGWidget:
-                id: mpg_widget
-                disabled: root.is_printing
+                MacrosWidget:
+                    id: macros
+                    tab: tab4
 
-            ExtruderWidget:
-                id: extruder
+                ExtruderWidget:
+                    id: extruder
+                    tab: tab5
 
-            MacrosWidget:
-                id: macros
+                MPGWidget:
+                    id: mpg_widget
+                    disabled: root.is_printing
+                    tab: tab6
+
+            TabbedPanelItem:
+                id: tab1
+                text: 'Jog'
+                slide: 0
+            TabbedPanelItem:
+                id: tab2
+                text: 'DRO'
+                slide: 1
+            TabbedPanelItem:
+                id: tab3
+                text: 'Console'
+                slide: 2
+            TabbedPanelItem:
+                id: tab4
+                text: 'Macros'
+                slide: 3
+            TabbedPanelItem:
+                id: tab5
+                text: 'Extruder'
+                slide: 4
+            TabbedPanelItem:
+                id: tab6
+                text: 'MPG'
+                slide: 5
 

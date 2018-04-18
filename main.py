@@ -15,6 +15,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors.button import ButtonBehavior
+from kivy.uix.tabbedpanel import TabbedPanel
 
 from kivy.properties import NumericProperty, StringProperty, ObjectProperty, ListProperty, BooleanProperty
 from kivy.vector import Vector
@@ -68,7 +69,7 @@ class NumericInput(TextInput):
         self.keyboard_mode= 'managed'
 
 class DROWidget(RelativeLayout):
-    """DROWidget Shows reltime information in a DRO style"""
+    """DROWidget Shows realtime information in a DRO style"""
     def __init__(self, **kwargs):
         super(DROWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
@@ -117,7 +118,7 @@ class MacrosWidget(StackLayout):
             Logger.warning('MacrosWidget: exception parsing config file: {}'.format(traceback.format_exc()))
 
     def update_buttons(self):
-        # check the state of the toggle macro buttons
+        # check the state of the toggle macro buttons, called when we switch to the macro window
         for i in self.children:
             if i.__class__ == Factory.MacroToggleButton:
                 # sends this, the response will be caught by comms as switch xxx is yyy
@@ -370,13 +371,8 @@ class MainWindow(BoxLayout):
         #print('font size: {}'.format(self.ids.log_window.font_size))
         #Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
 
-    def my_callback(self, dt):
-        self.ids.page_layout.index= 1 # switch to jog screen
-
-    def switched_to(self, instance, value):
-        # we switched to a new screen
-        if value == 4: # macros screen
-            self.ids.macros.update_buttons()
+    # def my_callback(self, dt):
+    #     self.ids.carousel.index= 1 # switch to jog screen
 
     def add_line_to_log(self, s):
         ''' Add lines to the log window, which is trimmed to the last 200 lines '''
@@ -658,6 +654,29 @@ class MainWindow(BoxLayout):
             self.config.set('General', 'last_gcode_path', directory)
             self.app.config.write()
 
+class TabbedCarousel(TabbedPanel):
+    def on_index(self, instance, value):
+        tab = instance.current_slide.tab
+        if self.current_tab != tab:
+            self.switch_to(tab)
+
+    def switch_to(self, header):
+        # hack needed as for some reason we get called with default tab even though we asked not to
+        if not hasattr(header, 'slide'):
+            return
+
+        # we have to replace the functionality of the original switch_to
+        self.current_tab.state = "normal"
+        header.state = 'down'
+        self._current_tab = header
+        # set the carousel to load the appropriate slide
+        # saved in the screen attribute of the tab head
+        self.carousel.index = header.slide
+        # we switched to a new screen in carousel check it
+        if header.slide == 3: # macros screen
+            self.macros.update_buttons()
+
+
 
 class MainScreen(Screen):
     pass
@@ -809,11 +828,11 @@ class SmoothieHost(App):
             # TODO need to also remove from tabs or actionbar
             if self.is_cnc:
                 # remove Extruder panel
-                self.main_window.ids.page_layout.remove_widget(self.main_window.ids.extruder)
+                self.main_window.ids.carousel.remove_widget(self.main_window.ids.extruder)
 
-            else:
-                # remove MPG panel
-                self.main_window.ids.page_layout.remove_widget(self.main_window.ids.mpg_widget)
+            # else:
+            #     # remove MPG panel
+            #     self.main_window.ids.carousel.remove_widget(self.main_window.ids.mpg_widget)
 
         if self.is_webserver:
             self.webserver= ProgressServer()
