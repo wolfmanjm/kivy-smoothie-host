@@ -799,6 +799,8 @@ class SmoothieHost(App):
         token = (section, key)
         if token == ('General', 'cnc'):
             self.is_cnc = value == "1"
+        elif token == ('UI', 'tab_top'):
+            self.tab_top = value == "1"
 
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop
