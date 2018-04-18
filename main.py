@@ -692,6 +692,7 @@ class SmoothieHost(App):
 
     is_desktop= BooleanProperty(False)
     is_cnc= BooleanProperty(False)
+    tab_top= BooleanProperty(False)
     main_window= ObjectProperty()
     gcode_file= StringProperty()
 
@@ -711,10 +712,14 @@ class SmoothieHost(App):
             'last_gcode_path': os.path.expanduser("~"),
             'last_print_file': '',
             'serial_port': 'serial:///dev/ttyACM0',
-            'report_rate': '1',
-            'desktop': 'false',
-            'cnc': 'false'
+            'report_rate': '1'
         })
+        config.setdefaults('UI', {
+            'desktop': 'false',
+            'cnc': 'false',
+            'tab_top': 'false'
+        })
+
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',
             'last_hotend_temp': '185',
@@ -733,21 +738,31 @@ class SmoothieHost(App):
         jsondata = """
             [
                 { "type": "title",
-                  "title": "General Settings" },
+                  "title": "UI Settings" },
 
                 { "type": "bool",
                   "title": "Desktop Layout",
                   "desc": "Turn on for a Desktop layout, otherwise it is RPI 7in touch screen layout",
-                  "section": "General",
+                  "section": "UI",
                   "key": "desktop"
                 },
 
                 { "type": "bool",
                   "title": "CNC layout",
                   "desc": "Turn on for a CNC layout, otherwise it is a 3D printer Layout",
-                  "section": "General",
+                  "section": "UI",
                   "key": "cnc"
                 },
+
+                { "type": "bool",
+                  "title": "Tabs on top",
+                  "desc": "TABS are on top of the screen",
+                  "section": "UI",
+                  "key": "tab_top"
+                },
+
+                { "type": "title",
+                  "title": "General Settings" },
 
                 { "type": "numeric",
                   "title": "Report rate",
@@ -796,7 +811,7 @@ class SmoothieHost(App):
         self.config.update_config('smoothiehost.ini')
 
     def build(self):
-        if self.config.getboolean('General', 'desktop'):
+        if self.config.getboolean('UI', 'desktop'):
             self.is_desktop= True
             # load the layouts for the desktop screen
             Builder.load_file('desktop.kv')
@@ -807,10 +822,12 @@ class SmoothieHost(App):
             # load the layouts for rpi 7" touch screen
             Builder.load_file('rpi.kv')
 
-        if self.config.getboolean('General', 'cnc'):
+        if self.config.getboolean('UI', 'cnc'):
             self.is_cnc= True
         else:
             self.is_cnc= False
+
+        self.tab_top= self.config.getboolean('UI', 'tab_top')
 
         self.is_webserver= self.config.getboolean('Web', 'webserver')
         self.show_video= self.config.getboolean('Web', 'show_video')
