@@ -146,6 +146,8 @@ class MacrosWidget(StackLayout):
 class ExtruderWidget(BoxLayout):
     bed_dg= ObjectProperty()
     hotend_dg= ObjectProperty()
+    last_bed_temp= NumericProperty()
+    last_hotend_temp= NumericProperty()
 
     def __init__(self, **kwargs):
         super(ExtruderWidget, self).__init__(**kwargs)

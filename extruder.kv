@@ -2,6 +2,13 @@
 
 <NumericInput>
 
+<HotendSpinnerOptions@SpinnerOption>
+    background_color: .4, .4, .4, 1
+    on_release: app.main_window.ids.extruder.last_hotend_temp= float(self.text.split()[0])
+<BedSpinnerOptions@SpinnerOption>
+    background_color: .4, .4, .4, 1
+    on_release: app.main_window.ids.extruder.last_bed_temp= float(self.text.split()[0])
+
 <ExtruderWidget>:
     orientation: 'vertical'
     canvas.before:
@@ -11,6 +18,7 @@
             pos: self.pos
             size: self.size
 
+    id: extruder
     hotend_dg: hotend_dg
     bed_dg: bed_dg
     hotend_switch: hotend_switch
@@ -178,6 +186,7 @@
         cols: 5
         padding: 5, 5
         spacing: 5
+        set_hotend_temp: set_hotend_temp
 
         Label:
             size_hint_x: None
@@ -191,6 +200,7 @@
             id: set_hotend_temp
             text: 'select temp' if not root.last_hotend_temp else str(root.last_hotend_temp)
             values: ('185 (PLA)', '230 (abs)')
+            option_cls: Factory.HotendSpinnerOptions
 
         Label:
             size_hint_x: None
@@ -215,6 +225,7 @@
             id: set_bed_temp
             text: 'select temp' if not root.last_bed_temp else str(root.last_bed_temp)
             values: ('60 (PLA)', '110 (abs)')
+            option_cls: Factory.BedSpinnerOptions
         Label:
             size_hint_x: None
             width: self.texture_size[0]
