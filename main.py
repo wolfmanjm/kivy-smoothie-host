@@ -726,7 +726,9 @@ class SmoothieHost(App):
             'last_bed_temp': '60',
             'last_hotend_temp': '185',
             'length': '20',
-            'speed': '300'
+            'speed': '300',
+            'hotend_presets': '185 (PLA), 230 (ABS)',
+            'bed_presets': '60 (PLA), 110 (ABS)'
         })
         config.setdefaults('Jog', {
             'xy_feedrate': '3000'
@@ -787,6 +789,23 @@ class SmoothieHost(App):
                   "desc": "Display mjpeg video in web progress",
                   "section": "Web",
                   "key": "show_video"
+                },
+
+                { "type": "title",
+                  "title": "Extruder Settings" },
+
+                { "type": "string",
+                  "title": "Hotend Presets",
+                  "desc": "Set the comma separated presets for the hotend temps",
+                  "section": "Extruder",
+                  "key": "hotend_presets"
+                },
+
+                { "type": "string",
+                  "title": "Bed Presets",
+                  "desc": "Set the comma separated presets for the bed temps",
+                  "section": "Extruder",
+                  "key": "bed_presets"
                 }
             ]
 
@@ -803,6 +822,10 @@ class SmoothieHost(App):
             self.is_cnc = value == "1"
         elif token == ('UI', 'tab_top'):
             self.tab_top = value == "1"
+        elif token == ('Extruder', 'hotend_presets'):
+            self.main_window.ids.extruder.ids.set_hotend_temp.values= value.split(',')
+        elif token == ('Extruder', 'bed_presets'):
+            self.main_window.ids.extruder.ids.set_bed_temp.values= value.split(',')
 
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop

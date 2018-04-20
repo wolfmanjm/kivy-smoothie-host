@@ -186,7 +186,6 @@
         cols: 5
         padding: 5, 5
         spacing: 5
-        set_hotend_temp: set_hotend_temp
 
         Label:
             size_hint_x: None
@@ -199,7 +198,7 @@
         Spinner:
             id: set_hotend_temp
             text: 'select temp' if not root.last_hotend_temp else str(root.last_hotend_temp)
-            values: ('185 (PLA)', '230 (abs)')
+            values: app.config.get('Extruder', 'hotend_presets').split(',')
             option_cls: Factory.HotendSpinnerOptions
 
         Label:
@@ -224,7 +223,7 @@
         Spinner:
             id: set_bed_temp
             text: 'select temp' if not root.last_bed_temp else str(root.last_bed_temp)
-            values: ('60 (PLA)', '110 (abs)')
+            values: app.config.get('Extruder', 'bed_presets').split(',')
             option_cls: Factory.BedSpinnerOptions
         Label:
             size_hint_x: None
