@@ -512,8 +512,10 @@ class Comms():
         self.progress= progress
         if self.proto and async_main_loop:
             async_main_loop.call_soon_threadsafe(self._stream_file, fn)
+            return True
         else:
             self.log.warning('Comms: Cannot print to a closed connection')
+            return False
 
     def _stream_file(self, fn):
         self.file_streamer= asyncio.async(self.stream_file(fn))

@@ -132,13 +132,13 @@ class MacrosWidget(StackLayout):
             if value == '0' and self.ids.power_but.state != 'normal':
                 self.ids.power_but.state = 'normal'
             elif value == '1' and self.ids.power_but.state == 'normal':
-                self.ids.power_but.state = 'pressed'
+                self.ids.power_but.state = 'down'
 
         elif name == 'fan':
             if value == '0' and self.ids.fan_but.state != 'normal':
                 self.ids.fan_but.state = 'normal'
             elif value == '1' and self.ids.fan_but.state == 'normal':
-                self.ids.fan_but.state = 'pressed'
+                self.ids.fan_but.state = 'down'
 
     def send(self, cmd, *args):
         self.app.comms.write('{}\n'.format(cmd))
