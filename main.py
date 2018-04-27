@@ -587,7 +587,13 @@ class MainWindow(BoxLayout):
         self.paused= False
 
     def reprint(self):
-        self._start_print(self.app.gcode_file, self.last_path)
+        # are you sure?
+        mb = MessageBox(text='Reprint {}?'.format(self.app.gcode_file), cb= self._reprint)
+        mb.open()
+
+    def _reprint(self, ok):
+        if ok:
+            self._start_print(self.app.gcode_file, self.last_path)
 
     @mainthread
     def stream_finished(self, ok):
@@ -778,7 +784,7 @@ class SmoothieHost(App):
 
                 { "type": "numeric",
                   "title": "Blank Timeout",
-                  "desc": "Inactive timeout in seconds before screen will balnk",
+                  "desc": "Inactive timeout in seconds before screen will blank",
                   "section": "General",
                   "key": "blank_timeout" },
 
