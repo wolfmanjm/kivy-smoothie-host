@@ -885,10 +885,9 @@ class SmoothieHost(App):
         self.main_window= ms.ids.main_window
 
         self.blank_timeout= self.config.getint('General', 'blank_timeout')
-        if self.blank_timeout > 0:
-            self.sm.bind(on_touch_down=self._on_touch)
-            Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
+        Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
 
+        self.sm.bind(on_touch_down=self._on_touch)
         Clock.schedule_interval(self._every_second, 1)
 
         if not self.is_desktop:
@@ -913,7 +912,7 @@ class SmoothieHost(App):
     def _every_second(self, dt):
         if self.blank_timeout > 0 and not self.main_window.is_printing:
             self.last_touch_time += 1
-            if self.last_touch_time > self.blank_timeout:
+            if self.last_touch_time >= self.blank_timeout:
                 self.last_touch_time= 0
                 self.blank_screen()
 
