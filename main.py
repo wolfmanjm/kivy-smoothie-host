@@ -708,13 +708,15 @@ class SmoothieHost(App):
             self.use_com_port= None
         self.webserver= False
         self.show_video= False
+        self._blanked= False
 
     def build_config(self, config):
         config.setdefaults('General', {
             'last_gcode_path': os.path.expanduser("~"),
             'last_print_file': '',
             'serial_port': 'serial:///dev/ttyACM0',
-            'report_rate': '1'
+            'report_rate': '1',
+            'blank_timeout': '0'
         })
         config.setdefaults('UI', {
             'desktop': 'false',
@@ -774,6 +776,12 @@ class SmoothieHost(App):
                   "section": "General",
                   "key": "report_rate" },
 
+                { "type": "numeric",
+                  "title": "Blank Timeout",
+                  "desc": "Inactive timeout in seconds before screen will balnk",
+                  "section": "General",
+                  "key": "blank_timeout" },
+
                 { "type": "title",
                   "title": "Web Settings" },
 
@@ -826,6 +834,8 @@ class SmoothieHost(App):
             self.main_window.ids.extruder.ids.set_hotend_temp.values= value.split(',')
         elif token == ('Extruder', 'bed_presets'):
             self.main_window.ids.extruder.ids.set_bed_temp.values= value.split(',')
+        elif token == ('General', 'blank_timeout'):
+            self.blank_timeout= float(value)
 
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop
@@ -867,6 +877,15 @@ class SmoothieHost(App):
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
         self.main_window= ms.ids.main_window
 
+        self.blank_timeout= self.config.getfloat('General', 'blank_timeout')
+        if self.blank_timeout > 0:
+            # schedule blank screen timeout
+            self.sm.bind(on_touch_down=self._on_touch)
+            self._blank_clock= Clock.schedule_once(self.blank_screen, self.blank_timeout)
+            Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
+        else:
+            self._blank_clock= None
+
         if not self.is_desktop:
             # setup for cnc or 3d printer
             # TODO need to also remove from tabs in desktop
@@ -886,32 +905,35 @@ class SmoothieHost(App):
 
         return self.sm
 
-    def blank_screen(self):
+    def blank_screen(self, dt= None):
         ok= False
         try:
             with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
                 f.write('1\n')
             ok= True
         except:
-            pass
+            Logger.warning("SmoothieHost: unable to blank screen")
 
-        if ok:
-            self._blanked= True
-            self.sm.bind(on_touch_down=self._on_touch_down)
-        else:
+        self._blanked= ok
+
+    def _on_touch(self, a, b):
+        if self._blanked:
             self._blanked= False
+            try:
+                with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
+                    f.write('0\n')
+                if self.blank_timeout > 0:
+                    self._blank_clock= Clock.schedule_once(self.blank_screen, self.blank_timeout)
+            except:
+                pass
 
-    def _on_touch_down(self, a, b):
-        print("_on touch down")
-        self.sm.unbind(on_touch_down=self._on_touch_down)
-        try:
-            with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
-                f.write('0\n')
-            self._blanked= False
-        except:
-            pass
+            return True
 
-        return True
+        elif self._blank_clock and self.blank_timeout > 0:
+            self._blank_clock.cancel()
+            self._blank_clock= Clock.schedule_once(self.blank_screen, self.blank_timeout)
+
+        return False
 
 SmoothieHost().run()
 
