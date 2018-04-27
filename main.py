@@ -715,6 +715,7 @@ class SmoothieHost(App):
         self.webserver= False
         self.show_video= False
         self._blanked= False
+        self.last_touch_time= 0
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -883,14 +884,12 @@ class SmoothieHost(App):
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
         self.main_window= ms.ids.main_window
 
-        self.blank_timeout= self.config.getfloat('General', 'blank_timeout')
+        self.blank_timeout= self.config.getint('General', 'blank_timeout')
         if self.blank_timeout > 0:
-            # schedule blank screen timeout
             self.sm.bind(on_touch_down=self._on_touch)
-            self._blank_clock= Clock.schedule_once(self.blank_screen, self.blank_timeout)
             Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
-        else:
-            self._blank_clock= None
+
+        Clock.schedule_interval(self._every_second, 1)
 
         if not self.is_desktop:
             # setup for cnc or 3d printer
@@ -911,33 +910,32 @@ class SmoothieHost(App):
 
         return self.sm
 
-    def blank_screen(self, dt= None):
-        ok= False
+    def _every_second(self, dt):
+        if self.blank_timeout > 0 and not self.main_window.is_printing:
+            self.last_touch_time += 1
+            if self.last_touch_time > self.blank_timeout:
+                self.last_touch_time= 0
+                self.blank_screen()
+
+    def blank_screen(self):
         try:
             with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
                 f.write('1\n')
-            ok= True
+            self._blanked= ok
         except:
             Logger.warning("SmoothieHost: unable to blank screen")
 
-        self._blanked= ok
-
     def _on_touch(self, a, b):
+        self.last_touch_time= 0
         if self._blanked:
             self._blanked= False
             try:
                 with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
                     f.write('0\n')
-                if self.blank_timeout > 0:
-                    self._blank_clock= Clock.schedule_once(self.blank_screen, self.blank_timeout)
             except:
                 pass
 
             return True
-
-        elif self._blank_clock and self.blank_timeout > 0:
-            self._blank_clock.cancel()
-            self._blank_clock= Clock.schedule_once(self.blank_screen, self.blank_timeout)
 
         return False
 
