@@ -920,7 +920,7 @@ class SmoothieHost(App):
         try:
             with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
                 f.write('1\n')
-            self._blanked= ok
+            self._blanked= True
         except:
             Logger.warning("SmoothieHost: unable to blank screen")
 
