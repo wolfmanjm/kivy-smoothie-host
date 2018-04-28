@@ -85,6 +85,7 @@ Builder.load_string('''
         FileChooser:
             id: filechooser
             multiselect: False
+            dirselect: True
             path: root.path
             filter_dirs: not root.show_dirs
             filters: ['*.g', '*.gcode', '*.nc', '*.ngc']
@@ -117,6 +118,7 @@ Builder.load_string('''
 
             Button:
                 text: "Load"
+                disabled: not (filechooser.selection and filechooser.selection[0] and not root.filesystem.is_dir(filechooser.selection[0]))
                 on_release: root.load(filechooser.path, filechooser.selection)
 ''')
 
