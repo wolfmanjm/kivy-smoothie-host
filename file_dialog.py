@@ -85,7 +85,7 @@ Builder.load_string('''
         FileChooser:
             id: filechooser
             multiselect: False
-            dirselect: True
+            dirselect: True # Because otherwise touch screen is broken
             path: root.path
             filter_dirs: not root.show_dirs
             filters: ['*.g', '*.gcode', '*.nc', '*.ngc']
