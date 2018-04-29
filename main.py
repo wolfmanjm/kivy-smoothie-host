@@ -277,9 +277,12 @@ class MPGWidget(RelativeLayout):
         # TODO disable if delta or corexy
         #MPG mode
         if self.ids.mpg_mode_tb.state == 'down':
-            d= 0 if ticks < 0 else 1
-            for x in range(0,abs(ticks)):
-                self.app.comms.write('step {} {} 32\n'.format(self.selected_axis.lower(), d))
+            if self.ids.fine_cb.active:
+                d= 1 if ticks < 0 else -1
+            else:
+                d= 16 if ticks < 0 else -16
+            sps= abs(ticks) * 1600 # number of ticks moved changes steps/sec
+            self.app.comms.write('test raw {} {} {}\n'.format(self.selected_axis.lower(), d, sps))
 
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()

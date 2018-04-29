@@ -42,7 +42,7 @@ There is a gcode visualizer window that shows the layers, or for CNC allows sett
 Click the Viewer menu item, select the file to view, then the layers can be moved up or down.
 To set the WPOS as a point in the view click the set WPOS button then touch the screen and cross haors will appear and track your finger, release on the point and that point will be set as WPOS. To move the gantry to a point on the view click the move gantry button then touch and drag until you get the point and release and the gantry will move to that point.
 
-The Kivy file browser is pretty crude and buggy. To allow it to be usable on a touch panel I had to set it so directory changes require duoble taps on the directory. I also do not enable the Load button unless a valid file is selected by tapping the file. This allows swiping to scroll the file lists to work reliably.
+The Kivy file browser is pretty crude and buggy. To allow it to be usable on a touch panel I had to set it so directory changes require double taps on the directory. I also do not enable the Load button unless a valid file is selected by tapping the file. This allows swiping to scroll the file lists to work reliably.
 
 ## Install on RPI
 
@@ -120,7 +120,7 @@ To allow Smoopi to turn on/off the backlight you need to do this...
     and add this...
     SUBSYSTEM=="backlight",RUN+="/bin/chmod 666 /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power"
 
-NOTE the default is for no blanking, there is a setting under settings that allows you to set the timeout for blanking the screen, it is set 0 which is no blanking. If it blanks then touching the screen will unblank it.
+NOTE the default is for no blanking, there is a setting under the settings menu that allows you to set the timeout for blanking the screen, it is initially set to 0 which is no blanking. If it blanks then touching the screen will unblank it.
 
 ### Builtin webserver and optional video
 In Settings you can turn on the webserver which will simply allow you to get current progress from any web browser, nothing fancy.
