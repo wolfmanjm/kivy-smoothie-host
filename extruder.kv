@@ -206,8 +206,8 @@
             width: self.texture_size[0]
             text: '°C'
         Slider:
-            min: -50
-            max: 50
+            min: -30
+            max: 30
             value: 0
             on_value: root.adjust_temp('hotend', self.value)
 
@@ -230,8 +230,8 @@
             width: self.texture_size[0]
             text: '°C'
         Slider:
-            min: -50
-            max: 50
+            min: -20
+            max: 20
             value: 0
             on_value: root.adjust_temp('bed', self.value)
 

@@ -154,6 +154,7 @@ class ExtruderWidget(BoxLayout):
         self.app = App.get_running_app()
         self.last_bed_temp= self.app.config.getfloat('Extruder', 'last_bed_temp')
         self.last_hotend_temp= self.app.config.getfloat('Extruder', 'last_hotend_temp')
+        self.temp_changed= False
 
     def switch_active(self, instance, type, on, value):
         if on:
@@ -179,11 +180,13 @@ class ExtruderWidget(BoxLayout):
             if self.ids.bed_switch.active:
                 # update temp
                 self.set_temp(type, self.ids.set_bed_temp.text)
+                self.temp_changed= True
         else:
             self.ids.set_hotend_temp.text= '{:1.1f}'.format(self.last_hotend_temp + float(value))
             if self.ids.hotend_switch.active:
                 # update temp
                 self.set_temp(type, self.ids.set_hotend_temp.text)
+                self.temp_changed= True
 
     def set_last_temp(self, type, value):
         if type == 'bed':
@@ -206,7 +209,7 @@ class ExtruderWidget(BoxLayout):
         if type == 'bed':
             if temp:
                 self.bed_dg.value= temp
-            if not math.isnan(setpoint):
+            if not math.isnan(setpoint) and not self.temp_changed:
                 if setpoint > 0:
                     self.ids.set_bed_temp.text= str(setpoint)
                     self.bed_dg.setpoint_value= setpoint
@@ -218,7 +221,7 @@ class ExtruderWidget(BoxLayout):
         elif type == 'hotend':
             if temp:
                 self.hotend_dg.value= temp
-            if not math.isnan(setpoint):
+            if not math.isnan(setpoint) and not self.temp_changed:
                 if setpoint > 0:
                     self.ids.set_hotend_temp.text= str(setpoint)
                     self.hotend_dg.setpoint_value= setpoint
@@ -230,6 +233,8 @@ class ExtruderWidget(BoxLayout):
 
         else:
             Logger.error('Extruder: unknown temp type - ' + type)
+
+        self.temp_changed= False
 
     def update_length(self):
         self.app.config.set('Extruder', 'length', self.ids.extrude_length.text)
