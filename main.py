@@ -665,6 +665,18 @@ class MainWindow(BoxLayout):
             self.config.set('General', 'last_gcode_path', directory)
             self.app.config.write()
 
+    def do_kill(self):
+        if self.status == 'Alarm':
+            self.app.comms.write('$X\n')
+        else:
+            # are you sure?
+            mb = MessageBox(text='KILL - Are you Sure?', cb= self._do_kill)
+            mb.open()
+
+    def _do_kill(self, ok):
+            if ok:
+                self.app.comms.write('\x18')
+
 class TabbedCarousel(TabbedPanel):
     def on_index(self, instance, value):
         tab = instance.current_slide.tab

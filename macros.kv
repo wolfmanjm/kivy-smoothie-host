@@ -34,11 +34,6 @@
         check: 'switch fan'
 
     MacroButton:
-        text: 'Kill' if app.status != 'Alarm' else 'Clear Alarm'
-        color: 1, 0, 0, 1
-        on_press: root.send('\x18'); root.update_buttons() if app.status != 'Alarm' else root.send('$X') # ^X
-
-    MacroButton:
         id: feed_hold_but
         text: 'Feed Hold' if app.status != 'Hold' else 'Resume'
         on_press: root.send('!') if app.status != 'Hold' else root.send('~')
