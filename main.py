@@ -35,6 +35,7 @@ from file_dialog import FileDialog
 from viewer import GcodeViewerScreen
 from web_server import ProgressServer
 
+import subprocess
 import traceback
 import queue
 import math
@@ -681,6 +682,22 @@ class MainWindow(BoxLayout):
     def _do_kill(self, ok):
             if ok:
                 self.app.comms.write('\x18')
+
+    def do_update(self):
+        try:
+            p = subprocess.Popen(['git', 'pull'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result, err = p.communicate()
+            if p.returncode != 0:
+                self.add_line_to_log(">>> Update: Failed to run git pull")
+            else:
+                str= result.decode('utf-8').strip()
+                self.add_line_to_log(">>> Update: {}".format(str))
+                if not "up-to-date" in str:
+                    self.add_line_to_log(">>> Update: Restart may be required")
+        except:
+            self.add_line_to_log(">>> Update: Error trying to update. See log")
+            Logger.error('MainWindow: {}'.format(traceback.format_exc()))
+
 
 class TabbedCarousel(TabbedPanel):
     def on_index(self, instance, value):
