@@ -44,6 +44,8 @@ To set the WPOS as a point in the view click the set WPOS button then touch the 
 
 The Kivy file browser is pretty crude and buggy. To allow it to be usable on a touch panel I had to set it so directory changes require double taps on the directory. I also do not enable the Load button unless a valid file is selected by tapping the file. This allows swiping to scroll the file lists to work reliably.
 
+The Update System menu entry requires git to be installed and the running directory be a valid git repo pointing to github.
+
 ## Install on RPI
 
 I use kivypi from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box.
