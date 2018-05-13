@@ -460,7 +460,6 @@ class Comms():
             #self.app.main_window.update_position(x, y, z)
 
     def handle_status(self, s):
-        # requires 'new_status_format true' in smoothie config
         #<Idle|MPos:68.9980,-49.9240,40.0000,12.3456|WPos:68.9980,-49.9240,40.0000|F:12345.12|S:1.2>
         # if temp readings are enabled then also returns T:25.0,0.0|B:25.2,0.0
         s= s[1:-1] # strip off < .. >

@@ -24,7 +24,7 @@ then enter the host or ip optionally followed by the port :23 (23 is the default
 Once you have selected a port to connect to it is saved in the ini file, and you can then click the connect menu item to connect.
 
 The left screen is the console and displays messages from smoothie, the right screen is a selection of panels (Modes) which can be switched to by swiping up or down
-(or use the modes menu to select the panel you want) you can scroll up and down by swiping up or down.
+(or use the tabs to select the panel you want) you can scroll up and down by swiping up or down.
 
 There is a status bar at the bottom left showing status, DRO and print ETA when printing.
 
