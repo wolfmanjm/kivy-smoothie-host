@@ -55,6 +55,8 @@
     row_force_default: True
     row_default_height: 50
 
+<NumericInput>
+
 <JogRoseWidget>:
     padding: 5, 5
     canvas.before:
@@ -202,7 +204,7 @@
                 size_hint: None, None
                 size: self.texture_size[0], 40
                 #active: True
-            TextInput:
+            NumericInput:
                 id: xy_feedrate
                 multiline: False
                 size_hint_y: None

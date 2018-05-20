@@ -15,6 +15,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors.button import ButtonBehavior
+from kivy.uix.tabbedpanel import TabbedPanel
 
 from kivy.properties import NumericProperty, StringProperty, ObjectProperty, ListProperty, BooleanProperty
 from kivy.vector import Vector
@@ -34,7 +35,9 @@ from input_box import InputBox
 from selection_box import SelectionBox
 from file_dialog import FileDialog
 from viewer import GcodeViewerScreen
+from web_server import ProgressServer
 
+import subprocess
 import traceback
 import queue
 import math
@@ -46,9 +49,30 @@ from functools import partial
 
 Window.softinput_mode = 'below_target'
 
+class NumericInput(TextInput):
+    """Text input that shows a numeric keypad"""
+    def __init__(self, **kwargs):
+        super(NumericInput, self).__init__(**kwargs)
+
+    def on_focus(self, i, v):
+        if v:
+            self._last= self.text
+            self.text= ""
+            self.show_keyboard()
+            if self.keyboard.widget:
+                self.keyboard.widget.layout= "numeric.json"
+                self.m_keyboard= self.keyboard.widget
+        else:
+            if self.text == "": self.text= self._last
+            self.hide_keyboard()
+            self.m_keyboard.layout= "qwerty"
+
+
+    def on_parent(self, widget, parent):
+        self.keyboard_mode= 'managed'
 
 class DROWidget(RelativeLayout):
-    """DROWidget Shows reltime information in a DRO style"""
+    """DROWidget Shows realtime information in a DRO style"""
     def __init__(self, **kwargs):
         super(DROWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
@@ -96,14 +120,28 @@ class MacrosWidget(StackLayout):
         except:
             Logger.warning('MacrosWidget: exception parsing config file: {}'.format(traceback.format_exc()))
 
+    def update_buttons(self):
+        # check the state of the toggle macro buttons, called when we switch to the macro window
+        for i in self.children:
+            if i.__class__ == Factory.MacroToggleButton:
+                # sends this, the response will be caught by comms as switch xxx is yyy
+                if i.check != '':
+                    self.send(i.check)
 
-    # def check_macros(self):
-    #     # periodically check the state of the toggle macro buttons
-    #     for i in self.children:
-    #         if i.__class__ == Factory.MacroToggleButton:
-    #             # sends this, but then how to get response?
-    #             print(i.check)
-    #             # check response and compare state with current state and toggle to match state if necessary
+    @mainthread
+    def switch_response(self, name, value):
+        # check response and compare state with current state and toggle to match state if necessary
+        if name == 'psu':
+            if value == '0' and self.ids.power_but.state != 'normal':
+                self.ids.power_but.state = 'normal'
+            elif value == '1' and self.ids.power_but.state == 'normal':
+                self.ids.power_but.state = 'down'
+
+        elif name == 'fan':
+            if value == '0' and self.ids.fan_but.state != 'normal':
+                self.ids.fan_but.state = 'normal'
+            elif value == '1' and self.ids.fan_but.state == 'normal':
+                self.ids.fan_but.state = 'down'
 
     def send(self, cmd, *args):
         self.app.comms.write('{}\n'.format(cmd))
@@ -111,12 +149,15 @@ class MacrosWidget(StackLayout):
 class ExtruderWidget(BoxLayout):
     bed_dg= ObjectProperty()
     hotend_dg= ObjectProperty()
+    last_bed_temp= NumericProperty()
+    last_hotend_temp= NumericProperty()
 
     def __init__(self, **kwargs):
         super(ExtruderWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.last_bed_temp= self.app.config.getfloat('Extruder', 'last_bed_temp')
         self.last_hotend_temp= self.app.config.getfloat('Extruder', 'last_hotend_temp')
+        self.temp_changed= False
 
     def switch_active(self, instance, type, on, value):
         if on:
@@ -142,11 +183,13 @@ class ExtruderWidget(BoxLayout):
             if self.ids.bed_switch.active:
                 # update temp
                 self.set_temp(type, self.ids.set_bed_temp.text)
+                self.temp_changed= True
         else:
             self.ids.set_hotend_temp.text= '{:1.1f}'.format(self.last_hotend_temp + float(value))
             if self.ids.hotend_switch.active:
                 # update temp
                 self.set_temp(type, self.ids.set_hotend_temp.text)
+                self.temp_changed= True
 
     def set_last_temp(self, type, value):
         if type == 'bed':
@@ -169,26 +212,32 @@ class ExtruderWidget(BoxLayout):
         if type == 'bed':
             if temp:
                 self.bed_dg.value= temp
-            if not math.isnan(setpoint):
+            if not math.isnan(setpoint) and not self.temp_changed:
                 if setpoint > 0:
                     self.ids.set_bed_temp.text= str(setpoint)
                     self.bed_dg.setpoint_value= setpoint
                 else:
                     self.bed_dg.setpoint_value= float('nan')
+                    if self.bed_switch.active:
+                        self.bed_switch.active= False
 
         elif type == 'hotend':
             if temp:
                 self.hotend_dg.value= temp
-            if not math.isnan(setpoint):
+            if not math.isnan(setpoint) and not self.temp_changed:
                 if setpoint > 0:
                     self.ids.set_hotend_temp.text= str(setpoint)
                     self.hotend_dg.setpoint_value= setpoint
                 else:
                     self.hotend_dg.setpoint_value= float('nan')
+                    if self.hotend_switch.active:
+                        self.hotend_switch.active= False
 
 
         else:
             Logger.error('Extruder: unknown temp type - ' + type)
+
+        self.temp_changed= False
 
     def update_length(self):
         self.app.config.set('Extruder', 'length', self.ids.extrude_length.text)
@@ -236,9 +285,12 @@ class MPGWidget(RelativeLayout):
         # TODO disable if delta or corexy
         #MPG mode
         if self.ids.mpg_mode_tb.state == 'down':
-            d= 0 if ticks < 0 else 1
-            for x in range(0,abs(ticks)):
-                self.app.comms.write('step {} {} 32\n'.format(self.selected_axis.lower(), d))
+            if self.ids.fine_cb.active:
+                d= 1 if ticks < 0 else -1
+            else:
+                d= 16 if ticks < 0 else -16
+            sps= abs(ticks) * 1600 # number of ticks moved changes steps/sec
+            self.app.comms.write('test raw {} {} {}\n'.format(self.selected_axis.lower(), d, sps))
 
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()
@@ -289,6 +341,7 @@ class KbdWidget(GridLayout):
     def __init__(self, **kwargs):
         super(KbdWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.last_command= ""
 
     def _add_line_to_log(self, s):
         self.app.main_window.async_display(s)
@@ -298,7 +351,10 @@ class KbdWidget(GridLayout):
             #Logger.debug("KbdWidget: Sending {}".format(self.display.text))
             self._add_line_to_log('<< {}'.format(self.display.text))
             self.app.comms.write('{}\n'.format(self.display.text))
+            self.last_command = self.display.text
             self.display.text = ''
+        elif key == 'Repeat':
+            self.display.text = self.last_command
         elif key == 'BS':
             self.display.text = self.display.text[:-1]
         else:
@@ -328,8 +384,8 @@ class MainWindow(BoxLayout):
         #print('font size: {}'.format(self.ids.log_window.font_size))
         #Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
 
-    def my_callback(self, dt):
-        self.ids.page_layout.index= 1 # switch to jog screen
+    # def my_callback(self, dt):
+    #     self.ids.carousel.index= 1 # switch to jog screen
 
     def add_line_to_log(self, s):
         ''' Add lines to the log window, which is trimmed to the last 200 lines '''
@@ -399,15 +455,9 @@ class MainWindow(BoxLayout):
         self.add_line_to_log("...Disconnected")
 
     @mainthread
-    def update_temps(self, he, hesp, be, besp):
-        if he:
-            self.ids.extruder.update_temp('hotend', he, hesp)
-        if be:
-            self.ids.extruder.update_temp('bed', be, besp)
-
-    @mainthread
     def update_status(self, stat, d):
         self.status= stat
+        self.app.status= stat
         if 'WPos' in d:
             self.wpos= d['WPos']
             self.app.wpos= self.wpos
@@ -424,10 +474,24 @@ class MainWindow(BoxLayout):
         if 'L' in d:
             self.app.lp= d['L'][0]
 
+        # extract temperature readings
+        if 'T' in d:
+            self.ids.extruder.update_temp('hotend', d['T'][0], d['T'][1])
+
+        if 'B' in d:
+            self.ids.extruder.update_temp('bed', d['B'][0], d['B'][1])
+
+
     @mainthread
     def alarm_state(self, s):
         ''' called when smoothie is in Alarm state and it is sent a gcode '''
         self.add_line_to_log("! Alarm state: {}".format(s))
+
+        # if we were printing then we need to set the UI state to Paused
+        if self.is_printing:
+            self.paused= True
+            self.ids.print_but.text= 'Resume'
+            self.add_line_to_log("Streaming Paused, Abort or Continue as needed")
 
     def ask_exit(self):
         # are you sure?
@@ -445,7 +509,7 @@ class MainWindow(BoxLayout):
 
     def _do_shutdown(self, ok):
         if ok:
-            #sys.system('sudo halt -p')
+            os.system('/sbin/shutdown -h now')
             self._do_exit(True)
 
     def change_port(self):
@@ -514,19 +578,33 @@ class MainWindow(BoxLayout):
 
         self.start_print_time= datetime.datetime.now()
         self.display('>>> Printing file: {}, {} lines'.format(file_path, self.nlines))
-        self.display('>>> Print started at: {}'.format(self.start_print_time.strftime('%x %X')))
 
-        self.app.comms.stream_gcode(file_path, progress= lambda x: self.display_progress(x))
+        if self.app.comms.stream_gcode(file_path, progress= lambda x: self.display_progress(x)):
+            self.display('>>> Print started at: {}'.format(self.start_print_time.strftime('%x %X')))
+        else:
+            self.display('WARNING Unable to start print')
+            return
+
         if directory != self.last_path:
             self.last_path= directory
             self.config.set('General', 'last_gcode_path', directory)
 
+        self.app.gcode_file= file_path
         self.config.set('General', 'last_print_file', file_path)
         self.config.write()
 
         self.ids.print_but.text= 'Pause'
         self.is_printing= True
         self.paused= False
+
+    def reprint(self):
+        # are you sure?
+        mb = MessageBox(text='Reprint {}?'.format(self.app.gcode_file), cb= self._reprint)
+        mb.open()
+
+    def _reprint(self, ok):
+        if ok:
+            self._start_print(self.app.gcode_file, self.last_path)
 
     @mainthread
     def stream_finished(self, ok):
@@ -553,7 +631,7 @@ class MainWindow(BoxLayout):
                 eta= 0
 
             #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
-            self.eta= '{} | {:.1%}'.format(datetime.timedelta(seconds=int(eta)), n/self.nlines)
+            self.eta= '{} | {:.1%} | Z{:.2}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n/self.nlines, float(self.app.wpos[2]))
 
     @mainthread
     def change_image(self, fn):
@@ -594,13 +672,71 @@ class MainWindow(BoxLayout):
         self.app.comms.write('play {}\n'.format(file_path))
 
     def show_viewer(self):
-        # get file to view
-        f= FileDialog()
-        f.open(self.last_path, title= 'File to View', cb= self._show_viewer)
+        if self.is_printing:
+            self._show_viewer(self.app.gcode_file, self.last_path)
+        else:
+            # get file to view
+            f= FileDialog()
+            f.open(self.last_path, title= 'File to View', cb= self._show_viewer)
 
     def _show_viewer(self, file_path, directory):
         self.app.gcode_file= file_path
         self.app.sm.current= 'viewer'
+        if directory != self.last_path:
+            self.last_path= directory
+            self.config.set('General', 'last_gcode_path', directory)
+            self.app.config.write()
+
+    def do_kill(self):
+        if self.status == 'Alarm':
+            self.app.comms.write('$X\n')
+        else:
+            # are you sure?
+            mb = MessageBox(text='KILL - Are you Sure?', cb= self._do_kill)
+            mb.open()
+
+    def _do_kill(self, ok):
+            if ok:
+                self.app.comms.write('\x18')
+
+    def do_update(self):
+        try:
+            p = subprocess.Popen(['git', 'pull'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result, err = p.communicate()
+            if p.returncode != 0:
+                self.add_line_to_log(">>> Update: Failed to run git pull")
+            else:
+                str= result.decode('utf-8').strip()
+                self.add_line_to_log(">>> Update: {}".format(str))
+                if not "up-to-date" in str:
+                    self.add_line_to_log(">>> Update: Restart may be required")
+        except:
+            self.add_line_to_log(">>> Update: Error trying to update. See log")
+            Logger.error('MainWindow: {}'.format(traceback.format_exc()))
+
+
+class TabbedCarousel(TabbedPanel):
+    def on_index(self, instance, value):
+        tab = instance.current_slide.tab
+        if self.current_tab != tab:
+            self.switch_to(tab)
+
+    def switch_to(self, header):
+        # hack needed as for some reason we get called with default tab even though we asked not to
+        if not hasattr(header, 'slide'):
+            return
+
+        # we have to replace the functionality of the original switch_to
+        self.current_tab.state = "normal"
+        header.state = 'down'
+        self._current_tab = header
+        # set the carousel to load the appropriate slide
+        # saved in the screen attribute of the tab head
+        self.carousel.index = header.slide
+        # we switched to a new screen in carousel check it
+        if header.slide == 3: # macros screen
+            self.macros.update_buttons()
+
 
 
 class MainScreen(Screen):
@@ -608,6 +744,7 @@ class MainScreen(Screen):
 
 class SmoothieHost(App):
     is_connected= BooleanProperty(False)
+    status= StringProperty("Not Connected")
     wpos= ListProperty([0,0,0])
     mpos= ListProperty([0,0,0])
     fr= NumericProperty(0)
@@ -616,7 +753,9 @@ class SmoothieHost(App):
 
     is_desktop= BooleanProperty(False)
     is_cnc= BooleanProperty(False)
+    tab_top= BooleanProperty(False)
     main_window= ObjectProperty()
+    gcode_file= StringProperty()
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
@@ -626,6 +765,10 @@ class SmoothieHost(App):
             self.use_com_port= sys.argv[1]
         else:
             self.use_com_port= None
+        self.webserver= False
+        self.show_video= False
+        self._blanked= False
+        self.last_touch_time= 0
 
         self.sound= None
         self.alarm_timer= None
@@ -636,39 +779,60 @@ class SmoothieHost(App):
             'last_print_file': '',
             'serial_port': 'serial:///dev/ttyACM0',
             'report_rate': '1',
+            'volume': '100',
+            'blank_timeout': '0'
+        })
+        config.setdefaults('UI', {
             'desktop': 'false',
             'cnc': 'false',
-            'volume': '100'
+            'tab_top': 'false'
         })
+
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',
             'last_hotend_temp': '185',
             'length': '20',
-            'speed': '300'
+            'speed': '300',
+            'hotend_presets': '185 (PLA), 230 (ABS)',
+            'bed_presets': '60 (PLA), 110 (ABS)'
         })
         config.setdefaults('Jog', {
             'xy_feedrate': '3000'
+        })
+        config.setdefaults('Web', {
+            'webserver': 'false',
+            'show_video': 'false'
         })
 
     def build_settings(self, settings):
         jsondata = """
             [
                 { "type": "title",
-                  "title": "General Settings" },
+                  "title": "UI Settings" },
 
                 { "type": "bool",
                   "title": "Desktop Layout",
                   "desc": "Turn on for a Desktop layout, otherwise it is RPI 7in touch screen layout",
-                  "section": "General",
+                  "section": "UI",
                   "key": "desktop"
                 },
 
                 { "type": "bool",
                   "title": "CNC layout",
                   "desc": "Turn on for a CNC layout, otherwise it is a 3D printer Layout",
-                  "section": "General",
+                  "section": "UI",
                   "key": "cnc"
                 },
+
+                { "type": "bool",
+                  "title": "Tabs on top",
+                  "desc": "TABS are on top of the screen",
+                  "section": "UI",
+                  "key": "tab_top"
+                },
+
+                { "type": "title",
+                  "title": "General Settings" },
 
                 { "type": "numeric",
                   "title": "Report rate",
@@ -680,8 +844,50 @@ class SmoothieHost(App):
                   "title": "Alert Volume",
                   "desc": "Volume for alert sound, 0-100%",
                   "section": "General",
-                  "key": "volume" }
+                  "key": "volume" },
+
+                { "type": "numeric",
+                  "title": "Blank Timeout",
+                  "desc": "Inactive timeout in seconds before screen will blank",
+                  "section": "General",
+                  "key": "blank_timeout" },
+
+                { "type": "title",
+                  "title": "Web Settings" },
+
+                { "type": "bool",
+                  "title": "Web Server",
+                  "desc": "Turn on Web server to remotely check progress",
+                  "section": "Web",
+                  "key": "webserver"
+                },
+
+                { "type": "bool",
+                  "title": "Show Video",
+                  "desc": "Display mjpeg video in web progress",
+                  "section": "Web",
+                  "key": "show_video"
+                },
+
+                { "type": "title",
+                  "title": "Extruder Settings" },
+
+                { "type": "string",
+                  "title": "Hotend Presets",
+                  "desc": "Set the comma separated presets for the hotend temps",
+                  "section": "Extruder",
+                  "key": "hotend_presets"
+                },
+
+                { "type": "string",
+                  "title": "Bed Presets",
+                  "desc": "Set the comma separated presets for the bed temps",
+                  "section": "Extruder",
+                  "key": "bed_presets"
+                }
             ]
+
+
         """
         config = ConfigParser()
         config.read('smoothiehost.ini')
@@ -694,13 +900,27 @@ class SmoothieHost(App):
             self.is_cnc = value == "1"
         elif token == ('General', 'volume'):
             self.volume = float(value)
+        elif token == ('UI', 'tab_top'):
+            self.tab_top = value == "1"
+        elif token == ('Extruder', 'hotend_presets'):
+            self.main_window.ids.extruder.ids.set_hotend_temp.values= value.split(',')
+        elif token == ('Extruder', 'bed_presets'):
+            self.main_window.ids.extruder.ids.set_bed_temp.values= value.split(',')
+        elif token == ('General', 'blank_timeout'):
+            self.blank_timeout= float(value)
 
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop
         self.comms.stop(); # stop the aysnc loop
+        if self.is_webserver:
+            self.webserver.stop()
+
+    def on_start(self):
+        # in case we added something to the defaults, make sure they are written to the ini file
+        self.config.update_config('smoothiehost.ini')
 
     def build(self):
-        if self.config.getboolean('General', 'desktop'):
+        if self.config.getboolean('UI', 'desktop'):
             self.is_desktop= True
             # load the layouts for the desktop screen
             Builder.load_file('desktop.kv')
@@ -711,11 +931,15 @@ class SmoothieHost(App):
             # load the layouts for rpi 7" touch screen
             Builder.load_file('rpi.kv')
 
-        if self.config.getboolean('General', 'cnc'):
+        if self.config.getboolean('UI', 'cnc'):
             self.is_cnc= True
         else:
             self.is_cnc= False
 
+        self.tab_top= self.config.getboolean('UI', 'tab_top')
+
+        self.is_webserver= self.config.getboolean('Web', 'webserver')
+        self.show_video= self.config.getboolean('Web', 'show_video')
 
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
@@ -726,16 +950,28 @@ class SmoothieHost(App):
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
         self.main_window= ms.ids.main_window
 
+        self.blank_timeout= self.config.getint('General', 'blank_timeout')
+        Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
+
+        self.sm.bind(on_touch_down=self._on_touch)
+        Clock.schedule_interval(self._every_second, 1)
+
         if not self.is_desktop:
             # setup for cnc or 3d printer
-            # TODO need to also remove from tabs or actionbar
+            # TODO need to also remove from tabs in desktop
             if self.is_cnc:
-                # remove Extruder panel
-                self.main_window.ids.page_layout.remove_widget(self.main_window.ids.extruder)
+                # remove Extruder panel from carousel and tab
+                self.main_window.ids.tc.remove_widget(self.main_window.ids.tc.extruder_tab)
+                self.main_window.ids.carousel.remove_widget(self.main_window.ids.extruder)
 
-            else:
-                # remove MPG panel
-                self.main_window.ids.page_layout.remove_widget(self.main_window.ids.mpg_widget)
+            # else:
+            #     # remove MPG panel
+            #     self.main_window.ids.tc.remove_widget(self.main_window.ids.tc.mpg_tab)
+            #     self.main_window.ids.carousel.remove_widget(self.main_window.ids.mpg_widget)
+
+        if self.is_webserver:
+            self.webserver= ProgressServer()
+            self.webserver.start(self, 8000)
 
         return self.sm
 
@@ -764,6 +1000,35 @@ class SmoothieHost(App):
             flag= True
 
         return flag
+
+    def _every_second(self, dt):
+        if self.blank_timeout > 0 and not self.main_window.is_printing:
+            self.last_touch_time += 1
+            if self.last_touch_time >= self.blank_timeout:
+                self.last_touch_time= 0
+                self.blank_screen()
+
+    def blank_screen(self):
+        try:
+            with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
+                f.write('1\n')
+            self._blanked= True
+        except:
+            Logger.warning("SmoothieHost: unable to blank screen")
+
+    def _on_touch(self, a, b):
+        self.last_touch_time= 0
+        if self._blanked:
+            self._blanked= False
+            try:
+                with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
+                    f.write('0\n')
+            except:
+                pass
+
+            return True
+
+        return False
 
 SmoothieHost().run()
 

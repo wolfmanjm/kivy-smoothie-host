@@ -34,17 +34,11 @@
         check: 'switch fan'
 
     MacroButton:
-        text: 'Kill'
-        color: 1, 0, 0, 1
-        on_press: root.send('\x18') # ^X
+        id: feed_hold_but
+        text: 'Feed Hold' if app.status != 'Hold' else 'Resume'
+        on_press: root.send('!') if app.status != 'Hold' else root.send('~')
 
     MacroButton:
-        text: 'Clear Alarm'
-        on_press: root.send('$X')
-
-    MacroToggleButton:
-        id: feed_hold_but
-        text: 'Feed Hold' if self.state == 'normal' else 'Resume'
-        oncmd: '~'
-        offcmd: '!'
-        check: 'feed hold'
+        text: 'Reprint Last'
+        disabled: app.gcode_file == ''
+        on_press: app.main_window.reprint()

@@ -166,18 +166,11 @@ class Comms():
            self.proto.send_message(data)
 
     def _get_reports(self):
-        if self.is_streaming:
-            # when streaming we do not send the query here
-            self.do_query= True;
-        else:
-            self.send_query()
+        self.send_query()
 
     def send_query(self):
         # calls the send_message in Serial Connection proto
-        if self.proto:
-            if not self.app.is_cnc:
-                self.proto.send_message('M105\n', True)
-        self.proto.send_message('?' if not self.net_connection else 'get status\n', True)
+        self._write('?' if not self.net_connection else 'get status\n')
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
@@ -251,9 +244,10 @@ class Comms():
             # this is when we are really setup and ready to go, notify upstream
             self.app.main_window.connected()
 
+            # issue a M115 command to get things started
+            self._write('\nM115\n')
+
             if self.report_rate > 0:
-                # issue a version command to get things started
-                self._write('\nversion\n')
                 # start a timer to get the reports
                 self.timer = loop.call_later(self.report_rate, self._get_reports)
 
@@ -289,6 +283,19 @@ class Comms():
             loop.close()
             async_main_loop= None
             self.log.info('Comms: comms thread Exiting...')
+
+    def _parse_m115(self, s):
+        # split fields
+        l= s.split(',')
+
+        # parse into a dict of name: value
+        d= {y[0].strip():y[1].strip() for y in [x.split(':', 1) for x in l]}
+        if not 'X-CNC' in d: d['X-CNC']= 0
+        if not 'FIRMWARE_NAME' in d: d['FIRMWARE_NAME']= 'UNKNOWN'
+        if not 'FIRMWARE_VERSION' in d: d['FIRMWARE_VERSION']= 'UNKNOWN'
+
+        self.log.info("Comms: Firmware: {}, Version: {}, CNC: {}".format(d['FIRMWARE_NAME'], d['FIRMWARE_VERSION'], 'Yes' if d['X-CNC'] == 1 else 'No'))
+        self.app.main_window.async_display(s)
 
     def list_sdcard(self, done_cb):
         ''' Issue a ls /sd and send results back to done_cb '''
@@ -391,7 +398,7 @@ class Comms():
                 self.handle_position(s)
 
             elif "ok T:" in s or self.tempreading_exp.findall(s):
-                self.handle_temperature(s)
+                self.app.main_window.async_display('{}'.format(s))
 
             elif s.startswith('ok'):
                 if self.ping_pong:
@@ -400,14 +407,14 @@ class Comms():
                 elif self.okcnt is not None:
                     self.okcnt += 1
 
-            elif "!!" in s or "ALARM" in s or "ERROR" in s:
-                self.handle_alarm(s)
-
             elif s.startswith('<'):
                 try:
                     self.handle_status(s)
                 except:
                     self.log.error("Comms: error parsing status")
+
+            elif "!!" in s or "ALARM" in s or "ERROR" in s or "error:Alarm lock" in s:
+                self.handle_alarm(s)
 
             elif s.startswith('//'):
                 # ignore comments but display them
@@ -430,39 +437,17 @@ class Comms():
                 else:
                     self.app.main_window.async_display('{}'.format(s))
 
+            elif "FIRMWARE_NAME:" in s:
+                # process the response to M115
+                self._parse_m115(s)
+
+            elif s.startswith("switch "):
+                # switch fan is 0
+                n, x, v= s[7:].split(' ')
+                self.app.main_window.ids.macros.switch_response(n, v)
+
             else:
                 self.app.main_window.async_display('{}'.format(s))
-
-    # Handle parsing of temp readings (Lifted mostly from Pronterface)
-    tempreport_exp = re.compile("([TB]\d*):([-+]?\d*\.?\d*)(?: ?\/)?([-+]?\d*\.?\d*)")
-    def parse_temperature(self, s):
-        matches = self.tempreport_exp.findall(s)
-        return dict((m[0], (m[1], m[2])) for m in matches)
-
-    def handle_temperature(self, s):
-        # ok T:19.8 /0.0 @0 B:20.1 /0.0 @0
-        hotend_setpoint= None
-        bed_setpoint= None
-        hotend_temp= None
-        bed_temp= None
-
-        try:
-            temps = self.parse_temperature(s)
-            if "T" in temps and temps["T"][0]:
-                hotend_temp = float(temps["T"][0])
-
-            if "T" in temps and temps["T"][1]:
-                hotend_setpoint = float(temps["T"][1])
-
-            bed_temp = float(temps["B"][0]) if "B" in temps and temps["B"][0] else None
-            if "B" in temps and temps["B"][1]:
-                bed_setpoint = float(temps["B"][1])
-
-            self.log.debug('Comms: got temps hotend:{}, bed:{}, hotend_setpoint:{}, bed_setpoint:{}'.format(hotend_temp, bed_temp, hotend_setpoint, bed_setpoint))
-            self.app.main_window.update_temps(hotend_temp, hotend_setpoint, bed_temp, bed_setpoint)
-
-        except:
-            self.log.error(traceback.format_exc())
 
     def handle_position(self, s):
         # ok C: X:0.0000 Y:0.0000 Z:0.0000
@@ -475,8 +460,8 @@ class Comms():
             #self.app.main_window.update_position(x, y, z)
 
     def handle_status(self, s):
-        # requires 'new_status_format true' in smoothie config
         #<Idle|MPos:68.9980,-49.9240,40.0000,12.3456|WPos:68.9980,-49.9240,40.0000|F:12345.12|S:1.2>
+        # if temp readings are enabled then also returns T:25.0,0.0|B:25.2,0.0
         s= s[1:-1] # strip off < .. >
 
         # split fields
@@ -510,10 +495,13 @@ class Comms():
     def handle_alarm(self, s):
         ''' handle case where smoothie sends us !! or an error of some sort '''
         self.log.warning('Comms: got error: {}'.format(s))
-        # abort any streaming immediately
-        self._stream_pause(False, True)
-        if self.proto:
-            self.proto.flush_queue()
+        # pause any streaming immediately, (let operator decide to abort or not)
+        self._stream_pause(True, False)
+
+        # NOTE old way was to abort, but we could resume if we can fix the error
+        #self._stream_pause(False, True)
+        #if self.proto:
+        #    self.proto.flush_queue()
 
         # call upstream after we have allowed stream to stop
         async_main_loop.call_soon(self.app.main_window.alarm_state, s)
@@ -523,8 +511,10 @@ class Comms():
         self.progress= progress
         if self.proto and async_main_loop:
             async_main_loop.call_soon_threadsafe(self._stream_file, fn)
+            return True
         else:
             self.log.warning('Comms: Cannot print to a closed connection')
+            return False
 
     def _stream_file(self, fn):
         self.file_streamer= asyncio.async(self.stream_file(fn))
@@ -572,8 +562,10 @@ class Comms():
                 # TODO maybe use Future here to wait for unpause
                 # create future when pause then yield from it here then delete it
                 while self.pause_stream:
-                   yield from asyncio.sleep(1)
-                   if self.abort_stream:
+                    yield from asyncio.sleep(1)
+                    if self.progress:
+                        self.progress(linecnt)
+                    if self.abort_stream:
                         break
 
                 line = yield from f.readline()
@@ -652,13 +644,6 @@ class Comms():
                         # number of lines ok'd
                         self.progress(self.okcnt)
 
-                # send query if ready, don't query if in fast stream mode though
-                if self.ping_pong and self.do_query:
-                    self.do_query= False
-                    self.send_query()
-                    # if the buffers are full then wait until we can send some more
-                    yield from self.proto._drain_helper()
-
             success= not self.abort_stream
 
         except Exception as err:
@@ -667,6 +652,9 @@ class Comms():
         finally:
             if f:
                 yield from f.close()
+
+            if self.abort_stream:
+                self._write('\x18')
 
             if success and not self.ping_pong:
                 self.log.debug('Comms: Waiting for okcnt to catch up: {} vs {}'.format(self.okcnt, linecnt))
@@ -684,6 +672,7 @@ class Comms():
             self.progress= None
             self.okcnt= None
             self.is_streaming= False
+            self.do_query= False
 
             # notify upstream that we are done
             self.app.main_window.stream_finished(success)
@@ -708,6 +697,7 @@ class Comms():
 if __name__ == "__main__":
 
     import datetime
+    from time import sleep
 
     ''' a standalone streamer to test it with '''
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -723,6 +713,8 @@ if __name__ == "__main__":
             self.is_connected= False
             self.ok= False
             self.main_window= self
+            self.timer= None
+            self.is_cnc= True
 
         def connected(self):
             self.log.debug("CommsApp: Connected...")
@@ -747,6 +739,8 @@ if __name__ == "__main__":
             # in this case we do want to disconnect
             comms.proto.transport.close()
 
+        def update_status(self, stat, d):
+            pass
 
     if len(sys.argv) < 3:
         print("Usage: {} port file".format(sys.argv[0]));
@@ -788,6 +782,8 @@ if __name__ == "__main__":
         t= comms.connect(sys.argv[1])
         if app.start_event.wait(5): # wait for connected as it is in a separate thread
             if app.is_connected:
+                # wait for startup to clear up any incoming oks
+                sleep(5) # Time in seconds.
 
                 comms.stream_gcode(sys.argv[2], progress=lambda x: display_progress(x))
                 app.end_event.wait() # wait for streaming to complete
