@@ -140,15 +140,15 @@ https://kivy.org/docs/installation/installation.html
 3. sudo apt-get install python3-kivy
 
 or get the latest version of kivy if the distro version is too old (currently using  1.10.x)
-sudo pip3 install kivy
+    sudo pip3 install kivy
 
 
 Install some dependencies we need...
-sudo pip3 install pyserial pyserial-asyncio aiofiles
+    sudo pip3 install pyserial pyserial-asyncio aiofiles
 
 Run as
-> cd kivy-smoothie-host
-> python3 main.py
+    > cd kivy-smoothie-host
+    > python3 main.py
 
 ## Smoothie version required
 
