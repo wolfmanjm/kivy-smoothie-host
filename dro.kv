@@ -111,6 +111,60 @@
             on_press: if self.state == 'down': root.select_wcs(self.text)
 
     GridLayout:
+        pos_hint: {'top': 0.4}
+        size_hint_y: 0.2
+        cols: 4
+        row_force_default: True
+        row_default_height: 35
+        padding: 4
+        spacing: 4
+
+        Label:
+            text: '    '
+            size_hint_x: None
+            size: self.texture_size
+        Label:
+            text: 'A'
+        Label:
+            text: 'B'
+        Label:
+            text: 'C'
+
+        Label:
+            text: 'MPOS'
+            size_hint_x: None
+            size: self.texture_size
+        DROTextInput:
+            readonly: True
+            is_focusable: False
+            text: '{:+09.3f}'.format(app.mpos[3]) if len(app.mpos) > 3 else "N/A"
+        DROTextInput:
+            readonly: True
+            is_focusable: False
+            text: '{:+09.3f}'.format(app.mpos[4]) if len(app.mpos) > 4 else "N/A"
+        DROTextInput:
+            readonly: True
+            is_focusable: False
+            text: '{:+09.3f}'.format(app.mpos[5]) if len(app.mpos) > 5 else "N/A"
+
+        Label:
+            text: ''
+            size_hint_x: None
+            size: self.texture_size
+        Button:
+            text: 'Reset'
+            disabled: len(app.mpos) <= 3
+            on_press: root.reset_axis('A')
+        Button:
+            text: 'Reset'
+            disabled: len(app.mpos) <= 4
+            on_press: root.reset_axis('B')
+        Button:
+            text: 'Reset'
+            disabled: len(app.mpos) <= 5
+            on_press: root.reset_axis('C')
+
+    GridLayout:
         pos_hint: {'y': 0.0}
         size_hint_y: 0.1
         cols: 6

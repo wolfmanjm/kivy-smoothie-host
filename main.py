@@ -93,6 +93,9 @@ class DROWidget(RelativeLayout):
     def select_wcs(self, v):
         self.app.comms.write('{}\n'.format(v))
 
+    def reset_axis(self, a):
+        self.app.comms.write('G92 {}0\n'.format(a))
+
 
 # user defined macros are configurable and stored in a configuration file called macros.ini
 # format is:-
@@ -735,7 +738,7 @@ class SmoothieHost(App):
     is_connected= BooleanProperty(False)
     status= StringProperty("Not Connected")
     wpos= ListProperty([0,0,0])
-    mpos= ListProperty([0,0,0])
+    mpos= ListProperty([0,0,0,0,0,0])
     fr= NumericProperty(0)
     sr= NumericProperty(0)
     lp= NumericProperty(0)
