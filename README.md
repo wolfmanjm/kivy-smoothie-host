@@ -157,6 +157,8 @@ Run as
 
 This requires the latest FirmwareBin/firmware-latest.bin from Smoothie github, (or FirmwareBin/firmware-cnc-latest.bin).
 
+__NOTE__ to use the T0 and T1 buttons in the Extruder panel the temperature controls need to have the following designators 'T' and 'T1'. The temperature for the currently selected tool will show, and the set temp will apply to that tool.
+
 # Screen shots
 ![Extruder Screen](screen1.png)
 ![Command Screen](screen2.png)
