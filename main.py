@@ -219,23 +219,26 @@ class ExtruderWidget(BoxLayout):
                     if self.bed_switch.active:
                         self.bed_switch.active= False
 
-        elif type == 'hotend':
-            if temp:
-                self.hotend_dg.value= temp
-            if not math.isnan(setpoint) and not self.temp_changed:
-                if setpoint > 0:
-                    self.ids.set_hotend_temp.text= str(setpoint)
-                    self.hotend_dg.setpoint_value= setpoint
-                else:
-                    self.hotend_dg.setpoint_value= float('nan')
-                    if self.hotend_switch.active:
-                        self.hotend_switch.active= False
-
+        elif type == 'hotend0' or type == 'hotend1':
+            if (self.ids.tool_t0.state == 'down' and type == 'hotend0') or (self.ids.tool_t1.state == 'down' and type == 'hotend1'):
+                if temp:
+                    self.hotend_dg.value= temp
+                if not math.isnan(setpoint) and not self.temp_changed:
+                    if setpoint > 0:
+                        self.ids.set_hotend_temp.text= str(setpoint)
+                        self.hotend_dg.setpoint_value= setpoint
+                    else:
+                        self.hotend_dg.setpoint_value= float('nan')
+                        if self.hotend_switch.active:
+                            self.hotend_switch.active= False
 
         else:
             Logger.error('Extruder: unknown temp type - ' + type)
 
         self.temp_changed= False
+
+    def set_tool(self, t):
+        self.app.comms.write('T{}\n'.format(str(t)))
 
     def update_length(self):
         self.app.config.set('Extruder', 'length', self.ids.extrude_length.text)
@@ -474,7 +477,9 @@ class MainWindow(BoxLayout):
 
         # extract temperature readings
         if 'T' in d:
-            self.ids.extruder.update_temp('hotend', d['T'][0], d['T'][1])
+            self.ids.extruder.update_temp('hotend0', d['T'][0], d['T'][1])
+        elif 'T1' in d:
+            self.ids.extruder.update_temp('hotend1', d['T1'][0], d['T1'][1])
 
         if 'B' in d:
             self.ids.extruder.update_temp('bed', d['B'][0], d['B'][1])
@@ -629,7 +634,7 @@ class MainWindow(BoxLayout):
                 eta= 0
 
             #print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
-            self.eta= '{} | {:.1%} | Z{:.2}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n/self.nlines, float(self.app.wpos[2]))
+            self.eta= '{} | {:.1%} | Z{:1.2f}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n/self.nlines, float(self.app.wpos[2]))
 
     def list_sdcard(self):
         if self.app.comms.list_sdcard(self._list_sdcard_results):

@@ -236,9 +236,32 @@
             on_value: root.adjust_temp('bed', self.value)
 
 
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: 40
+        ToggleButton:
+            id: tool_t0
+            group: 'tool_group'
+            state: 'down'
+            on_press: if self.state == 'down': root.set_tool(0)
+            size_hint_y: None
+            size: 40, 40
+            text: 'T0'
+            disabled: not app.is_connected
 
-    Widget:
-        # uses up rest of space bit like a spring in other layouts
+        ToggleButton:
+            id: tool_t1
+            group: 'tool_group'
+            on_press: if self.state == 'down': root.set_tool(1)
+            size_hint_y: None
+            size: 40, 40
+            text: 'T1'
+            disabled: not app.is_connected
+
+
+    # uses up rest of space bit like a spring in other layouts
+    #Widget:
 
     # Label:
     #     canvas.before:

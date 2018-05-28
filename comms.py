@@ -450,16 +450,6 @@ class Comms():
             else:
                 self.app.main_window.async_display('{}'.format(s))
 
-    def handle_position(self, s):
-        # ok C: X:0.0000 Y:0.0000 Z:0.0000
-        l= s.split(' ')
-        if len(l) >= 5:
-            x= float(l[2][2:])
-            y= float(l[3][2:])
-            z= float(l[4][2:])
-            self.log.debug('Comms: got pos: X {}, Y {} Z {}'.format(x, y, z))
-            #self.app.main_window.update_position(x, y, z)
-
     def handle_status(self, s):
         #<Idle|MPos:68.9980,-49.9240,40.0000,12.3456|WPos:68.9980,-49.9240,40.0000|F:12345.12|S:1.2>
         # if temp readings are enabled then also returns T:25.0,0.0|B:25.2,0.0
