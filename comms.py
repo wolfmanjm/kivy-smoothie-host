@@ -394,10 +394,7 @@ class Comms():
                 continue
 
             # process a complete line
-            if "ok C:" in s:
-                self.handle_position(s)
-
-            elif "ok T:" in s or self.tempreading_exp.findall(s):
+            if "ok T:" in s or self.tempreading_exp.findall(s):
                 self.app.main_window.async_display('{}'.format(s))
 
             elif s.startswith('ok'):
@@ -406,6 +403,10 @@ class Comms():
                         self.okcnt.release()
                 elif self.okcnt is not None:
                     self.okcnt += 1
+
+                # if there is anything after the ok display it
+                if len(s) > 2:
+                    self.app.main_window.async_display('{}'.format(s[3:]))
 
             elif s.startswith('<'):
                 try:
