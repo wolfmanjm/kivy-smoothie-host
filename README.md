@@ -161,7 +161,7 @@ __NOTE__ to use the T0 and T1 buttons in the Extruder panel the temperature cont
 
 # Screen shots
 ![Extruder Screen](screen1.png)
-![DRO Screen](dro-mode.png)
+![DRO Screen](dro_mode.png)
 ![Command Screen](screen2.png)
 ![Jog Screen](screen3.png)
 ![Macro Screen](macro-screen.png)
