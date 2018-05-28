@@ -23,6 +23,7 @@
     bed_dg: bed_dg
     hotend_switch: hotend_switch
     bed_switch: bed_switch
+    on_curtool: root._on_curtool()
 
     BoxLayout:
         orientation: 'vertical'
@@ -243,8 +244,7 @@
         ToggleButton:
             id: tool_t0
             group: 'tool_group'
-            state: 'down'
-            on_press: if self.state == 'down': root.set_tool(0)
+            on_press: root.set_tool(0)
             size_hint_y: None
             size: 40, 40
             text: 'T0'
@@ -253,7 +253,7 @@
         ToggleButton:
             id: tool_t1
             group: 'tool_group'
-            on_press: if self.state == 'down': root.set_tool(1)
+            on_press: root.set_tool(1)
             size_hint_y: None
             size: 40, 40
             text: 'T1'

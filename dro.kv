@@ -7,12 +7,14 @@
     font_name: "data/fonts/RobotoMono-Regular.ttf"
 
 <DROWidget>:
+    id: dro
     canvas.before:
         Color:
             rgba: 0.4, 0.4, 0.4, 1
         Rectangle:
             pos: self.pos
             size: self.size
+    on_curwcs: root._on_curwcs()
 
     GridLayout:
         pos_hint: {'top': 1}
@@ -79,6 +81,7 @@
             on_press: root.enter_wpos('z', '0')
 
     BoxLayout:
+        id: wcs_buts
         pos_hint: {'top': 0.5}
         orientation: 'horizontal'
         size_hint_y: None
@@ -86,29 +89,27 @@
         ToggleButton:
             text: 'G54'
             group: 'wcs_group'
-            state: 'down'
-            on_press: if self.state == 'down': root.select_wcs(self.text)
-
+            on_press: root.select_wcs(self.text)
         ToggleButton:
             text: 'G55'
             group: 'wcs_group'
-            on_press: if self.state == 'down': root.select_wcs(self.text)
+            on_press: root.select_wcs(self.text)
         ToggleButton:
             text: 'G56'
             group: 'wcs_group'
-            on_press: if self.state == 'down': root.select_wcs(self.text)
+            on_press: root.select_wcs(self.text)
         ToggleButton:
             text: 'G57'
             group: 'wcs_group'
-            on_press: if self.state == 'down': root.select_wcs(self.text)
+            on_press: root.select_wcs(self.text)
         ToggleButton:
             text: 'G58'
             group: 'wcs_group'
-            on_press: if self.state == 'down': root.select_wcs(self.text)
+            on_press: root.select_wcs(self.text)
         ToggleButton:
             text: 'G59'
             group: 'wcs_group'
-            on_press: if self.state == 'down': root.select_wcs(self.text)
+            on_press: root.select_wcs(self.text)
 
     GridLayout:
         pos_hint: {'top': 0.4}

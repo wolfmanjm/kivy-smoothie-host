@@ -71,6 +71,7 @@ class NumericInput(TextInput):
 
 class DROWidget(RelativeLayout):
     """DROWidget Shows realtime information in a DRO style"""
+    curwcs= StringProperty('')
     def __init__(self, **kwargs):
         super(DROWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
@@ -95,6 +96,17 @@ class DROWidget(RelativeLayout):
 
     def reset_axis(self, a):
         self.app.comms.write('G92 {}0\n'.format(a))
+
+    def update_buttons(self):
+        self.app.comms.write("$G\n")
+
+    def _on_curwcs(self):
+        # foreach WCS button see if it is active or not
+        for i in self.ids.wcs_buts.children:
+            if i.text == self.curwcs:
+                i.state= 'down'
+            else:
+                i.state= 'normal'
 
 
 # user defined macros are configurable and stored in a configuration file called macros.ini
@@ -152,6 +164,7 @@ class ExtruderWidget(BoxLayout):
     hotend_dg= ObjectProperty()
     last_bed_temp= NumericProperty()
     last_hotend_temp= NumericProperty()
+    curtool= NumericProperty(-1)
 
     def __init__(self, **kwargs):
         super(ExtruderWidget, self).__init__(**kwargs)
@@ -159,6 +172,7 @@ class ExtruderWidget(BoxLayout):
         self.last_bed_temp= self.app.config.getfloat('Extruder', 'last_bed_temp')
         self.last_hotend_temp= self.app.config.getfloat('Extruder', 'last_hotend_temp')
         self.temp_changed= False
+        #self.bind(on_curtool=self._on_curtool)
 
     def switch_active(self, instance, type, on, value):
         if on:
@@ -260,6 +274,13 @@ class ExtruderWidget(BoxLayout):
         ''' called when the reverse button is pressed '''
         Logger.debug('Extruder: reverse {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
         self.app.comms.write('G91 G0 E-{0} F{1} G90\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
+
+    def update_buttons(self):
+        self.app.comms.write("$G\n")
+
+    def _on_curtool(self):
+        self.ids.tool_t0.state= 'down' if self.curtool == 0 else 'normal'
+        self.ids.tool_t1.state= 'down' if self.curtool == 1 else 'normal'
 
 class MPGWidget(RelativeLayout):
     """docstring for MPGWidget"""
@@ -487,6 +508,10 @@ class MainWindow(BoxLayout):
         if 'B' in d:
             self.ids.extruder.update_temp('bed', d['B'][0], d['B'][1])
 
+    @mainthread
+    def update_state(self, a):
+        self.ids.extruder.curtool= int(a[9][1])
+        self.ids.dro_widget.curwcs= a[1]
 
     @mainthread
     def alarm_state(self, s):
@@ -728,7 +753,10 @@ class TabbedCarousel(TabbedPanel):
         # we switched to a new screen in carousel check it
         if header.slide == 3: # macros screen
             self.macros.update_buttons()
-
+        elif header.slide == 1: # DRO screen
+            self.dro_widget.update_buttons()
+        elif header.slide == 5: # extruder screen
+            self.extruder.update_buttons()
 
 
 class MainScreen(Screen):
@@ -742,7 +770,6 @@ class SmoothieHost(App):
     fr= NumericProperty(0)
     sr= NumericProperty(0)
     lp= NumericProperty(0)
-
     is_desktop= BooleanProperty(False)
     is_cnc= BooleanProperty(False)
     tab_top= BooleanProperty(False)

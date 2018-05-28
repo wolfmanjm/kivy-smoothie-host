@@ -366,7 +366,6 @@ class Comms():
 
     # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
     # Note the data could be a line fragment and we need to only process complete lines terminated with \n
-    tempreading_exp = re.compile("(^T:| T:)")
     def incoming_data(self, data):
         ''' called by Serial connection when incoming data is received '''
         l= data.splitlines(1)
@@ -394,10 +393,7 @@ class Comms():
                 continue
 
             # process a complete line
-            if "ok T:" in s or self.tempreading_exp.findall(s):
-                self.app.main_window.async_display('{}'.format(s))
-
-            elif s.startswith('ok'):
+            if s.startswith('ok'):
                 if self.ping_pong:
                     if self.okcnt:
                         self.okcnt.release()
@@ -413,6 +409,9 @@ class Comms():
                     self.handle_status(s)
                 except:
                     self.log.error("Comms: error parsing status")
+
+            elif s.startswith('['):
+                self.handle_state(s)
 
             elif "!!" in s or "ALARM" in s or "ERROR" in s or "error:Alarm lock" in s:
                 self.handle_alarm(s)
@@ -450,6 +449,19 @@ class Comms():
             else:
                 self.app.main_window.async_display('{}'.format(s))
 
+    def handle_state(self, s):
+        # [G0 G55 G17 G21 G90 G94 M0 M5 M9 T1 F4000.0000 S0.8000]
+        s= s[1:-1] # strip off [ .. ]
+        # split fields
+        l= s.split(' ')
+        self.log.debug("Got state: {}".format(l))
+        # we want the current WCS and the current Tool
+        if len(l) < 10:
+            self.log.warning('Comms: Bad state report: {}'.format(s))
+            return
+
+        self.app.main_window.update_state(l)
+
     def handle_status(self, s):
         #<Idle|MPos:68.9980,-49.9240,40.0000,12.3456|WPos:68.9980,-49.9240,40.0000|F:12345.12|S:1.2>
         # if temp readings are enabled then also returns T:25.0,0.0|B:25.2,0.0
@@ -457,6 +469,7 @@ class Comms():
 
         # split fields
         l= s.split('|')
+        self.log.debug("Got status: {}".format(l))
         if len(l) < 3:
             self.log.warning('Comms: old status report - set new_status_format')
             self.app.main_window.update_status("ERROR", "set new_status_format true")
