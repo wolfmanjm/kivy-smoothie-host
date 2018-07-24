@@ -332,6 +332,7 @@ class ArrowButton(ButtonBehavior, Widget):
 
 class JogRoseWidget(BoxLayout):
     xy_feedrate= StringProperty()
+    abc_sel= StringProperty('Z')
 
     def __init__(self, **kwargs):
         super(JogRoseWidget, self).__init__(**kwargs)
@@ -361,6 +362,7 @@ class JogRoseWidget(BoxLayout):
 
     def motors_off(self):
         self.app.comms.write('M18\n')
+
 
 class KbdWidget(GridLayout):
     def __init__(self, **kwargs):

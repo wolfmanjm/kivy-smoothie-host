@@ -72,14 +72,14 @@
             ArrowButton:
                 size_hint: None, None
                 size: 50, 50
-                text: 'Z+10' if x10cb.active else 'Z+1'
+                text: '{}+10'.format(root.abc_sel) if x10cb.active else '{}+1'.format(root.abc_sel)
                 angle: 0
-                on_press: root.handle_action('Z', 1)
+                on_press: root.handle_action(root.abc_sel, 1)
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: 'Z+1' if x10cb.active else 'Z+0.1'
-                on_press: root.handle_action('Z', 0.1)
+                text: '{}+1'.format(root.abc_sel) if x10cb.active else '{}+0.1'.format(root.abc_sel)
+                on_press: root.handle_action(root.abc_sel, 0.1)
 
         MyGridV:
             pos_hint: {'right': 1.0, 'y': 0}
@@ -88,14 +88,14 @@
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: 'Z-1' if x10cb.active else 'Z-0.1'
-                on_press: root.handle_action('Z', -0.1)
+                text: '{}-1'.format(root.abc_sel) if x10cb.active else '{}-0.1'.format(root.abc_sel)
+                on_press: root.handle_action(root.abc_sel, -0.1)
             ArrowButton:
                 size_hint: None, None
                 size: 50, 50
-                text: 'Z-10' if x10cb.active else 'Z-1'
+                text: '{}-10'.format(root.abc_sel) if x10cb.active else '{}-1'.format(root.abc_sel)
                 angle: 180
-                on_press: root.handle_action('Z', -1)
+                on_press: root.handle_action(root.abc_sel, -1)
 
         MyGridV:
             pos_hint: {'center_x': 0.5, 'top': 1.0}
@@ -189,6 +189,20 @@
             size: 50, 50
             text: 'Home'
             on_press: root.handle_action('H', 0)
+
+        BoxLayout:
+            orientation: 'vertical'
+            pos_hint: {'x': 0.75, 'y': 0.8}
+            size_hint: 0.1, 0.2
+            ToggleButton:
+                text: 'Z'
+                group: 'zabc_group'
+                state: 'down'
+                on_press: root.abc_sel= 'Z'
+            ToggleButton:
+                text: 'A'
+                group: 'zabc_group'
+                on_press: root.abc_sel= 'A'
 
         GridLayout:
             pos_hint: {'x': 0.0, 'top': 1}
