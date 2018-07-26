@@ -907,7 +907,7 @@ class SmoothieHost(App):
     def on_config_change(self, config, section, key, value):
         #print("config changed: {} - {}: {}".format(section, key, value))
         token = (section, key)
-        if token == ('General', 'cnc'):
+        if token == ('UI', 'cnc'):
             self.is_cnc = value == "1"
         elif token == ('UI', 'tab_top'):
             self.tab_top = value == "1"
