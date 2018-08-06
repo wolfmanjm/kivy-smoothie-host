@@ -34,6 +34,7 @@ from selection_box import SelectionBox
 from file_dialog import FileDialog
 from viewer import GcodeViewerScreen
 from web_server import ProgressServer
+from camera_screen import CameraScreen
 
 import subprocess
 import traceback
@@ -733,6 +734,8 @@ class MainWindow(BoxLayout):
             self.add_line_to_log(">>> Update: Error trying to update. See log")
             Logger.error('MainWindow: {}'.format(traceback.format_exc()))
 
+    def show_camera_screen(self):
+        self.app.sm.current= 'camera'
 
 class TabbedCarousel(TabbedPanel):
     def on_index(self, instance, value):
@@ -777,6 +780,7 @@ class SmoothieHost(App):
     tab_top= BooleanProperty(False)
     main_window= ObjectProperty()
     gcode_file= StringProperty()
+    is_show_camera= BooleanProperty(False)
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
@@ -787,7 +791,6 @@ class SmoothieHost(App):
         else:
             self.use_com_port= None
         self.webserver= False
-        self.show_video= False
         self._blanked= False
         self.last_touch_time= 0
 
@@ -948,7 +951,7 @@ class SmoothieHost(App):
         self.tab_top= self.config.getboolean('UI', 'tab_top')
 
         self.is_webserver= self.config.getboolean('Web', 'webserver')
-        self.show_video= self.config.getboolean('Web', 'show_video')
+        self.is_show_camera= self.config.getboolean('Web', 'show_video')
 
         self.comms= Comms(self, self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
@@ -984,6 +987,9 @@ class SmoothieHost(App):
         if self.is_webserver:
             self.webserver= ProgressServer()
             self.webserver.start(self, 8000)
+
+        if self.is_show_camera:
+            self.sm.add_widget(CameraScreen(name='camera'))
 
         return self.sm
 
