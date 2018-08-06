@@ -58,6 +58,8 @@
 <NumericInput>
 
 <JogRoseWidget>:
+    jogrosemain: jogrosemain
+    abc_panel: abc_panel
     padding: 5, 5
     canvas.before:
         Color:
@@ -67,6 +69,7 @@
             size: self.size
 
     RelativeLayout:
+        id: jogrosemain
         MyGridV:
             pos_hint: {'right': 1.0, 'top': 1.0}
             ArrowButton:
@@ -191,6 +194,7 @@
             on_press: root.handle_action('H', 0)
 
         BoxLayout:
+            id: abc_panel
             orientation: 'vertical'
             pos_hint: {'x': 0.75, 'y': 0.8}
             size_hint: 0.1, 0.2

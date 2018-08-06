@@ -977,6 +977,10 @@ class SmoothieHost(App):
             #     self.main_window.ids.tc.remove_widget(self.main_window.ids.tc.mpg_tab)
             #     self.main_window.ids.carousel.remove_widget(self.main_window.ids.mpg_widget)
 
+        # if not CNC mode then do not show the ZABC buttons in jogrose
+        if not self.is_cnc:
+            self.main_window.ids.tc.jogrose.jogrosemain.remove_widget(self.main_window.ids.tc.jogrose.abc_panel)
+
         if self.is_webserver:
             self.webserver= ProgressServer()
             self.webserver.start(self, 8000)
