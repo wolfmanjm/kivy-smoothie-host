@@ -45,9 +45,9 @@ class MjpegViewer(Image):
         self.read_queue= Clock.schedule_interval(self.update_image, 0.2)
 
     def stop(self):
+        self.read_queue.cancel()
         self.quit = True
         self._thread.join()
-        self.read_queue.cancel()
 
     def read_stream(self):
         try:
