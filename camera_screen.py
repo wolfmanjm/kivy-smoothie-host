@@ -14,8 +14,6 @@ import threading
 
 Builder.load_string('''
 <MjpegViewer>:
-    #url: 'http://192.168.1.72:8080/?action=stream'
-    url: 'http://localhost:8080/?action=stream'
 
 <CameraScreen>:
     on_enter: self.start()
@@ -33,9 +31,8 @@ Builder.load_string('''
 
 class MjpegViewer(Image):
 
-    url = StringProperty()
-
-    def start(self):
+    def start(self, url):
+        self.url= url
         self.quit = False
         self._thread = threading.Thread(target=self.read_stream)
         self._thread.daemon = True
@@ -86,9 +83,10 @@ class MjpegViewer(Image):
 
 
 class CameraScreen(Screen):
+    url = StringProperty()
 
     def start(self):
-        self.ids.viewer.start()
+        self.ids.viewer.start(self.url)
 
     def stop(self):
         self.ids.viewer.stop()

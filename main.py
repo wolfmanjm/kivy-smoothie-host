@@ -821,7 +821,8 @@ class SmoothieHost(App):
         })
         config.setdefaults('Web', {
             'webserver': 'false',
-            'show_video': 'false'
+            'show_video': 'false',
+            'camera_url': 'http://localhost:8080/?action=stream'
         })
 
     def build_settings(self, settings):
@@ -881,6 +882,13 @@ class SmoothieHost(App):
                   "desc": "Display mjpeg video in web progress",
                   "section": "Web",
                   "key": "show_video"
+                },
+
+                { "type": "string",
+                  "title": "Camera URL",
+                  "desc": "URL for camera stream",
+                  "section": "Web",
+                  "key": "camera_url"
                 },
 
                 { "type": "title",
@@ -991,7 +999,8 @@ class SmoothieHost(App):
             self.webserver.start(self, 8000)
 
         if self.is_show_camera:
-            self.sm.add_widget(CameraScreen(name='camera'))
+            url= self.config.get('Web', 'camera_url')
+            self.sm.add_widget(CameraScreen(name='camera', url= url))
 
         return self.sm
 
