@@ -14,7 +14,7 @@ import threading
 
 Builder.load_string('''
 <MjpegViewer>:
-    #url: 'http://192.168.1.11:8000/?action=stream'
+    #url: 'http://192.168.1.72:8080/?action=stream'
     url: 'http://localhost:8080/?action=stream'
 
 <CameraScreen>:
@@ -37,18 +37,17 @@ class MjpegViewer(Image):
 
     def start(self):
         self.quit = False
-        self._queue = deque()
         self._thread = threading.Thread(target=self.read_stream)
         self._thread.daemon = True
         self._thread.start()
         self._image_lock = threading.Lock()
         self._image_buffer = None
-        self.read_queue= Clock.schedule_interval(self.update_image, 1 / 10.)
+        self.read_queue= Clock.schedule_interval(self.update_image, 0.2)
 
     def stop(self):
         self.quit = True
         self._thread.join()
-        Clock.unschedule(self.read_queue)
+        self.read_queue.cancel()
 
     def read_stream(self):
         try:

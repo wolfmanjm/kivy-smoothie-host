@@ -926,6 +926,8 @@ class SmoothieHost(App):
         self.comms.stop(); # stop the aysnc loop
         if self.is_webserver:
             self.webserver.stop()
+        # unblank if blanked
+        self._on_touch(0, 0)
 
     def on_start(self):
         # in case we added something to the defaults, make sure they are written to the ini file
