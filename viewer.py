@@ -41,7 +41,7 @@ Builder.load_string('''
                         height: self.parent.height
 
                     Color:
-                        rgb: 1, 1, 1, 1
+                        rgb: (1, 1, 1, 1) if root.valid else (0,0,0,1)
                     Rectangle:
                         size: self.size
 
@@ -103,6 +103,7 @@ class GcodeViewerScreen(Screen):
     select_mode= BooleanProperty(False)
     set_wpos_mode= BooleanProperty(True)
     cam_mode= BooleanProperty(False)
+    valid= BooleanProperty(False)
 
     def __init__(self, comms= None, **kwargs):
         super(GcodeViewerScreen, self).__init__(**kwargs)
@@ -124,6 +125,8 @@ class GcodeViewerScreen(Screen):
         if self.timer:
             self.timer.cancel()
             self.timer= None
+            self.valid= False
+
         self.li= Image(source='img/image-loading.gif')
         self.add_widget(self.li)
         self.ids.surface.canvas.remove(self.canv)
@@ -134,10 +137,19 @@ class GcodeViewerScreen(Screen):
         self.remove_widget(self.li)
         self.li= None
         self.ids.surface.canvas.add(self.canv)
+        self.valid= self._loaded_ok
 
     def _load_file(self, l):
+        self._loaded_ok= False
         self.parse_gcode_file(self.app.gcode_file, l, True)
-        self._loaded()
+
+        if self._loaded_ok:
+            # not sure why we need to do this
+            self.ids.surface.top= Window.height
+            if not self.timer: # and self.app.status == "Run":
+                self.timer= Clock.schedule_interval(self.update, 0.5)
+
+            self._loaded()
 
     def _redraw(self, instance, value):
         self.ids.surface.canvas.remove(self.canv)
@@ -147,7 +159,11 @@ class GcodeViewerScreen(Screen):
         if self.timer:
             self.timer.cancel()
             self.timer= None
+        if  self.li:
+            self.remove_widget(self.li)
+            self.li= None
 
+        self.valid= False
         self.is_visible= False
         self.canv.clear()
         self.ids.surface.canvas.remove(self.canv)
@@ -258,8 +274,6 @@ class GcodeViewerScreen(Screen):
             #     self.last_file_pos= None
             #     print('Jumped to Saved position: {}'.format(self.last_file_pos))
             for l in f:
-                time.sleep(.001)
-
                 cnt += 1
                 l = l.strip()
                 if not l: continue
@@ -549,12 +563,7 @@ class GcodeViewerScreen(Screen):
         self.canv.add(Rectangle(pos=(x-r/2, y), size=(r, 1/scale), group="tool"))
 
         self.canv.add(PopMatrix())
-
-        # not sure why we need to do this
-        self.ids.surface.top= Window.height
-
-        if not self.timer: # and self.app.status == "Run":
-            self.timer= Clock.schedule_interval(self.update, 0.5)
+        self._loaded_ok= True
 
     def update(self, dt):
         if not self.is_visible: return
@@ -662,7 +671,7 @@ class GcodeViewerScreen(Screen):
 
     def set_cam(self, on):
         self.cam_mode= on
-        self.loading(0)
+        self.loading(0 if self.cam_mode else 1)
 
 
 if __name__ == '__main__':
