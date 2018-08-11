@@ -9,17 +9,20 @@ from kivy.properties import NumericProperty, BooleanProperty, ListProperty
 from kivy.graphics.transformation import Matrix
 from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
-from kivy.clock import Clock
+from kivy.uix.image import Image
+from kivy.clock import Clock, mainthread
 from kivy.core.text import Label as CoreLabel
 
 import logging
 import sys
 import re
 import math
+import time
+import threading
 
 Builder.load_string('''
 <GcodeViewerScreen>:
-    on_enter: self.parse_gcode_file(app.gcode_file, 1, True)
+    on_enter: self.loading()
     on_leave: root.clear()
     BoxLayout:
         orientation: 'vertical'
@@ -62,7 +65,7 @@ Builder.load_string('''
             Button:
                 text: 'First Layer'
                 disabled: root.cam_mode
-                on_press: root.parse_gcode_file(app.gcode_file, 1, True)
+                on_press: root.loading(1)
             Button:
                 text: 'Prev Layer'
                 disabled: root.cam_mode
@@ -106,7 +109,6 @@ class GcodeViewerScreen(Screen):
         self.app = App.get_running_app()
         self.last_file_pos= None
         self.canv = InstructionGroup()
-        self.ids.surface.canvas.add(self.canv)
         self.transform= self.ids.surface.transform
         self.bind(pos=self._redraw, size=self._redraw)
         self.last_target_layer= 0
@@ -117,6 +119,25 @@ class GcodeViewerScreen(Screen):
         self.cam_mode= self.app.is_cnc
         self.rval= 0.0
         self.timer= None
+
+    def loading(self, l=1):
+        if self.timer:
+            self.timer.cancel()
+            self.timer= None
+        self.li= Image(source='img/image-loading.gif')
+        self.add_widget(self.li)
+        self.ids.surface.canvas.remove(self.canv)
+        threading.Thread(target=self._load_file, args=(l,)).start()
+
+    @mainthread
+    def _loaded(self):
+        self.remove_widget(self.li)
+        self.li= None
+        self.ids.surface.canvas.add(self.canv)
+
+    def _load_file(self, l):
+        self.parse_gcode_file(self.app.gcode_file, l, True)
+        self._loaded()
 
     def _redraw(self, instance, value):
         self.ids.surface.canvas.remove(self.canv)
@@ -129,6 +150,7 @@ class GcodeViewerScreen(Screen):
 
         self.is_visible= False
         self.canv.clear()
+        self.ids.surface.canvas.remove(self.canv)
 
         self.last_target_layer= 0
         # reset scale and translation
@@ -139,11 +161,11 @@ class GcodeViewerScreen(Screen):
         self.ids.surface.top= Window.height
 
     def next_layer(self):
-        self.parse_gcode_file(self.app.gcode_file, self.last_target_layer+1, True)
+        self.loading(self.last_target_layer+1)
 
     def prev_layer(self):
         n= 1 if self.last_target_layer <= 1 else self.last_target_layer-1
-        self.parse_gcode_file(self.app.gcode_file, n, True)
+        self.loading(n)
 
 
     #----------------------------------------------------------------------
@@ -235,8 +257,9 @@ class GcodeViewerScreen(Screen):
             #     f.seek(self.last_file_pos)
             #     self.last_file_pos= None
             #     print('Jumped to Saved position: {}'.format(self.last_file_pos))
-
             for l in f:
+                time.sleep(.001)
+
                 cnt += 1
                 l = l.strip()
                 if not l: continue
@@ -639,7 +662,7 @@ class GcodeViewerScreen(Screen):
 
     def set_cam(self, on):
         self.cam_mode= on
-        self.parse_gcode_file(self.app.gcode_file, 0, True)
+        self.loading(0)
 
 
 if __name__ == '__main__':
