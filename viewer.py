@@ -79,11 +79,11 @@ Builder.load_string('''
                 on_press: root.clear()
             ToggleButton:
                 id: cam_but
-                text: 'CAM mode'
+                text: 'CAM'
                 on_press: root.set_cam(self.state == 'down')
             ToggleButton:
                 id: laser_but
-                text: 'Laser mode'
+                text: 'Laser'
                 on_press: root.set_laser(self.state == 'down')
             ToggleButton:
                 id: set_wpos_but
