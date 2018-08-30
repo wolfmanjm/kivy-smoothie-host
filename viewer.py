@@ -82,6 +82,10 @@ Builder.load_string('''
                 text: 'CAM mode'
                 on_press: root.set_cam(self.state == 'down')
             ToggleButton:
+                id: laser_but
+                text: 'Laser mode'
+                on_press: root.set_laser(self.state == 'down')
+            ToggleButton:
                 id: set_wpos_but
                 text: 'Set WPOS'
                 on_press: root.set_wcs(self.state == 'down')
@@ -103,6 +107,7 @@ class GcodeViewerScreen(Screen):
     select_mode= BooleanProperty(False)
     set_wpos_mode= BooleanProperty(True)
     cam_mode= BooleanProperty(False)
+    laser_mode= BooleanProperty(False)
     valid= BooleanProperty(False)
 
     def __init__(self, comms= None, **kwargs):
@@ -134,6 +139,7 @@ class GcodeViewerScreen(Screen):
 
     @mainthread
     def _loaded(self):
+        Logger.debug("GcodeViewerScreen: in _loaded. ok: {}".format(self._loaded_ok))
         self.remove_widget(self.li)
         self.li= None
         self.ids.surface.canvas.add(self.canv)
@@ -149,7 +155,7 @@ class GcodeViewerScreen(Screen):
             if not self.timer: # and self.app.status == "Run":
                 self.timer= Clock.schedule_interval(self.update, 0.5)
 
-            self._loaded()
+        self._loaded()
 
     def _redraw(self, instance, value):
         self.ids.surface.canvas.remove(self.canv)
@@ -233,7 +239,7 @@ class GcodeViewerScreen(Screen):
             else:
                 return yc,zc
 
-    extract_gcode= re.compile("(G|X|Y|Z|I|J|K|E)(-?\d*\.?\d+\.?)")
+    extract_gcode= re.compile("(G|X|Y|Z|I|J|K|E|S)(-?\d*\.?\d+\.?)")
     def parse_gcode_file(self, fn, target_layer= 0, one_layer= False):
         # open file parse gcode and draw
         Logger.debug("GcodeViewerScreen: parsing file {}". format(fn))
@@ -241,6 +247,7 @@ class GcodeViewerScreen(Screen):
         lastz= None
         lastdeltaz= None
         laste= 0
+        lasts= 1
         layer= -1
         last_gcode= -1
         points= []
@@ -250,7 +257,9 @@ class GcodeViewerScreen(Screen):
         min_y= float('nan')
         has_e= False
         plane= XY
+        rel_move= False
         self.is_visible= True
+        if self.laser_mode: self.cam_mode= True # laser mode implies CAM mode
 
         self.last_target_layer= target_layer
 
@@ -266,6 +275,9 @@ class GcodeViewerScreen(Screen):
         modal_g= 0
         cnt= 0
         found_layer= False
+        x= lastpos[0]
+        y= lastpos[1]
+        z= lastpos[2]
 
         with open(fn) as f:
             # if self.last_file_pos:
@@ -288,13 +300,16 @@ class GcodeViewerScreen(Screen):
                 d= dict((m[0], float(m[1])) for m in matches)
 
                 # handle modal commands
-                if 'G' not in d and ('X' in d or 'Y' in d) :
+                if 'G' not in d and ('X' in d or 'Y' in d or 'Z' in d or 'S' in d) :
                     d['G'] = modal_g
 
                 # G92 E0 resets E
                 if 'G' in d and d['G'] == 92 and 'E' in d:
                     laste= float(d['E'])
                     has_e= True
+
+                if 'G' in d and (d['G'] == 91 or d['G'] == 90):
+                    rel_move= d['G'] == 91
 
                 # only deal with G0/1/2/3
                 if d['G'] > 3: continue
@@ -304,14 +319,22 @@ class GcodeViewerScreen(Screen):
                 # see if it is 3d printing (ie has an E axis on a G1)
                 if not has_e and ('E' in d and 'G' in d and d['G'] == 1): has_e= True
 
-                x= lastpos[0] if 'X' not in d else float(d['X'])
-                y= lastpos[1] if 'Y' not in d else float(d['Y'])
-                z= lastpos[2] if 'Z' not in d else float(d['Z'])
+                if rel_move:
+                    x += 0 if 'X' not in d else float(d['X'])
+                    y += 0 if 'Y' not in d else float(d['Y'])
+                    z += 0 if 'Z' not in d else float(d['Z'])
+
+                else:
+                    x= lastpos[0] if 'X' not in d else float(d['X'])
+                    y= lastpos[1] if 'Y' not in d else float(d['Y'])
+                    z= lastpos[2] if 'Z' not in d else float(d['Z'])
+
                 i= 0.0 if 'I' not in d else float(d['I'])
                 j= 0.0 if 'J' not in d else float(d['J'])
                 self.rval= 0.0 if 'R' not in d else float(d['R'])
 
                 e= laste if 'E' not in d else float(d['E'])
+                s= lasts if 'S' not in d else float(d['S'])
 
                 if not self.cam_mode :
                     # handle layers (when Z changes)
@@ -346,7 +369,7 @@ class GcodeViewerScreen(Screen):
 
                 found_layer= True
 
-                Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}".format(x, y, z))
+                Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}, s= {}".format(x, y, z, s))
 
                 # find bounding box
                 if math.isnan(min_x) or x < min_x: min_x= x
@@ -376,8 +399,16 @@ class GcodeViewerScreen(Screen):
 
                 elif gcode == 1:
                     if ('X' in d or 'Y' in d):
+                        if self.laser_mode and s <= 0.01:
+                            # do not draw non cutting lines
+                            if points:
+                                # draw accumulated points upto this point
+                                self.canv.add(Color(0, 0, 0))
+                                self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                                points= []
+
                         # for 3d printers (has_e) only draw if there is an E
-                        if not has_e or 'E' in d:
+                        elif not has_e or 'E' in d:
                             # if a CNC gcode file or there is an E in the G1 (3d printing)
                             #print("draw to: {}, {}, {}".format(x, y, z))
                             # collect points but don't draw them yet
@@ -496,6 +527,7 @@ class GcodeViewerScreen(Screen):
                 # always remember last position
                 lastpos= [x, y, z]
                 laste= e
+                lasts= s
 
         if not found_layer:
             # we hit the end of file before finding the layer we want
@@ -564,6 +596,7 @@ class GcodeViewerScreen(Screen):
 
         self.canv.add(PopMatrix())
         self._loaded_ok= True
+        Logger.debug("GcodeViewerScreen: done loading")
 
     def update(self, dt):
         if not self.is_visible: return
@@ -673,6 +706,10 @@ class GcodeViewerScreen(Screen):
         self.cam_mode= on
         self.loading(0 if self.cam_mode else 1)
 
+    def set_laser(self, on):
+        self.cam_mode= on
+        self.laser_mode= on
+        self.loading(0 if self.cam_mode else 1)
 
 if __name__ == '__main__':
 
