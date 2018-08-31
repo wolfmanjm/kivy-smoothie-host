@@ -398,6 +398,7 @@ class MainWindow(BoxLayout):
     wpos= ListProperty([0,0,0])
     eta= StringProperty('--:--:--')
     is_printing= BooleanProperty(False)
+    is_suspended= BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
@@ -590,6 +591,10 @@ class MainWindow(BoxLayout):
                 self.app.comms.stream_pause(True)
                 self.ids.print_but.text= 'Resume'
             else:
+                if self.is_suspended:
+                    # as we were suspended we need to resume first
+                    self.app.comms.write('M601\n')
+                    self.is_suspended= False
                 self.paused= False
                 self.app.comms.stream_pause(False)
                 self.ids.print_but.text= 'Pause'
@@ -737,6 +742,19 @@ class MainWindow(BoxLayout):
     def show_camera_screen(self):
         self.app.sm.current= 'camera'
 
+    @mainthread
+    def tool_change_prompt(self, l):
+        # Print is paused by gcode command M6, prompt for tool change
+        if not self.paused:
+            self.paused= True
+            #self.app.comms.stream_pause(True) we already did this
+            self.ids.print_but.text= 'Resume'
+            self.display("ACTION NEEDED: Manual Tool Change: {}, tap resume to continue".format(l))
+            # we tell smoothie to suspend so we can save state and move the head around to change the tool
+            # we need to issue resume M601 when we click the Resume button
+            self.app.comms.write('M600\n')
+            self.is_suspended= True
+
 class TabbedCarousel(TabbedPanel):
     def on_index(self, instance, value):
         tab = instance.current_slide.tab
@@ -781,6 +799,7 @@ class SmoothieHost(App):
     main_window= ObjectProperty()
     gcode_file= StringProperty()
     is_show_camera= BooleanProperty(False)
+    manual_tool_change= BooleanProperty(False)
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
@@ -800,7 +819,8 @@ class SmoothieHost(App):
             'last_print_file': '',
             'serial_port': 'serial:///dev/ttyACM0',
             'report_rate': '1',
-            'blank_timeout': '0'
+            'blank_timeout': '0',
+            'manual_tool_change' : 'false'
         })
         config.setdefaults('UI', {
             'desktop': 'false',
@@ -867,6 +887,13 @@ class SmoothieHost(App):
                   "section": "General",
                   "key": "blank_timeout" },
 
+                { "type": "bool",
+                  "title": "Manual Tool change",
+                  "desc": "On M6 let user do a manual tool change",
+                  "section": "General",
+                  "key": "manual_tool_change"
+                },
+
                 { "type": "title",
                   "title": "Web Settings" },
 
@@ -928,6 +955,8 @@ class SmoothieHost(App):
             self.main_window.ids.extruder.ids.set_bed_temp.values= value.split(',')
         elif token == ('General', 'blank_timeout'):
             self.blank_timeout= float(value)
+        elif token == ('General', 'manual_tool_change'):
+            self.manual_tool_change= value == '1'
 
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop

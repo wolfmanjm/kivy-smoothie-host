@@ -145,7 +145,7 @@
                 JogRoseWidget:
                     id: jog_rose
                     tab: tab1
-                    disabled: root.is_printing
+                    disabled: root.is_printing and not root.is_suspended
 
                 DROWidget:
                     id: dro_widget

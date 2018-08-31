@@ -600,6 +600,13 @@ class Comms():
                 if self.abort_stream:
                     break
 
+                # handle tool change
+                if self.app.manual_tool_change:
+                    if "M6" in l:
+                        self._stream_pause(True, False) # we need to pause the stream
+                        self.app.main_window.tool_change_prompt(l)
+                        continue
+
                 # send the line
                 self._write(line)
 
