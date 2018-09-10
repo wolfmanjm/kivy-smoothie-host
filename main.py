@@ -184,8 +184,10 @@ class MacrosWidget(StackLayout):
 
         if value == '0' and t[4].state != 'normal':
             t[4].state = 'normal'
+            t[4].text = t[0]
         elif value == '1' and t[4].state == 'normal':
             t[4].state = 'down'
+            t[4].text = t[1]
 
     def send(self, cmd, *args):
         self.app.comms.write('{}\n'.format(cmd))
