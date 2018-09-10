@@ -144,13 +144,13 @@ class MacrosWidget(StackLayout):
             # add toggle button handling switch states
             for section in config.sections():
                 if not section.startswith('toggle button'): continue
-                name= config.get(section, 'name')
-                lon= config.get(section, 'label on')
-                loff= config.get(section, 'label off')
-                cmd_on= config.get(section, 'command on')
-                cmd_off= config.get(section, 'command off')
+                name= config.get(section, 'name', fallback=None)
+                lon= config.get(section, 'label on', fallback=None)
+                loff= config.get(section, 'label off', fallback=None)
+                cmd_on= config.get(section, 'command on', fallback=None)
+                cmd_off= config.get(section, 'command off', fallback=None)
                 if name is None or lon is None or loff is None or cmd_on is None or cmd_off is None:
-                    Logger.error("MacrosWidget: toggle button {} is invalid".format(section))
+                    Logger.error("MacrosWidget: config error - {} is invalid".format(section))
                     continue
 
                 tbtn = Factory.MacroToggleButton()
@@ -166,7 +166,7 @@ class MacrosWidget(StackLayout):
                 btn.bind(on_press= partial(self.send, v))
                 self.add_widget(btn)
         except:
-            Logger.warning('MacrosWidget: exception parsing config file: {}'.format(traceback.format_exc()))
+            Logger.warning('MacrosWidget: ERROR - exception parsing config file: {}'.format(traceback.format_exc()))
 
     def update_buttons(self):
         # check the state of the toggle macro buttons, called when we switch to the macro window
