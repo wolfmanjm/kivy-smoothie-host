@@ -161,7 +161,7 @@
 
                 MPGWidget:
                     id: mpg_widget
-                    disabled: root.is_printing
+                    disabled: root.is_printing and not root.is_suspended
                     tab: tab5
 
                 ExtruderWidget:

@@ -133,6 +133,7 @@ class Comms():
         self.is_streaming= False
         self.do_query= False
         self.last_tool= None
+        self.is_suspend= False
 
         self.log = logging.getLogger() #.getChild('Comms')
         #logging.getLogger().setLevel(logging.DEBUG)
@@ -424,9 +425,9 @@ class Comms():
                 if pos >= 0:
                     act= s[pos+7:].strip() # extract action command
                     if act in 'pause':
-                        if not self.pause_stream: # if not already paused
-                            self.app.main_window.async_display('>>> Smoothie requested Pause')
-                            self._stream_pause(True, False)
+                        self.app.main_window.async_display('>>> Smoothie requested Pause')
+                        self.is_suspend= True # this currently only happens if we suspend (M600)
+                        self._stream_pause(True, False)
                     elif act in 'resume':
                         self.app.main_window.async_display('>>> Smoothie requested Resume')
                         self._stream_pause(False, False)
@@ -533,7 +534,9 @@ class Comms():
 
             elif pause:
                 self.pause_stream= True #.clear() # pauses stream
-                self.app.main_window.action_paused(True)
+                # tell UI we paused (and if it was due to a suspend)
+                self.app.main_window.action_paused(True, self.is_suspend)
+                self.is_suspend= False # always clear this
                 self.log.info('Comms: Pausing Stream')
 
             else:
@@ -603,7 +606,8 @@ class Comms():
                 if self.app.manual_tool_change:
                     if "M6 " in l or "M06 " in l:
                         if self.last_tool != l:
-                            self._stream_pause(True, False) # we need to pause the stream
+                            # we need to pause the stream here immediately, but the real _stream_pause will be called by suspend
+                            self.pause_stream= True # we don't normally set this directly
                             self.app.main_window.tool_change_prompt(l)
                             self.last_tool= l
                             continue

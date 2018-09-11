@@ -618,10 +618,11 @@ class MainWindow(BoxLayout):
             self.app.comms.stream_pause(False, True)
 
     @mainthread
-    def action_paused(self, paused):
+    def action_paused(self, paused, suspended= False):
         # comms layer is telling us we paused or unpaused
         self.ids.print_but.text= 'Resume' if paused else 'Pause'
         self.paused= paused
+        self.is_suspended= suspended
 
     def start_print(self):
         if self.is_printing:
@@ -634,9 +635,11 @@ class MainWindow(BoxLayout):
                     # as we were suspended we need to resume the suspend first
                     # we let Smoothie tell us to resume from pause though
                     self.app.comms.write('M601\n')
-                    self.is_suspended= False
                 else:
                     self.app.comms.stream_pause(False)
+
+                self.is_suspended= False
+
         else:
             # get file to print
             f= FileDialog()
@@ -788,7 +791,6 @@ class MainWindow(BoxLayout):
         # we tell smoothie to suspend so we can save state and move the head around to change the tool
         # we need to issue resume M601 when we click the Resume button
         self.app.comms.write('M600\n')
-        self.is_suspended= True
 
 class TabbedCarousel(TabbedPanel):
     def on_index(self, instance, value):
@@ -834,7 +836,7 @@ class SmoothieHost(App):
     main_window= ObjectProperty()
     gcode_file= StringProperty()
     is_show_camera= BooleanProperty(False)
-    manual_tool_change= BooleanProperty(True)
+    manual_tool_change= BooleanProperty(False)
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
@@ -1026,6 +1028,7 @@ class SmoothieHost(App):
 
         self.is_webserver= self.config.getboolean('Web', 'webserver')
         self.is_show_camera= self.config.getboolean('Web', 'show_video')
+        self.manual_tool_change= self.config.getboolean('General', 'manual_tool_change')
 
         self.comms= Comms(App.get_running_app(), self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
