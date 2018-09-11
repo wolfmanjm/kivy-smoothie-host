@@ -547,6 +547,8 @@ class Comms():
         self.is_streaming= True;
         self.abort_stream= False
         self.pause_stream= False #.set() # start out not paused
+        self.last_tool= None
+
         if self.ping_pong:
             self.okcnt= asyncio.Semaphore(1)
         else:
@@ -601,10 +603,12 @@ class Comms():
                 if self.app.manual_tool_change:
                     if "M6 " in l or "M06 " in l:
                         if self.last_tool != l:
-                            # seems sometimes the tool change is duplicated so ignore if the tool is the same
                             self._stream_pause(True, False) # we need to pause the stream
                             self.app.main_window.tool_change_prompt(l)
                             self.last_tool= l
+                            continue
+                        else:
+                            # seems sometimes the tool change is duplicated so ignore if the tool is the same
                             continue
 
                 # send the line
