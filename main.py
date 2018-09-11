@@ -834,7 +834,7 @@ class SmoothieHost(App):
     main_window= ObjectProperty()
     gcode_file= StringProperty()
     is_show_camera= BooleanProperty(False)
-    manual_tool_change= BooleanProperty(False)
+    manual_tool_change= BooleanProperty(True)
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):

@@ -132,6 +132,7 @@ class Comms():
         self._reroute_incoming_data_to= None
         self.is_streaming= False
         self.do_query= False
+        self.last_tool= None
 
         self.log = logging.getLogger() #.getChild('Comms')
         #logging.getLogger().setLevel(logging.DEBUG)
@@ -597,11 +598,14 @@ class Comms():
                     break
 
                 # handle tool change
-                if True: #self.app.manual_tool_change:
+                if self.app.manual_tool_change:
                     if "M6 " in l or "M06 " in l:
-                        self._stream_pause(True, False) # we need to pause the stream
-                        self.app.main_window.tool_change_prompt(l)
-                        continue
+                        if self.last_tool != l:
+                            # seems sometimes the tool change is duplicated so ignore if the tool is the same
+                            self._stream_pause(True, False) # we need to pause the stream
+                            self.app.main_window.tool_change_prompt(l)
+                            self.last_tool= l
+                            continue
 
                 # send the line
                 self._write(line)
