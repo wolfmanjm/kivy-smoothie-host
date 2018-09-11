@@ -535,18 +535,20 @@ class MainWindow(BoxLayout):
         if 'L' in d:
             self.app.lp= d['L'][0]
 
-        # extract temperature readings
-        if 'T' in d:
-            self.ids.extruder.update_temp('hotend0', d['T'][0], d['T'][1])
-        elif 'T1' in d:
-            self.ids.extruder.update_temp('hotend1', d['T1'][0], d['T1'][1])
+        if not self.app.is_cnc:
+            # extract temperature readings
+            if 'T' in d:
+                self.ids.extruder.update_temp('hotend0', d['T'][0], d['T'][1])
+            elif 'T1' in d:
+                self.ids.extruder.update_temp('hotend1', d['T1'][0], d['T1'][1])
 
-        if 'B' in d:
-            self.ids.extruder.update_temp('bed', d['B'][0], d['B'][1])
+            if 'B' in d:
+                self.ids.extruder.update_temp('bed', d['B'][0], d['B'][1])
 
     @mainthread
     def update_state(self, a):
-        self.ids.extruder.curtool= int(a[9][1])
+        if not self.app.is_cnc:
+            self.ids.extruder.curtool= int(a[9][1])
         self.ids.dro_widget.curwcs= a[1]
 
     @mainthread
@@ -556,8 +558,7 @@ class MainWindow(BoxLayout):
 
         # if we were printing then we need to set the UI state to Paused
         if self.is_printing:
-            self.paused= True
-            self.ids.print_but.text= 'Resume'
+            self.action_paused(True) # sets the buttons state
             self.add_line_to_log("Streaming Paused, Abort or Continue as needed")
 
     def ask_exit(self):
@@ -616,20 +617,26 @@ class MainWindow(BoxLayout):
         if ok:
             self.app.comms.stream_pause(False, True)
 
+    @mainthread
+    def action_paused(self, paused):
+        # comms layer is telling us we paused or unpaused
+        self.ids.print_but.text= 'Resume' if paused else 'Pause'
+        self.paused= paused
+
     def start_print(self):
         if self.is_printing:
             if not self.paused:
-                self.paused= True
+                # we clicked the pause button
                 self.app.comms.stream_pause(True)
-                self.ids.print_but.text= 'Resume'
             else:
+                # we clicked the resume button
                 if self.is_suspended:
-                    # as we were suspended we need to resume first
+                    # as we were suspended we need to resume the suspend first
+                    # we let Smoothie tell us to resume from pause though
                     self.app.comms.write('M601\n')
                     self.is_suspended= False
-                self.paused= False
-                self.app.comms.stream_pause(False)
-                self.ids.print_but.text= 'Pause'
+                else:
+                    self.app.comms.stream_pause(False)
         else:
             # get file to print
             f= FileDialog()
@@ -777,15 +784,11 @@ class MainWindow(BoxLayout):
     @mainthread
     def tool_change_prompt(self, l):
         # Print is paused by gcode command M6, prompt for tool change
-        if not self.paused:
-            self.paused= True
-            #self.app.comms.stream_pause(True) we already did this
-            self.ids.print_but.text= 'Resume'
-            self.display("ACTION NEEDED: Manual Tool Change: {}, tap resume to continue".format(l))
-            # we tell smoothie to suspend so we can save state and move the head around to change the tool
-            # we need to issue resume M601 when we click the Resume button
-            self.app.comms.write('M600\n')
-            self.is_suspended= True
+        self.display("ACTION NEEDED: Manual Tool Change: {}\nWait for machine to stop then you can jog around to change the tool. tap resume to continue".format(l))
+        # we tell smoothie to suspend so we can save state and move the head around to change the tool
+        # we need to issue resume M601 when we click the Resume button
+        self.app.comms.write('M600\n')
+        self.is_suspended= True
 
 class TabbedCarousel(TabbedPanel):
     def on_index(self, instance, value):
@@ -1024,7 +1027,7 @@ class SmoothieHost(App):
         self.is_webserver= self.config.getboolean('Web', 'webserver')
         self.is_show_camera= self.config.getboolean('Web', 'show_video')
 
-        self.comms= Comms(self, self.config.getint('General', 'report_rate'))
+        self.comms= Comms(App.get_running_app(), self.config.getint('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
         self.sm = ScreenManager()
         ms= MainScreen(name='main')

@@ -423,8 +423,9 @@ class Comms():
                 if pos >= 0:
                     act= s[pos+7:].strip() # extract action command
                     if act in 'pause':
-                        self.app.main_window.async_display('>>> Smoothie requested Pause')
-                        self._stream_pause(True, False)
+                        if not self.pause_stream: # if not already paused
+                            self.app.main_window.async_display('>>> Smoothie requested Pause')
+                            self._stream_pause(True, False)
                     elif act in 'resume':
                         self.app.main_window.async_display('>>> Smoothie requested Resume')
                         self._stream_pause(False, False)
@@ -481,13 +482,6 @@ class Comms():
         # strip of rest into a dict of name: [values,...,]
         d= { a: [float(y) for y in b.split(',')] for a, b in [x.split(':') for x in l[1:]] }
 
-        # d= {}
-        # for x in l[1:]:
-        #     m= x.split(':')
-        #     if len(m) != 2:
-        #         raise ValueError
-        #     d[m[0]]= [float(y) for y in m[1].split(',')]
-
         self.log.debug('Comms: got status:{} - rest: {}'.format(status, d))
 
         self.app.main_window.update_status(status, d)
@@ -538,10 +532,12 @@ class Comms():
 
             elif pause:
                 self.pause_stream= True #.clear() # pauses stream
+                self.app.main_window.action_paused(True)
                 self.log.info('Comms: Pausing Stream')
 
             else:
                 self.pause_stream= False #.set() # releases pause on stream
+                self.app.main_window.action_paused(False)
                 self.log.info('Comms: Resuming Stream')
 
     @asyncio.coroutine
@@ -601,8 +597,8 @@ class Comms():
                     break
 
                 # handle tool change
-                if self.app.manual_tool_change:
-                    if "M6" in l:
+                if True: #self.app.manual_tool_change:
+                    if "M6 " in l or "M06 " in l:
                         self._stream_pause(True, False) # we need to pause the stream
                         self.app.main_window.tool_change_prompt(l)
                         continue
@@ -610,7 +606,7 @@ class Comms():
                 # send the line
                 self._write(line)
 
-                # when streaming we need to yeild until the flow control is dealt with
+                # when streaming we need to yield until the flow control is dealt with
                 if self.proto._connection_lost:
                     # Yield to the event loop so connection_lost() may be
                     # called.  Without this, _drain_helper() would return
