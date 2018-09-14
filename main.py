@@ -165,8 +165,8 @@ class MacrosWidget(StackLayout):
                 btn.text= key
                 btn.bind(on_press= partial(self.send, v))
                 self.add_widget(btn)
-        except:
-            Logger.warning('MacrosWidget: ERROR - exception parsing config file: {}'.format(traceback.format_exc()))
+        except Exception as err:
+            Logger.warning('MacrosWidget: ERROR - exception parsing config file: {}'.format(err))
 
     def update_buttons(self):
         # check the state of the toggle macro buttons, called when we switch to the macro window
