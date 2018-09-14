@@ -52,20 +52,22 @@ The Update System menu entry requires git to be installed and the running direct
 
 Follow these instructions if using an rpi 3 B+ and rasbian stretch...
 https://kivy.org/doc/stable/installation/installation-rpi.html
+
 But change all references to python.. to python3.. As we need kivy for python3.
 
 For instance...
-    > sudo apt-get update
-    > sudo apt-get install libsdl2-dev libsdl2-image-dev \
+
+    sudo apt-get update
+      sudo apt-get install libsdl2-dev libsdl2-image-dev \
        libsdl2-mixer-dev libsdl2-ttf-dev \
        pkg-config libgl1-mesa-dev libgles2-mesa-dev \
        python3-setuptools libgstreamer1.0-dev git-core \
        gstreamer1.0-plugins-{bad,base,good,ugly} \
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel
-    > sudo apt-get install python3-pip
-    > sudo pip3 install -U Cython==0.28.2
-    > sudo pip3 install git+https://github.com/kivy/kivy.git@master
+    sudo apt-get install python3-pip
+    sudo pip3 install -U Cython==0.28.2
+    sudo pip3 install git+https://github.com/kivy/kivy.git@master
 
 ### OR kivypie
 or use kivypie from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box for RPI 3 B and less (not RPI3 B+).
@@ -79,10 +81,12 @@ If you do not have kivypie, but have jessie installed and just want kivy for rpi
 
 ### Common setup
 It is recommended to do this:- 
+
     > sudo apt-get update
     > sudo apt-get upgrade
 
 Install some smoopi dependencies...
+
     > pip3 install pyserial pyserial-asyncio aiofiles
 
 Run with...
@@ -96,7 +100,7 @@ NOTE make sure the ```/home/sysop/.kivy/config.ini``` has the following set so t
     desktop = 0
 
 If your ```~/.kivy/config.ini``` is empty then here is an example that works for the RPI official 7" touch screen:-
-    https://gist.github.com/4f9c23c7e66f391b8c2d32c01e8a8d14
+https://gist.github.com/4f9c23c7e66f391b8c2d32c01e8a8d14
 
 
 To allow the program to shutdown the RPI when the shutdown menu entry is selected you need to do the following, unless smoopi is running as root/superuser.
