@@ -741,6 +741,9 @@ if __name__ == "__main__":
         def update_status(self, stat, d):
             pass
 
+        def manual_tool_change(self, l):
+            print("tool change: {}\n".format(l))
+
     if len(sys.argv) < 3:
         print("Usage: {} port file".format(sys.argv[0]));
         exit(0)
