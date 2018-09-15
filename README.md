@@ -50,6 +50,9 @@ The Update System menu entry requires git to be installed and the running direct
 
 ### Rasbian/Debian Stretch
 
+Install the latest raspbian stretch lite... 
+https://downloads.raspberrypi.org/raspbian_lite_latest
+
 Follow these instructions if using an rpi 3 B+ and rasbian stretch...
 https://kivy.org/doc/stable/installation/installation-rpi.html
 
@@ -58,7 +61,7 @@ But change all references to python.. to python3.. As we need kivy for python3.
 For instance...
 
     sudo apt-get update
-      sudo apt-get install libsdl2-dev libsdl2-image-dev \
+    sudo apt-get install libsdl2-dev libsdl2-image-dev \
        libsdl2-mixer-dev libsdl2-ttf-dev \
        pkg-config libgl1-mesa-dev libgles2-mesa-dev \
        python3-setuptools libgstreamer1.0-dev git-core \
@@ -70,7 +73,7 @@ For instance...
     sudo pip3 install git+https://github.com/kivy/kivy.git@master
 
 ### OR kivypie
-or use kivypie from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box for RPI 3 B and less (not RPI3 B+).
+or use kivypie from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box. (It may or may not work for the rpi3 B+).
 
 If you do not have kivypie, but have jessie installed and just want kivy for rpi then...
 
@@ -99,9 +102,8 @@ NOTE make sure the ```/home/sysop/.kivy/config.ini``` has the following set so t
     keyboard_mode = systemanddock
     desktop = 0
 
-If your ```~/.kivy/config.ini``` is empty then here is an example that works for the RPI official 7" touch screen:-
+If your ```~/.kivy/config.ini``` is empty or not setup for the touch display then here is an example that works for the RPI official 7" touch screen:-
 https://gist.github.com/4f9c23c7e66f391b8c2d32c01e8a8d14
-
 
 To allow the program to shutdown the RPI when the shutdown menu entry is selected you need to do the following, unless smoopi is running as root/superuser.
 
@@ -119,11 +121,12 @@ To allow the program to shutdown the RPI when the shutdown menu entry is selecte
 ### Autostart Smoopi (Optional)
 
 To autostart smoopi on boot but run as the sysop user follow these directions...
-(if using a rasbian installaiorn replace sysop with pi)
+(if using a rasbian installation replace sysop with pi)
 
-1. Install runit (sudo apt-get install runit)
+1. Install runit (sudo apt-get install runit). On Raspbian Stretch also do ```sudo apt-get install runit-systemd```
 2. in the sysop home directory run ```tar xvf INSTALLDIR/runit_setup.tar``` (where INSTALLDIR is where you checked out the smoopi source)
-3. sudo ln -s /home/sysop/sv/smoopi /etc/service
+3. sudo ln -s /home/sysop/sv/smoopi /etc/service (or sudo ln -s /home/pi/sv/smoopi if not using kivypie)
+
 
 To allow Smoopi to connect to the smoothie when auto start by runit you need to do this...
     

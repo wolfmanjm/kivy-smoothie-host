@@ -994,6 +994,9 @@ class SmoothieHost(App):
             self.blank_timeout= float(value)
         elif token == ('General', 'manual_tool_change'):
             self.manual_tool_change= value == '1'
+        else:
+            self.main_window.display("NOTICE: Restart is needed")
+
 
     def on_stop(self):
         # The Kivy event loop is about to stop, stop the async main loop

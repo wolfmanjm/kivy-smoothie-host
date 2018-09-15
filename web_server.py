@@ -14,6 +14,7 @@ def get_ip():
         s.connect(('10.255.255.255', 1))
         IP = s.getsockname()[0]
     except:
+        Logger.warn('ProgressServer: get_ip failed with: {}'.format(traceback.format_exc()))
         IP = '127.0.0.1'
     finally:
         s.close()
@@ -57,6 +58,7 @@ class ProgressServer(object):
 
     def _start(self):
         ip= get_ip()
+        Logger.info("ProgressServer: IP address is: {}".format(ip))
         RequestHandlerClass = make_request_handler_class(self.app, ip)
         self.myServer = HTTPServer(("", self.port), RequestHandlerClass)
         Logger.info("ProgressServer: Web Server Starting - %s:%s" % ("", self.port))
