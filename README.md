@@ -72,6 +72,16 @@ For instance...
     sudo pip3 install -U Cython==0.28.2
     sudo pip3 install git+https://github.com/kivy/kivy.git@master
 
+On an rpi3b+ it seems the double tap time needs to be increased to be usable..
+
+    # in file ~/.kivy/config.ini
+    [postproc]
+    double_tap_distance = 20
+    double_tap_time = 400 # <-- increase this from the 200 default
+    triple_tap_distance = 20
+    triple_tap_time = 600 # <- and this to be > than double_tap_time
+
+
 ### OR kivypie
 or use kivypie from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box. (It may or may not work for the rpi3 B+).
 
