@@ -421,8 +421,22 @@ class KbdWidget(GridLayout):
             self.display.text += key
 
     def handle_input(self, s):
-        self._add_line_to_log('<< {}'.format(s))
-        self.app.comms.write('{}\n'.format(s))
+        if s.startswith('!'):
+            # shell command send to unix shell
+            self._add_line_to_log('> {}'.format(s))
+            try:
+                p = subprocess.Popen(s[1:], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+                result, err = p.communicate()
+                if p.returncode != 0:
+                    self._add_line_to_log('> command error: {}'.format(err))
+                else:
+                    self._add_line_to_log('{}'.format(result))
+            except Exception as err:
+                    self._add_line_to_log('> command exception: {}'.format(err))
+        else:
+            self._add_line_to_log('<< {}'.format(s))
+            self.app.comms.write('{}\n'.format(s))
+
         self.display.text = ''
 
 class MainWindow(BoxLayout):

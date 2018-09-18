@@ -684,7 +684,7 @@ class Comms():
     def file_len(fname):
         ''' use external process to quickly find total number of G/M lines in file '''
         # NOTE some laser raster formats have lines that start with X and no G/M
-        # and some CAm programs just output X or Y lines
+        # and some CAM programs just output X or Y lines
         # TODO if windows use a slow python method
         p = subprocess.Popen(['grep', '-c', "^[GMXY]", fname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         result, err = p.communicate()
