@@ -1021,12 +1021,10 @@ class SmoothieHost(App):
         self.sm.bind(on_touch_down=self._on_touch)
         Clock.schedule_interval(self._every_second, 1)
 
-        if not self.is_desktop:
-            # setup for cnc or 3d printer
-            # TODO need to also remove from tabs in desktop
-            if self.is_cnc:
-                # remove Extruder panel from tabpanel and tab
-                self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.extruder_tab)
+        # setup for cnc or 3d printer
+        if self.is_cnc:
+            # remove Extruder panel from tabpanel and tab
+            self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.extruder_tab)
 
             # else:
             #     # remove MPG panel
