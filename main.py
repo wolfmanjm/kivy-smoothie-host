@@ -792,33 +792,6 @@ class MainWindow(BoxLayout):
         # we need to issue resume M601 when we click the Resume button
         self.app.comms.write('M600\n')
 
-class TabbedCarousel(TabbedPanel):
-    def on_index(self, instance, value):
-        tab = instance.current_slide.tab
-        if self.current_tab != tab:
-            self.switch_to(tab)
-
-    def switch_to(self, header):
-        # hack needed as for some reason we get called with default tab even though we asked not to
-        if not hasattr(header, 'slide'):
-            return
-
-        # we have to replace the functionality of the original switch_to
-        self.current_tab.state = "normal"
-        header.state = 'down'
-        self._current_tab = header
-        # set the carousel to load the appropriate slide
-        # saved in the screen attribute of the tab head
-        self.carousel.index = header.slide
-        # we switched to a new screen in carousel check it
-        if header.slide == 3: # macros screen
-            self.macros.update_buttons()
-        elif header.slide == 1: # DRO screen
-            self.dro_widget.update_buttons()
-        elif header.slide == 5: # extruder screen
-            self.extruder.update_buttons()
-
-
 class MainScreen(Screen):
     pass
 
@@ -1027,6 +1000,7 @@ class SmoothieHost(App):
         else:
             self.is_cnc= False
 
+
         self.tab_top= self.config.getboolean('UI', 'tab_top')
 
         self.is_webserver= self.config.getboolean('Web', 'webserver')
@@ -1051,9 +1025,8 @@ class SmoothieHost(App):
             # setup for cnc or 3d printer
             # TODO need to also remove from tabs in desktop
             if self.is_cnc:
-                # remove Extruder panel from carousel and tab
-                self.main_window.ids.tc.remove_widget(self.main_window.ids.tc.extruder_tab)
-                self.main_window.ids.carousel.remove_widget(self.main_window.ids.extruder)
+                # remove Extruder panel from tabpanel and tab
+                self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.extruder_tab)
 
             # else:
             #     # remove MPG panel
@@ -1062,7 +1035,7 @@ class SmoothieHost(App):
 
         # if not CNC mode then do not show the ZABC buttons in jogrose
         if not self.is_cnc:
-            self.main_window.ids.tc.jogrose.jogrosemain.remove_widget(self.main_window.ids.tc.jogrose.abc_panel)
+            self.main_window.ids.tabs.jog_rose.jogrosemain.remove_widget(self.main_window.ids.tabs.jog_rose.abc_panel)
 
         if self.is_webserver:
             self.webserver= ProgressServer()

@@ -35,8 +35,9 @@ def make_request_handler_class(app, ip):
             status= MyRequestHandler.m_app.status
             if MyRequestHandler.m_app.main_window.is_printing:
                 eta= MyRequestHandler.m_app.main_window.eta
-                self.wfile.write('<head><meta http-equiv="refresh" content="10"></head>\r\n'.encode("utf-8"))
-                self.wfile.write("{} - ETA: {}".format(status, eta).encode("utf-8"))
+                file= MyRequestHandler.m_app.gcode_file
+                self.wfile.write('<head><meta http-equiv="refresh" content="5"></head>\r\n'.encode("utf-8"))
+                self.wfile.write("{} - ETA: {}, File: {}".format(status, eta, file).encode("utf-8"))
             else:
                 self.wfile.write("{} - Not Printing".format(status).encode("utf-8"))
 

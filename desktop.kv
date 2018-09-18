@@ -121,9 +121,10 @@
             BoxLayout:
                 orientation: 'vertical'
                 TabbedPanel:
-                    id: tabbed_panel
+                    id: tabs
                     do_default_tab: False
                     tab_pos: 'top_mid' if app.tab_top else 'bottom_mid'
+                    jog_rose: jog_rose
 
                     TabbedPanelItem:
                         id: jog

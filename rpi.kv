@@ -120,76 +120,44 @@
                     color: 0,0,0,1
 
         # Right panel
-        TabbedCarousel:
-            id: tc
-            carousel: carousel
-            macros: macros
-            dro_widget: dro_widget
-            extruder: extruder
-            jogrose: jog_rose
-            extruder_tab: tab6
+        TabbedPanel:
+            id: tabs
             do_default_tab: False
             tab_pos: 'top_mid' if app.tab_top else 'bottom_mid'
             tab_width: 65
             tab_height: 40
-            Carousel:
-                on_index: tc.on_index(*args)
-                id: carousel
-                border: 30
-                direction: 'top'
-                loop: True
-                ignore_perpendicular_swipes: True
-                #scroll_distance: 10
-                min_move: 0.1
+            jog_rose: jog_rose
+            extruder_tab: extruder_tab
 
+            TabbedPanelItem:
+                text: 'Jog'
                 JogRoseWidget:
                     id: jog_rose
-                    tab: tab1
                     disabled: root.is_printing and not root.is_suspended
 
+            TabbedPanelItem:
+                text: 'DRO'
                 DROWidget:
                     id: dro_widget
-                    tab: tab2
 
+            TabbedPanelItem:
+                text: 'Console'
                 KbdWidget:
                     id: kbd_widget
-                    tab: tab3
 
+            TabbedPanelItem:
+                text: 'Macros'
                 MacrosWidget:
                     id: macros
-                    tab: tab4
 
+            TabbedPanelItem:
+                text: 'MPG'
                 MPGWidget:
                     id: mpg_widget
                     disabled: root.is_printing and not root.is_suspended
-                    tab: tab5
 
+            TabbedPanelItem:
+                id: extruder_tab
+                text: 'Extruder'
                 ExtruderWidget:
                     id: extruder
-                    tab: tab6
-
-            TabbedPanelItem:
-                id: tab1
-                text: 'Jog'
-                slide: 0
-            TabbedPanelItem:
-                id: tab2
-                text: 'DRO'
-                slide: 1
-            TabbedPanelItem:
-                id: tab3
-                text: 'Console'
-                slide: 2
-            TabbedPanelItem:
-                id: tab4
-                text: 'Macros'
-                slide: 3
-            TabbedPanelItem:
-                id: tab5
-                text: 'MPG'
-                slide: 4
-            TabbedPanelItem:
-                id: tab6
-                text: 'Extruder'
-                slide: 5
-
