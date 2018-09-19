@@ -620,8 +620,20 @@ class GcodeViewerScreen(Screen):
 
     def on_touch_down(self, touch):
         #print(self.ids.surface.bbox)
-        # if within the scatter and we are in select mode...
-        if self.ids.surface.collide_point(touch.x, touch.y) and self.select_mode:
+        if touch.is_mouse_scrolling:
+            # Allow mouse scroll wheel to zoom in/out
+            if touch.button == 'scrolldown':
+                # zoom in
+                if self.ids.surface.scale < 100:
+                    self.ids.surface.scale = self.ids.surface.scale * 1.1
+
+            elif touch.button == 'scrollup':
+                # zoom out
+                if self.ids.surface.scale > 0.01:
+                    self.ids.surface.scale = self.ids.surface.scale * 0.8
+
+        elif self.ids.surface.collide_point(touch.x, touch.y) and self.select_mode:
+            # if within the scatter and we are in select mode...
             pos= (touch.x, touch.y)
             ud = touch.ud
             ud['group'] = g = str(touch.uid)
@@ -641,17 +653,6 @@ class GcodeViewerScreen(Screen):
             touch.grab(self)
             return True
 
-        elif touch.is_mouse_scrolling:
-                # Allow mouse scroll wheel to zoomin/out
-                if touch.button == 'scrolldown':
-                    ## zoom in
-                    if self.ids.surface.scale < 100:
-                        self.ids.surface.scale = self.ids.surface.scale * 1.1
-
-                elif touch.button == 'scrollup':
-                    ## zoom out
-                    if self.ids.surface.scale > 0.01:
-                        self.ids.surface.scale = self.ids.surface.scale * 0.8
 
         else:
             return super(GcodeViewerScreen, self).on_touch_down(touch)
