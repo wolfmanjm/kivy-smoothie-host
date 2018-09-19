@@ -641,6 +641,18 @@ class GcodeViewerScreen(Screen):
             touch.grab(self)
             return True
 
+        elif touch.is_mouse_scrolling:
+                # Allow mouse scroll wheel to zoomin/out
+                if touch.button == 'scrolldown':
+                    ## zoom in
+                    if self.ids.surface.scale < 100:
+                        self.ids.surface.scale = self.ids.surface.scale * 1.1
+
+                elif touch.button == 'scrollup':
+                    ## zoom out
+                    if self.ids.surface.scale > 0.01:
+                        self.ids.surface.scale = self.ids.surface.scale * 0.8
+
         else:
             return super(GcodeViewerScreen, self).on_touch_down(touch)
 
