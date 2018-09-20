@@ -61,6 +61,13 @@
                     text: 'Settings'
                     on_press: app.open_settings()
                 ActionButton:
+                    text: 'Update'
+                    on_press: root.do_update()
+                ActionButton:
+                    text: 'Camera'
+                    on_press: root.show_camera_screen()
+                    disabled: not app.is_show_camera
+                ActionButton:
                     text: 'Quit'
                     on_press: root.ask_exit()
 
