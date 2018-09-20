@@ -817,7 +817,7 @@ class SmoothieHost(App):
     fr= NumericProperty(0)
     sr= NumericProperty(0)
     lp= NumericProperty(0)
-    is_desktop= BooleanProperty(False)
+    is_desktop= NumericProperty(0)
     is_cnc= BooleanProperty(False)
     tab_top= BooleanProperty(False)
     main_window= ObjectProperty()
@@ -875,9 +875,9 @@ class SmoothieHost(App):
                 { "type": "title",
                   "title": "UI Settings" },
 
-                { "type": "bool",
+                { "type": "numeric",
                   "title": "Desktop Layout",
-                  "desc": "Turn on for a Desktop layout, otherwise it is RPI 7in touch screen layout",
+                  "desc": "Turn on for a Desktop layout, 1 is small, 2 is large, otherwise it is RPI 7in touch screen layout",
                   "section": "UI",
                   "key": "desktop"
                 },
@@ -998,14 +998,18 @@ class SmoothieHost(App):
         self.config.update_config('smoothiehost.ini')
 
     def build(self):
-        if self.config.getboolean('UI', 'desktop'):
-            self.is_desktop= True
-            # load the layouts for the desktop screen
+        self.is_desktop= self.config.getint('UI', 'desktop')
+        # load the layouts for the desktop screen
+        if self.is_desktop == 1:
             Builder.load_file('desktop.kv')
-            #Window.size= (1280, 1024)
             Window.size= (1024, 768)
+
+        elif self.is_desktop == 2:
+                Builder.load_file('desktop_large.kv')
+                Window.size= (1024, 900)
+
         else:
-            self.is_desktop= False
+            self.is_desktop= 0
             # load the layouts for rpi 7" touch screen
             Builder.load_file('rpi.kv')
 
