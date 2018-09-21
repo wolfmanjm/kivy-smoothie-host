@@ -9,7 +9,7 @@ This uses python >= 3.4.3
 The goal here is to have a small touch screen host that can run a smoothie and is better than an LCD Panel, and almost as good as a host PC running pronterface.
 It is not meant to be a replacement for say Octoprint whose goals are different.
 
-(*UPDATE* there is now a desktop layout setting that makes it more usable on a regular desktop (tested on various linux machines but should run anywhere that python3 and kivy will run).
+(*UPDATE* there is now a desktop layout setting that makes it more usable on a regular desktop, it has been tested on various linux machines but should run anywhere that python3 and kivy will run).
 
 An RPI with 7" touch screen is about the same price as the better LCD panels, and makes a great standalone controller for a 3D printer.
 
@@ -195,6 +195,8 @@ Run as
 
     > cd kivy-smoothie-host
     > python3 main.py
+
+In settings set the desktop layout to 1 or 2 and restart. 1 is for smaller screens and 2 is for bigger screens.
 
 ## Smoothie version required
 
