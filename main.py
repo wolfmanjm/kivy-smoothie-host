@@ -45,6 +45,7 @@ import sys
 import datetime
 import configparser
 from functools import partial
+import collections
 
 Window.softinput_mode = 'below_target'
 
@@ -806,6 +807,16 @@ class MainWindow(BoxLayout):
         # we need to issue resume M601 when we click the Resume button
         self.app.comms.write('M600\n')
 
+    def on_switch(self, a, tabitem):
+        ''' called when a tab switches '''
+        # we switched to a new tab check if it needs updating
+        if tabitem.text == 'Macros': # macros screen
+            self.ids.macros.update_buttons()
+        elif tabitem.text == 'DRO': # DRO screen
+            self.ids.dro_widget.update_buttons()
+        elif tabitem.text == 'Extruder': # extruder screen
+            self.ids.extruder.update_buttons()
+
 class MainScreen(Screen):
     pass
 
@@ -1072,6 +1083,13 @@ class SmoothieHost(App):
             if self.last_touch_time >= self.blank_timeout:
                 self.last_touch_time= 0
                 self.blank_screen()
+
+        if self.is_connected and self.is_desktop > 0:
+            # in desktop mode we need to poll for state changes for macros and DRO
+            dummy= collections.namedtuple('Dummy', 'text')
+            for t in ['DRO', 'Macros']: # Extruder also needs $G
+                d= dummy(t)
+                self.main_window.on_switch(None, d) # fake out tabitem with text field
 
     def blank_screen(self):
         try:
