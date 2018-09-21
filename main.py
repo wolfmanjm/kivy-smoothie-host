@@ -847,7 +847,7 @@ class SmoothieHost(App):
             'manual_tool_change' : 'false'
         })
         config.setdefaults('UI', {
-            'desktop': 'false',
+            'layout_type': 0,
             'cnc': 'false',
             'tab_top': 'false'
         })
@@ -877,9 +877,9 @@ class SmoothieHost(App):
 
                 { "type": "numeric",
                   "title": "Desktop Layout",
-                  "desc": "Turn on for a Desktop layout, 1 is small, 2 is large, otherwise it is RPI 7in touch screen layout",
+                  "desc": "Set for a Desktop layout, 1 is small, 2 is large, otherwise it is RPI 7in touch screen layout",
                   "section": "UI",
-                  "key": "desktop"
+                  "key": "layout_type"
                 },
 
                 { "type": "bool",
@@ -998,7 +998,7 @@ class SmoothieHost(App):
         self.config.update_config('smoothiehost.ini')
 
     def build(self):
-        self.is_desktop= self.config.getint('UI', 'desktop')
+        self.is_desktop= self.config.getint('UI', 'layout_type')
         # load the layouts for the desktop screen
         if self.is_desktop == 1:
             Builder.load_file('desktop.kv')
