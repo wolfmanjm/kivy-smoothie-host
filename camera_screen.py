@@ -34,59 +34,54 @@ class MjpegViewer(Image):
     def start(self, url):
         self.url= url
         self.quit = False
-        self._thread = threading.Thread(target=self.read_stream)
-        self._thread.daemon = True
-        self._thread.start()
-        self._image_lock = threading.Lock()
-        self._image_buffer = None
+        self.update_image()
         self.read_queue= Clock.schedule_interval(self.update_image, 0.2)
 
     def stop(self):
         self.read_queue.cancel()
-        self.quit = True
-        self._thread.join()
 
-    def read_stream(self):
+    def _read_stream(self):
         try:
             stream = urllib.request.urlopen(self.url)
         except Exception as err:
             self.quit= True
             Logger.error("MjpegViewer: Failed to open url: {} - error: {}".format(self.url, err))
+            return None
 
         bytes = b''
         while not self.quit:
-            bytes += stream.read(1024)
-            a = bytes.find(b'\xff\xd8')
-            b = bytes.find(b'\xff\xd9')
-            if a != -1 and b != -1:
-                jpg = bytes[a:b + 2]
-                bytes = bytes[b + 2:]
+            try:
+                # read in stream until we get the entire snapshot
+                bytes += stream.read(1024)
+                a = bytes.find(b'\xff\xd8')
+                b = bytes.find(b'\xff\xd9')
+                if a != -1 and b != -1:
+                    jpg = bytes[a:b + 2]
+                    bytes = bytes[b + 2:]
 
-                data = io.BytesIO(jpg)
-                im = CoreImage(data,
-                               ext="jpeg",
-                               nocache=True)
-                with self._image_lock:
-                    self._image_buffer = im
+                    data = io.BytesIO(jpg)
+                    im = CoreImage(data, ext="jpeg", nocache=True)
+                    return im
+
+            except Exception as err:
+                Logger.error("MjpegViewer: Failed to read_queue url: {} - error: {}".format(self.url, err))
+                return None
+
 
     def update_image(self, *args):
         if self.quit:
             return
 
-        im = None
-        with self._image_lock:
-            im = self._image_buffer
-            self._image_buffer = None
+        im = self._read_stream()
         if im is not None:
             self.texture = im.texture
             self.texture_size = im.texture.size
 
 
 class CameraScreen(Screen):
-    url = StringProperty()
-
     def start(self):
-        self.ids.viewer.start(self.url)
+        url = App.get_running_app().camera_url
+        self.ids.viewer.start(url)
 
     def stop(self):
         self.ids.viewer.stop()

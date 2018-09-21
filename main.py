@@ -836,6 +836,7 @@ class SmoothieHost(App):
         self.webserver= False
         self._blanked= False
         self.last_touch_time= 0
+        self.camera_url= None
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -866,7 +867,7 @@ class SmoothieHost(App):
         config.setdefaults('Web', {
             'webserver': 'false',
             'show_video': 'false',
-            'camera_url': 'http://localhost:8080/?action=stream'
+            'camera_url': 'http://localhost:8080/?action=snapshot'
         })
 
     def build_settings(self, settings):
@@ -981,6 +982,8 @@ class SmoothieHost(App):
             self.blank_timeout= float(value)
         elif token == ('General', 'manual_tool_change'):
             self.manual_tool_change= value == '1'
+        elif token == ('Web', 'camera_url'):
+            self.camera_url= value
         else:
             self.main_window.display("NOTICE: Restart is needed")
 
@@ -1058,8 +1061,8 @@ class SmoothieHost(App):
             self.webserver.start(self, 8000)
 
         if self.is_show_camera:
-            url= self.config.get('Web', 'camera_url')
-            self.sm.add_widget(CameraScreen(name='camera', url= url))
+            self.camera_url= self.config.get('Web', 'camera_url')
+            self.sm.add_widget(CameraScreen(name='camera'))
 
         return self.sm
 
