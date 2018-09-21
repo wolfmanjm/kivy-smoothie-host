@@ -9,6 +9,8 @@ This uses python >= 3.4.3
 The goal here is to have a small touch screen host that can run a smoothie and is better than an LCD Panel, and almost as good as a host PC running pronterface.
 It is not meant to be a replacement for say Octoprint whose goals are different.
 
+(*UPDATE* there is now a desktop layout setting that makes it more usable on a regular desktop (tested on various linux machines but should run anywhere that python3 and kivy will run).
+
 An RPI with 7" touch screen is about the same price as the better LCD panels, and makes a great standalone controller for a 3D printer.
 
 I have had a 10" linux tablet called a pengpod running my delta printer for years as the only Host, it runs a hacked version of Pronterface to make it more tolerable to use on a touch screen. However Pengpods are no longer available and there are no other linux tablets I can find. A raspberry PI with touch screen is pretty close.
@@ -168,6 +170,7 @@ NOTE the default is for no blanking, there is a setting under the settings menu 
 In Settings you can turn on the webserver which will simply allow you to get current progress from any web browser, nothing fancy.
 Also in Settings you can enable the video option which uses mjpg-streamer 
 (which needs to be built and installed, See https://github.com/jacksonliam/mjpg-streamer.git for instructions on that). If enabled and running then the video will show up in the progress web page.
+There is also a camera option in the system menu which allows a preview of the camera view, the url for this is also in the settings, and should be the url which gets a snapshot single jpeg frame from the camera.
 
 ## On linux Desktop (and maybe windows/macos)
 
