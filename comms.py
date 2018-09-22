@@ -494,7 +494,7 @@ class Comms():
 
     def handle_alarm(self, s):
         ''' handle case where smoothie sends us !! or an error of some sort '''
-        self.log.warning('Comms: got error: {}'.format(s))
+        self.log.warning('Comms: alarm message: {}'.format(s))
         # pause any streaming immediately, (let operator decide to abort or not)
         self._stream_pause(True, False)
 

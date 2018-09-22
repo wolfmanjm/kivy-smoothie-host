@@ -1078,6 +1078,7 @@ class SmoothieHost(App):
         return self.sm
 
     def _every_second(self, dt):
+        ''' called every second '''
         if self.blank_timeout > 0 and not self.main_window.is_printing:
             self.last_touch_time += 1
             if self.last_touch_time >= self.blank_timeout:
