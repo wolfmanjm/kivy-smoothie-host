@@ -1027,14 +1027,8 @@ class SmoothieHost(App):
             # load the layouts for rpi 7" touch screen
             Builder.load_file('rpi.kv')
 
-        if self.config.getboolean('UI', 'cnc'):
-            self.is_cnc= True
-        else:
-            self.is_cnc= False
-
-
+        self.is_cnc= self.config.getboolean('UI', 'cnc')
         self.tab_top= self.config.getboolean('UI', 'tab_top')
-
         self.is_webserver= self.config.getboolean('Web', 'webserver')
         self.is_show_camera= self.config.getboolean('Web', 'show_video')
         self.manual_tool_change= self.config.getboolean('General', 'manual_tool_change')
@@ -1061,7 +1055,6 @@ class SmoothieHost(App):
             # else:
             #     # remove MPG panel
             #     self.main_window.ids.tc.remove_widget(self.main_window.ids.tc.mpg_tab)
-            #     self.main_window.ids.carousel.remove_widget(self.main_window.ids.mpg_widget)
 
         # if not CNC mode then do not show the ZABC buttons in jogrose
         if not self.is_cnc:

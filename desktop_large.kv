@@ -27,30 +27,30 @@
             ActionToggleButton:
                 id: connect_button
                 text: 'Connect'
-                important: True
+                #important: True
                 on_press: root.connect()
             ActionButton:
                 id: print_but
                 disabled: not app.is_connected
                 text: 'Print' # also 'Pause'/'Resume'
-                important: True
+                #important: True
                 on_press: root.start_print()
             ActionButton:
                 id: sdprint_but
                 disabled: not app.is_connected
                 text: 'SD Print' # also 'Pause'/'Resume'
-                important: True
+                #important: True
                 on_press: root.list_sdcard()
             ActionButton:
                 disabled: not root.is_printing
                 text: 'Abort'
-                important: True
+                #important: True
                 on_press: root.abort_print()
             ActionButton:
                 disabled: not app.is_connected
                 text: '--- Kill  ---' if app.status != 'Alarm' else 'Clear Alarm'
                 color: 1, 0, 0, 1
-                important: True
+                #important: True
                 on_press: root.do_kill()
             ActionButton:
                 text: 'Viewer'

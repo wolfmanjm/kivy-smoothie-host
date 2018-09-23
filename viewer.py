@@ -620,7 +620,7 @@ class GcodeViewerScreen(Screen):
 
     def on_touch_down(self, touch):
         #print(self.ids.surface.bbox)
-        if touch.is_mouse_scrolling:
+        if touch.is_mouse_scrolling and self.ids.surface.collide_point(touch.x, touch.y):
             # Allow mouse scroll wheel to zoom in/out
             if touch.button == 'scrolldown':
                 # zoom in
