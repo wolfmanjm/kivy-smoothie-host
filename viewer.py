@@ -620,42 +620,44 @@ class GcodeViewerScreen(Screen):
 
     def on_touch_down(self, touch):
         #print(self.ids.surface.bbox)
-        if touch.is_mouse_scrolling and self.ids.surface.collide_point(touch.x, touch.y):
-            # Allow mouse scroll wheel to zoom in/out
-            if touch.button == 'scrolldown':
-                # zoom in
-                if self.ids.surface.scale < 100:
-                    self.ids.surface.scale = self.ids.surface.scale * 1.1
+        if self.ids.surface.collide_point(touch.x, touch.y):
+            # if within the scatter
+            if touch.is_mouse_scrolling:
+                # Allow mouse scroll wheel to zoom in/out
+                if touch.button == 'scrolldown':
+                    # zoom in
+                    if self.ids.surface.scale < 100:
+                        self.ids.surface.scale = self.ids.surface.scale * 1.1
 
-            elif touch.button == 'scrollup':
-                # zoom out
-                if self.ids.surface.scale > 0.01:
-                    self.ids.surface.scale = self.ids.surface.scale * 0.8
+                elif touch.button == 'scrollup':
+                    # zoom out
+                    if self.ids.surface.scale > 0.01:
+                        self.ids.surface.scale = self.ids.surface.scale * 0.8
 
-        elif self.ids.surface.collide_point(touch.x, touch.y) and self.select_mode:
-            # if within the scatter and we are in select mode...
-            pos= (touch.x, touch.y)
-            ud = touch.ud
-            ud['group'] = g = str(touch.uid)
+                return True
 
-            label = CoreLabel(text="{:1.3f},{:1.3f}".format(self.transform_pos(touch.x, touch.y)[0], self.transform_pos(touch.x, touch.y)[1]))
-            label.refresh()
-            texture= label.texture
-            with self.canvas.after:
-                Color(0, 0, 1, mode='rgb', group=g)
-                ud['crossx'] = [
-                    Rectangle(pos=(pos[0], 0), size=(1, self.height), group=g),
-                    Rectangle(pos=(0, pos[1]), size=(self.width, 1), group=g),
-                    Line(circle=(pos[0], pos[1], 20), group=g),
-                    Rectangle(texture=texture, pos=(pos[0]-texture.size[0]/2, pos[1]-40), size=texture.size, group=g)
-                ]
+            elif self.select_mode:
+                # if we are in select mode...
+                pos= (touch.x, touch.y)
+                ud = touch.ud
+                ud['group'] = g = str(touch.uid)
 
-            touch.grab(self)
-            return True
+                label = CoreLabel(text="{:1.3f},{:1.3f}".format(self.transform_pos(touch.x, touch.y)[0], self.transform_pos(touch.x, touch.y)[1]))
+                label.refresh()
+                texture= label.texture
+                with self.canvas.after:
+                    Color(0, 0, 1, mode='rgb', group=g)
+                    ud['crossx'] = [
+                        Rectangle(pos=(pos[0], 0), size=(1, self.height), group=g),
+                        Rectangle(pos=(0, pos[1]), size=(self.width, 1), group=g),
+                        Line(circle=(pos[0], pos[1], 20), group=g),
+                        Rectangle(texture=texture, pos=(pos[0]-texture.size[0]/2, pos[1]-40), size=texture.size, group=g)
+                    ]
 
+                touch.grab(self)
+                return True
 
-        else:
-            return super(GcodeViewerScreen, self).on_touch_down(touch)
+        return super(GcodeViewerScreen, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
         if self.select_mode:
