@@ -884,7 +884,8 @@ class SmoothieHost(App):
         config.setdefaults('UI', {
             'layout_type': 0,
             'cnc': 'false',
-            'tab_top': 'false'
+            'tab_top': 'false',
+            'screen_size': 'auto'
         })
 
         config.setdefaults('Extruder', {
@@ -1043,7 +1044,12 @@ class SmoothieHost(App):
 
         elif self.is_desktop == 2:
                 Builder.load_file('desktop_large.kv')
-                Window.size= (1280, 1024)
+                s= self.config.get('UI', 'screen_size')
+                if s == 'auto':
+                    Window.size= (1280, 1024)
+                elif 'x' in s:
+                    (w, h)= s.split('x')
+                    Window.size= (int(w), int(h))
 
         else:
             self.is_desktop= 0
