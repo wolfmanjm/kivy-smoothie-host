@@ -1043,7 +1043,7 @@ class SmoothieHost(App):
 
         elif self.is_desktop == 2:
                 Builder.load_file('desktop_large.kv')
-                Window.size= (1024, 900)
+                Window.size= (1280, 1024)
 
         else:
             self.is_desktop= 0

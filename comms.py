@@ -168,11 +168,7 @@ class Comms():
            self.proto.send_message(data)
 
     def _get_reports(self):
-        self.send_query()
-
-    def send_query(self):
-        # calls the send_message in Serial Connection proto
-        self._write('?' if not self.net_connection else 'get status\n')
+        self._write('?')
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
