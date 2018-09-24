@@ -206,6 +206,7 @@ class ExtruderWidget(BoxLayout):
         self.last_bed_temp= self.app.config.getfloat('Extruder', 'last_bed_temp')
         self.last_hotend_temp= self.app.config.getfloat('Extruder', 'last_hotend_temp')
         self.temp_changed= False
+        self.temp_set= False
         #self.bind(on_curtool=self._on_curtool)
 
     def switch_active(self, instance, type, on, value):
@@ -223,8 +224,30 @@ class ExtruderWidget(BoxLayout):
         else:
             self.set_temp(type, '0')
 
+    def selected_temp(self, type, temp):
+        # new temp selected from dropdown
+        if type == 'hotend':
+            self.last_hotend_temp= float(temp)
+            self.temp_set= True
+            self.ids.hotend_slider.value= 0
+            if self.ids.hotend_switch.active:
+                # update temp
+                self.set_temp(type, self.last_hotend_temp)
+                self.temp_changed= True
+
+        elif type == 'bed':
+            self.last_bed_temp= float(temp)
+            self.temp_set= True
+            self.ids.bed_slider.value= 0
+            if self.ids.bed_switch.active:
+                # update temp
+                self.set_temp(type, self.last_bed_temp)
+                self.temp_changed= True
+
     def adjust_temp(self, type, value):
-        if value == 'select temp':
+        if value == 'select temp' or self.temp_set:
+            # if we programmaticaly set the value ignore it
+            self.temp_set= False
             return
 
         if type == 'bed':

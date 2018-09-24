@@ -4,10 +4,11 @@
 
 <HotendSpinnerOptions@SpinnerOption>
     background_color: .4, .4, .4, 1
-    on_release: app.main_window.ids.extruder.last_hotend_temp= float(self.text.split()[0])
+    on_release: app.main_window.ids.extruder.selected_temp('hotend', self.text.split()[0])
+
 <BedSpinnerOptions@SpinnerOption>
     background_color: .4, .4, .4, 1
-    on_release: app.main_window.ids.extruder.last_bed_temp= float(self.text.split()[0])
+    on_release: app.main_window.ids.extruder.selected_temp('bed', self.text.split()[0])
 
 <ExtruderWidget>:
     orientation: 'vertical'
@@ -207,6 +208,7 @@
             width: self.texture_size[0]
             text: '°C'
         Slider:
+            id: hotend_slider
             min: -30
             max: 30
             value: 0
@@ -226,11 +228,13 @@
             text: 'select temp' if not root.last_bed_temp else str(root.last_bed_temp)
             values: app.config.get('Extruder', 'bed_presets').split(',')
             option_cls: Factory.BedSpinnerOptions
+
         Label:
             size_hint_x: None
             width: self.texture_size[0]
             text: '°C'
         Slider:
+            id: bed_slider
             min: -20
             max: 20
             value: 0
