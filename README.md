@@ -48,6 +48,8 @@ The Kivy file browser is pretty crude and buggy. To allow it to be usable on a t
 
 The Update System menu entry requires git to be installed and the running directory be a valid git repo pointing to github.
 
+When running on a desktop you can jog using the keyboard up/down/left/right/pgup/pgdown keys, the default jog is 0.1mm, if ctrl key is pressed it is 0.01mm, if shift is pressed it is 1mm. pgup/pgdown move the Z axis. up/down move the Y axis and left/right move the X axis.
+
 ## Install on RPI
 
 ### Rasbian/Debian Stretch
