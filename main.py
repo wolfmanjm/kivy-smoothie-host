@@ -395,6 +395,36 @@ class JogRoseWidget(BoxLayout):
         super(JogRoseWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.xy_feedrate= self.app.config.get('Jog', 'xy_feedrate')
+        Window.bind(on_key_down=self._on_keyboard_down)
+
+    def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
+        # print("\nThe key", keycode, "have been pressed")
+        # print(" - text is %r" % text)
+        # print(" - modifiers are %r" % modifiers)
+
+        # control uses finer move, shift uses coarse move
+        v= 0.1
+        if len(modifiers) == 1:
+            if modifiers[0] == 'ctrl':
+                v= 0.01
+            elif modifiers[0] == 'shift':
+                v= 1
+
+        choices = {
+            82: "Y{}".format(v),
+            79: "X{}".format(v),
+            81: "Y{}".format(-v),
+            80: "X{}".format(-v),
+            75: "Z{}".format(v),
+            78: "Z{}".format(-v)
+        }
+        fr= self.xy_feedrate
+        s= choices.get(keycode, None)
+        if s is not None:
+            self.app.comms.write('M120 G91 G0 {} F{} M121\n'.format(s, fr))
+            return True
+
+        return False
 
     def handle_action(self, axis, v):
         x10= self.ids.x10cb.active
