@@ -46,6 +46,7 @@ import datetime
 import configparser
 from functools import partial
 import collections
+import importlib
 
 Window.softinput_mode = 'below_target'
 
@@ -1127,7 +1128,24 @@ class SmoothieHost(App):
             self.camera_url= self.config.get('Web', 'camera_url')
             self.sm.add_widget(CameraScreen(name='camera'))
 
+        # load any modules specified in config
+        self._load_modules()
+
         return self.sm
+
+    def _load_modules(self):
+        if not self.config.has_section('modules'):
+            return
+
+        try:
+            for key in self.config['modules']:
+                Logger.info("load_modules: loading module {}".format(key))
+                mod= importlib.import_module('modules.{}'.format(key))
+                m= mod.start(self.config['modules'][key])
+                Logger.info("load_modules: loaded module {}".format(key))
+
+        except:
+            Logger.warn("load_modules: {}".format(traceback.format_exc()))
 
     def _every_second(self, dt):
         ''' called every second '''
