@@ -745,7 +745,7 @@ if __name__ == "__main__":
         exit(0)
 
     app= CommsApp()
-    comms= Comms(app, 0) # Don't start the report query timer when streaming
+    comms= Comms(app, 10)
     if len(sys.argv) > 3:
         comms.ping_pong= False
         print('Fast Stream')
@@ -800,8 +800,9 @@ if __name__ == "__main__":
             print("Error: Connection timed out")
 
     except KeyboardInterrupt:
-        print("Interrupted")
-        #comms._stream_pause(False, True)
+        print("Interrupted- aborting")
+        comms._stream_pause(False, True)
+        app.end_event.wait() # wait for streaming to complete
 
     finally:
         # now stop the comms if it is connected or running
