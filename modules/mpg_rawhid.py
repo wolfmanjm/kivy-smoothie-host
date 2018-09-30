@@ -152,8 +152,8 @@ class MPG_rawhid():
                         # us= a<<24 | b<<16 | c << 8 | d
                         # print("us= {}".format(us))
 
-                        # if not app.is_connected or app.main_window.is_printing:
-                        #     continue
+                        if not app.is_connected or app.main_window.is_printing:
+                            continue
 
                         alut= {1:'X', 2:'Y', 3:'Z', 4:'A'}
                         dist= 0.01 * step * mult
