@@ -41,13 +41,16 @@ class SerialConnection(asyncio.Protocol):
             self.log.info('Buffer limits: {}'.format(transport.get_write_buffer_limits()))
         else:
             #transport.serial.rts = False  # You can manipulate Serial object via transport
-            pass
+            transport.serial.reset_input_buffer()
+            transport.serial.reset_output_buffer()
 
     def flush_queue(self):
         # if self.transport:
         #     self.transport.abort()
         # TODO does not do anything at the moment possible is to do transport.abort() but that closes the connection
         self.flush= True
+        if not self.is_net and self.transport:
+            self.transport.serial.reset_output_buffer()
 
     def send_message(self, data, hipri=False):
         """ Feed a message to the sender coroutine. """
@@ -80,6 +83,9 @@ class SerialConnection(asyncio.Protocol):
                         waiter.set_result(None)
                     else:
                         waiter.set_exception(exc)
+
+        if not self.is_net:
+            self.transport.serial.reset_output_buffer()
 
         self.transport.close()
         self.f.set_result('Disconnected')
@@ -649,6 +655,9 @@ class Comms():
                 yield from f.close()
 
             if self.abort_stream:
+                if self.proto:
+                    self.proto.flush_queue()
+
                 self._write('\x18')
 
             if success and not self.ping_pong:
