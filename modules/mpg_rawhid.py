@@ -1,17 +1,24 @@
-# implements rew hid interface to a teensy and a MPG pendant
+# implements raw hid interface to a teensy and a MPG pendant
 
 from easyhid import Enumeration
 from kivy.logger import Logger
+from kivy.app import App
 
+import threading
+import traceback
+
+mpg_rawhid= None
 def start(args=""):
+    global mpg_rawhid
     #print("start with args: {}".format(args))
     pid, vid= args.split(':')
-    m= MPG_rawhid(int(pid, 16), int(vid, 16))
-    m.start()
-    return m
+    mpg_rawhid= MPG_rawhid(int(pid, 16), int(vid, 16))
+    mpg_rawhid.start()
+    return True
 
-def stop(m):
-    m.stop()
+def stop():
+    global mpg_rawhid
+    mpg_rawhid.stop()
 
 class RawHID:
     PACKET_LEN = 64
@@ -95,21 +102,32 @@ class MPG_rawhid():
         self.pid = pid
         self.hid = RawHID()
 
-    def twos_comp(val, bits):
+    def twos_comp(self, val, bits):
         """compute the 2's complement of int value val"""
         if (val & (1 << (bits - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
             val = val - (1 << bits)        # compute negative value
         return val                         # return positive value as is
 
     def start(self):
+        self.quit= False
+        self.t= threading.Thread(target=self._run)
+        self.t.start()
+
+    def stop(self):
+        self.quit= True
+        self.t.join()
+
+    def _run(self):
+        app= App.get_running_app()
+
         # Open a connection to the Teensy
         if self.hid.open(self.vid, self.pid):
 
-            Logger.info("MPG_rawhid: Connected to HID device {%04X}:{%04X}".format(self.vid, self.pid))
+            Logger.info("MPG_rawhid: Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
             try:
                 # Infinite loop to read data from the Teensy
-                while True:
+                while not self.quit:
                     data = self.hid.recv(timeout=50)
                     if data is not None:
                         size = len(data)
@@ -122,7 +140,7 @@ class MPG_rawhid():
 
                         axis= data[2]
                         mult= data[3]
-                        step= twos_comp(data[4], 8)
+                        step= self.twos_comp(data[4], 8)
                         s= data[5]
 
                         Logger.debug("MPG_rawhid: axis: {}, mult: {}, step: {}, speed: {}".format(axis, mult, step, s))
@@ -134,8 +152,17 @@ class MPG_rawhid():
                         # us= a<<24 | b<<16 | c << 8 | d
                         # print("us= {}".format(us))
 
-            except KeyboardInterrupt:
-                pass
+                        # if not app.is_connected or app.main_window.is_printing:
+                        #     continue
+
+                        alut= {1:'X', 2:'Y', 3:'Z', 4:'A'}
+                        dist= 0.01 * step * mult
+                        if s == 0: s= 1
+                        speed= s/10.0
+                        app.comms.write("$J {}{} F{}\n".format(alut[axis], dist, speed))
+
+            except:
+                Logger.warn("MPG_rawhid: {}".format(traceback.format_exc()))
 
             # Close the Teensy connection
             self.hid.close()
@@ -144,5 +171,3 @@ class MPG_rawhid():
         else:
             Logger.error("MPG_rawhid: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
 
-    def stop(self):
-        pass

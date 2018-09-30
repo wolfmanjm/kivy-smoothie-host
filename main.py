@@ -902,6 +902,7 @@ class SmoothieHost(App):
         self._blanked= False
         self.last_touch_time= 0
         self.camera_url= None
+        self.loaded_modules= []
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1061,6 +1062,9 @@ class SmoothieHost(App):
             self.webserver.stop()
         # unblank if blanked
         self._on_touch(0, 0)
+        # stop any loaded modules
+        for m in self.loaded_modules:
+            m.stop()
 
     def on_start(self):
         # in case we added something to the defaults, make sure they are written to the ini file
@@ -1141,11 +1145,14 @@ class SmoothieHost(App):
             for key in self.config['modules']:
                 Logger.info("load_modules: loading module {}".format(key))
                 mod= importlib.import_module('modules.{}'.format(key))
-                m= mod.start(self.config['modules'][key])
-                Logger.info("load_modules: loaded module {}".format(key))
+                if mod.start(self.config['modules'][key]):
+                    Logger.info("load_modules: loaded module {}".format(key))
+                    self.loaded_modules.append(mod)
+                else:
+                    Logger.info("load_modules: module {} failed to start".format(key))
 
         except:
-            Logger.warn("load_modules: {}".format(traceback.format_exc()))
+            Logger.warn("load_modules: exception: {}".format(traceback.format_exc()))
 
     def _every_second(self, dt):
         ''' called every second '''
