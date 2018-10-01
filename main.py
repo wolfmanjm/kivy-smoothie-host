@@ -523,9 +523,6 @@ class MainWindow(BoxLayout):
             # truncate log to last max_lines, we delete the oldest 10 or so lines
             del self.ids.log_window.data[0:n]
 
-        #self.ids.log_window_layout.goto_view(n)
-        #self.ids.log_window_layout.scroll_y= 0
-
     def connect(self):
         if self.app.is_connected:
             if self.is_printing:

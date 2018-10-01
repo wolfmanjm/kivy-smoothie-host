@@ -84,8 +84,8 @@ class SerialConnection(asyncio.Protocol):
                     else:
                         waiter.set_exception(exc)
 
-        if not self.is_net:
-            self.transport.serial.reset_output_buffer()
+        # if not self.is_net:
+        #     self.transport.serial.reset_output_buffer()
 
         self.transport.close()
         self.f.set_result('Disconnected')
