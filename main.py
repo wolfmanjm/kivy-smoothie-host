@@ -506,7 +506,6 @@ class MainWindow(BoxLayout):
         self.app = App.get_running_app()
         self._trigger = Clock.create_trigger(self.async_get_display_data)
         self._q= queue.Queue()
-        self._log= []
         self.config= self.app.config
         self.last_path= self.config.get('General', 'last_gcode_path')
         self.paused= False
@@ -514,20 +513,18 @@ class MainWindow(BoxLayout):
         #print('font size: {}'.format(self.ids.log_window.font_size))
         #Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
 
-    # def my_callback(self, dt):
-    #     self.ids.carousel.index= 1 # switch to jog screen
-
     def add_line_to_log(self, s):
         ''' Add lines to the log window, which is trimmed to the last 200 lines '''
         max_lines= 200 # TODO needs to be configurable
-        self._log.append(s)
+        self.ids.log_window.data.append({'text':s})
         # we use some hysterysis here so we don't truncate every line added over max_lines
-        n= len(self._log) - max_lines # how many lines over our max
+        n= len(self.ids.log_window.data) - max_lines # how many lines over our max
         if n > 10:
             # truncate log to last max_lines, we delete the oldest 10 or so lines
-            del self._log[0:n]
+            del self.ids.log_window.data[0:n]
 
-        self.ids.log_window.text= '\n'.join(self._log)
+        #self.ids.log_window_layout.goto_view(n)
+        #self.ids.log_window_layout.scroll_y= 0
 
     def connect(self):
         if self.app.is_connected:

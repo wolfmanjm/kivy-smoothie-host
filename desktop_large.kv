@@ -8,6 +8,10 @@
 # <Widget>:
 #     # set default font size
 #     font_size: dp(12)
+<LogLabel@Label>:
+    size_hint_y: None
+    height: self.texture_size[1]
+    text_size: self.width, None
 
 <MainScreen>:
     MainWindow:
@@ -84,13 +88,21 @@
         BoxLayout:
             size_hint_x: 0.5
             orientation: 'vertical'
-            ScrollView:
-                scroll_y: 0
-                Label:
-                    id: log_window
+            RecycleView:
+                id: log_window
+                viewclass: 'LogLabel'
+                scroll_type: ['bars'] # ,'content']
+                scroll_wheel_distance: dp(10)
+                bar_width: dp(10)
+
+                RecycleBoxLayout:
+                    id: log_window_layout
+                    orientation: 'vertical'
+                    default_size: None, None
+                    default_size_hint: 1, None
                     size_hint_y: None
-                    height: self.texture_size[1]
-                    text_size: self.width, None
+                    height: self.minimum_height
+
             TextInput:
                 id: entry
                 multiline: False
