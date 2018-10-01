@@ -21,7 +21,6 @@ class SerialConnection(asyncio.Protocol):
         self.cb = cb
         self.f= f
         self.cnt= 0
-        self.flush= False
         self.is_net= is_net
         self._paused = False
         self._drain_waiter = None
@@ -48,7 +47,6 @@ class SerialConnection(asyncio.Protocol):
         # if self.transport:
         #     self.transport.abort()
         # TODO does not do anything at the moment possible is to do transport.abort() but that closes the connection
-        self.flush= True
         if not self.is_net and self.transport:
             self.transport.serial.reset_output_buffer()
 
