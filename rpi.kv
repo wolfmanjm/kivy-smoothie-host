@@ -9,7 +9,10 @@
 #     # set default font size
 #     font_size: dp(12)
 
-<TabbedCarousel>
+<LogLabel@Label>:
+    size_hint_y: None
+    height: self.texture_size[1]
+    text_size: self.width, None
 
 <MainScreen>:
     MainWindow:
@@ -87,13 +90,20 @@
         # Left panel
         BoxLayout:
             orientation: 'vertical'
-            ScrollView:
-                scroll_y: 0
-                Label:
-                    id: log_window
+            RecycleView:
+                id: log_window
+                viewclass: 'LogLabel'
+                scroll_type: ['content']
+                scroll_wheel_distance: dp(10)
+                bar_width: dp(10)
+
+                RecycleBoxLayout:
+                    id: log_window_layout
+                    orientation: 'vertical'
+                    default_size: None, None
+                    default_size_hint: 1, None
                     size_hint_y: None
-                    height: self.texture_size[1]
-                    text_size: self.width, None
+                    height: self.minimum_height
             BoxLayout:
                 orientation: 'horizontal'
                 size_hint_y: None
