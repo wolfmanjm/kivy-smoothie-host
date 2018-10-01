@@ -206,6 +206,28 @@ This requires the latest FirmwareBin/firmware-latest.bin from Smoothie github, (
 
 __NOTE__ to use the T0 and T1 buttons in the Extruder panel the temperature controls need to have the following designators 'T' and 'T1'. The temperature for the currently selected tool will show, and the set temp will apply to that tool.
 
+## Pendants
+There is support for a hacked Rraw MPG pendant using a Teensy as a rawhid device.
+
+Project here...
+* install as described there
+* ... TBD ...
+
+Then you need to install...
+* git clone https://github.com/ahtn/python-easyhid
+* cd python-easyhid
+* python3 setup.py install --user
+* sudo apt-get install libhidapi-libusb0
+* add to the smoothiehost.ini file...
+    
+    [modules]
+    mpg_rawhid = 0x16C0:0x0486
+
+Then you will have the MPG/Pendant controller available for jogging etc.
+
+(NOTE you need the latest version of smoothieware dated greater than 1 October 2018 to support the $J command)
+
+
 # Screen shots
 ![Extruder Screen](screen1.png)
 ![DRO Screen](dro_mode.png)
