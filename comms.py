@@ -396,7 +396,6 @@ class Comms():
 
             # process a complete line
             if s.startswith('ok'):
-                print("got ok")
                 if self.okcnt is not None:
                     if self.ping_pong:
                         self.okcnt.release()
@@ -623,18 +622,17 @@ class Comms():
                         self.app.main_window.tool_change_prompt(l)
                         tool_change_state= 0
 
+                # s= time.time()
+                # print("{} - {}".format(s, line))
                 # send the line
-                s= time.time()
-                print("{} - {}".format(s, line))
-
                 self._write(line)
 
                 # wait for ok from that command (I'd prefer to interleave with the file read but it is too complex)
                 if self.ping_pong and self.okcnt is not None:
                     try:
                         yield from self.okcnt.acquire()
-                        e= time.time()
-                        print("{} ({}) ok".format(e, (e-s)*1000, ))
+                        # e= time.time()
+                        # print("{} ({}) ok".format(e, (e-s)*1000, ))
                     except:
                         self.log.debug('Comms: okcnt wait cancelled')
                         break
