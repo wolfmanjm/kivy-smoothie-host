@@ -697,7 +697,8 @@ class MainWindow(BoxLayout):
                 if self.is_suspended:
                     # as we were suspended we need to resume the suspend first
                     # we let Smoothie tell us to resume from pause though
-                    self.app.comms.write('M601\n')
+                    # NOTE we do not use M601 as that will cause an extra ok and get our ok sync out
+                    self.app.comms.write('resume\n')
                 else:
                     self.app.comms.stream_pause(False)
 
@@ -851,9 +852,6 @@ class MainWindow(BoxLayout):
     def tool_change_prompt(self, l):
         # Print is paused by gcode command M6, prompt for tool change
         self.display("ACTION NEEDED: Manual Tool Change:\n Tool: {}\nWait for machine to stop, then you can jog around to change the tool.\n tap resume to continue".format(l))
-        # we tell smoothie to suspend so we can save state and move the head around to change the tool
-        # we need to issue resume M601 when we click the Resume button
-        self.app.comms.write('M600\n')
 
     def on_switch(self, a, tabitem):
         ''' called when a tab switches '''

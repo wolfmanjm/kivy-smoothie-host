@@ -10,6 +10,7 @@ import traceback
 import serial.tools.list_ports
 import subprocess
 import socket
+import time
 
 async_main_loop= None
 
@@ -158,7 +159,6 @@ class Comms():
     def write(self, data):
         ''' Write to serial port, called from UI thread '''
         if self.proto and async_main_loop:
-            #self.log.debug('Comms: writing ' + data)
             async_main_loop.call_soon_threadsafe(self._write, data)
             #asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
         else:
@@ -167,7 +167,7 @@ class Comms():
 
     def _write(self, data):
         # calls the send_message in Serial Connection proto
-        #self.log.debug('Comms: _write ' + data)
+        #print('Comms: _write {}'.format(data))
         if self.proto:
            self.proto.send_message(data)
 
@@ -396,11 +396,12 @@ class Comms():
 
             # process a complete line
             if s.startswith('ok'):
-                if self.ping_pong:
-                    if self.okcnt:
+                print("got ok")
+                if self.okcnt is not None:
+                    if self.ping_pong:
                         self.okcnt.release()
-                elif self.okcnt is not None:
-                    self.okcnt += 1
+                    else:
+                        self.okcnt += 1
 
                 # if there is anything after the ok display it
                 if len(s) > 2:
@@ -528,7 +529,7 @@ class Comms():
             if do_abort:
                 self.pause_stream= False
                 self.abort_stream= True # aborts stream
-                if self.ping_pong and self.okcnt:
+                if self.ping_pong and self.okcnt is not None:
                     self.okcnt.release() # release it in case it is waiting for ok so it can abort
                 self.log.info('Comms: Aborting Stream')
 
@@ -553,70 +554,90 @@ class Comms():
         self.last_tool= None
 
         if self.ping_pong:
-            self.okcnt= asyncio.Semaphore(1)
+            self.okcnt= asyncio.Semaphore(0)
         else:
             self.okcnt= 0
 
         f= None
         success= False
         linecnt= 0
+        tool_change_state= 0
+
         try:
             f = yield from aiofiles.open(fn, mode='r')
             while True:
-                #yield from self.pause_stream.wait() # wait for pause to be released
-                # needed to do it this way as the Event did not seem to work it would pause but not unpause
-                # TODO maybe use Future here to wait for unpause
-                # create future when pause then yield from it here then delete it
-                while self.pause_stream:
-                    yield from asyncio.sleep(1)
-                    if self.progress:
-                        self.progress(linecnt)
+
+                if tool_change_state == 0:
+                    #yield from self.pause_stream.wait() # wait for pause to be released
+                    # needed to do it this way as the Event did not seem to work it would pause but not unpause
+                    # TODO maybe use Future here to wait for unpause
+                    # create future when pause then yield from it here then delete it
+                    while self.pause_stream:
+                        yield from asyncio.sleep(1)
+                        if self.progress:
+                            self.progress(linecnt)
+                        if self.abort_stream:
+                            break
+
+                    # read next line
+                    line = yield from f.readline()
+
+                    if not line:
+                        # EOF
+                        break
+
                     if self.abort_stream:
                         break
 
-                line = yield from f.readline()
+                    l= line.strip()
+                    if len(l) == 0 or l.startswith(';') or l.startswith('('):
+                        continue
 
-                if not line:
-                    # EOF
-                    break
-
-                if self.abort_stream:
-                    break
-
-                l= line.strip()
-                if l.startswith(';') or len(l) == 0:
-                    continue
-
-                if self.abort_stream:
-                    break
-
-                # wait for ok from previous line
-                # Note we interleave read from file with wait for ok
-                if self.ping_pong and self.okcnt:
-                    try:
-                        yield from self.okcnt.acquire()
-                    except:
-                        self.log.debug('Comms: okcntr wait cancelled')
+                    if self.abort_stream:
                         break
+
+                    # handle tool change M6 or M06
+                    if self.app.manual_tool_change and ("M6 " in l or "M06 " in l):
+                        if self.last_tool != l:
+                            tool_change_state= 1
+                            self.last_tool= l
+                        else:
+                            # seems sometimes the tool change is duplicated so ignore if the tool is the same
+                            continue
 
                 if self.abort_stream:
                     break
 
                 # handle tool change
-                if self.app.manual_tool_change:
-                    if "M6 " in l or "M06 " in l:
-                        if self.last_tool != l:
-                            # we need to pause the stream here immediately, but the real _stream_pause will be called by suspend
-                            self.pause_stream= True # we don't normally set this directly
-                            self.app.main_window.tool_change_prompt(l)
-                            self.last_tool= l
-                            continue
-                        else:
-                            # seems sometimes the tool change is duplicated so ignore if the tool is the same
-                            continue
+                if self.app.manual_tool_change and tool_change_state > 0:
+                    if tool_change_state == 1:
+                        # we insert an M400 so we can wait for last command to actually execute and complete
+                        line= "M400\n"
+                        tool_change_state= 2
+
+                    elif tool_change_state == 2:
+                        # we got the M400 so queue is empty so we send a suspend and tell upstream
+                        line= "M600\n"
+                        # we need to pause the stream here immediately, but the real _stream_pause will be called by suspend
+                        self.pause_stream= True # we don't normally set this directly
+                        self.app.main_window.tool_change_prompt(l)
+                        tool_change_state= 0
 
                 # send the line
+                s= time.time()
+                print("{} - {}".format(s, line))
+
                 self._write(line)
+
+                # wait for ok from that command (I'd prefer to interleave with the file read but it is too complex)
+                if self.ping_pong and self.okcnt is not None:
+                    try:
+                        yield from self.okcnt.acquire()
+                        e= time.time()
+                        print("{} ({}) ok".format(e, (e-s)*1000, ))
+                    except:
+                        self.log.debug('Comms: okcnt wait cancelled')
+                        break
 
                 # when streaming we need to yield until the flow control is dealt with
                 if self.proto._connection_lost:
@@ -634,7 +655,10 @@ class Comms():
                 if self.abort_stream:
                     break
 
-                linecnt += 1
+                # we only count lines that start with GMXY
+                if l[0] in "GMXY":
+                    linecnt += 1
+
                 if self.progress and linecnt%10 == 0: # update every 10 lines
                     if self.ping_pong:
                         # number of lines sent
