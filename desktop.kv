@@ -32,6 +32,7 @@
             ActionToggleButton:
                 id: connect_button
                 text: 'Connect'
+                disabled: root.is_printing
                 #important: True
                 on_press: root.connect()
             ActionButton:

@@ -34,6 +34,7 @@
                 id: connect_button
                 text: 'Connect'
                 important: True
+                disabled: root.is_printing
                 on_press: root.connect()
             ActionButton:
                 id: print_but

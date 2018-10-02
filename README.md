@@ -25,8 +25,7 @@ To select the port to connect to click the System menu and select Port, then sel
 then enter the host or ip optionally followed by the port :23 (23 is the default if not specified), eg smoothieip or 192.168.0.2:23
 Once you have selected a port to connect to it is saved in the ini file, and you can then click the connect menu item to connect.
 
-The left screen is the console and displays messages from smoothie, the right screen is a selection of panels (Modes) which can be switched to by swiping up or down
-(or use the tabs to select the panel you want) you can scroll up and down by swiping up or down.
+The left screen is the console and displays messages from smoothie, the right screen is a selection of panels (Modes) which can be switched to using the tabs to select the panel you want, you can scroll the left screen up and down by swiping up or down.
 
 There is a status bar at the bottom left showing status, DRO and print ETA when printing.
 
@@ -38,7 +37,7 @@ You can select 3d printer mode or CNC mode from the Settings menu, this can affe
 - The Macro Panel is user configurable buttons panel to control whatever you want. (Edit the `macros.ini` file)
   There is a `sample-macros.ini` just copy that to `macros.ini` and edit as appropriate to define your own macro buttons.
 - The DRO Panel shows current MCS and WCS, and allows easy selection of the WCS to use, and allows setting of WCS
-- The MPG Panel (in CNC mode) is a simulation of an MPG pendant, it allows control of movement via a simulated rotary knob.
+- The MPG Panel is a simulation of an MPG pendant, it allows control of movement via a simulated rotary knob. (There is an optional module to take controls from a real MPG USB pendant).
 
 There is a gcode visualizer window that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
 Click the Viewer menu item, select the file to view, then the layers can be moved up or down.
@@ -87,7 +86,7 @@ On an rpi3b+ it seems the double tap time needs to be increased to be usable..
 
 
 ### OR kivypie
-or use kivypie from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box. (It may or may not work for the rpi3 B+).
+or use kivypie from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box. (WIFI does not work for the rpi3 B+, so use stretch above).
 
 If you do not have kivypie, but have jessie installed and just want kivy for rpi then...
 
@@ -110,7 +109,7 @@ Run with...
 
 > python3 main.py
 
-NOTE make sure the ```/home/sysop/.kivy/config.ini``` has the following set so the virtual keyboard works in a usable fashion...
+NOTE make sure the ```/home/sysop/.kivy/config.ini``` has the following set so the virtual keyboard works in a usable fashion on an RRI touch screen...
 
     [kivy]
     keyboard_mode = systemanddock
@@ -135,7 +134,7 @@ To allow the program to shutdown the RPI when the shutdown menu entry is selecte
 ### Autostart Smoopi (Optional)
 
 To autostart smoopi on boot but run as the sysop user follow these directions...
-(if using a rasbian installation replace sysop with pi)
+(if using a rasbian installation replace user sysop with pi)
 
 1. Install runit (sudo apt-get install runit). On Raspbian Stretch also do ```sudo apt-get install runit-systemd```
 2. in the sysop home directory run ```tar xvf INSTALLDIR/runit_setup.tar``` (where INSTALLDIR is where you checked out the smoopi source)
@@ -155,9 +154,9 @@ smoopi is now managed by runit. (This has the side effect of restarting smoopi i
 
 The smoopi app will start, and will also start on boot. (To stop it you type ```sudo sv stop /etc/service/smoopi```)
 
-### Shutdown and Startup button for Rpi (Optional)
+### Shutdown and Startup button for RPI (Optional)
 Optionally to add a button to boot and to shutdown the rpi install a NORMALLY OPEN push button on pins 5 and 6 on the header, 
-then you need to add the shutdown script to autostart... ```sudo ln -s /home/sysop/sv/shutdown /etc/service```
+then you need to add the shutdown script to autostart... ```sudo ln -s /home/sysop/sv/shutdown /etc/service```. NOTE you may need a capacitor across the button to stop noise shutting down the system.
 
 ### Backlight on RPI
 To allow Smoopi to turn on/off the backlight you need to do this...
@@ -168,7 +167,7 @@ To allow Smoopi to turn on/off the backlight you need to do this...
 
 NOTE the default is for no blanking, there is a setting under the settings menu that allows you to set the timeout for blanking the screen, it is initially set to 0 which is no blanking. If it blanks then touching the screen will unblank it.
 
-### Builtin webserver and optional video
+### Builtin webserver and optional camera
 In Settings you can turn on the webserver which will simply allow you to get current progress from any web browser, nothing fancy.
 Also in Settings you can enable the video option which uses mjpg-streamer 
 (which needs to be built and installed, See https://github.com/jacksonliam/mjpg-streamer.git for instructions on that). If enabled and running then the video will show up in the progress web page.
