@@ -761,7 +761,7 @@ class MainWindow(BoxLayout):
 
     @mainthread
     def display_progress(self, n):
-        if self.nlines:
+        if self.nlines and n <= self.nlines:
             now= datetime.datetime.now()
             d= (now-self.start_print_time).seconds
             if n > 10 and d > 10:
@@ -1150,7 +1150,7 @@ class SmoothieHost(App):
                 self.last_touch_time= 0
                 self.blank_screen()
 
-        if self.is_connected and self.is_desktop > 0:
+        if self.is_connected and self.is_desktop > 0 and not self.main_window.is_printing:
             # in desktop mode we need to poll for state changes for macros and DRO
             dummy= collections.namedtuple('Dummy', 'text')
             for t in ['DRO', 'Macros']: # Extruder also needs $G

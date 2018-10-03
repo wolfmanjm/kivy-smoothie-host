@@ -159,6 +159,10 @@ class Comms():
     def write(self, data):
         ''' Write to serial port, called from UI thread '''
         if self.proto and async_main_loop:
+            # TODO if we are streaming a file and ping_pong is set and okcnt is not None
+            # -- then we need to submit the write to a queue so the streamer can execute it and grab the ok
+            # -- only needed if the thing we are writing will return ok, like G/M commands
+            # -- OR we could open a second serial and use that instead
             async_main_loop.call_soon_threadsafe(self._write, data)
             #asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
         else:
