@@ -571,12 +571,22 @@ class Comms():
                     # needed to do it this way as the Event did not seem to work it would pause but not unpause
                     # TODO maybe use Future here to wait for unpause
                     # create future when pause then yield from it here then delete it
-                    while self.pause_stream:
-                        yield from asyncio.sleep(1)
-                        if self.progress:
-                            self.progress(linecnt)
-                        if self.abort_stream:
-                            break
+                    if self.pause_stream:
+                        if self.ping_pong:
+                            # we need to ignore any ok from command while we are paused
+                            self.okcnt= None
+
+                        # wait until pause is released
+                        while self.pause_stream:
+                            yield from asyncio.sleep(1)
+                            if self.progress:
+                                self.progress(linecnt)
+                            if self.abort_stream:
+                                break
+
+                        # restore okcnt to 0
+                        if self.ping_pong:
+                            self.okcnt= asyncio.Semaphore(0)
 
                     # read next line
                     line = yield from f.readline()
@@ -607,7 +617,7 @@ class Comms():
                 if self.abort_stream:
                     break
 
-                # handle tool change
+                # handle manual tool change
                 if self.app.manual_tool_change and tool_change_state > 0:
                     if tool_change_state == 1:
                         # we insert an M400 so we can wait for last command to actually execute and complete

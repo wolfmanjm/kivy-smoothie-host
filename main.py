@@ -351,7 +351,7 @@ class MPGWidget(RelativeLayout):
 
     def handle_action(self):
         # if in non MPG mode then issue G0 in abs or rel depending on settings
-        # if in MPG mode then issue step commands when they occur
+        # if in MPG mode then issue $J commands when they occur
         if not self.ids.mpg_mode_tb.state == 'down':
             # normal mode
             cmd1= 'G91 G0' if self.ids.abs_mode_tb.state == 'down' else 'G0'
@@ -360,20 +360,17 @@ class MPGWidget(RelativeLayout):
             self.app.comms.write('{} {}{} {}\n'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
 
     def handle_change(self, ticks):
-        pos= self.last_pos + (ticks/100.0 if self.ids.fine_cb.active else ticks/10.0)
+        if self.ids.x01.active:
+            d= 0.01 * ticks
+        elif self.ids.x001.active:
+            d= 0.001 * ticks
+        else:
+            d= 0.1 * ticks
+        self.last_pos= self.last_pos + d
         axis= self.selected_axis
-        #print('axis: {}, pos: {}'.format(axis, pos))
-        #self.ids.pos_lab.text= '{:08.3f}'.format(pos)
-        self.last_pos= pos
-        # TODO disable if delta or corexy
         #MPG mode
         if self.ids.mpg_mode_tb.state == 'down':
-            if self.ids.fine_cb.active:
-                d= 1 if ticks < 0 else -1
-            else:
-                d= 16 if ticks < 0 else -16
-            sps= abs(ticks) * 1600 # number of ticks moved changes steps/sec
-            self.app.comms.write('test raw {} {} {}\n'.format(self.selected_axis.lower(), d, sps))
+            self.app.comms.write('$J {}{}\n'.format(self.selected_axis.upper(), d))
 
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()
@@ -697,7 +694,6 @@ class MainWindow(BoxLayout):
                 if self.is_suspended:
                     # as we were suspended we need to resume the suspend first
                     # we let Smoothie tell us to resume from pause though
-                    # NOTE we do not use M601 as that will cause an extra ok and get our ok sync out
                     self.app.comms.write('resume\n')
                 else:
                     self.app.comms.stream_pause(False)

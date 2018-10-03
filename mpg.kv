@@ -36,12 +36,19 @@
         GridLayout:
             cols: 2
             CheckBox:
-                id: fine_cb
+                id: x01
+                group: 'cb1'
             Label:
-                text: 'Fine'
+                text: '0.01'
                 size_hint_x: None
                 width: self.texture_size[0]
-
+            CheckBox:
+                id: x001
+                group: 'cb1'
+            Label:
+                text: '0.001'
+                size_hint_x: None
+                width: self.texture_size[0]
 
     Label:
         pos_hint: {'top': 0.92}
