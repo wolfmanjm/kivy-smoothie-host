@@ -144,17 +144,15 @@ class GcodeViewerScreen(Screen):
         self.li= None
         self.ids.surface.canvas.add(self.canv)
         self.valid= self._loaded_ok
-
-    def _load_file(self, l):
-        self._loaded_ok= False
-        self.parse_gcode_file(self.app.gcode_file, l, True)
-
         if self._loaded_ok:
             # not sure why we need to do this
             self.ids.surface.top= Window.height
             if not self.timer: # and self.app.status == "Run":
                 self.timer= Clock.schedule_interval(self.update, 0.5)
 
+    def _load_file(self, l):
+        self._loaded_ok= False
+        self.parse_gcode_file(self.app.gcode_file, l, True)
         self._loaded()
 
     def _redraw(self, instance, value):
