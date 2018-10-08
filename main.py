@@ -510,6 +510,16 @@ class MainWindow(BoxLayout):
         #print('font size: {}'.format(self.ids.log_window.font_size))
         #Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
 
+    def on_touch_down(self, touch):
+        if self.ids.log_window.collide_point(touch.x, touch.y):
+            print("log touch")
+            if touch.is_triple_tap:
+                self.ids.log_window.data= []
+                print("triple tap")
+                return True
+
+        return super(MainWindow, self).on_touch_down(touch)
+
     def add_line_to_log(self, s):
         ''' Add lines to the log window, which is trimmed to the last 200 lines '''
         max_lines= 200 # TODO needs to be configurable
