@@ -512,10 +512,8 @@ class MainWindow(BoxLayout):
 
     def on_touch_down(self, touch):
         if self.ids.log_window.collide_point(touch.x, touch.y):
-            print("log touch")
             if touch.is_triple_tap:
                 self.ids.log_window.data= []
-                print("triple tap")
                 return True
 
         return super(MainWindow, self).on_touch_down(touch)
