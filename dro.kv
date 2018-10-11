@@ -165,24 +165,45 @@
             disabled: len(app.mpos) <= 5
             on_press: root.reset_axis('C')
 
-    GridLayout:
+    BoxLayout:
+        orientation: 'horizontal'
         pos_hint: {'y': 0.0}
-        size_hint_y: 0.1
-        cols: 6
-        row_force_default: True
-        row_default_height: 40
+        size_hint_y: None
+        height: 40
         padding: 4
         spacing: 4
         Label:
-            text: 'Feedrate'
+            text: 'Fr:'
+            size_hint_x: None
+            size: self.texture_size
         Label:
-            text: '{:6.1f}'.format(app.fr)
-        Label:
-            text: 'Power'
-        Label:
-            text: '{:6.1f}'.format(app.sr)
-        Label:
-            text: 'Laser'
-        Label:
-            text: '{:6.1f}'.format(app.lp)
+            text: '{:0.1f}/{:0.1f}'.format(app.fr, app.frr)
+            size_hint_x: None
+            size: self.texture_size
 
+        Label:
+            text: ' | Ovr:'
+            size_hint_x: None
+            size: self.texture_size
+        Label:
+            text: '{:3.0f}%'.format(app.fro)
+            size_hint_x: None
+            size: self.texture_size
+
+        Label:
+            text: ' | Power:'
+            size_hint_x: None
+            size: self.texture_size
+        Label:
+            text: '{:1.2f}'.format(app.sr)
+            size_hint_x: None
+            size: self.texture_size
+
+        Label:
+            text: ' | Laser:'
+            size_hint_x: None
+            size: self.texture_size
+        Label:
+            text: '{:3.1f}%'.format(app.lp)
+            size_hint_x: None
+            size: self.texture_size

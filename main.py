@@ -596,6 +596,12 @@ class MainWindow(BoxLayout):
 
         if 'F' in d:
             self.app.fr= d['F'][0]
+            if len(d['F']) == 2:
+                self.app.fro= d['F'][1]
+                self.app.frr= d['F'][0]
+            elif len(d['F']) == 3:
+                self.app.frr= d['F'][1]
+                self.app.fro= d['F'][2]
 
         if 'S' in d:
             self.app.sr= d['S'][0]
@@ -876,6 +882,8 @@ class SmoothieHost(App):
     wpos= ListProperty([0,0,0])
     mpos= ListProperty([0,0,0,0,0,0])
     fr= NumericProperty(0)
+    frr= NumericProperty(0)
+    fro= NumericProperty(100)
     sr= NumericProperty(0)
     lp= NumericProperty(0)
     is_desktop= NumericProperty(0)
