@@ -23,13 +23,14 @@ import threading
 Builder.load_string('''
 <GcodeViewerScreen>:
     on_enter: self.loading()
-    on_leave: root.clear()
+    on_leave: self.clear()
     BoxLayout:
         orientation: 'vertical'
         BoxLayout:
             pos_hint: {'top': 1}
             Scatter:
                 id: surface
+                on_transform_with_touch: root.moved(*args)
                 do_collide_after_children: True
                 do_rotation: False
                 canvas.before:
@@ -85,14 +86,14 @@ Builder.load_string('''
                 id: laser_but
                 text: 'Laser'
                 on_press: root.set_laser(self.state == 'down')
-            ToggleButton:
+            Button:
                 id: set_wpos_but
                 text: 'Set WPOS'
-                on_press: root.set_wcs(self.state == 'down')
-            ToggleButton:
+                on_press: root.set_wcs()
+            Button:
                 id: move_gantry_but
                 text: 'Move Gantry'
-                on_press: root.move_gantry(self.state == 'down')
+                on_press: root.move_gantry()
             Button:
                 text: 'Back'
                 on_press: root.manager.current = 'main'
@@ -105,7 +106,6 @@ CNC_accuracy = 0.001
 class GcodeViewerScreen(Screen):
     current_z= NumericProperty(0)
     select_mode= BooleanProperty(False)
-    set_wpos_mode= BooleanProperty(True)
     cam_mode= BooleanProperty(False)
     laser_mode= BooleanProperty(False)
     valid= BooleanProperty(False)
@@ -166,6 +166,10 @@ class GcodeViewerScreen(Screen):
         if  self.li:
             self.remove_widget(self.li)
             self.li= None
+
+        if self.select_mode:
+            self.stop_cursor(0,0)
+            self.select_mode= False
 
         self.valid= False
         self.is_visible= False
@@ -616,6 +620,45 @@ class GcodeViewerScreen(Screen):
         wpos= ((pos[0] - self.offs[0]) / self.scale - self.tx, (pos[1] - self.offs[1]) / self.scale - self.ty)
         return wpos
 
+    def start_cursor(self, x, y):
+        label = CoreLabel(text="{:1.2f},{:1.2f}".format(self.transform_pos(x, y)[0], self.transform_pos(x, y)[1]))
+        label.refresh()
+        texture= label.texture
+        with self.canvas:
+            Color(0, 0, 1, mode='rgb', group='cursor_group')
+            self.crossx = [
+                Rectangle(pos=(x, 0), size=(1, self.ids.surface.height), group='cursor_group'),
+                Rectangle(pos=(0, y), size=(self.ids.surface.width, 1), group='cursor_group'),
+                Line(circle=(x, y, 20), group='cursor_group'),
+                Rectangle(texture=texture, pos=(x-texture.size[0]/2, y-40), size=texture.size, group='cursor_group')
+            ]
+
+    def moved(self, w, touch):
+        # we scaled or moved the scatter so need to reposition cursor
+        if self.select_mode:
+            #x, y= (self.crossx[0].pos[0], self.crossx[1].pos[1])
+            x, y= touch.pos
+            self.stop_cursor(x, y)
+            self.start_cursor(x, y)
+
+    def move_cursor_by(self, dx, dy):
+        x, y= (self.crossx[0].pos[0]+dx, self.crossx[1].pos[1]+dy)
+
+        self.crossx[0].pos = x, 0
+        self.crossx[1].pos = 0, y
+        self.crossx[2].circle = (x, y, 20)
+        label = CoreLabel(text="{:1.2f},{:1.2f}".format(self.transform_pos(x, y)[0], self.transform_pos(x, y)[1]))
+        label.refresh()
+        texture= label.texture
+        self.crossx[3].texture= texture
+        self.crossx[3].pos= x-texture.size[0]/2, y-40
+
+    # TODO how do we cancel it? triple tap?
+    # TODO handle touch screen which does not have right mouse button (triple tap?)
+    def stop_cursor(self, x, y):
+        self.canvas.remove_group('cursor_group')
+        self.crossx = None
+
     def on_touch_down(self, touch):
         #print(self.ids.surface.bbox)
         if self.ids.surface.collide_point(touch.x, touch.y):
@@ -632,27 +675,20 @@ class GcodeViewerScreen(Screen):
                     if self.ids.surface.scale > 0.01:
                         self.ids.surface.scale = self.ids.surface.scale * 0.8
 
+                self.moved(None, touch)
                 return True
 
-            elif self.select_mode:
-                # if we are in select mode...
-                pos= (touch.x, touch.y)
-                ud = touch.ud
-                ud['group'] = g = str(touch.uid)
+            elif self.select_mode and touch.is_double_tap:
+                self.stop_cursor(touch.x, touch.y)
+                self.select_mode= False
+                return True
 
-                label = CoreLabel(text="{:1.3f},{:1.3f}".format(self.transform_pos(touch.x, touch.y)[0], self.transform_pos(touch.x, touch.y)[1]))
-                label.refresh()
-                texture= label.texture
-                with self.canvas.after:
-                    Color(0, 0, 1, mode='rgb', group=g)
-                    ud['crossx'] = [
-                        Rectangle(pos=(pos[0], 0), size=(1, self.height), group=g),
-                        Rectangle(pos=(0, pos[1]), size=(self.width, 1), group=g),
-                        Line(circle=(pos[0], pos[1], 20), group=g),
-                        Rectangle(texture=texture, pos=(pos[0]-texture.size[0]/2, pos[1]-40), size=texture.size, group=g)
-                    ]
-
+            elif "button" in touch.profile and touch.button == "right":
                 touch.grab(self)
+                if not self.select_mode:
+                    self.select_mode= True
+                    self.start_cursor(touch.x, touch.y)
+
                 return True
 
         return super(GcodeViewerScreen, self).on_touch_down(touch)
@@ -660,60 +696,61 @@ class GcodeViewerScreen(Screen):
     def on_touch_move(self, touch):
         if self.select_mode:
             if touch.grab_current is not self:
-                return
+                return False
 
-            pos= (touch.x, touch.y)
-            ud = touch.ud
-            ud['crossx'][0].pos = pos[0], 0
-            ud['crossx'][1].pos = 0, pos[1]
-            ud['crossx'][2].circle = (pos[0], pos[1], 20)
-            label = CoreLabel(text="{:1.3f},{:1.3f}".format(self.transform_pos(pos[0], pos[1])[0], self.transform_pos(pos[0], pos[1])[1]))
-            label.refresh()
-            texture= label.texture
-            ud['crossx'][3].texture= texture
-            ud['crossx'][3].pos= pos[0]-texture.size[0]/2, pos[1]-40
+            dx= touch.dpos[0]
+            dy= touch.dpos[1]
+            self.move_cursor_by(dx, dy)
+            return True
 
         else:
             return super(GcodeViewerScreen, self).on_touch_move(touch)
 
-
     def on_touch_up(self, touch):
         if self.select_mode:
-            if touch.grab_current is not self:
-                return
+            if touch.grab_current is self:
+                touch.ungrab(self)
+                if not self.ids.surface.collide_point(touch.x, touch.y):
+                    # if not in surface then do not do anything
+                    return False
 
-            touch.ungrab(self)
-            ud = touch.ud
-            self.canvas.after.remove_group(ud['group'])
-            self.select_mode= False
-            self.ids.set_wpos_but.state= 'normal'
-            self.ids.move_gantry_but.state= 'normal'
-
-            # convert to original model coordinates (mm), need to take into account scale and translate
-            wpos= self.transform_pos(touch.x, touch.y)
-            if self.set_wpos_mode:
-                if self.comms:
-                    self.comms.write('G10 L20 P0 X{} Y{}'.format(wpos[0], wpos[1]))
-                else:
-                    print('Set WCS to: {}, {}'.format(wpos[0], wpos[1]))
-                    print('G10 L20 P0 X{} Y{}'.format(wpos[0], wpos[1]))
-            else:
-                if self.comms:
-                    self.comms.write('G0 X{} Y{}'.format(wpos[0], wpos[1]))
-                else:
-                    print('Move Gantry to: {}, {}'.format(wpos[0], wpos[1]))
-                    print('G0 X{} Y{}'.format(wpos[0], wpos[1]))
+                return True
 
         else:
             return super(GcodeViewerScreen, self).on_touch_up(touch)
 
-    def move_gantry(self, on):
-        self.set_wpos_mode= False
-        self.select_mode= on
+    def move_gantry(self):
+        if not self.select_mode:
+            return
 
-    def set_wcs(self, on):
-        self.set_wpos_mode= True
-        self.select_mode= on
+        self.select_mode= False
+
+        # convert to original model coordinates (mm), need to take into account scale and translate
+        x, y= (self.crossx[0].pos[0], self.crossx[1].pos[1])
+        self.stop_cursor(x, y)
+        wpos= self.transform_pos(x, y)
+
+        if self.comms:
+            self.comms.write('G0 X{:1.2f} Y{:1.2f}'.format(wpos[0], wpos[1]))
+        else:
+            print('Move Gantry to: {:1.2f}, {:1.2f}'.format(wpos[0], wpos[1]))
+            print('G0 X{:1.2f} Y{:1.2f}'.format(wpos[0], wpos[1]))
+
+    def set_wcs(self):
+        if not self.select_mode:
+            return
+
+        self.select_mode= False
+
+        # convert to original model coordinates (mm), need to take into account scale and translate
+        x, y= (self.crossx[0].pos[0], self.crossx[1].pos[1])
+        self.stop_cursor(x, y)
+        wpos= self.transform_pos(x, y)
+        if self.comms:
+            self.comms.write('G10 L20 P0 X{:1.2f} Y{:1.2f}'.format(wpos[0], wpos[1]))
+        else:
+            print('Set WCS to: {:1.2f}, {:1.2f}'.format(wpos[0], wpos[1]))
+            print('G10 L20 P0 X{:1.2f} Y{:1.2f}'.format(wpos[0], wpos[1]))
 
     def set_cam(self, on):
         self.cam_mode= on
@@ -751,6 +788,7 @@ if __name__ == '__main__':
             self.sm = ScreenManager()
             self.sm.add_widget(StartScreen(name='main'))
             self.sm.add_widget(GcodeViewerScreen(name='gcode'))
+            if len(sys.argv) > 1: self.sm.current= 'gcode'
             level = LOG_LEVELS.get('debug')
             Logger.setLevel(level=level)
             logging.getLogger().setLevel(logging.DEBUG)
