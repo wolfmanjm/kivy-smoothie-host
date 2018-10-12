@@ -624,7 +624,7 @@ class GcodeViewerScreen(Screen):
     def moved(self, w, touch):
         # we scaled or moved the scatter so need to reposition cursor
         if self.select_mode:
-            x, y= touch.pos
+            x, y= (self.crossx[0].pos[0], self.crossx[1].pos[1])
             self.stop_cursor(x, y)
             self.start_cursor(x, y)
 
@@ -671,12 +671,14 @@ class GcodeViewerScreen(Screen):
                 if touch.button == 'scrolldown':
                     # zoom in
                     if self.ids.surface.scale < 100:
-                        self.ids.surface.scale = self.ids.surface.scale * 1.1
+                        rescale = 1.1
+                        self.ids.surface.apply_transform(Matrix().scale(rescale, rescale, rescale), post_multiply=True, anchor=self.ids.surface.to_widget(*touch.pos))
 
                 elif touch.button == 'scrollup':
                     # zoom out
                     if self.ids.surface.scale > 0.01:
-                        self.ids.surface.scale = self.ids.surface.scale * 0.8
+                        rescale = 0.8
+                        self.ids.surface.apply_transform(Matrix().scale(rescale, rescale, rescale), post_multiply=True, anchor=self.ids.surface.to_widget(*touch.pos))
 
                 self.moved(None, touch)
                 return True
