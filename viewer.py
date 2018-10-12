@@ -583,18 +583,19 @@ class GcodeViewerScreen(Screen):
         Logger.debug("GcodeViewerScreen: sx= {}, sy= {}".format(self.ids.surface.size[0], self.ids.surface.size[1]))
 
         # axis Markers
-        self.canv.add(Color(0, 0, 1, mode='rgb'))
-        self.canv.add(Rectangle(pos=(0, -10), size=(1/scale, self.ids.surface.height/scale)))
-        self.canv.add(Rectangle(pos=(-10, 0), size=(self.ids.surface.width/scale, 1/scale)))
+        self.canv.add(Color(0, 1, 0, mode='rgb'))
+        self.canv.add(Line(points=[0, -10, 0, self.ids.surface.height/scale], width= 1, cap='none', joint='none'))
+        self.canv.add(Line(points=[-10, 0, self.ids.surface.width/scale, 0], width= 1, cap='none', joint='none'))
 
         # tool position marker
         x= self.app.wpos[0]
         y= self.app.wpos[1]
         r= 10/scale
-        self.canv.add(Color(0, 1, 0, mode='rgb', group="tool")),
-        self.canv.add(Line(circle=(x, y, r), group="tool")),
-        self.canv.add(Rectangle(pos=(x, y-r/2), size=(1/scale, r), group="tool")),
-        self.canv.add(Rectangle(pos=(x-r/2, y), size=(r, 1/scale), group="tool"))
+        self.canv.add(Color(0, 1, 0, mode='rgb', group="tool"))
+        self.canv.add(Line(circle=(x, y, r), group="tool"))
+
+        # self.canv.add(Rectangle(pos=(x, y-r/2), size=(1/scale, r), group="tool"))
+        # self.canv.add(Rectangle(pos=(x-r/2, y), size=(r, 1/scale), group="tool"))
 
         self.canv.add(PopMatrix())
         self._loaded_ok= True
@@ -610,8 +611,8 @@ class GcodeViewerScreen(Screen):
         r= 10/self.scale
         g= self.canv.get_group("tool")
         g[2].circle= (x, y, r)
-        g[4].pos= x, y-r/2
-        g[6].pos= x-r/2, y
+        # g[4].pos= x, y-r/2
+        # g[6].pos= x-r/2, y
 
     def transform_pos(self, posx, posy):
         # convert touch coords to local scatter widget coords, relative to lower bottom corner
@@ -620,26 +621,27 @@ class GcodeViewerScreen(Screen):
         wpos= ((pos[0] - self.offs[0]) / self.scale - self.tx, (pos[1] - self.offs[1]) / self.scale - self.ty)
         return wpos
 
-    def start_cursor(self, x, y):
-        label = CoreLabel(text="{:1.2f},{:1.2f}".format(self.transform_pos(x, y)[0], self.transform_pos(x, y)[1]))
-        label.refresh()
-        texture= label.texture
-        with self.canvas:
-            Color(0, 0, 1, mode='rgb', group='cursor_group')
-            self.crossx = [
-                Rectangle(pos=(x, 0), size=(1, self.ids.surface.height), group='cursor_group'),
-                Rectangle(pos=(0, y), size=(self.ids.surface.width, 1), group='cursor_group'),
-                Line(circle=(x, y, 20), group='cursor_group'),
-                Rectangle(texture=texture, pos=(x-texture.size[0]/2, y-40), size=texture.size, group='cursor_group')
-            ]
-
     def moved(self, w, touch):
         # we scaled or moved the scatter so need to reposition cursor
         if self.select_mode:
-            #x, y= (self.crossx[0].pos[0], self.crossx[1].pos[1])
             x, y= touch.pos
             self.stop_cursor(x, y)
             self.start_cursor(x, y)
+
+    def start_cursor(self, x, y):
+        tx, ty= self.transform_pos(x, y)
+        label = CoreLabel(text="{:1.2f},{:1.2f}".format(tx, ty))
+        label.refresh()
+        texture= label.texture
+        px, py= (x, y)
+        with self.ids.surface.canvas.after:
+            Color(0, 0, 1, mode='rgb', group='cursor_group')
+            self.crossx = [
+                Rectangle(pos=(px, 0), size=(1, self.height), group='cursor_group'),
+                Rectangle(pos=(0, py), size=(self.width, 1), group='cursor_group'),
+                Line(circle=(px, py, 20), group='cursor_group'),
+                Rectangle(texture=texture, pos=(px-texture.size[0]/2, py-40), size=texture.size, group='cursor_group')
+            ]
 
     def move_cursor_by(self, dx, dy):
         x, y= (self.crossx[0].pos[0]+dx, self.crossx[1].pos[1]+dy)
@@ -647,7 +649,8 @@ class GcodeViewerScreen(Screen):
         self.crossx[0].pos = x, 0
         self.crossx[1].pos = 0, y
         self.crossx[2].circle = (x, y, 20)
-        label = CoreLabel(text="{:1.2f},{:1.2f}".format(self.transform_pos(x, y)[0], self.transform_pos(x, y)[1]))
+        tx, ty= self.transform_pos(x, y)
+        label = CoreLabel(text="{:1.2f},{:1.2f}".format(tx, ty))
         label.refresh()
         texture= label.texture
         self.crossx[3].texture= texture
@@ -656,7 +659,7 @@ class GcodeViewerScreen(Screen):
     # TODO how do we cancel it? triple tap?
     # TODO handle touch screen which does not have right mouse button (triple tap?)
     def stop_cursor(self, x, y):
-        self.canvas.remove_group('cursor_group')
+        self.ids.surface.canvas.after.remove_group('cursor_group')
         self.crossx = None
 
     def on_touch_down(self, touch):
