@@ -1195,6 +1195,20 @@ class SmoothieHost(App):
 
         return False
 
+def handle_exception(exc_type, exc_value, exc_traceback):
+    """ handle all exceptions """
+
+    ## KeyboardInterrupt is a special case.
+    ## We don't raise the error dialog when it occurs.
+    if issubclass(exc_type, KeyboardInterrupt):
+        return
+
+    Logger.error("Unhandled Exception:")
+    Logger.error("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+    App.get_running_app().stop()
+
+# install handler for exceptions
+sys.excepthook = handle_exception
 SmoothieHost().run()
 
 
