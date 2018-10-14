@@ -66,33 +66,30 @@ Builder.load_string('''
                 width: self.texture_size[0]
             Button:
                 text: 'First Layer'
-                disabled: root.cam_mode
+                disabled: root.twod_mode
                 on_press: root.loading(1)
             Button:
                 text: 'Prev Layer'
-                disabled: root.cam_mode
+                disabled: root.twod_mode
                 on_press: root.prev_layer()
             Button:
                 text: 'Next Layer'
-                disabled: root.cam_mode
+                disabled: root.twod_mode
                 on_press: root.next_layer()
             Button:
                 text: 'Clear'
                 on_press: root.clear()
-            ToggleButton:
-                id: cam_but
-                text: 'CAM'
-                on_press: root.set_cam(self.state == 'down')
-            ToggleButton:
-                id: laser_but
-                text: 'Laser'
-                on_press: root.set_laser(self.state == 'down')
+            Spinner:
+                text_autoupdate: True
+                values: ('3D', '2D', 'Laser')
+                on_text: root.set_type(self.text)
+
             ToggleButton:
                 id: select_mode_but
                 text: 'Select'
                 on_press: root.select(self.state == 'down')
             Button:
-                text: 'WPOS'
+                text: 'Set WPOS'
                 disabled: not root.select_mode
                 on_press: root.set_wcs()
             Button:
@@ -111,7 +108,7 @@ CNC_accuracy = 0.001
 class GcodeViewerScreen(Screen):
     current_z= NumericProperty(0)
     select_mode= BooleanProperty(False)
-    cam_mode= BooleanProperty(False)
+    twod_mode= BooleanProperty(False)
     laser_mode= BooleanProperty(False)
     valid= BooleanProperty(False)
 
@@ -126,7 +123,7 @@ class GcodeViewerScreen(Screen):
         self.ty= 0
         self.scale= 1.0
         self.comms= comms
-        self.cam_mode= self.app.is_cnc
+        self.twod_mode= self.app.is_cnc
         self.rval= 0.0
         self.timer= None
 
@@ -152,7 +149,7 @@ class GcodeViewerScreen(Screen):
             # not sure why we need to do this
             self.ids.surface.top= Window.height
             if not self.timer: # and self.app.status == "Run":
-                self.timer= Clock.schedule_interval(self.update, 0.5)
+                self.timer= Clock.schedule_interval(self.update_tool, 0.5)
 
     def _load_file(self, l):
         self._loaded_ok= False
@@ -266,7 +263,7 @@ class GcodeViewerScreen(Screen):
         plane= XY
         rel_move= False
         self.is_visible= True
-        if self.laser_mode: self.cam_mode= True # laser mode implies CAM mode
+        if self.laser_mode: self.twod_mode= True # laser mode implies 2D mode
 
         self.last_target_layer= target_layer
 
@@ -343,7 +340,7 @@ class GcodeViewerScreen(Screen):
                 e= laste if 'E' not in d else float(d['E'])
                 s= lasts if 'S' not in d else float(d['S'])
 
-                if not self.cam_mode :
+                if not self.twod_mode :
                     # handle layers (when Z changes)
                     if z == -1:
                         # no z seen yet
@@ -554,7 +551,7 @@ class GcodeViewerScreen(Screen):
         dx= max_x-min_x
         dy= max_y-min_y
         if dx == 0 or dy == 0 :
-            Logger.warning("GcodeViewerScreen: size is bad, maybe need cam mode")
+            Logger.warning("GcodeViewerScreen: size is bad, maybe need 2D mode")
             if self.timer: self.timer.cancel()
             return
 
@@ -595,8 +592,8 @@ class GcodeViewerScreen(Screen):
         # tool position marker
         x= self.app.wpos[0]
         y= self.app.wpos[1]
-        r= 10/scale
-        self.canv.add(Color(0, 1, 0, mode='rgb', group="tool"))
+        r= (10.0/self.ids.surface.scale)/scale
+        self.canv.add(Color(1, 0, 0, mode='rgb', group="tool"))
         self.canv.add(Line(circle=(x, y, r), group="tool"))
 
         # self.canv.add(Rectangle(pos=(x, y-r/2), size=(1/scale, r), group="tool"))
@@ -606,14 +603,14 @@ class GcodeViewerScreen(Screen):
         self._loaded_ok= True
         Logger.debug("GcodeViewerScreen: done loading")
 
-    def update(self, dt):
+    def update_tool(self, dt= 0):
         if not self.is_visible: return
 
         # follow the tool path
         #self.canv.remove_group("tool")
         x= self.app.wpos[0]
         y= self.app.wpos[1]
-        r= 10/self.scale
+        r= (10.0/self.ids.surface.scale)/self.scale
         g= self.canv.get_group("tool")
         g[2].circle= (x, y, r)
         # g[4].pos= x, y-r/2
@@ -635,11 +632,15 @@ class GcodeViewerScreen(Screen):
 
     def moved(self, w, touch):
         # we scaled or moved the scatter so need to reposition cursor
-        # TODO it would be nice of the cursor stayed where it was relative to the model during a move or scale
-        if self.select_mode:
-            x, y= (self.crossx[0].pos[0], self.crossx[1].pos[1])
-            self.stop_cursor(x, y)
-            self.start_cursor(x, y)
+        # TODO it would be nice if the cursor stayed where it was relative to the model during a move or scale
+        # NOTE right now we can't move or scale while cursor is on
+        # if self.select_mode:
+        #     x, y= (self.crossx[0].pos[0], self.crossx[1].pos[1])
+        #     self.stop_cursor(x, y)
+        #     self.start_cursor(x, y)
+
+        # adjust size of tool marker
+        self.update_tool()
 
     def start_cursor(self, x, y):
         tx, ty= self.transform_to_wpos(x, y)
@@ -764,14 +765,18 @@ class GcodeViewerScreen(Screen):
             print('Set WCS to: {:1.2f}, {:1.2f}'.format(wpos[0], wpos[1]))
             print('G10 L20 P0 X{:1.2f} Y{:1.2f}'.format(wpos[0], wpos[1]))
 
-    def set_cam(self, on):
-        self.cam_mode= on
-        self.loading(0 if self.cam_mode else 1)
+    def set_type(self, t):
+        if t == '3D':
+            self.twod_mode= False
+            self.laser_mode= False
+        elif t == '2D':
+            self.twod_mode= True
+            self.laser_mode= False
+        elif t == 'Laser':
+            self.twod_mode= True
+            self.laser_mode= True
 
-    def set_laser(self, on):
-        self.cam_mode= on
-        self.laser_mode= on
-        self.loading(0 if self.cam_mode else 1)
+        self.loading(0 if self.twod_mode else 1)
 
 if __name__ == '__main__':
 
