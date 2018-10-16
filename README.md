@@ -41,7 +41,7 @@ You can select 3d printer mode or CNC mode from the Settings menu, this can affe
 
 There is a gcode visualizer window that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
 Click the Viewer menu item, select the file to view, then the layers can be moved up or down.
-To set the WPOS as a point in the view click the set WPOS button then touch the screen and cross haors will appear and track your finger, release on the point and that point will be set as WPOS. To move the gantry to a point on the view click the move gantry button then touch and drag until you get the point and release and the gantry will move to that point.
+To set the WPOS to a point in the view click the select button, then touch the screen to move the crosshairs, when you have the point you want selected then click the set WPOS button, that point will be set as WPOS. To move the gantry to a point on the view click the select button, then touch and drag until you get the point and then click the move to button, the gantry will move to that point.
 
 The Kivy file browser is pretty crude and buggy. To allow it to be usable on a touch panel I had to set it so directory changes require double taps on the directory. I also do not enable the Load button unless a valid file is selected by tapping the file. This allows swiping to scroll the file lists to work reliably.
 

@@ -81,7 +81,7 @@ Builder.load_string('''
                 on_press: root.clear()
             Spinner:
                 text_autoupdate: True
-                values: ('3D', '2D', 'Laser')
+                values: ('3D', '2D', 'Laser') if not app.is_cnc else ('2D', 'Laser', '3D')
                 on_text: root.set_type(self.text)
 
             ToggleButton:
