@@ -56,6 +56,8 @@ class NumericInput(TextInput):
         super(NumericInput, self).__init__(**kwargs)
 
     def on_focus(self, i, v):
+        if App.get_running_app().is_desktop != 0:
+            return
         if v:
             self._last= self.text
             self.text= ""
@@ -70,6 +72,8 @@ class NumericInput(TextInput):
 
 
     def on_parent(self, widget, parent):
+        if App.get_running_app().is_desktop != 0:
+            return
         self.keyboard_mode= 'managed'
 
 class DROWidget(RelativeLayout):
