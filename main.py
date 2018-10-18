@@ -719,9 +719,14 @@ class MainWindow(BoxLayout):
             f= FileDialog()
             f.open(self.last_path, cb= self._start_print)
 
-    def _start_print(self, file_path, directory):
+    def _start_print(self, file_path=None, directory=None):
         # start comms thread to stream the file
         # set comms.ping_pong to False for fast stream mode
+        if file_path is None:
+            file_path= self.app.gcode_file
+        if directory is None:
+            directory=self.last_path
+
         Logger.info('MainWindow: printing file: {}'.format(file_path))
 
         try:
@@ -759,7 +764,7 @@ class MainWindow(BoxLayout):
 
     def _reprint(self, ok):
         if ok:
-            self._start_print(self.app.gcode_file, self.last_path)
+            self._start_print()
 
     @mainthread
     def stream_finished(self, ok):

@@ -76,9 +76,6 @@ Builder.load_string('''
                 text: 'Next Layer'
                 disabled: root.twod_mode
                 on_press: root.next_layer()
-            Button:
-                text: 'Clear'
-                on_press: root.clear()
             Spinner:
                 text_autoupdate: True
                 values: ('3D', '2D', 'Laser') if not app.is_cnc else ('2D', 'Laser', '3D')
@@ -96,6 +93,10 @@ Builder.load_string('''
                 text: 'Move to'
                 disabled: not root.select_mode
                 on_press: root.move_gantry()
+            Button:
+                text: 'Print'
+                disabled: not app.is_connected
+                on_press: root.print()
             Button:
                 text: 'Back'
                 on_press: root.manager.current = 'main'
@@ -193,6 +194,8 @@ class GcodeViewerScreen(Screen):
         n= 1 if self.last_target_layer <= 1 else self.last_target_layer-1
         self.loading(n)
 
+    def print(self):
+        self.app.main_window._start_print()
 
     #----------------------------------------------------------------------
     # Return center x,y,z,r for arc motions 2,3 and set self.rval
