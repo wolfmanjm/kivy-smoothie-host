@@ -460,7 +460,7 @@ class KbdWidget(GridLayout):
         self.last_command= ""
 
     def _add_line_to_log(self, s):
-        self.app.main_window.async_display(s)
+        self.app.main_window.display(s)
 
     def do_action(self, key):
         if key == 'Send':
@@ -486,7 +486,8 @@ class KbdWidget(GridLayout):
                 if p.returncode != 0:
                     self._add_line_to_log('> command error: {}'.format(err))
                 else:
-                    self._add_line_to_log('{}'.format(result))
+                    for l in result.splitlines():
+                        self._add_line_to_log('{}'.format(l))
             except Exception as err:
                     self._add_line_to_log('> command exception: {}'.format(err))
         else:
@@ -856,9 +857,15 @@ class MainWindow(BoxLayout):
             if p.returncode != 0:
                 self.add_line_to_log(">>> Update: Failed to run git pull")
             else:
-                str= result.decode('utf-8').strip()
-                self.add_line_to_log(">>> Update: {}".format(str))
-                if not "up-to-date" in str:
+                need_update= True
+                str= result.decode('utf-8').splitlines()
+                self.add_line_to_log(">>> Update:")
+                for l in str:
+                    self.add_line_to_log(l)
+                    if "up-to-date" in l:
+                        need_update= False
+
+                if need_update:
                     self.add_line_to_log(">>> Update: Restart may be required")
         except:
             self.add_line_to_log(">>> Update: Error trying to update. See log")
