@@ -344,6 +344,14 @@ class ExtruderWidget(BoxLayout):
         self.ids.tool_t0.state= 'down' if self.curtool == 0 else 'normal'
         self.ids.tool_t1.state= 'down' if self.curtool == 1 else 'normal'
 
+    def on_touch_down(self, touch):
+        if self.ids.temps_screen.collide_point(touch.x, touch.y):
+            if touch.is_double_tap:
+                self.ids.temps_screen.current = 'graph' if self.ids.temps_screen.current == 'dials' else 'dials'
+                return True
+        return False
+
+
 class MPGWidget(RelativeLayout):
     """docstring for MPGWidget"""
     last_pos= NumericProperty(0)
