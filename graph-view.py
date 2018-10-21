@@ -1,9 +1,11 @@
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import ListProperty
+from kivy.properties import ListProperty, DictProperty
 from kivy.lang import Builder
 from libs.graph import Graph, MeshLinePlot
 from kivy.utils import get_color_from_hex as rgb
 from kivy.clock import Clock
+
+import math
 
 Builder.load_string('''
 #:import rgb kivy.utils.get_color_from_hex
@@ -37,25 +39,20 @@ Builder.load_string('''
 ''')
 
 class GraphView(FloatLayout):
+    values= DictProperty()
+
     def __init__(self, **kwargs):
         super(GraphView, self).__init__(**kwargs)
         self.he1_plot= None
         self.he2_plot= None
         self.bed_plot= None
         self.secs= 0
-        self.temp= 20
         self.clk= None
 
     def start(self):
         if self.clk is None:
-            self.clk= Clock.schedule_interval(self.update_points, .1)
+            self.clk= Clock.schedule_interval(self.update_points, 1)
 
-        if self.he1_plot is None:
-            self.he1_plot = MeshLinePlot(color=(1,0,0))
-            self.ids.graph.add_plot(self.he1_plot)
-        if self.bed_plot is None:
-            self.bed_plot = MeshLinePlot(color=(0,1,0))
-            self.ids.graph.add_plot(self.bed_plot)
 
     def stop(self):
         # if self.clk:
@@ -64,6 +61,24 @@ class GraphView(FloatLayout):
         pass
 
     def update_points(self, *args):
+        if 'hotend0' not in values or math.isnan(values['hotend0'][1]) or values['hotend0'][1] == 0:
+            self.he1_plot.points= []
+            self.ids.graph.remove_plot(self.he1_plot)
+            self.he1_plot= None
+        else:
+            if self.he1_plot is None:
+                self.he1_plot = MeshLinePlot(color=(1,0,0))
+                self.ids.graph.add_plot(self.he1_plot)
+
+        if 'bed' not in values or math.isnan(values['bed'][1]) or values['bed'][1] == 0:
+            self.bed_plot.points= []
+            self.ids.graph.remove_plot(self.bed_plot)
+            self.bed_plot= None
+        else:
+            if self.bed_plot is None:
+                self.bed_plot = MeshLinePlot(color=(0,1,0))
+                self.ids.graph.add_plot(self.bed_plot)
+
         if len(self.he1_plot.points) > 300: # 5 minutes
             del(self.he1_plot.points[0])
             del(self.bed_plot.points[0])
@@ -83,9 +98,3 @@ class GraphView(FloatLayout):
     # TODO add set points
     # TODO add he2
     # TODO customize x axis label to round mins
-
-
-
-if __name__ == '__main__':
-    from kivy.base import runTouchApp
-    runTouchApp(GraphView(width=800))
