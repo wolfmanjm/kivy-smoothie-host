@@ -1,4 +1,5 @@
 #: import DialGauge dial-gauge
+#: import GraphView graph-view
 
 <NumericInput>
 
@@ -191,8 +192,11 @@
                         size: self.texture_size
         Screen:
             name: 'graph'
-            Label:
-                text: 'Graph goes here'
+            on_enter: graph_view.start()
+            on_leave: graph_view.stop()
+
+            GraphView:
+                id: graph_view
 
     GridLayout:
         cols: 5
