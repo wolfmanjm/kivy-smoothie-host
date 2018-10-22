@@ -49,13 +49,21 @@ class GraphView(FloatLayout):
         self.maxsecs= None
         self.last_time= None
 
-    def start(self):
-        pass
-
-    def stop(self):
-        pass
-
     def update_temperature(self, heater, temp, setpoint):
+        if heater == 'disconnected':
+            for w in [self.he1_plot, self.he1sp_plot, self.bed_plot, self.bedsp_plot]:
+                if w is not None:
+                    self.ids.graph.remove_plot(w)
+                    w.points= []
+
+            self.he1_plot= None
+            self.he1sp_plot= None
+            self.bed_plot= None
+            self.bedsp_plot= None
+            self.secs= 0
+            self.last_time= None
+            return
+
         if self.maxsecs is None:
             self.maxsecs= self.ids.graph.xmax*60.
 
@@ -134,6 +142,5 @@ class GraphView(FloatLayout):
             self.ids.graph.xmin += 1.
             self.ids.graph.xmax += 1.
 
-    # TODO if disconnected clear plots and reset secs
     # TODO add he2
 

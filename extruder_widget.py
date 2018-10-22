@@ -21,7 +21,7 @@ class ExtruderWidget(BoxLayout):
         self.last_hotend_temp= self.app.config.getfloat('Extruder', 'last_hotend_temp')
         self.temp_changed= False
         self.temp_set= False
-        #self.bind(on_curtool=self._on_curtool)
+        self.app.bind(is_connected=self._connected)
 
     def switch_active(self, instance, type, on, value):
         if on:
@@ -168,6 +168,17 @@ class ExtruderWidget(BoxLayout):
     def _on_curtool(self):
         self.ids.tool_t0.state= 'down' if self.curtool == 0 else 'normal'
         self.ids.tool_t1.state= 'down' if self.curtool == 1 else 'normal'
+
+    def _connected(self, w, b):
+        if not b:
+            # disconnected so reset everything
+            self.ids.graph_view.update_temperature("disconnected", 0, 0)
+            self.bed_dg.value= float('inf')
+            self.hotend_dg.value= float('inf')
+            self.hotend_dg.setpoint_value= float('nan')
+            self.bed_dg.setpoint_value= float('nan')
+            self.bed_switch.active= False
+            self.hotend_switch.active= False
 
     def on_touch_down(self, touch):
         if self.ids.temps_screen.collide_point(touch.x, touch.y):
