@@ -1,5 +1,5 @@
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import ListProperty, DictProperty
+from kivy.properties import ListProperty
 from kivy.lang import Builder
 from libs.graph import Graph, MeshLinePlot
 from kivy.utils import get_color_from_hex as rgb
@@ -39,7 +39,6 @@ Builder.load_string('''
 ''')
 
 class GraphView(FloatLayout):
-    values= DictProperty()
 
     def __init__(self, **kwargs):
         super(GraphView, self).__init__(**kwargs)

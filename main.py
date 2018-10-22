@@ -469,14 +469,14 @@ class MainWindow(BoxLayout):
             self.app.lp= d['L'][0]
 
         if not self.app.is_cnc:
-            # extract temperature readings
+            # extract temperature readings and update the extruder property
             if 'T' in d:
-                self.ids.extruder.update_temp('hotend0', d['T'][0], d['T'][1])
+                self.ids.extruder.temperatures['hotend0']= (d['T'][0], d['T'][1])
             elif 'T1' in d:
-                self.ids.extruder.update_temp('hotend1', d['T1'][0], d['T1'][1])
+                self.ids.extruder.temperatures['hotend1']= (d['T1'][0], d['T1'][1])
 
             if 'B' in d:
-                self.ids.extruder.update_temp('bed', d['B'][0], d['B'][1])
+                self.ids.extruder.temperatures['bed']= (d['B'][0], d['B'][1])
 
     @mainthread
     def update_state(self, a):

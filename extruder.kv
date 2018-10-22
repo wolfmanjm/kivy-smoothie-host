@@ -267,7 +267,9 @@
             size_hint_y: None
             size: 40, 40
             text: 'T0'
+            state: 'down'
             disabled: not app.is_connected
+            allow_no_selection: False
 
         ToggleButton:
             id: tool_t1
@@ -277,6 +279,7 @@
             size: 40, 40
             text: 'T1'
             disabled: not app.is_connected
+            allow_no_selection: False
 
 
     # uses up rest of space bit like a spring in other layouts

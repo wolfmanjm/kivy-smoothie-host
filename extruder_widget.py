@@ -1,8 +1,9 @@
 import kivy
 
 from kivy.app import App
-from kivy.properties import NumericProperty, ObjectProperty
+from kivy.properties import NumericProperty, ObjectProperty, DictProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.logger import Logger
 
 import math
 
@@ -12,6 +13,7 @@ class ExtruderWidget(BoxLayout):
     last_bed_temp= NumericProperty()
     last_hotend_temp= NumericProperty()
     curtool= NumericProperty(-1)
+    temperatures= DictProperty()
 
     def __init__(self, **kwargs):
         super(ExtruderWidget, self).__init__(**kwargs)
@@ -20,6 +22,7 @@ class ExtruderWidget(BoxLayout):
         self.last_hotend_temp= self.app.config.getfloat('Extruder', 'last_hotend_temp')
         self.temp_changed= False
         self.temp_set= False
+        self.bind(temperatures=self._update_temp)
         #self.bind(on_curtool=self._on_curtool)
 
     def switch_active(self, instance, type, on, value):
@@ -92,42 +95,46 @@ class ExtruderWidget(BoxLayout):
         elif type == 'hotend':
             self.app.comms.write('M104 S{0}\n'.format(str(temp)))
 
-    def update_temp(self, type, temp, setpoint):
+    def _update_temp(self, w, v):
         ''' called to update the temperature display'''
-        self.ids.graph_view.values[type]= (temp, setpoint)
+        for type in v:
+            temp, setpoint = v[type]
 
-        if type == 'bed':
-            if temp and not math.isinf(temp):
+            if type == 'bed':
+                if math.isinf(temp):
+                    self.bed_dg.value= float('inf')
+                    continue
                 self.bed_dg.value= temp
-            else:
-                self.bed_dg.value= float('inf')
-            if not math.isnan(setpoint) and not self.temp_changed:
-                if setpoint > 0:
-                    self.ids.set_bed_temp.text= str(setpoint)
-                    self.bed_dg.setpoint_value= setpoint
-                else:
-                    self.bed_dg.setpoint_value= float('nan')
-                    if self.bed_switch.active:
-                        self.bed_switch.active= False
-
-        elif type == 'hotend0' or type == 'hotend1':
-            if (self.ids.tool_t0.state == 'down' and type == 'hotend0') or (self.ids.tool_t1.state == 'down' and type == 'hotend1'):
-                if temp and not math.isinf(temp):
-                    self.hotend_dg.value= temp
-                else:
-                    self.hotend_dg.value= float('inf')
 
                 if not math.isnan(setpoint) and not self.temp_changed:
                     if setpoint > 0:
-                        self.ids.set_hotend_temp.text= str(setpoint)
-                        self.hotend_dg.setpoint_value= setpoint
+                        self.ids.set_bed_temp.text= str(setpoint)
+                        self.bed_dg.setpoint_value= setpoint
                     else:
-                        self.hotend_dg.setpoint_value= float('nan')
-                        if self.hotend_switch.active:
-                            self.hotend_switch.active= False
+                        self.bed_dg.setpoint_value= float('nan')
+                        if self.bed_switch.active:
+                            self.bed_switch.active= False
 
-        else:
-            Logger.error('Extruder: unknown temp type - ' + type)
+            elif type == 'hotend0' or type == 'hotend1':
+                if (self.ids.tool_t0.state == 'down' and type == 'hotend0') or (self.ids.tool_t1.state == 'down' and type == 'hotend1'):
+                    if math.isinf(temp):
+                        self.hotend_dg.value= float('inf')
+                        continue
+                    self.hotend_dg.value= temp
+
+                    if not math.isnan(setpoint) and not self.temp_changed:
+                        if setpoint > 0:
+                            self.ids.set_hotend_temp.text= str(setpoint)
+                            self.hotend_dg.setpoint_value= setpoint
+                        else:
+                            self.hotend_dg.setpoint_value= float('nan')
+                            if self.hotend_switch.active:
+                                self.hotend_switch.active= False
+                else:
+                    self.hotend_dg.value= float('inf')
+
+            else:
+                Logger.error('Extruder: unknown temp type - ' + type)
 
         self.temp_changed= False
 
