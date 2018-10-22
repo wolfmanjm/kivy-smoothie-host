@@ -13,7 +13,6 @@ class ExtruderWidget(BoxLayout):
     last_bed_temp= NumericProperty()
     last_hotend_temp= NumericProperty()
     curtool= NumericProperty(-1)
-    temperatures= DictProperty()
 
     def __init__(self, **kwargs):
         super(ExtruderWidget, self).__init__(**kwargs)
@@ -22,7 +21,6 @@ class ExtruderWidget(BoxLayout):
         self.last_hotend_temp= self.app.config.getfloat('Extruder', 'last_hotend_temp')
         self.temp_changed= False
         self.temp_set= False
-        self.bind(temperatures=self._update_temp)
         #self.bind(on_curtool=self._on_curtool)
 
     def switch_active(self, instance, type, on, value):
@@ -96,14 +94,15 @@ class ExtruderWidget(BoxLayout):
         elif type == 'hotend':
             self.app.comms.write('M104 S{0}\n'.format(str(temp)))
 
-    def _update_temp(self, w, v):
+    def update_temp(self, temperatures):
         ''' called to update the temperature display'''
         if self.temp_changed:
+            # This allows the setpoint to update on smoothie before using it to turn the heater on/off again
             self.temp_changed= False
             return
 
-        for type in v:
-            temp, setpoint = v[type]
+        for type in temperatures:
+            temp, setpoint = temperatures[type]
             self.ids.graph_view.update_temperature(type, temp, setpoint)
 
             if type == 'bed':

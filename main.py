@@ -470,13 +470,17 @@ class MainWindow(BoxLayout):
 
         if not self.app.is_cnc:
             # extract temperature readings and update the extruder property
+            # We only want to update once per query
+            t= {}
             if 'T' in d:
-                self.ids.extruder.temperatures['hotend0']= (d['T'][0], d['T'][1])
-            elif 'T1' in d:
-                self.ids.extruder.temperatures['hotend1']= (d['T1'][0], d['T1'][1])
-
+                t['hotend0']= (d['T'][0], d['T'][1])
+            if 'T1' in d:
+                t['hotend1']= (d['T1'][0], d['T1'][1])
             if 'B' in d:
-                self.ids.extruder.temperatures['bed']= (d['B'][0], d['B'][1])
+                t['bed']= (d['B'][0], d['B'][1])
+
+            if t:
+                self.ids.extruder.update_temp(t)
 
     @mainthread
     def update_state(self, a):
