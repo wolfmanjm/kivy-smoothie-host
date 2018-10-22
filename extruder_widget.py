@@ -99,6 +99,7 @@ class ExtruderWidget(BoxLayout):
         ''' called to update the temperature display'''
         for type in v:
             temp, setpoint = v[type]
+            self.ids.graph_view.update_temperature(type, temp, setpoint)
 
             if type == 'bed':
                 if math.isinf(temp):

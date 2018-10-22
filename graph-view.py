@@ -3,9 +3,9 @@ from kivy.properties import ListProperty
 from kivy.lang import Builder
 from libs.graph import Graph, MeshLinePlot
 from kivy.utils import get_color_from_hex as rgb
-from kivy.clock import Clock
 
 import math
+import time
 
 Builder.load_string('''
 #:import rgb kivy.utils.get_color_from_hex
@@ -17,7 +17,7 @@ Builder.load_string('''
         tick_color: (0,0,1, 1)  # ticks and grid
         border_color: (0,1,1, 1)  # border drawn around each graph
         font_size: '8sp'
-        precision: '%.1f' # axis label formatting
+        precision: '%.0f' # axis label formatting
         # xlabel: 'Time (Mins)'
         # ylabel: 'Temp °C'
         x_ticks_minor: 1
@@ -39,66 +39,101 @@ Builder.load_string('''
 ''')
 
 class GraphView(FloatLayout):
-
     def __init__(self, **kwargs):
         super(GraphView, self).__init__(**kwargs)
         self.he1_plot= None
-        self.he2_plot= None
+        self.he1sp_plot= None
         self.bed_plot= None
+        self.bedsp_plot= None
         self.secs= 0
-        self.clk= None
+        self.maxsecs= None
+        self.last_time= None
 
     def start(self):
-        if self.clk is None:
-            self.clk= Clock.schedule_interval(self.update_points, 1)
-
-
-    def stop(self):
-        # if self.clk:
-        #     self.clk.cancel()
-        #     self.clk= None
         pass
 
-    def update_points(self, *args):
-        if 'hotend0' not in self.values or math.isnan(self.values['hotend0'][1]) or self.values['hotend0'][1] == 0:
-            if self.he1_plot is not None:
-                self.he1_plot.points= []
-                self.ids.graph.remove_plot(self.he1_plot)
-                self.he1_plot= None
-        else:
+    def stop(self):
+        pass
+
+    def update_temperature(self, heater, temp, setpoint):
+        if self.maxsecs is None:
+            self.maxsecs= self.ids.graph.xmax*60.
+
+        if heater == 'hotend0':
+            if math.isinf(temp):
+                if self.he1_plot is not None:
+                    self.ids.graph.remove_plot(self.he1_plot)
+                    self.he1_plot.points= []
+                    self.he1_plot= None
+                return
+
             if self.he1_plot is None:
                 self.he1_plot = MeshLinePlot(color=(1,0,0))
                 self.ids.graph.add_plot(self.he1_plot)
 
-        if 'bed' not in self.values or math.isnan(self.values['bed'][1]) or self.values['bed'][1] == 0:
-            if self.bed_plot is not None:
-                self.bed_plot.points= []
-                self.ids.graph.remove_plot(self.bed_plot)
-                self.bed_plot= None
-        else:
+            self.he1_plot.points.append((self.secs/60., temp))
+            # truncate points
+            if len(self.he1_plot.points) > self.maxsecs:
+                del(self.he1_plot.points[0])
+
+            # now draw in setpoint if set
+            if not math.isnan(setpoint) and setpoint > 0:
+                if self.he1sp_plot is None:
+                    self.he1sp_plot = MeshLinePlot(color=(1,1,0))
+                    self.ids.graph.add_plot(self.he1sp_plot)
+                self.he1sp_plot.points.append((self.secs/60., setpoint))
+                # truncate points
+                if len(self.he1sp_plot.points) > self.maxsecs:
+                    del(self.he1sp_plot.points[0])
+            else:
+                if self.he1sp_plot is not None:
+                    self.ids.graph.remove_plot(self.he1sp_plot)
+                    self.he1sp_plot.points= []
+                    self.he1sp_plot= None
+
+        elif heater == 'bed':
+            if math.isinf(temp):
+                if self.bed_plot is not None:
+                    self.ids.graph.remove_plot(self.bed_plot)
+                    self.bed_plot.points= []
+                    self.bed_plot= None
+                return
+
             if self.bed_plot is None:
                 self.bed_plot = MeshLinePlot(color=(0,1,0))
                 self.ids.graph.add_plot(self.bed_plot)
 
-        if self.he1_plot is None:
-            return
+            self.bed_plot.points.append((self.secs/60., temp))
 
-        if len(self.he1_plot.points) > 300: # 5 minutes
-            del(self.he1_plot.points[0])
-            del(self.bed_plot.points[0])
-            self.ids.graph.xmin += 1/60.
-            self.ids.graph.xmax += 1/60.
+            if len(self.bed_plot.points) > self.maxsecs:
+                del(self.bed_plot.points[0])
 
-        self.he1_plot.points.append((self.secs/60., self.temp))
-        self.temp += 2
-        if self.temp > 200:
-            self.temp= 200
+            if not math.isnan(setpoint) and setpoint > 0:
+                if self.bedsp_plot is None:
+                    self.bedsp_plot = MeshLinePlot(color=(0,1,1))
+                    self.ids.graph.add_plot(self.bedsp_plot)
+                self.bedsp_plot.points.append((self.secs/60., setpoint))
+                # truncate points
+                if len(self.bedsp_plot.points) > self.maxsecs:
+                    del(self.bedsp_plot.points[0])
+            else:
+                if self.bedsp_plot is not None:
+                    self.ids.graph.remove_plot(self.bedsp_plot)
+                    self.bedsp_plot.points= []
+                    self.bedsp_plot= None
 
-        self.bed_plot.points.append((self.secs/60., self.temp/2.))
+        # get elapsed time since last one
+        ts= time.time()
+        if self.last_time is None:
+            self.last_time= ts
+        else:
+            self.secs += ts-self.last_time
+            self.last_time= ts
 
-        self.secs += 1
+        if self.secs/60. > self.ids.graph.xmax:
+            self.ids.graph.xmin += 1.
+            self.ids.graph.xmax += 1.
 
-
-    # TODO add set points
+    # TODO if disconnected clear plots and reset secs
     # TODO add he2
-    # TODO customize x axis label to round mins
+

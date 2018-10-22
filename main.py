@@ -971,7 +971,7 @@ class SmoothieHost(App):
         self.is_show_camera= self.config.getboolean('Web', 'show_video')
         self.manual_tool_change= self.config.getboolean('General', 'manual_tool_change')
 
-        self.comms= Comms(App.get_running_app(), self.config.getint('General', 'report_rate'))
+        self.comms= Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
         self.sm = ScreenManager()
         ms= MainScreen(name='main')
