@@ -32,13 +32,14 @@ class ExtruderWidget(BoxLayout):
                 instance.active= False
             else:
                 self.set_temp(type, value)
+                self.temp_changed= True
                 # save temp whenever we turn it on (not saved if it is changed while already on)
                 if float(value) > 0:
                     self.set_last_temp(type, value)
 
-
         else:
             self.set_temp(type, '0')
+            self.temp_changed= True
 
     def selected_temp(self, type, temp):
         # new temp selected from dropdown
@@ -97,6 +98,10 @@ class ExtruderWidget(BoxLayout):
 
     def _update_temp(self, w, v):
         ''' called to update the temperature display'''
+        if self.temp_changed:
+            self.temp_changed= False
+            return
+
         for type in v:
             temp, setpoint = v[type]
             self.ids.graph_view.update_temperature(type, temp, setpoint)
@@ -107,7 +112,7 @@ class ExtruderWidget(BoxLayout):
                     continue
                 self.bed_dg.value= temp
 
-                if not math.isnan(setpoint) and not self.temp_changed:
+                if not math.isnan(setpoint):
                     if setpoint > 0:
                         self.ids.set_bed_temp.text= str(setpoint)
                         self.bed_dg.setpoint_value= setpoint
@@ -123,7 +128,7 @@ class ExtruderWidget(BoxLayout):
                         continue
                     self.hotend_dg.value= temp
 
-                    if not math.isnan(setpoint) and not self.temp_changed:
+                    if not math.isnan(setpoint):
                         if setpoint > 0:
                             self.ids.set_hotend_temp.text= str(setpoint)
                             self.hotend_dg.setpoint_value= setpoint
@@ -136,8 +141,6 @@ class ExtruderWidget(BoxLayout):
 
             else:
                 Logger.error('Extruder: unknown temp type - ' + type)
-
-        self.temp_changed= False
 
     def set_tool(self, t):
         self.app.comms.write('T{}\n'.format(str(t)))
