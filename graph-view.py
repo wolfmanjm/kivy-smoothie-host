@@ -61,23 +61,28 @@ class GraphView(FloatLayout):
         pass
 
     def update_points(self, *args):
-        if 'hotend0' not in values or math.isnan(values['hotend0'][1]) or values['hotend0'][1] == 0:
-            self.he1_plot.points= []
-            self.ids.graph.remove_plot(self.he1_plot)
-            self.he1_plot= None
+        if 'hotend0' not in self.values or math.isnan(self.values['hotend0'][1]) or self.values['hotend0'][1] == 0:
+            if self.he1_plot is not None:
+                self.he1_plot.points= []
+                self.ids.graph.remove_plot(self.he1_plot)
+                self.he1_plot= None
         else:
             if self.he1_plot is None:
                 self.he1_plot = MeshLinePlot(color=(1,0,0))
                 self.ids.graph.add_plot(self.he1_plot)
 
-        if 'bed' not in values or math.isnan(values['bed'][1]) or values['bed'][1] == 0:
-            self.bed_plot.points= []
-            self.ids.graph.remove_plot(self.bed_plot)
-            self.bed_plot= None
+        if 'bed' not in self.values or math.isnan(self.values['bed'][1]) or self.values['bed'][1] == 0:
+            if self.bed_plot is not None:
+                self.bed_plot.points= []
+                self.ids.graph.remove_plot(self.bed_plot)
+                self.bed_plot= None
         else:
             if self.bed_plot is None:
                 self.bed_plot = MeshLinePlot(color=(0,1,0))
                 self.ids.graph.add_plot(self.bed_plot)
+
+        if self.he1_plot is None:
+            return
 
         if len(self.he1_plot.points) > 300: # 5 minutes
             del(self.he1_plot.points[0])

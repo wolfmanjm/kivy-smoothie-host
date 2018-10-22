@@ -164,5 +164,6 @@ class ExtruderWidget(BoxLayout):
             if touch.is_double_tap:
                 self.ids.temps_screen.current = 'graph' if self.ids.temps_screen.current == 'dials' else 'dials'
                 return True
-        return False
+
+        return super(ExtruderWidget, self).on_touch_down(touch)
 
