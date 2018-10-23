@@ -991,9 +991,17 @@ class SmoothieHost(App):
         Clock.schedule_interval(self._every_second, 1)
 
         # select the file chooser to use
-        if self.is_desktop > 0 and NativeFileChooser().is_available():
-            # use wx filechooser
+        if self.is_desktop > 0:
+            # TODO select which one we want from config
+            NativeFileChooser.type_name= 'wx'
             Factory.register('filechooser', cls=NativeFileChooser)
+            try:
+                f= Factory.filechooser()
+            except:
+                Logger.error("SmoothieHost: can't use selected file chooser: {}".format(NativeFileChooser.type_name))
+                Factory.unregister('filechooser')
+                Factory.register('filechooser', cls=FileDialog)
+
         else:
             # use Kivy filechooser
             Factory.register('filechooser', cls=FileDialog)
