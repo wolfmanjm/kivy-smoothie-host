@@ -32,7 +32,7 @@ There is a status bar at the bottom left showing status, DRO and print ETA when 
 You can select 3d printer mode or CNC mode from the Settings menu, this can affect what Panels are available amongst other minor changes.
 
 - The Console panel has a keyboard for entering gcodes and if you touch the edit field a keyboard will pop up for typing commands (non gcodes). If you precede the command with ! it will be sent to the linux shell instead of smoothie.
-- The Extruder Panel is used to control temperatures and extuder.
+- The Extruder Panel is used to control temperatures and extuder. You can switch between gauge view and graph view by swiping left or right (or double click)
 - The Jog Panel has the usual jog controls.
 - The Macro Panel is user configurable buttons panel to control whatever you want. (Edit the `macros.ini` file)
   There is a `sample-macros.ini` just copy that to `macros.ini` and edit as appropriate to define your own macro buttons.
