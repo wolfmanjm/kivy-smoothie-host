@@ -796,7 +796,8 @@ class SmoothieHost(App):
             'layout_type': 0,
             'cnc': 'false',
             'tab_top': 'false',
-            'screen_size': 'auto'
+            'screen_size': 'auto',
+            'filechooser': 'default'
         })
 
         config.setdefaults('Extruder', {
@@ -991,14 +992,15 @@ class SmoothieHost(App):
         Clock.schedule_interval(self._every_second, 1)
 
         # select the file chooser to use
-        if self.is_desktop > 0:
-            # TODO select which one we want from config
-            NativeFileChooser.type_name= 'wx'
+        # select which one we want from config
+        filechooser= self.config.get('UI', 'filechooser')
+        if self.is_desktop > 0 and filechooser != 'default':
+            NativeFileChooser.type_name= filechooser
             Factory.register('filechooser', cls=NativeFileChooser)
             try:
                 f= Factory.filechooser()
             except:
-                Logger.error("SmoothieHost: can't use selected file chooser: {}".format(NativeFileChooser.type_name))
+                Logger.error("SmoothieHost: can't use selected file chooser: {}".format(filechooser))
                 Factory.unregister('filechooser')
                 Factory.register('filechooser', cls=FileDialog)
 
