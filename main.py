@@ -25,6 +25,7 @@ from kivy.logger import Logger
 from kivy.core.window import Window
 from kivy.config import ConfigParser
 
+from native_file_chooser import NativeFileChooser
 from mpg_knob import Knob
 
 from comms import Comms
@@ -579,7 +580,7 @@ class MainWindow(BoxLayout):
 
         else:
             # get file to print
-            f= FileDialog()
+            f= Factory.filechooser()
             f.open(self.last_path, cb= self._start_print)
 
     def _start_print(self, file_path=None, directory=None):
@@ -685,7 +686,7 @@ class MainWindow(BoxLayout):
             self._show_viewer(self.app.gcode_file, self.last_path)
         else:
             # get file to view
-            f= FileDialog()
+            f= Factory.filechooser()
             f.open(self.last_path, title= 'File to View', cb= self._show_viewer)
 
     def _show_viewer(self, file_path, directory):
@@ -988,6 +989,14 @@ class SmoothieHost(App):
 
         self.sm.bind(on_touch_down=self._on_touch)
         Clock.schedule_interval(self._every_second, 1)
+
+        # select the file chooser to use
+        if self.is_desktop > 0 and NativeFileChooser().is_available():
+            # use wx filechooser
+            Factory.register('filechooser', cls=NativeFileChooser)
+        else:
+            # use Kivy filechooser
+            Factory.register('filechooser', cls=FileDialog)
 
         # setup for cnc or 3d printer
         if self.is_cnc:

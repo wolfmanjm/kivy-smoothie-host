@@ -12,6 +12,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.clock import Clock, mainthread
 from kivy.core.text import Label as CoreLabel
+from message_box import MessageBox
 
 import logging
 import sys
@@ -154,7 +155,12 @@ class GcodeViewerScreen(Screen):
 
     def _load_file(self, l):
         self._loaded_ok= False
-        self.parse_gcode_file(self.app.gcode_file, l, True)
+        try:
+            self.parse_gcode_file(self.app.gcode_file, l, True)
+        except:
+            mb = MessageBox(text='File not found: {}'.format(self.app.gcode_file))
+            mb.open()
+
         self._loaded()
 
     def _redraw(self, instance, value):

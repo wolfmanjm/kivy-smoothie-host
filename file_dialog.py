@@ -161,12 +161,12 @@ class FileDialog(FloatLayout):
             fs= Factory.filesystem()
             show_dirs= True
 
-        content = LoadDialog(load=self.load, cancel=self.dismiss_popup, path=path if path else os.path.expanduser("~"), filesystem= fs, show_dirs= show_dirs)
+        content = LoadDialog(load=self._load, cancel=self.dismiss_popup, path=path if path else os.path.expanduser("~"), filesystem= fs, show_dirs= show_dirs)
 
         self._popup = Popup(title=title, content=content, size_hint=(0.9, 0.9))
         self._popup.open()
 
-    def load(self, path, filename):
+    def _load(self, path, filename):
         self.dismiss_popup()
         if len(filename) > 0 and self.cb:
             self.cb(filename[0], path)
