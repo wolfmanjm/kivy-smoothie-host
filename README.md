@@ -43,7 +43,8 @@ There is a gcode visualizer window that shows the layers, or for CNC allows sett
 Click the Viewer menu item, select the file to view, then the layers can be moved up or down.
 To set the WPOS to a point in the view click the select button, then touch the screen to move the crosshairs, when you have the point you want selected then click the set WPOS button, that point will be set as WPOS. To move the gantry to a point on the view click the select button, then touch and drag until you get the point and then click the move to button, the gantry will move to that point.
 
-The Kivy file browser is pretty crude and buggy. To allow it to be usable on a touch panel I had to set it so directory changes require double taps on the directory. I also do not enable the Load button unless a valid file is selected by tapping the file. This allows swiping to scroll the file lists to work reliably.
+The Kivy file browser is pretty crude and buggy. To allow it to be usable on a touch panel I had to set it so directory changes require double taps on the directory. I also do not enable the Load button unless a valid file is selected by tapping the file. This allows swiping to scroll the file lists to work reliably. 
+If running in desktop mode you can select a different file chooser from the settings page. (You will need to install zenity or kdialog or wx for python3)
 
 The Update System menu entry requires git to be installed and the running directory be a valid git repo pointing to github.
 
