@@ -844,6 +844,14 @@ class SmoothieHost(App):
                   "key": "tab_top"
                 },
 
+                { "type": "options",
+                  "title": "File Chooser",
+                  "desc": "Which filechooser to use in desktop mode",
+                  "section": "UI",
+                  "key": "filechooser",
+                  "options": ["default", "wx", "zenity", "kdialog"]
+                },
+
                 { "type": "title",
                   "title": "General Settings" },
 
