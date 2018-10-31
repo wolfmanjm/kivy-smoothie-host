@@ -66,6 +66,7 @@ class NativeFileChooser():
                 path= self._wx_get_path()
 
             elif self.use_zenity:
+                os.unsetenv('WINDOWID') # needed so dialog pops up infront of my window
                 path= self._run_command(['zenity', '--title', self.title, '--file-selection', '--filename', self.start_dir+'/', '--file-filter', 'GCode files | *.g *.gcode *.nc'])
 
             elif self.use_kdialog:
