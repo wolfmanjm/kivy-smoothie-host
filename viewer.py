@@ -802,6 +802,7 @@ if __name__ == '__main__':
 
     class GcodeViewerApp(App):
         is_cnc= BooleanProperty(False)
+        is_connected= BooleanProperty(False)
         wpos= ListProperty([0,0,0])
         def __init__(self, **kwargs):
             super(GcodeViewerApp, self).__init__(**kwargs)
@@ -811,6 +812,7 @@ if __name__ == '__main__':
                 self.gcode_file= 'test.gcode' #'circle-test.g'
 
         def build(self):
+            Window.size= (1024, 768)
             self.sm = ScreenManager()
             self.sm.add_widget(StartScreen(name='main'))
             self.sm.add_widget(GcodeViewerScreen(name='gcode'))
