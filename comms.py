@@ -401,7 +401,7 @@ class Comms():
             if s.startswith('ok'):
                 if self.okcnt is not None:
                     if self.ping_pong:
-                        self.okcnt.release()
+                        self.okcnt.set()
                     else:
                         self.okcnt += 1
 
@@ -536,7 +536,7 @@ class Comms():
                 self.pause_stream= False
                 self.abort_stream= True # aborts stream
                 if self.ping_pong and self.okcnt is not None:
-                    self.okcnt.release() # release it in case it is waiting for ok so it can abort
+                    self.okcnt.set() # release it in case it is waiting for ok so it can abort
                 self.log.info('Comms: Aborting Stream')
 
             elif pause:
@@ -560,7 +560,7 @@ class Comms():
         self.last_tool= None
 
         if self.ping_pong:
-            self.okcnt= asyncio.Semaphore(0)
+            self.okcnt= asyncio.Event()
         else:
             self.okcnt= 0
 
@@ -591,9 +591,9 @@ class Comms():
                             if self.abort_stream:
                                 break
 
-                        # restore okcnt to 0
+                        # recreate okcnt
                         if self.ping_pong:
-                            self.okcnt= asyncio.Semaphore(0)
+                            self.okcnt= asyncio.Event()
 
                     # read next line
                     line = yield from f.readline()
@@ -642,12 +642,16 @@ class Comms():
                 # s= time.time()
                 # print("{} - {}".format(s, line))
                 # send the line
+                if self.ping_pong and self.okcnt is not None:
+                    # clear the event, which will be set by an incoming ok
+                    self.okcnt.clear()
+
                 self._write(line)
 
                 # wait for ok from that command (I'd prefer to interleave with the file read but it is too complex)
                 if self.ping_pong and self.okcnt is not None:
                     try:
-                        yield from self.okcnt.acquire()
+                        yield from self.okcnt.wait()
                         # e= time.time()
                         # print("{} ({}) ok".format(e, (e-s)*1000, ))
                     except:
