@@ -87,12 +87,12 @@ class DROWidget(RelativeLayout):
     def enter_wpos(self, axis, v):
         i= ord(axis) - ord('x')
         try:
-            # needed becuase the filter does not allow -ive numbers WTF!!!
+            # needed because the filter does not allow -ive numbers WTF!!!
             f= float(v.strip())
         except:
             Logger.warning("DROWidget: invalid float input: {}".format(v))
             # set the display back to what it was, this looks odd but it forces the display to update
-            self.app.wpos[i] = self.app.wpos[i]
+            self.app.wpos[i] = 0 #self.app.wpos[i]
             return
 
         Logger.debug("DROWidget: Set axis {} wpos to {}".format(axis, f))
@@ -252,36 +252,6 @@ class JogRoseWidget(BoxLayout):
         super(JogRoseWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.xy_feedrate= self.app.config.get('Jog', 'xy_feedrate')
-        Window.bind(on_key_down=self._on_keyboard_down)
-
-    def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
-        # print("\nThe key", keycode, "have been pressed")
-        # print(" - text is %r" % text)
-        # print(" - modifiers are %r" % modifiers)
-
-        # control uses finer move, shift uses coarse move
-        v= 0.1
-        if len(modifiers) == 1:
-            if modifiers[0] == 'ctrl':
-                v= 0.01
-            elif modifiers[0] == 'shift':
-                v= 1
-
-        choices = {
-            82: "Y{}".format(v),
-            79: "X{}".format(v),
-            81: "Y{}".format(-v),
-            80: "X{}".format(-v),
-            75: "Z{}".format(v),
-            78: "Z{}".format(-v)
-        }
-        fr= self.xy_feedrate
-        s= choices.get(keycode, None)
-        if s is not None:
-            self.app.comms.write('M120 G91 G0 {} F{} M121\n'.format(s, fr))
-            return True
-
-        return False
 
     def handle_action(self, axis, v):
         x10= self.ids.x10cb.active
@@ -1002,19 +972,23 @@ class SmoothieHost(App):
         # select the file chooser to use
         # select which one we want from config
         filechooser= self.config.get('UI', 'filechooser')
-        if self.is_desktop > 0 and filechooser != 'default':
-            NativeFileChooser.type_name= filechooser
-            Factory.register('filechooser', cls=NativeFileChooser)
-            try:
-                f= Factory.filechooser()
-            except:
-                Logger.error("SmoothieHost: can't use selected file chooser: {}".format(filechooser))
-                Factory.unregister('filechooser')
+        if self.is_desktop > 0:
+            if filechooser != 'default':
+                NativeFileChooser.type_name= filechooser
+                Factory.register('filechooser', cls=NativeFileChooser)
+                try:
+                    f= Factory.filechooser()
+                except:
+                    Logger.error("SmoothieHost: can't use selected file chooser: {}".format(filechooser))
+                    Factory.unregister('filechooser')
+                    Factory.register('filechooser', cls=FileDialog)
+
+            else:
+                # use Kivy filechooser
                 Factory.register('filechooser', cls=FileDialog)
 
-        else:
-            # use Kivy filechooser
-            Factory.register('filechooser', cls=FileDialog)
+            # we want to capture arrow keys
+            Window.bind(on_key_down=self._on_keyboard_down)
 
         # setup for cnc or 3d printer
         if self.is_cnc:
@@ -1041,6 +1015,48 @@ class SmoothieHost(App):
         self._load_modules()
 
         return self.sm
+
+    def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
+        # control uses finer move, shift uses coarse move
+        v= 0.1
+        if len(modifiers) == 1:
+            if modifiers[0] == 'ctrl':
+                v= 0.01
+            elif modifiers[0] == 'shift':
+                v= 1
+
+        choices = {
+            82: "Y{}".format(v),
+            79: "X{}".format(v),
+            81: "Y{}".format(-v),
+            80: "X{}".format(-v),
+            75: "Z{}".format(v),
+            78: "Z{}".format(-v)
+        }
+        fr= self.main_window.ids.tabs.jog_rose.xy_feedrate
+        s= choices.get(keycode, None)
+        if s is not None:
+            self.comms.write('M120 G91 G0 {} F{} M121\n'.format(s, fr))
+            return True
+
+        # send anything else to the command window
+        # print("\nThe key", keycode, "have been pressed")
+        # print(" - text is %r" % text)
+        # print(" - modifiers are %r" % modifiers)
+
+        # if len(modifiers) == 0:
+        #     # send to command text input
+        #     self.main_window.ids.entry.focus= True
+
+
+        return False
+
+    # when we hit enter it refocuses the the input
+    def _refocus_text_input(self,*args):
+        Clock.schedule_once(self._refocus_it)
+
+    def _refocus_it(self,*args):
+       self.main_window.ids.entry.focus= True
 
     def _load_modules(self):
         if not self.config.has_section('modules'):

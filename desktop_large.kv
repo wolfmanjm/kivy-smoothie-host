@@ -19,6 +19,8 @@
 
 <MainWindow>:
     orientation: 'vertical'
+    entry: entry
+
     ActionBar:
         pos_hint: {'top':1}
         ActionView:
@@ -107,10 +109,12 @@
 
             TextInput:
                 id: entry
+                focus: True
+                unfocus_on_touch: False
                 multiline: False
                 size_hint_y: None
                 height: self.minimum_height
-                on_text_validate: app.main_window.add_line_to_log('<< {}'.format(self.text)); app.comms.write('{}\n'.format(self.text)); self.text= ''
+                on_text_validate: app.main_window.add_line_to_log('<< {}'.format(self.text)); app.comms.write('{}\n'.format(self.text)); self.text= ''; app._refocus_text_input()
 
             BoxLayout:
                 orientation: 'horizontal'
