@@ -463,11 +463,6 @@ class MainWindow(BoxLayout):
         ''' called when smoothie is in Alarm state and it is sent a gcode '''
         self.add_line_to_log("! Alarm state: {}".format(s))
 
-        # if we were printing then we need to set the UI state to Paused
-        if self.is_printing:
-            self.action_paused(True) # sets the buttons state
-            self.add_line_to_log("Streaming Paused, Abort or Continue as needed")
-
     def ask_exit(self):
         # are you sure?
         mb = MessageBox(text='Exit - Are you Sure?', cb= self._do_exit)
@@ -530,6 +525,11 @@ class MainWindow(BoxLayout):
         self.ids.print_but.text= 'Resume' if paused else 'Pause'
         self.paused= paused
         self.is_suspended= suspended
+        if paused:
+            if suspended:
+                self.add_line_to_log(">>> Streaming Suspended, Resume or KILL as needed")
+            else:
+                self.add_line_to_log(">>> Streaming Paused, Abort or Continue as needed")
 
     def start_print(self):
         if self.is_printing:
