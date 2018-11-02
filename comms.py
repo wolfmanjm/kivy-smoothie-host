@@ -162,7 +162,6 @@ class Comms():
             # TODO if we are streaming a file and ping_pong is set and okcnt is not None
             # -- then we need to submit the write to a queue so the streamer can execute it and grab the ok
             # -- only needed if the thing we are writing will return ok, like G/M commands
-            # -- OR we could open a second serial and use that instead
             async_main_loop.call_soon_threadsafe(self._write, data)
             #asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
         else:
@@ -452,6 +451,10 @@ class Comms():
                 # switch fan is 0
                 n, x, v= s[7:].split(' ')
                 self.app.main_window.ids.macros.switch_response(n, v)
+
+            elif s.startswith("done"):
+                # ignore these sent after a command on V2
+                pass
 
             else:
                 self.app.main_window.async_display('{}'.format(s))
