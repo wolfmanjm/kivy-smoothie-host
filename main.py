@@ -57,20 +57,19 @@ class NumericInput(TextInput):
         super(NumericInput, self).__init__(**kwargs)
 
     def on_focus(self, i, v):
-        if App.get_running_app().is_desktop != 0:
-            return
         if v:
             self._last= self.text
             self.text= ""
-            self.show_keyboard()
-            if self.keyboard.widget:
-                self.keyboard.widget.layout= "numeric.json"
-                self.m_keyboard= self.keyboard.widget
+            if App.get_running_app().is_desktop == 0:
+                self.show_keyboard()
+                if self.keyboard.widget:
+                    self.keyboard.widget.layout= "numeric.json"
+                    self.m_keyboard= self.keyboard.widget
         else:
             if self.text == "": self.text= self._last
-            self.hide_keyboard()
-            self.m_keyboard.layout= "qwerty"
-
+            if App.get_running_app().is_desktop == 0:
+                self.hide_keyboard()
+                self.m_keyboard.layout= "qwerty"
 
     def on_parent(self, widget, parent):
         if App.get_running_app().is_desktop != 0:
@@ -92,7 +91,7 @@ class DROWidget(RelativeLayout):
         except:
             Logger.warning("DROWidget: invalid float input: {}".format(v))
             # set the display back to what it was, this looks odd but it forces the display to update
-            self.app.wpos[i] = 0 #self.app.wpos[i]
+            self.app.wpos[i] = self.app.wpos[i]
             return
 
         Logger.debug("DROWidget: Set axis {} wpos to {}".format(axis, f))
