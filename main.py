@@ -1038,6 +1038,23 @@ class SmoothieHost(App):
             self.comms.write('M120 G91 G0 {} F{} M121\n'.format(s, fr))
             return True
 
+        # handle command history if in desktop mode
+        if self.is_desktop > 0:
+            if v == 0.01: # it is a control key
+                if text == 'p':
+                    # get previous history by finding all the recently sent commands
+                    history = [x['text'] for x in self.main_window.ids.log_window.data if x['text'].startswith('<< ')]
+                    if history:
+                        last= history.pop()
+                        self.main_window.ids.entry.text= last[3:]
+                elif text == 'n':
+                    # get next history
+                    pass
+                elif text == 'c':
+                    # clear console
+                    self.main_window.ids.log_window.data= []
+
+
         # send anything else to the command window
         # print("\nThe key", keycode, "have been pressed")
         # print(" - text is %r" % text)
