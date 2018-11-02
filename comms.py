@@ -415,7 +415,14 @@ class Comms():
             elif s.startswith('['):
                 self.handle_state(s)
 
-            elif "!!" in s or "ALARM" in s or "ERROR" in s or "error:Alarm lock" in s:
+            elif "!!" in s or "error:Alarm lock" in s:
+                self.handle_alarm(s)
+                # we should now be paused
+                if self.okcnt is not None and self.ping_pong:
+                    # we need to unblock waiting for ok if we get this
+                    self.okcnt.set()
+
+            elif "ALARM" in s or "ERROR" in s or "HALTED" in s:
                 self.handle_alarm(s)
 
             elif s.startswith('//'):

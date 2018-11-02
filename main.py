@@ -1054,17 +1054,6 @@ class SmoothieHost(App):
                     # clear console
                     self.main_window.ids.log_window.data= []
 
-
-        # send anything else to the command window
-        # print("\nThe key", keycode, "have been pressed")
-        # print(" - text is %r" % text)
-        # print(" - modifiers are %r" % modifiers)
-
-        # if len(modifiers) == 0:
-        #     # send to command text input
-        #     self.main_window.ids.entry.focus= True
-
-
         return False
 
     # when we hit enter it refocuses the the input
