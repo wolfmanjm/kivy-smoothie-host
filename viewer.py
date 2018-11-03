@@ -752,7 +752,7 @@ class GcodeViewerScreen(Screen):
         wpos= self.transform_to_wpos(x, y)
 
         if self.comms:
-            self.comms.write('G0 X{:1.2f} Y{:1.2f}'.format(wpos[0], wpos[1]))
+            self.comms.write('G0 X{:1.2f} Y{:1.2f}\n'.format(wpos[0], wpos[1]))
         else:
             print('Move Gantry to: {:1.2f}, {:1.2f}'.format(wpos[0], wpos[1]))
             print('G0 X{:1.2f} Y{:1.2f}'.format(wpos[0], wpos[1]))
@@ -769,7 +769,7 @@ class GcodeViewerScreen(Screen):
         self.stop_cursor(x, y)
         wpos= self.transform_to_wpos(x, y)
         if self.comms:
-            self.comms.write('G10 L20 P0 X{:1.2f} Y{:1.2f}'.format(wpos[0], wpos[1]))
+            self.comms.write('G10 L20 P0 X{:1.2f} Y{:1.2f}\n'.format(wpos[0], wpos[1]))
         else:
             print('Set WCS to: {:1.2f}, {:1.2f}'.format(wpos[0], wpos[1]))
             print('G10 L20 P0 X{:1.2f} Y{:1.2f}'.format(wpos[0], wpos[1]))
