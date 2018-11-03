@@ -988,6 +988,9 @@ class SmoothieHost(App):
 
             # we want to capture arrow keys
             Window.bind(on_key_down=self._on_keyboard_down)
+        else:
+            # use Kivy filechooser
+            Factory.register('filechooser', cls=FileDialog)
 
         # setup for cnc or 3d printer
         if self.is_cnc:
