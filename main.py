@@ -151,6 +151,7 @@ class MacrosWidget(StackLayout):
             for section in config.sections():
                 if not section.startswith('toggle button'): continue
                 name= config.get(section, 'name', fallback=None)
+                poll= config.getboolean(section, 'poll', fallback=False)
                 lon= config.get(section, 'label on', fallback=None)
                 loff= config.get(section, 'label off', fallback=None)
                 cmd_on= config.get(section, 'command on', fallback=None)
@@ -161,7 +162,7 @@ class MacrosWidget(StackLayout):
 
                 tbtn = Factory.MacroToggleButton()
                 tbtn.text= lon
-                self.toggle_buttons[name]= (lon, loff, cmd_on, cmd_off, tbtn)
+                self.toggle_buttons[name]= (lon, loff, cmd_on, cmd_off, tbtn, poll)
                 tbtn.bind(on_press= partial(self._handle_toggle, name))
                 self.add_widget(tbtn)
 
@@ -175,10 +176,11 @@ class MacrosWidget(StackLayout):
             Logger.warning('MacrosWidget: ERROR - exception parsing config file: {}'.format(err))
 
     def update_buttons(self):
-        # check the state of the toggle macro buttons, called when we switch to the macro window
-        for t in self.toggle_buttons:
-            # sends this, the response will be caught by comms as switch xxx is yyy
-            self.send("switch {}".format(t))
+        # check the state of the toggle macro buttons that have poll set, called when we switch to the macro window
+        for name in self.toggle_buttons:
+            if self.toggle_buttons[name][5]: # if poll is set
+                # sends this, the response will be caught by comms as switch xxx is yyy
+                self.send("switch {}".format(name))
 
     @mainthread
     def switch_response(self, name, value):
