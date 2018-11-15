@@ -177,10 +177,22 @@ class MacrosWidget(StackLayout):
 
     def update_buttons(self):
         # check the state of the toggle macro buttons that have poll set, called when we switch to the macro window
-        for name in self.toggle_buttons:
-            if self.toggle_buttons[name][5]: # if poll is set
-                # sends this, the response will be caught by comms as switch xxx is yyy
-                self.send("switch {}".format(name))
+        # v1 we just send switch commands, v2 we send the new $S command so it gets processed immediately despite being busy
+        if self.app.is_v2:
+            cmd= "$S"
+            for name in self.toggle_buttons:
+                if self.toggle_buttons[name][5]: # if poll is set
+                    cmd += " "
+                    cmd += name
+
+            if len(cmd) > 3:
+                self.send(cmd)
+
+        else:
+            for name in self.toggle_buttons:
+                if self.toggle_buttons[name][5]: # if poll is set
+                    # sends this, the response will be caught by comms as switch xxx is yyy
+                    self.send("switch {}".format(name))
 
     @mainthread
     def switch_response(self, name, value):
@@ -710,8 +722,7 @@ class MainWindow(BoxLayout):
         self.display("ACTION NEEDED: Manual Tool Change:\n Tool: {}\nWait for machine to stop, then you can jog around to change the tool.\n tap resume to continue".format(l))
 
     def on_switch(self, a, tabitem):
-        ''' called when a tab switches '''
-        # we switched to a new tab check if it needs updating
+        ''' called when a tab switches or every second '''
         if tabitem.text == 'Macros': # macros screen
             self.ids.macros.update_buttons()
         elif tabitem.text == 'DRO': # DRO screen
@@ -739,6 +750,7 @@ class SmoothieHost(App):
     gcode_file= StringProperty()
     is_show_camera= BooleanProperty(False)
     manual_tool_change= BooleanProperty(False)
+    is_v2= BooleanProperty(True)
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
@@ -753,6 +765,7 @@ class SmoothieHost(App):
         self.last_touch_time= 0
         self.camera_url= None
         self.loaded_modules= []
+        self.secs= 0
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -761,7 +774,8 @@ class SmoothieHost(App):
             'serial_port': 'serial:///dev/ttyACM0',
             'report_rate': '1',
             'blank_timeout': '0',
-            'manual_tool_change' : 'false'
+            'manual_tool_change' : 'false',
+            'v2' : 'false'
         })
         config.setdefaults('UI', {
             'layout_type': 0,
@@ -845,6 +859,13 @@ class SmoothieHost(App):
                   "key": "manual_tool_change"
                 },
 
+                { "type": "bool",
+                  "title": "Version 2 Smoothie",
+                  "desc": "Select for version 2 smoothie",
+                  "section": "General",
+                  "key": "v2"
+                },
+
                 { "type": "title",
                   "title": "Web Settings" },
 
@@ -908,6 +929,8 @@ class SmoothieHost(App):
             self.blank_timeout= float(value)
         elif token == ('General', 'manual_tool_change'):
             self.manual_tool_change= value == '1'
+        elif token == ('General', 'v2'):
+            self.is_v2 = value == '1'
         elif token == ('Web', 'camera_url'):
             self.camera_url= value
         else:
@@ -955,6 +978,7 @@ class SmoothieHost(App):
         self.is_webserver= self.config.getboolean('Web', 'webserver')
         self.is_show_camera= self.config.getboolean('Web', 'show_video')
         self.manual_tool_change= self.config.getboolean('General', 'manual_tool_change')
+        self.is_v2= self.config.getboolean('General', 'v2')
 
         self.comms= Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file= self.config.get('General', 'last_print_file')
@@ -1087,6 +1111,7 @@ class SmoothieHost(App):
 
     def _every_second(self, dt):
         ''' called every second '''
+        self.secs += 1
         if self.blank_timeout > 0 and not self.main_window.is_printing:
             self.last_touch_time += 1
             if self.last_touch_time >= self.blank_timeout:
@@ -1095,10 +1120,13 @@ class SmoothieHost(App):
 
         if self.is_connected and self.is_desktop > 0 and not self.main_window.is_printing:
             # in desktop mode we need to poll for state changes for macros and DRO
+            # but only send one per second as only one outstanding query is allowed at a time
             dummy= collections.namedtuple('Dummy', 'text')
-            for t in ['DRO', 'Macros']: # Extruder also needs $G
-                d= dummy(t)
-                self.main_window.on_switch(None, d) # fake out tabitem with text field
+
+            a= ['DRO', 'Macros'] # Extruder also needs $G but sent by DRO
+            # select which one to send this time period (It may be better to wait for the response from previous one)
+            d= dummy(a[self.secs&1])
+            self.main_window.on_switch(None, d) # fake out tabitem with text field
 
     def blank_screen(self):
         try:

@@ -169,7 +169,7 @@ class Comms():
         # calls the send_message in Serial Connection proto
         #print('Comms: _write {}'.format(data))
         if self.proto:
-           self.proto.send_message(data)
+            self.proto.send_message(data)
 
     def _get_reports(self):
         self._write('?')
