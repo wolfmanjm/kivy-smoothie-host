@@ -105,7 +105,7 @@ class DROWidget(RelativeLayout):
         self.app.comms.write('G92 {}0\n'.format(a))
 
     def update_buttons(self):
-        self.app.comms.write("$G\n")
+        return "$G\n"
 
     def _on_curwcs(self):
         # foreach WCS button see if it is active or not
@@ -178,6 +178,7 @@ class MacrosWidget(StackLayout):
     def update_buttons(self):
         # check the state of the toggle macro buttons that have poll set, called when we switch to the macro window
         # v1 we just send switch commands, v2 we send the new $S command so it gets processed immediately despite being busy
+        cmd= ""
         if self.app.is_v2:
             cmd= "$S"
             for name in self.toggle_buttons:
@@ -185,14 +186,18 @@ class MacrosWidget(StackLayout):
                     cmd += " "
                     cmd += name
 
-            if len(cmd) > 3:
-                self.send(cmd)
+            if len(cmd) <= 3:
+                cmd= ""
+            else:
+                cmd += "\n"
 
         else:
             for name in self.toggle_buttons:
                 if self.toggle_buttons[name][5]: # if poll is set
                     # sends this, the response will be caught by comms as switch xxx is yyy
-                    self.send("switch {}".format(name))
+                    cmd += "switch {}\n".format(name)
+
+        return cmd
 
     @mainthread
     def switch_response(self, name, value):
@@ -721,14 +726,28 @@ class MainWindow(BoxLayout):
         # Print is paused by gcode command M6, prompt for tool change
         self.display("ACTION NEEDED: Manual Tool Change:\n Tool: {}\nWait for machine to stop, then you can jog around to change the tool.\n tap resume to continue".format(l))
 
-    def on_switch(self, a, tabitem):
-        ''' called when a tab switches or every second '''
-        if tabitem.text == 'Macros': # macros screen
-            self.ids.macros.update_buttons()
-        elif tabitem.text == 'DRO': # DRO screen
-            self.ids.dro_widget.update_buttons()
-        elif tabitem.text == 'Extruder': # extruder screen
-            self.ids.extruder.update_buttons()
+    # called by query timer in comms context, return strings for queries to send
+    def get_queries(self):
+        if not self.app.is_connected or self.is_printing:
+            return ""
+
+        cmd= ""
+        if self.app.is_desktop == 0:
+            # we only send query for the tab we are on
+            current_tab= self.ids.tabs.current_tab.text
+            if current_tab == 'Macros': # macros screen
+                cmd += self.ids.macros.update_buttons()
+            elif current_tab == 'DRO': # DRO screen
+                cmd += self.ids.dro_widget.update_buttons()
+            elif current_tab == 'Extruder': # extruder screen
+                cmd += self.ids.extruder.update_buttons()
+
+        else:
+            # in desktop mode we need to poll for state changes for macros and DRO
+            cmd += self.ids.macros.update_buttons()
+            cmd += self.ids.dro_widget.update_buttons()
+
+        return cmd
 
 class MainScreen(Screen):
     pass
@@ -1117,16 +1136,6 @@ class SmoothieHost(App):
             if self.last_touch_time >= self.blank_timeout:
                 self.last_touch_time= 0
                 self.blank_screen()
-
-        if self.is_connected and self.is_desktop > 0 and not self.main_window.is_printing:
-            # in desktop mode we need to poll for state changes for macros and DRO
-            # but only send one per second as only one outstanding query is allowed at a time
-            dummy= collections.namedtuple('Dummy', 'text')
-
-            a= ['DRO', 'Macros'] # Extruder also needs $G but sent by DRO
-            # select which one to send this time period (It may be better to wait for the response from previous one)
-            d= dummy(a[self.secs&1])
-            self.main_window.on_switch(None, d) # fake out tabitem with text field
 
     def blank_screen(self):
         try:

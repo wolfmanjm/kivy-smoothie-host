@@ -172,6 +172,10 @@ class Comms():
             self.proto.send_message(data)
 
     def _get_reports(self):
+        queries= self.app.main_window.get_queries()
+        if queries:
+            self._write(queries)
+
         self._write('?')
 
     def stop(self):
@@ -247,7 +251,8 @@ class Comms():
             self.app.main_window.connected()
 
             # issue a M115 command to get things started
-            self._write('\nM115\n')
+            self._write('\n')
+            self._write('M115\n')
 
             if self.report_rate > 0:
                 # start a timer to get the reports
