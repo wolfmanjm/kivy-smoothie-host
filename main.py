@@ -618,6 +618,9 @@ class MainWindow(BoxLayout):
         if ok:
             self._start_print()
 
+    def review(self):
+        self._show_viewer(self.app.gcode_file, self.last_path)
+
     @mainthread
     def stream_finished(self, ok):
         ''' called when streaming gcode has finished, ok is True if it completed '''
@@ -732,7 +735,7 @@ class MainWindow(BoxLayout):
             return ""
 
         if not self.app.is_v2 and self.status == 'Run':
-            # for v1 we do not send these commands when runnign as they clog up the USB serial channel
+            # for v1 we do not send these commands when running as they clog up the USB serial channel
             return ""
 
         cmd= ""
