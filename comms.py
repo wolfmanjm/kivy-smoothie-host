@@ -38,7 +38,7 @@ class SerialConnection(asyncio.Protocol):
             # for net we want to limit how much we queue up otherwise the whole file gets queued
             # this also gives us more progress more often
             transport.set_write_buffer_limits(high=1024, low=256)
-            self.log.info('Buffer limits: {}'.format(transport.get_write_buffer_limits()))
+            self.log.info('Buffer limits: {} - {}'.format(transport._high_water, transport._low_water))
         else:
             #transport.serial.rts = False  # You can manipulate Serial object via transport
             transport.serial.reset_input_buffer()
@@ -102,7 +102,7 @@ class SerialConnection(asyncio.Protocol):
         yield from waiter
 
     def pause_writing(self):
-        self.log.debug('SerialConnection: pause writing: {}'.format(self.transport.get_write_buffer_size()))
+        self.log.info('SerialConnection: pause writing: {}'.format(self.transport.get_write_buffer_size()))
         if not self.is_net:
             return
         # we only do this pause stream stuff for net
@@ -110,7 +110,7 @@ class SerialConnection(asyncio.Protocol):
         self._paused = True
 
     def resume_writing(self):
-        self.log.debug('SerialConnection: resume writing: {}'.format(self.transport.get_write_buffer_size()))
+        self.log.info('SerialConnection: resume writing: {}'.format(self.transport.get_write_buffer_size()))
         if not self.is_net:
             return
         # we only do this pause stream stuff for net
