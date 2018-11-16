@@ -731,6 +731,10 @@ class MainWindow(BoxLayout):
         if not self.app.is_connected or self.is_printing:
             return ""
 
+        if not self.app.is_v2 and self.status == 'Run':
+            # for v1 we do not send these commands when runnign as they clog up the USB serial channel
+            return ""
+
         cmd= ""
         if self.app.is_desktop == 0:
             # we only send query for the tab we are on
