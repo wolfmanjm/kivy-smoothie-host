@@ -597,6 +597,13 @@ class MainWindow(BoxLayout):
             self.display('WARNING Unable to start print')
             return
 
+        self.set_last_file(directory, file_path)
+
+        self.ids.print_but.text= 'Pause'
+        self.is_printing= True
+        self.paused= False
+
+    def set_last_file(self, directory,file_path):
         if directory != self.last_path:
             self.last_path= directory
             self.config.set('General', 'last_gcode_path', directory)
@@ -604,10 +611,6 @@ class MainWindow(BoxLayout):
         self.app.gcode_file= file_path
         self.config.set('General', 'last_print_file', file_path)
         self.config.write()
-
-        self.ids.print_but.text= 'Pause'
-        self.is_printing= True
-        self.paused= False
 
     def reprint(self):
         # are you sure?
@@ -681,12 +684,8 @@ class MainWindow(BoxLayout):
             f.open(self.last_path, title= 'File to View', cb= self._show_viewer)
 
     def _show_viewer(self, file_path, directory):
-        self.app.gcode_file= file_path
+        self.set_last_file(directory, file_path)
         self.app.sm.current= 'viewer'
-        if directory != self.last_path:
-            self.last_path= directory
-            self.config.set('General', 'last_gcode_path', directory)
-            self.app.config.write()
 
     def do_kill(self):
         if self.status == 'Alarm':

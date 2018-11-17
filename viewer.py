@@ -27,6 +27,11 @@ Builder.load_string('''
     on_leave: self.clear()
     BoxLayout:
         orientation: 'vertical'
+        Label:
+            text: app.gcode_file if app.is_desktop > 0 else ""
+            size_hint_y: None
+            height: self.texture_size[1]
+
         BoxLayout:
             id: view_window
             pos_hint: {'top': 1}
