@@ -17,7 +17,8 @@ I have had a 10" linux tablet called a pengpod running my delta printer for year
 
 I was running with the very first RPI model A, but it runs pretty slowly.
 I upgraded to an RPI-3 Model B and it runs much better, so I recommend them they are only about $10 more expensive.
-I suspect an RPI-2 Model B will also run pretty well.
+Also the RPI-3 Model A+ runs pretty well, and is about $10 cheaper than the B+.
+
 
 ## Usage
 
