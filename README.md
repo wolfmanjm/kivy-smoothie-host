@@ -1,24 +1,21 @@
 # kivy-smoothie-host
-A Smoothie host, written in Kivy for running on rpi with touch screen.
+A Smoothie host, written in Kivy for running on rpi with touch screen or on a desktop.
 
 This is a work in progress
 
 This uses python >= 3.4.3
 
+Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI touch screen.
+Also runs on pretty much any Linux desktop (and maybe Mac or Windows if Kivy runs on them).
+
 ## Goal
-The goal here is to have a small touch screen host that can run a smoothie and is better than an LCD Panel, and almost as good as a host PC running pronterface.
+The goal is to have a small touch screen host that can run a smoothie and is better than an LCD Panel, and almost as good as a host PC running pronterface.
 It is not meant to be a replacement for say Octoprint whose goals are different.
+A secondary goal is to have a decent smoothie aware desktop host to replace Pronterface, that has good support for CNC tasks as well as 3D printing.
 
 (*UPDATE* there is now a desktop layout setting that makes it more usable on a regular desktop, it has been tested on various linux machines but should run anywhere that python3 and kivy will run).
 
 An RPI with 7" touch screen is about the same price as the better LCD panels, and makes a great standalone controller for a 3D printer.
-
-I have had a 10" linux tablet called a pengpod running my delta printer for years as the only Host, it runs a hacked version of Pronterface to make it more tolerable to use on a touch screen. However Pengpods are no longer available and there are no other linux tablets I can find. A raspberry PI with touch screen is pretty close.
-
-I was running with the very first RPI model A, but it runs pretty slowly.
-I upgraded to an RPI-3 Model B and it runs much better, so I recommend them they are only about $10 more expensive.
-Also the RPI-3 Model A+ runs pretty well, and is about $10 cheaper than the B+.
-
 
 ## Usage
 
@@ -45,7 +42,7 @@ Click the Viewer menu item, select the file to view, then the layers can be move
 To set the WPOS to a point in the view click the select button, then touch the screen to move the crosshairs, when you have the point you want selected then click the set WPOS button, that point will be set as WPOS. To move the gantry to a point on the view click the select button, then touch and drag until you get the point and then click the move to button, the gantry will move to that point.
 
 The Kivy file browser is pretty crude and buggy. To allow it to be usable on a touch panel I had to set it so directory changes require double taps on the directory. I also do not enable the Load button unless a valid file is selected by tapping the file. This allows swiping to scroll the file lists to work reliably. 
-If running in desktop mode you can select a different file chooser from the settings page. (You will need to install zenity or kdialog or wx for python3)
+If running in desktop mode you can select a different native file chooser from the settings page. (You will need to install zenity or kdialog or wx for python3)
 
 The Update System menu entry requires git to be installed and the running directory be a valid git repo pointing to github.
 
@@ -88,7 +85,8 @@ On an rpi3b+ it seems the double tap time needs to be increased to be usable..
 
 
 ### OR kivypie
-or use kivypie from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box. (WIFI does not work for the rpi3 B+, so use stretch above).
+or use kivypie from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box. 
+(NOTE WIFI does not work for the rpi3 A+/B+, so use Rasbian Stretch above).
 
 If you do not have kivypie, but have jessie installed and just want kivy for rpi then...
 
@@ -211,8 +209,8 @@ __NOTE__ to use the T0 and T1 buttons in the Extruder panel the temperature cont
 There is support for a hacked raw MPG pendant using a Teensy as a rawhid device.
 
 Project here...
+* https://github.com/wolfmanjm/mpg-usb
 * install as described there
-* ... TBD ...
 
 Then you need to install...
 * git clone https://github.com/ahtn/python-easyhid
