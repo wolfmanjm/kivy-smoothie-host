@@ -105,7 +105,7 @@ class DROWidget(RelativeLayout):
         self.app.comms.write('G92 {}0\n'.format(a))
 
     def update_buttons(self):
-        return "$G\n"
+        return "$I\n"
 
     def _on_curwcs(self):
         # foreach WCS button see if it is active or not

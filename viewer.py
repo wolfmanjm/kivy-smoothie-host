@@ -808,6 +808,7 @@ if __name__ == '__main__':
     class GcodeViewerApp(App):
         is_cnc= BooleanProperty(False)
         is_connected= BooleanProperty(False)
+        is_desktop= NumericProperty(2)
         wpos= ListProperty([0,0,0])
         def __init__(self, **kwargs):
             super(GcodeViewerApp, self).__init__(**kwargs)
