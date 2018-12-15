@@ -163,7 +163,7 @@ class ExtruderWidget(BoxLayout):
         self.app.comms.write('M120 G91 G0 E-{0} F{1} M121\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
 
     def update_buttons(self):
-        return "$G\n"
+        return "$I\n"
 
     def _on_curtool(self):
         self.ids.tool_t0.state= 'down' if self.curtool == 0 else 'normal'
