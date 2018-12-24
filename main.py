@@ -177,25 +177,17 @@ class MacrosWidget(StackLayout):
 
     def update_buttons(self):
         # check the state of the toggle macro buttons that have poll set, called when we switch to the macro window
-        # v1 we just send switch commands, v2 we send the new $S command so it gets processed immediately despite being busy
-        cmd= ""
-        if self.app.is_v2:
-            cmd= "$S"
-            for name in self.toggle_buttons:
-                if self.toggle_buttons[name][5]: # if poll is set
-                    cmd += " "
-                    cmd += name
+        # we send the new $S command so it gets processed immediately despite being busy
+        cmd= "$S"
+        for name in self.toggle_buttons:
+            if self.toggle_buttons[name][5]: # if poll is set
+                cmd += " "
+                cmd += name
 
-            if len(cmd) <= 3:
-                cmd= ""
-            else:
-                cmd += "\n"
-
+        if len(cmd) <= 3:
+            cmd= ""
         else:
-            for name in self.toggle_buttons:
-                if self.toggle_buttons[name][5]: # if poll is set
-                    # sends this, the response will be caught by comms as switch xxx is yyy
-                    cmd += "switch {}\n".format(name)
+            cmd += "\n"
 
         return cmd
 
