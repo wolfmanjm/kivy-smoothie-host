@@ -6,6 +6,7 @@ from kivy.uix.stacklayout import StackLayout
 from kivy.config import ConfigParser
 from kivy.clock import Clock, mainthread
 from kivy.factory import Factory
+from multi_input_box import MultiInputBox
 
 import configparser
 from functools import partial
@@ -66,10 +67,11 @@ class MacrosWidget(StackLayout):
                 elif section.startswith('script '):
                     name= config.get(section, 'name', fallback=None)
                     script= config.get(section, 'exec', fallback=None)
+                    args= config.get(section, 'args', fallback=None)
                     btn = Factory.MacroButton()
                     btn.text= name
                     btn.background_color= (0,1,1,1)
-                    btn.bind(on_press= partial(self.exec_script, script))
+                    btn.bind(on_press= partial(self.exec_script, script, args))
                     self.add_widget(btn)
 
             # add simple macro buttons
@@ -116,7 +118,22 @@ class MacrosWidget(StackLayout):
     def send(self, cmd, *args):
         self.app.comms.write('{}\n'.format(cmd))
 
-    def exec_script(self, cmd, *args):
+    def exec_script(self, cmd, params, *args):
+        if params is not None:
+            l= params.split(',')
+            mb = MultiInputBox(inputs= l, cb=partial(self._exec_script_params, cmd))
+            mb.init()
+
+        else:
+            self._exec_script(cmd)
+
+    def _exec_script_params(self, cmd, w):
+        for x in w.values:
+            cmd += " " + x
+
+        self._exec_script(cmd)
+
+    def _exec_script(self, cmd):
         print("script: {}".format(cmd))
         try:
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
