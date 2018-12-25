@@ -9,6 +9,7 @@ from kivy.factory import Factory
 
 import configparser
 from functools import partial
+import subprocess
 
 '''
 user defined macros are configurable and stored in a configuration file called macros.ini
@@ -45,22 +46,31 @@ class MacrosWidget(StackLayout):
 
             # add toggle button handling switch states
             for section in config.sections():
-                if not section.startswith('toggle button'): continue
-                name= config.get(section, 'name', fallback=None)
-                poll= config.getboolean(section, 'poll', fallback=False)
-                lon= config.get(section, 'label on', fallback=None)
-                loff= config.get(section, 'label off', fallback=None)
-                cmd_on= config.get(section, 'command on', fallback=None)
-                cmd_off= config.get(section, 'command off', fallback=None)
-                if name is None or lon is None or loff is None or cmd_on is None or cmd_off is None:
-                    Logger.error("MacrosWidget: config error - {} is invalid".format(section))
-                    continue
+                if section.startswith('toggle button '):
+                    name= config.get(section, 'name', fallback=None)
+                    poll= config.getboolean(section, 'poll', fallback=False)
+                    lon= config.get(section, 'label on', fallback=None)
+                    loff= config.get(section, 'label off', fallback=None)
+                    cmd_on= config.get(section, 'command on', fallback=None)
+                    cmd_off= config.get(section, 'command off', fallback=None)
+                    if name is None or lon is None or loff is None or cmd_on is None or cmd_off is None:
+                        Logger.error("MacrosWidget: config error - {} is invalid".format(section))
+                        continue
 
-                tbtn = Factory.MacroToggleButton()
-                tbtn.text= lon
-                self.toggle_buttons[name]= (lon, loff, cmd_on, cmd_off, tbtn, poll)
-                tbtn.bind(on_press= partial(self._handle_toggle, name))
-                self.add_widget(tbtn)
+                    tbtn = Factory.MacroToggleButton()
+                    tbtn.text= lon
+                    self.toggle_buttons[name]= (lon, loff, cmd_on, cmd_off, tbtn, poll)
+                    tbtn.bind(on_press= partial(self._handle_toggle, name))
+                    self.add_widget(tbtn)
+
+                elif section.startswith('script '):
+                    name= config.get(section, 'name', fallback=None)
+                    script= config.get(section, 'exec', fallback=None)
+                    btn = Factory.MacroButton()
+                    btn.text= name
+                    btn.background_color= (0,1,1,1)
+                    btn.bind(on_press= partial(self.exec_script, script))
+                    self.add_widget(btn)
 
             # add simple macro buttons
             for (key, v) in config.items('macro buttons'):
@@ -68,6 +78,7 @@ class MacrosWidget(StackLayout):
                 btn.text= key
                 btn.bind(on_press= partial(self.send, v))
                 self.add_widget(btn)
+
         except Exception as err:
             Logger.warning('MacrosWidget: ERROR - exception parsing config file: {}'.format(err))
 
@@ -104,4 +115,17 @@ class MacrosWidget(StackLayout):
 
     def send(self, cmd, *args):
         self.app.comms.write('{}\n'.format(cmd))
+
+    def exec_script(self, cmd, *args):
+        print("script: {}".format(cmd))
+        try:
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+            result, err = p.communicate()
+            if p.returncode != 0:
+                print('> script error: {}'.format(err))
+            else:
+                for l in result.splitlines():
+                    print('{}'.format(l))
+        except Exception as err:
+                print('> script exception: {}'.format(err))
 
