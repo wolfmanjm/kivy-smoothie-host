@@ -61,12 +61,16 @@ class MultiInputBox(Popup):
 
     def init(self):
         for b in self.inputs:
-            self.ids.gl.add_widget(Label(text= b))
+            self.ids.gl.add_widget(Label(text= b, halign= 'right'))
             tw= TextInput(multiline= False)
             self.ids.gl.add_widget(tw)
             self.wl.append(tw)
 
         self.open()
+
+    def on_open(self):
+        if self.wl:
+            self.wl[0].focus= True
 
     def ok(self):
         for r in self.wl:

@@ -11,6 +11,7 @@ from multi_input_box import MultiInputBox
 import configparser
 from functools import partial
 import subprocess
+import threading
 
 '''
 user defined macros are configurable and stored in a configuration file called macros.ini
@@ -70,7 +71,7 @@ class MacrosWidget(StackLayout):
                     args= config.get(section, 'args', fallback=None)
                     btn = Factory.MacroButton()
                     btn.text= name
-                    btn.background_color= (0,1,1,1)
+                    btn.background_color= (1,1,0,1)
                     btn.bind(on_press= partial(self.exec_script, script, args))
                     self.add_widget(btn)
 
@@ -134,15 +135,36 @@ class MacrosWidget(StackLayout):
         self._exec_script(cmd)
 
     def _exec_script(self, cmd):
-        print("script: {}".format(cmd))
+        # needs to be run in a thread
+        t= threading.Thread(target=self._script_thread, args=(cmd,))
+        t.start()
+
+    def _script_thread(self, cmd):
+        print("run script: {}".format(cmd))
         try:
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-            result, err = p.communicate()
-            if p.returncode != 0:
-                print('> script error: {}'.format(err))
-            else:
-                for l in result.splitlines():
-                    print('{}'.format(l))
+            p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
+            App.get_running_app().comms._reroute_incoming_data_to= lambda x: p.stdin.write("{}\n".format(x))
+            while p.returncode is None:
+                s= p.stdout.readline()
+                if s:
+                    print("<<< script: {}".format(s))
+                    #App.get_running_app().comms.write('{}'.format(s))
+                    p.stdin.write("ok\n")
+
+
+                p.poll()
+
+            print('> script returncode: {}'.format(p.returncode))
+            while True:
+                e= p.stderr.readline()
+                if e:
+                    print("<<< script stderr: {}".format(e))
+                else:
+                    break
+
+
         except Exception as err:
                 print('> script exception: {}'.format(err))
 
+        finally:
+            App.get_running_app().comms._reroute_incoming_data_to= None
