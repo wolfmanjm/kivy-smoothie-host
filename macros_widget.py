@@ -12,6 +12,7 @@ import configparser
 from functools import partial
 import subprocess
 import threading
+import select
 
 '''
 user defined macros are configurable and stored in a configuration file called macros.ini
@@ -148,23 +149,27 @@ class MacrosWidget(StackLayout):
         try:
             p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
             self.app.comms._reroute_incoming_data_to= lambda x: self._send_it(p, x)
+
+            # so we can see which has output
+            poll_obj = select.poll()
+            poll_obj.register(p.stdout, select.POLLIN)
+            poll_obj.register(p.stderr, select.POLLIN)
+
             while p.returncode is None:
-                s= p.stdout.readline()
-                if s:
-                    self.app.main_window.async_display("<<< script: {}".format(s.rstrip()))
-                    self.app.comms.write('{}'.format(s))
+                poll_result = poll_obj.poll(0)
+                for pr in poll_result:
+                    if pr[0] == p.stdout.name:
+                        s= p.stdout.readline()
+                        if s:
+                            self.app.main_window.async_display("<<< script: {}".format(s.rstrip()))
+                            self.app.comms.write('{}'.format(s))
+                    elif pr[0] == p.stderr.name:
+                        e= p.stderr.readline()
+                        if e:
+                            Logger.debug("MacrosWidget: script stderr: {}".format(e))
+                            self.app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
 
                 p.poll()
-
-            while True:
-                # read stderr and display it
-                e= p.stderr.readline()
-                if e:
-                    Logger.debug("MacrosWidget: script stderr: {}".format(e))
-                    self.app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
-                else:
-                    break
-
 
         except Exception as err:
                 Logger.error('MacrosWidget: script exception: {}'.format(err))
