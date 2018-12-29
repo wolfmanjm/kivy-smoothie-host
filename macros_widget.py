@@ -145,15 +145,14 @@ class MacrosWidget(StackLayout):
 
     def _script_thread(self, cmd):
         Logger.info("MacrosWidget: running script: {}".format(cmd))
-        app= App.get_running_app()
         try:
             p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
-            app.comms._reroute_incoming_data_to= lambda x: self._send_it(p, x)
+            self.app.comms._reroute_incoming_data_to= lambda x: self._send_it(p, x)
             while p.returncode is None:
                 s= p.stdout.readline()
                 if s:
-                    app.main_window.async_display("<<< script: {}".format(s.rstrip()))
-                    app.comms.write('{}'.format(s))
+                    self.app.main_window.async_display("<<< script: {}".format(s.rstrip()))
+                    self.app.comms.write('{}'.format(s))
 
                 p.poll()
 
@@ -162,14 +161,14 @@ class MacrosWidget(StackLayout):
                 e= p.stderr.readline()
                 if e:
                     Logger.debug("MacrosWidget: script stderr: {}".format(e))
-                    app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
+                    self.app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
                 else:
                     break
 
 
         except Exception as err:
                 Logger.error('MacrosWidget: script exception: {}'.format(err))
-                app.main_window.async_display('>>> script exception, see log')
+                self.app.main_window.async_display('>>> script exception, see log')
 
         finally:
-            app.comms._reroute_incoming_data_to= None
+            self.app.comms._reroute_incoming_data_to= None
