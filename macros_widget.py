@@ -158,6 +158,7 @@ class MacrosWidget(StackLayout):
                 p.poll()
 
             while True:
+                # read stderr and display it
                 e= p.stderr.readline()
                 if e:
                     Logger.debug("MacrosWidget: script stderr: {}".format(e))
