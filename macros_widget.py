@@ -136,35 +136,39 @@ class MacrosWidget(StackLayout):
 
     def _exec_script(self, cmd):
         # needs to be run in a thread
-        t= threading.Thread(target=self._script_thread, args=(cmd,))
+        t= threading.Thread(target=self._script_thread, daemon=True, args=(cmd,))
         t.start()
 
+    def _send_it(self, p, x):
+        p.stdin.write("{}\n".format(x))
+        #print("{}\n".format(x))
+
     def _script_thread(self, cmd):
-        print("run script: {}".format(cmd))
+        Logger.info("MacrosWidget: running script: {}".format(cmd))
+        app= App.get_running_app()
         try:
             p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
-            App.get_running_app().comms._reroute_incoming_data_to= lambda x: p.stdin.write("{}\n".format(x))
+            app.comms._reroute_incoming_data_to= lambda x: self._send_it(p, x)
             while p.returncode is None:
                 s= p.stdout.readline()
                 if s:
-                    print("<<< script: {}".format(s))
-                    #App.get_running_app().comms.write('{}'.format(s))
-                    p.stdin.write("ok\n")
-
+                    app.main_window.async_display("<<< script: {}".format(s.rstrip()))
+                    app.comms.write('{}'.format(s))
 
                 p.poll()
 
-            print('> script returncode: {}'.format(p.returncode))
             while True:
                 e= p.stderr.readline()
                 if e:
-                    print("<<< script stderr: {}".format(e))
+                    Logger.debug("MacrosWidget: script stderr: {}".format(e))
+                    app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
                 else:
                     break
 
 
         except Exception as err:
-                print('> script exception: {}'.format(err))
+                Logger.error('MacrosWidget: script exception: {}'.format(err))
+                app.main_window.async_display('>>> script exception, see log')
 
         finally:
-            App.get_running_app().comms._reroute_incoming_data_to= None
+            app.comms._reroute_incoming_data_to= None

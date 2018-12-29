@@ -172,6 +172,9 @@ class Comms():
             self.proto.send_message(data)
 
     def _get_reports(self):
+        if self._reroute_incoming_data_to is not None:
+            return
+
         queries= self.app.main_window.get_queries()
         if queries:
             self._write(queries)
