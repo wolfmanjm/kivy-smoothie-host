@@ -180,7 +180,6 @@ class Comms():
             self._write(queries)
 
         self._write('?')
-        print("sent query")
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
