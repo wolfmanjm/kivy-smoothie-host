@@ -180,6 +180,7 @@ class Comms():
             self._write(queries)
 
         self._write('?')
+        print("sent query")
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
@@ -476,7 +477,7 @@ class Comms():
         s= s[1:-1] # strip off [ .. ]
         # split fields
         l= s.split(' ')
-        self.log.debug("Got state: {}".format(l))
+        self.log.debug("Comms: Got state: {}".format(l))
         # we want the current WCS and the current Tool
         if len(l) < 10:
             self.log.warning('Comms: Bad state report: {}'.format(s))
@@ -491,7 +492,7 @@ class Comms():
 
         # split fields
         l= s.split('|')
-        self.log.debug("Got status: {}".format(l))
+        self.log.debug("Comms: Got status: {}".format(l))
         if len(l) < 3:
             self.log.warning('Comms: old status report - set new_status_format')
             self.app.main_window.update_status("ERROR", "set new_status_format true")
