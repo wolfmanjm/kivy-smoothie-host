@@ -70,10 +70,11 @@ class MacrosWidget(StackLayout):
                     name= config.get(section, 'name', fallback=None)
                     script= config.get(section, 'exec', fallback=None)
                     args= config.get(section, 'args', fallback=None)
+                    io= config.getboolean(section, 'io', fallback=False)
                     btn = Factory.MacroButton()
                     btn.text= name
                     btn.background_color= (1,1,0,1)
-                    btn.bind(on_press= partial(self.exec_script, script, args))
+                    btn.bind(on_press= partial(self.exec_script, script, io, args))
                     self.add_widget(btn)
 
             # add simple macro buttons
@@ -120,60 +121,77 @@ class MacrosWidget(StackLayout):
     def send(self, cmd, *args):
         self.app.comms.write('{}\n'.format(cmd))
 
-    def exec_script(self, cmd, params, *args):
+    def exec_script(self, cmd, io, params, *args):
         if params is not None:
             l= params.split(',')
-            mb = MultiInputBox(inputs= l, cb=partial(self._exec_script_params, cmd))
+            mb = MultiInputBox(inputs= l, cb=partial(self._exec_script_params, cmd, io))
             mb.init()
 
         else:
-            self._exec_script(cmd)
+            self._exec_script(cmd, io)
 
-    def _exec_script_params(self, cmd, w):
+    def _exec_script_params(self, cmd, io, w):
         for x in w.values:
             cmd += " " + x
 
-        self._exec_script(cmd)
+        self._exec_script(cmd, io)
 
-    def _exec_script(self, cmd):
+    def _exec_script(self, cmd, io):
         # needs to be run in a thread
-        t= threading.Thread(target=self._script_thread, daemon=True, args=(cmd,))
+        t= threading.Thread(target=self._script_thread, daemon=True, args=(cmd,io,))
         t.start()
 
     def _send_it(self, p, x):
         p.stdin.write("{}\n".format(x))
         #print("{}\n".format(x))
 
-    def _script_thread(self, cmd):
-        Logger.info("MacrosWidget: running script: {}".format(cmd))
+    def _script_thread(self, cmd, io):
+        Logger.info("MacrosWidget: running script: {}, io: {}".format(cmd, io))
         try:
-            p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
-            self.app.comms._reroute_incoming_data_to= lambda x: self._send_it(p, x)
 
-            # so we can see which has output
-            poll_obj = select.poll()
-            poll_obj.register(p.stdout, select.POLLIN)
-            poll_obj.register(p.stderr, select.POLLIN)
+            if io:
+                # I/O is piped to/from smoothie
+                p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
+                self.app.comms._reroute_incoming_data_to= lambda x: self._send_it(p, x)
 
-            while p.returncode is None:
-                poll_result = poll_obj.poll(0)
-                for pr in poll_result:
-                    if pr[0] == p.stdout.name:
-                        s= p.stdout.readline()
-                        if s:
-                            self.app.main_window.async_display("<<< script: {}".format(s.rstrip()))
-                            self.app.comms.write('{}'.format(s))
-                    elif pr[0] == p.stderr.name:
-                        e= p.stderr.readline()
-                        if e:
-                            Logger.debug("MacrosWidget: script stderr: {}".format(e))
-                            self.app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
+                # so we can see which has output
+                poll_obj = select.poll()
+                poll_obj.register(p.stdout, select.POLLIN)
+                poll_obj.register(p.stderr, select.POLLIN)
 
-                p.poll()
+                while p.returncode is None:
+                    poll_result = poll_obj.poll(0)
+                    for pr in poll_result:
+                        if pr[0] == p.stdout.name:
+                            s= p.stdout.readline()
+                            if s:
+                                self.app.main_window.async_display("<<< script: {}".format(s.rstrip()))
+                                self.app.comms.write('{}'.format(s))
+
+                        elif pr[0] == p.stderr.name:
+                            e= p.stderr.readline()
+                            if e:
+                                Logger.debug("MacrosWidget: script stderr: {}".format(e))
+                                self.app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
+
+                    p.poll()
+
+            else:
+                # just display results
+                self.app.main_window.async_display("> {}".format(cmd))
+                p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                result, err = p.communicate()
+                for l in result.splitlines():
+                    self.app.main_window.async_display(l)
+                for l in err.splitlines():
+                    self.app.main_window.async_display(l)
+                if p.returncode != 0:
+                    self.app.main_window.async_display("return code: {}".format(p.returncode))
 
         except Exception as err:
                 Logger.error('MacrosWidget: script exception: {}'.format(err))
                 self.app.main_window.async_display('>>> script exception, see log')
 
         finally:
-            self.app.comms._reroute_incoming_data_to= None
+            if io:
+                self.app.comms._reroute_incoming_data_to= None

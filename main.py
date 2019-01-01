@@ -224,11 +224,12 @@ class KbdWidget(GridLayout):
             try:
                 p = subprocess.Popen(s[1:], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
                 result, err = p.communicate()
+                for l in result.splitlines():
+                    self._add_line_to_log(l)
+                for l in err.splitlines():
+                    self._add_line_to_log(l)
                 if p.returncode != 0:
-                    self._add_line_to_log('> command error: {}'.format(err))
-                else:
-                    for l in result.splitlines():
-                        self._add_line_to_log('{}'.format(l))
+                    self._add_line_to_log('returncode: {}'.format(p.returncode))
             except Exception as err:
                     self._add_line_to_log('> command exception: {}'.format(err))
         else:
