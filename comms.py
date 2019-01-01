@@ -420,6 +420,9 @@ class Comms():
                 except:
                     self.log.error("Comms: error parsing status")
 
+            elif s.startswith('[PRB:'):
+                self.app.main_window.async_display(s)
+
             elif s.startswith('['):
                 self.handle_state(s)
 

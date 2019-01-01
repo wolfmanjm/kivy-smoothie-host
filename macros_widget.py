@@ -146,11 +146,10 @@ class MacrosWidget(StackLayout):
         #print("{}\n".format(x))
 
     def _script_thread(self, cmd, io):
-        Logger.info("MacrosWidget: running script: {}, io: {}".format(cmd, io))
         try:
-
             if io:
                 # I/O is piped to/from smoothie
+                self.app.main_window.async_display("> running script: {}".format(cmd))
                 p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
                 self.app.comms._reroute_incoming_data_to= lambda x: self._send_it(p, x)
 
@@ -195,3 +194,4 @@ class MacrosWidget(StackLayout):
         finally:
             if io:
                 self.app.comms._reroute_incoming_data_to= None
+            self.app.main_window.async_display('> script complete')
