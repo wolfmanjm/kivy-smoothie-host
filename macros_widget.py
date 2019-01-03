@@ -98,7 +98,21 @@ class MacrosWidget(StackLayout):
             btn.text= opts['Name']
             btn.bind(on_press= partial(self.send, opts['Command']))
             self.add_widget(btn)
-            # TODO write to macros.ini
+            # write it to macros.ini
+            try:
+                config = configparser.ConfigParser()
+                config.read('macros.ini')
+                if not config.has_section("macro buttons"):
+                    config.add_secion("macro buttons")
+                config.set("macro buttons", opts['Name'], opts['Command'])
+                with open('macros.ini', 'w') as configfile:
+                    config.write(configfile)
+
+                Logger.info('MacrosWidget: added macro button {}'.format(opts['Name']))
+
+            except Exception as err:
+                Logger.error('MacrosWidget: ERROR - exception writing config file: {}'.format(err))
+
 
     def update_buttons(self):
         # check the state of the toggle macro buttons that have poll set, called when we switch to the macro window
