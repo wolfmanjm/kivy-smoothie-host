@@ -10,8 +10,9 @@ Builder.load_string('''
     id: optionPopup
     size_hint : (None,None)
     width : min(0.95 * self.window.width, dp(500))
-    title: "Option Title"
     height: dp(content.height) + dp(80)
+    title: "Option Title"
+    pos_hint: {'top': 1} if app.is_desktop == 0 else {'top': 0.5}
     BoxLayout:
         id: content
         size_hint : (1,None)
