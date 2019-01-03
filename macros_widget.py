@@ -146,7 +146,7 @@ class MacrosWidget(StackLayout):
 
     def _exec_script_params(self, cmd, io, opts):
         for x in opts:
-            cmd += " --" + x + "=" + opts[x]
+            cmd += " " + x + " " + opts[x]
 
         self._exec_script(cmd, io)
 
