@@ -85,7 +85,7 @@ class MacrosWidget(StackLayout):
                 self.add_widget(btn)
 
         except Exception as err:
-            Logger.warning('MacrosWidget: ERROR - exception parsing config file: {}'.format(err))
+            Logger.warning('MacrosWidget: WARNING - exception parsing config file: {}'.format(err))
 
     def new_macro(self):
         o = MultiInputBox(title='Add Macro')
@@ -103,7 +103,7 @@ class MacrosWidget(StackLayout):
                 config = configparser.ConfigParser()
                 config.read('macros.ini')
                 if not config.has_section("macro buttons"):
-                    config.add_secion("macro buttons")
+                    config.add_section("macro buttons")
                 config.set("macro buttons", opts['Name'], opts['Command'])
                 with open('macros.ini', 'w') as configfile:
                     config.write(configfile)
