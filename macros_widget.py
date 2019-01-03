@@ -87,6 +87,19 @@ class MacrosWidget(StackLayout):
         except Exception as err:
             Logger.warning('MacrosWidget: ERROR - exception parsing config file: {}'.format(err))
 
+    def new_macro(self):
+        o = MultiInputBox(title='Add Macro')
+        o.setOptions(['Name', 'Command'], self._new_macro)
+        o.open()
+
+    def _new_macro(self, opts):
+        if opts and opts['Name'] and opts['Command']:
+            btn = Factory.MacroButton()
+            btn.text= opts['Name']
+            btn.bind(on_press= partial(self.send, opts['Command']))
+            self.add_widget(btn)
+            # TODO write to macros.ini
+
     def update_buttons(self):
         # check the state of the toggle macro buttons that have poll set, called when we switch to the macro window
         # we send the new $S command so it gets processed immediately despite being busy
@@ -124,15 +137,16 @@ class MacrosWidget(StackLayout):
     def exec_script(self, cmd, io, params, *args):
         if params is not None:
             l= params.split(',')
-            mb = MultiInputBox(inputs= l, cb=partial(self._exec_script_params, cmd, io))
-            mb.init()
+            mb = MultiInputBox(title='Arguments')
+            mb.setOptions(l, partial(self._exec_script_params, cmd, io))
+            mb.open()
 
         else:
             self._exec_script(cmd, io)
 
-    def _exec_script_params(self, cmd, io, w):
-        for x in w.values:
-            cmd += " " + x
+    def _exec_script_params(self, cmd, io, opts):
+        for x in opts:
+            cmd += " --" + x + "=" + opts[x]
 
         self._exec_script(cmd, io)
 

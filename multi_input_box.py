@@ -3,38 +3,28 @@ from kivy.lang import Builder
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
+from kivy.core.window import Window
 
 Builder.load_string('''
-<-MultiInputBox>:
+<MultiInputBox>:
+    id: optionPopup
+    size_hint : (None,None)
+    width : min(0.95 * self.window.width, dp(500))
+    title: "Option Title"
+    height: dp(content.height) + dp(80)
     BoxLayout:
+        id: content
+        size_hint : (1,None)
         orientation: 'vertical'
-        padding: '12dp'
-        pos_hint: {'center': (0.5, 0.5)}
-        size_hint_x: 0.66
-        size_hint_y: None
-        height: self.minimum_height
-
-
-        canvas:
-            Color:
-                rgba: root.background_color[:3] + [root.background_color[-1] * root._anim_alpha]
-            Rectangle:
-                size: root._window.size if root._window else (0, 0)
-
-            Color:
-                rgb: 1, 1, 1
-            BorderImage:
-                source: root.background
-                border: root.border
-                pos: self.pos
-                size: self.size
-
+        spacing: '5dp'
+        height: dp(content.minimum_height)
         GridLayout:
-            id: gl
+            id: contentButtons
             cols: 2
             padding: '12dp'
-            size_hint_y: None
-            height: dp(45)*len(root.inputs)
+            size_hint : (1,None)
+            height : dp(self.minimum_height)
+            spacing: '0dp'
 
         BoxLayout:
             size_hint_y: None
@@ -42,50 +32,47 @@ Builder.load_string('''
 
             Button:
                 text: root.cancel_text
-                on_press: root.cancel()
+                on_press: root._dismiss()
             Button:
                 text: root.ok_text
-                on_press: root.ok()
+                on_press: root._ok()
 ''')
 
 class MultiInputBox(Popup):
-    inputs = ListProperty()
-    cb = ObjectProperty()
-    values= ListProperty()
-
     ok_text = StringProperty('OK')
     cancel_text = StringProperty('Cancel')
-    wl= []
 
-    __events__ = ('on_ok', 'on_cancel')
+    def __init__(self,**kwargs):
+        self.window= Window
+        super(MultiInputBox,self).__init__(**kwargs)
+        self.content = self.ids["content"]
+        self.contentButtons = self.ids["contentButtons"]
+        self.wl= []
 
-    def init(self):
-        for b in self.inputs:
-            self.ids.gl.add_widget(Label(text= b, halign= 'right'))
-            tw= TextInput(multiline= False)
-            self.ids.gl.add_widget(tw)
-            self.wl.append(tw)
+    def _dismiss(self):
+        self.dismiss()
 
-        self.open()
+    def open(self):
+        super(MultiInputBox,self).open()
+
+    def _ok(self):
+        if self.optionCallBack is not None:
+            opts= {}
+            for x in self.wl:
+                opts[x[0]]= x[1].text
+            self.optionCallBack(opts)
+        self.dismiss()
 
     def on_open(self):
         if self.wl:
-            self.wl[0].focus= True
+            self.wl[0][1].focus= True
 
-    def ok(self):
-        for r in self.wl:
-            self.values.append(r.text)
-
-        self.dispatch('on_ok')
-        self.dismiss()
-
-    def cancel(self):
-        self.dispatch('on_cancel')
-        self.dismiss()
-
-    def on_ok(self):
-        if self.cb:
-            self.cb(self)
-
-    def on_cancel(self):
-        pass
+    def setOptions(self, options, callBack):
+        self.optionCallBack = callBack
+        self.contentButtons.clear_widgets()
+        self.wl= []
+        for name in options:
+            self.contentButtons.add_widget(Label(text= name, size_hint_y=None, height='30dp', halign= 'right'))
+            tw= TextInput(multiline= False)
+            self.contentButtons.add_widget(tw)
+            self.wl.append((name, tw))

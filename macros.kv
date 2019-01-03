@@ -19,6 +19,11 @@
             size: self.size
 
     MacroButton:
+        text: 'New Macro'
+        background_color: (0,1,0,1)
+        on_press: root.new_macro()
+
+    MacroButton:
         id: feed_hold_but
         text: 'Feed Hold' if app.status != 'Hold' else 'Resume'
         on_press: root.send('!') if app.status != 'Hold' else root.send('~')
@@ -32,3 +37,4 @@
         text: 'View Last'
         disabled: app.gcode_file == ''
         on_press: app.main_window.review()
+
