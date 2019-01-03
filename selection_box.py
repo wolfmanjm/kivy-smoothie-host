@@ -1,31 +1,23 @@
 from kivy.properties import StringProperty, ObjectProperty, ListProperty
 from kivy.lang import Builder
 from kivy.uix.popup import Popup
+from kivy.core.window import Window
 
 Builder.load_string('''
-<-SelectionBox>:
+<SelectionBox>:
+    size_hint : (None,None)
+    width : min(0.95 * self.window.width, dp(500))
+    height: dp(content.height) + dp(80)
+    title: "Option Title"
+    pos_hint: {'top': 1} if app.is_desktop == 0 else {'center_y': 0.5}
+
     BoxLayout:
+        id: content
         orientation: 'vertical'
         padding: '12dp'
-        pos_hint: {'center': (0.5, 0.5)}
-        size_hint_x: 0.66
-        size_hint_y: None
-        height: self.minimum_height
-
-
-        canvas:
-            Color:
-                rgba: root.background_color[:3] + [root.background_color[-1] * root._anim_alpha]
-            Rectangle:
-                size: root._window.size if root._window else (0, 0)
-
-            Color:
-                rgb: 1, 1, 1
-            BorderImage:
-                source: root.background
-                border: root.border
-                pos: self.pos
-                size: self.size
+        size_hint: (1, None)
+        height: dp(content.minimum_height)
+        spacing: '5dp'
 
         Label:
             text: root.text
@@ -63,6 +55,11 @@ class SelectionBox(Popup):
     cancel_text = StringProperty('Cancel')
 
     __events__ = ('on_ok', 'on_cancel')
+
+    def __init__(self,**kwargs):
+        self.window= Window
+        super(SelectionBox,self).__init__(**kwargs)
+        self.content = self.ids["content"]
 
     def ok(self):
         self.dispatch('on_ok')

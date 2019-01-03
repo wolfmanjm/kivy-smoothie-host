@@ -408,7 +408,7 @@ class MainWindow(BoxLayout):
 
         ports.append('network...')
 
-        sb = SelectionBox(text='Select port to open', values= ports, cb= self._change_port)
+        sb = SelectionBox(title='Select port', text= 'Select the port to open from drop down', values= ports, cb= self._change_port)
         sb.open()
 
     def _change_port(self, s):
@@ -416,7 +416,7 @@ class MainWindow(BoxLayout):
             Logger.info('MainWindow: Selected port {}'.format(s))
 
             if s.startswith('network'):
-                mb = InputBox(text='Enter network address as "ipaddress[:port]"', cb=self._new_network_port)
+                mb = InputBox(title='Network address', text='Enter network address as "ipaddress[:port]"', cb=self._new_network_port)
                 mb.open()
 
             else:
