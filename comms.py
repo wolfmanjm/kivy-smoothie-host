@@ -227,9 +227,10 @@ class Comms():
                 self.port= ip[1]
 
             self.ipaddress= ip[0]
-            self.log.info('Connecting to Network at {} port {}'.format(self.ipaddress, self.port))
+            self.log.info('Comms: Connecting to Network at {} port {}'.format(self.ipaddress, self.port))
             serial_conn= loop.create_connection(sc_factory, self.ipaddress, self.port)
-            self.ping_pong= False # do not use ping pong for network connections
+            if self.app.fast_stream: #  optional do not use ping pong for network connections
+                self.ping_pong= False
 
         elif self.port.startswith('serial://'):
             sc_factory = functools.partial(SerialConnection, cb=self, f= f) # uses partial so we can pass a parameter
@@ -239,7 +240,7 @@ class Comms():
 
         else:
             loop.close()
-            self.log.error('Not a valid connection port: {}'.format(self.port))
+            self.log.error('Comms: Not a valid connection port: {}'.format(self.port))
             self.app.main_window.async_display('>>> Connect failed: unknown connection type, use "serial://" or "net://"'.format(self.port))
             self.app.main_window.disconnected()
             loop.close()

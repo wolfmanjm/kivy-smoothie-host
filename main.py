@@ -690,6 +690,7 @@ class SmoothieHost(App):
         self.camera_url= None
         self.loaded_modules= []
         self.secs= 0
+        self.fast_stream= False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -699,6 +700,7 @@ class SmoothieHost(App):
             'report_rate': '1',
             'blank_timeout': '0',
             'manual_tool_change' : 'false',
+            'fast_stream': 'false',
             'v2' : 'false'
         })
         config.setdefaults('UI', {
@@ -788,6 +790,13 @@ class SmoothieHost(App):
                   "desc": "Select for version 2 smoothie",
                   "section": "General",
                   "key": "v2"
+                },
+
+                { "type": "bool",
+                  "title": "Fast Stream",
+                  "desc": "Allow fast stream for laser over network",
+                  "section": "General",
+                  "key": "fast_stream"
                 },
 
                 { "type": "title",
