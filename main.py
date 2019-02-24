@@ -871,6 +871,7 @@ class SmoothieHost(App):
 
 
     def on_stop(self):
+        print("on_stop")
         # The Kivy event loop is about to stop, stop the async main loop
         self.comms.stop(); # stop the aysnc loop
         if self.is_webserver:
@@ -1075,7 +1076,7 @@ class SmoothieHost(App):
         self.last_touch_time= 0
         if self._blanked:
             self._blanked= False
-            unblank_screen()
+            self.unblank_screen()
             return True
 
         return False
