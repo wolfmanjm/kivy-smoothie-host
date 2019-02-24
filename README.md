@@ -218,12 +218,13 @@ Project here...
 * install as described there
 
 Then you need to install...
+* sudo apt-get install libffi-dev
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
 * python3 setup.py install --user
 * sudo apt-get install libhidapi-libusb0
 * add to the smoothiehost.ini file...
-    
+
      [modules]
      mpg_rawhid = 0x16C0:0x0486
 

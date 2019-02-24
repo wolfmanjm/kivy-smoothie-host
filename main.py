@@ -875,8 +875,9 @@ class SmoothieHost(App):
         self.comms.stop(); # stop the aysnc loop
         if self.is_webserver:
             self.webserver.stop()
-        # unblank if blanked
-        self._on_touch(0, 0)
+        if self.blank_timeout > 0:
+            # unblank if blanked
+            self.unblank_screen()
         # stop any loaded modules
         for m in self.loaded_modules:
             m.stop()
@@ -975,6 +976,10 @@ class SmoothieHost(App):
         # load any modules specified in config
         self._load_modules()
 
+        if self.blank_timeout > 0:
+            # unblank if blanked
+            self.unblank_screen()
+
         return self.sm
 
     def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
@@ -1059,16 +1064,18 @@ class SmoothieHost(App):
         except:
             Logger.warning("SmoothieHost: unable to blank screen")
 
+    def unblank_screen(self):
+        try:
+            with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
+                f.write('0\n')
+        except:
+            pass
+
     def _on_touch(self, a, b):
         self.last_touch_time= 0
         if self._blanked:
             self._blanked= False
-            try:
-                with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
-                    f.write('0\n')
-            except:
-                pass
-
+            unblank_screen()
             return True
 
         return False
