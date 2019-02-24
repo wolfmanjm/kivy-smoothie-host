@@ -120,12 +120,12 @@ class MPG_rawhid():
     def _run(self):
         app= App.get_running_app()
 
-        # Open a connection to the Teensy
-        if self.hid.open(self.vid, self.pid):
+        try:
+            # Open a connection to the Teensy
+            if self.hid.open(self.vid, self.pid):
 
-            Logger.info("MPG_rawhid: Connected to HID device %04X:%04X" % (self.vid, self.pid))
+                Logger.info("MPG_rawhid: Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
-            try:
                 # Infinite loop to read data from the Teensy
                 while not self.quit:
                     data = self.hid.recv(timeout=50)
@@ -161,13 +161,15 @@ class MPG_rawhid():
                         speed= s/10.0
                         app.comms.write("$J {}{} F{}\n".format(alut[axis], dist, speed))
 
-            except:
-                Logger.warn("MPG_rawhid: {}".format(traceback.format_exc()))
 
-            # Close the Teensy connection
-            self.hid.close()
+                # Close the Teensy connection
+                self.hid.close()
 
-            Logger.info("MPG_rawhid: Disconnected from HID device")
-        else:
-            Logger.error("MPG_rawhid: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
+                Logger.info("MPG_rawhid: Disconnected from HID device")
+
+            else:
+                Logger.error("MPG_rawhid: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
+
+        except:
+            Logger.warn("MPG_rawhid: Exception - {}".format(traceback.format_exc()))
 

@@ -217,7 +217,8 @@ Project here...
 * https://github.com/wolfmanjm/mpg-usb
 * install as described there
 
-Then you need to install...
+Then you need to do the following on the rpi...
+
 * sudo apt-get install libffi-dev
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
@@ -227,6 +228,14 @@ Then you need to install...
 
      [modules]
      mpg_rawhid = 0x16C0:0x0486
+
+* create a file /etc/udev/rules.d/49-teensy.rules and add the following...
+
+    ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789B]?", ENV{ID_MM_DEVICE_IGNORE}="1"
+    ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789A]?", ENV{MTP_NO_PROBE}="1"
+    SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789ABCD]?", MODE:="0666"
+    KERNEL=="ttyACM*", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789B]?", MODE:="0666"
+
 
 Then you will have the MPG/Pendant controller available for jogging etc.
 
