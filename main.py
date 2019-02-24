@@ -48,6 +48,7 @@ import configparser
 from functools import partial
 import collections
 import importlib
+import signal
 
 Window.softinput_mode = 'below_target'
 
@@ -871,7 +872,6 @@ class SmoothieHost(App):
 
 
     def on_stop(self):
-        print("on_stop")
         # The Kivy event loop is about to stop, stop the async main loop
         self.comms.stop(); # stop the aysnc loop
         if self.is_webserver:
@@ -1092,6 +1092,12 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     Logger.error("Unhandled Exception:")
     Logger.error("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
     App.get_running_app().stop()
+
+
+def handleSigTERM(a, b):
+    App.get_running_app().stop()
+
+signal.signal(signal.SIGTERM, handleSigTERM)
 
 # install handler for exceptions
 sys.excepthook = handle_exception
