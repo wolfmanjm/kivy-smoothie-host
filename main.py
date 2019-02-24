@@ -1093,7 +1093,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     Logger.error("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
     App.get_running_app().stop()
 
-
+# we want to handle TERM signal cleanly (sent by sv down)
 def handleSigTERM(a, b):
     App.get_running_app().stop()
 
