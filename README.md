@@ -220,10 +220,10 @@ Project here...
 Then you need to do the following on the rpi...
 
 * sudo apt-get install libffi-dev
+* sudo apt-get install libhidapi-libusb0
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
-* python3 setup.py install --user
-* sudo apt-get install libhidapi-libusb0
+* sudo python3 setup.py install
 * add to the smoothiehost.ini file...
 
      [modules]
