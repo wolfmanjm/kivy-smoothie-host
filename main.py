@@ -657,6 +657,9 @@ class MainWindow(BoxLayout):
         return cmd
 
     def config_editor(self):
+        if self.app.is_v2:
+            MessageBox(text='Implemented for V1 config only').open()
+            return
         self.app.config_editor.populate()
         self.app.sm.current= 'config_editor'
 
