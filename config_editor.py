@@ -60,6 +60,8 @@ kv = """
                     size_hint_x: 0.6
                     hint_text: 'value'
                     padding: dp(10), dp(10), 0, 0
+                    multiline: False
+                    on_text_validate: root.insert(self.text)
 
         RecycleView:
             id: rv
