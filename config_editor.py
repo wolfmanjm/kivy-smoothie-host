@@ -103,7 +103,7 @@ class ConfigEditor(Screen):
 
     def new_switch(self):
         o = MultiInputBox(title='Add Switch')
-        o.setOptions(['Name', 'On Command', 'Off Command', 'pin'], self._new_switch)
+        o.setOptions(['Name', 'On Command', 'Off Command', 'Pin'], self._new_switch)
         o.open()
 
     def _new_switch(self, opts):
