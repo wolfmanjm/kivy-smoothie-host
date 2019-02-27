@@ -36,6 +36,7 @@ You can select 3d printer mode or CNC mode from the Settings menu, this can affe
   There is a `sample-macros.ini` just copy that to `macros.ini` and edit as appropriate to define your own macro buttons.
 - The DRO Panel shows current MCS and WCS, and allows easy selection of the WCS to use, and allows setting of WCS
 - The MPG Panel is a simulation of an MPG pendant, it allows control of movement via a simulated rotary knob. (There is an optional module to take controls from a real MPG USB pendant).
+- The config editor displays the current smoothie config in a scrollable window, values can be updated click the return key and then will update the config on sd accordingly. (reset is of course required to take effect).
 
 There is a gcode visualizer window that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
 Click the Viewer menu item, select the file to view, then the layers can be moved up or down.
