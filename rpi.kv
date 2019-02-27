@@ -69,6 +69,10 @@
                     text: 'Settings'
                     on_press: app.open_settings()
                 ActionButton:
+                    text: 'Config Editor'
+                    on_press: root.config_editor()
+                    disabled: not app.is_connected or root.is_printing
+                ActionButton:
                     text: 'Blank Screen'
                     on_press: app.blank_screen()
                 ActionButton:

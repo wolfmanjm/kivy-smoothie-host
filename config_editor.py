@@ -1,8 +1,9 @@
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.uix.boxlayout import BoxLayout
-from multi_input_box import MultiInputBox
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.clock import mainthread
 
+from multi_input_box import MultiInputBox
 
 kv = """
 <Row@BoxLayout>:
@@ -25,83 +26,77 @@ kv = """
         size_hint_y: None
         height: sp(32)
         multiline: False
-        on_text_validate: root.parent.parent.parent.save_change(root.k, self.text)
+        on_text_validate: root.parent.parent.parent.parent.save_change(root.k, self.text)
+
 <ConfigEditor>:
-    canvas:
-        Color:
-            rgba: 0.3, 0.3, 0.3, 1
-        Rectangle:
-            size: self.size
-            pos: self.pos
     rv: rv
-    orientation: 'vertical'
     BoxLayout:
-        size_hint_y: None
-        height: dp(60)
-        padding: dp(8)
-        spacing: dp(16)
-        Button:
-            text: 'Quit'
-            on_press: app.stop()
-        Button:
-            text: 'New Switch'
-            on_press: root.new_switch()
-
+        canvas:
+            Color:
+                rgba: 0.3, 0.3, 0.3, 1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        orientation: 'vertical'
         BoxLayout:
-            spacing: dp(8)
-            Button:
-                text: 'Enter new key'
-                on_press: root.insert(new_item_input.text)
-            TextInput:
-                id: new_item_input
-                size_hint_x: 0.6
-                hint_text: 'value'
-                padding: dp(10), dp(10), 0, 0
-
-    RecycleView:
-        id: rv
-        scroll_type: ['bars', 'content']
-        scroll_wheel_distance: dp(114)
-        bar_width: dp(10)
-        viewclass: 'Row'
-        RecycleBoxLayout:
-            default_size: None, dp(32)
-            default_size_hint: 1, None
             size_hint_y: None
-            height: self.minimum_height
-            orientation: 'vertical'
-            spacing: dp(2)
+            height: dp(60)
+            padding: dp(8)
+            spacing: dp(16)
+            Button:
+                text: 'Back'
+                on_press: root.close()
+            Button:
+                text: 'New Switch'
+                on_press: root.new_switch()
+
+            BoxLayout:
+                spacing: dp(8)
+                Button:
+                    text: 'Enter new key'
+                    on_press: root.insert(new_item_input.text)
+                TextInput:
+                    id: new_item_input
+                    size_hint_x: 0.6
+                    hint_text: 'value'
+                    padding: dp(10), dp(10), 0, 0
+
+        RecycleView:
+            id: rv
+            scroll_type: ['bars', 'content']
+            scroll_wheel_distance: dp(114)
+            bar_width: dp(10)
+            viewclass: 'Row'
+            RecycleBoxLayout:
+                default_size: None, dp(32)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+                spacing: dp(2)
 """
 
 Builder.load_string(kv)
 
+class ConfigEditor(Screen):
 
-class ConfigEditor(BoxLayout):
-
-    def populate(self):
-        app= App.get_running_app()
-        # capture response and populate
-        l= []
-        f= asyncio.Future()
-        app.comms._reroute_incoming_data_to= lambda x: l.append(x) if not x.beginswith('ok') else f.set_result(None)
-        # issue command
-        app.comms.write('cat /sd/config\n')
-        app.comms.write('\n') # get an ok to indicate end of cat
-        # wait for it to complete
-        # add a long timeout in case it fails and we don't want to wait for ever
-        try:
-            yield from asyncio.wait_for(f, 10)
-        except asyncio.TimeoutError:
-            self.log.warning("Comms: Timeout waiting for config")
-            l= []
-
-        for line in l:
-            if line.lstrip().startswith("#"): continue
+    @mainthread
+    def _add_line(self, line):
+        if not line.lstrip().startswith("#"):
             t= line.split()
             if len(t) >= 2:
                 self.rv.data.append({'k': t[0], 'v': t[1]})
+            elif t[0] == 'ok':
+                self.app.get_running_app().comms._reroute_incoming_data_to= None
 
-        app.comms._reroute_incoming_data_to= None
+    def populate(self):
+        self.rv.data= []
+        self.app= App.get_running_app()
+        # get config, parse and populate
+        self.app.comms._reroute_incoming_data_to= self._add_line
+        # issue command
+        self.app.comms.write('cat /sd/config\n')
+        self.app.comms.write('\n') # get an ok to indicate end of cat
 
     def insert(self, value):
         self.rv.data.insert(0, {'k': value, 'v': ''})
@@ -122,4 +117,9 @@ class ConfigEditor(BoxLayout):
                 self.save_change(self.rv.data[i]['k'], self.rv.data[i]['v'])
 
     def save_change(self, k, v):
-        print("config-set sd {} {}".format(k, v))
+        self.app.comms.write("config-set sd {} {}\n".format(k, v))
+
+    def close(self):
+        self.app.get_running_app().comms._reroute_incoming_data_to= None
+        self.rv.data= []
+        self.manager.current = 'main'

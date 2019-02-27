@@ -36,6 +36,7 @@ from file_dialog import FileDialog
 from viewer import GcodeViewerScreen
 from web_server import ProgressServer
 from camera_screen import CameraScreen
+from config_editor import ConfigEditor
 
 import subprocess
 import traceback
@@ -655,6 +656,10 @@ class MainWindow(BoxLayout):
 
         return cmd
 
+    def config_editor(self):
+        self.app.config_editor.populate()
+        self.app.sm.current= 'config_editor'
+
 class MainScreen(Screen):
     pass
 
@@ -921,6 +926,9 @@ class SmoothieHost(App):
         ms= MainScreen(name='main')
         self.sm.add_widget(ms)
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
+        self.config_editor= ConfigEditor(name='config_editor')
+        self.sm.add_widget(self.config_editor)
+
         self.main_window= ms.ids.main_window
 
         self.blank_timeout= self.config.getint('General', 'blank_timeout')
