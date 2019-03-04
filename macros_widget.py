@@ -176,10 +176,16 @@ class MacrosWidget(StackLayout):
     def _script_thread(self, cmd, io):
         try:
             if io:
+                if not self.app.is_connected:
+                    Logger.error('MacrosWidget:  Not connected')
+                    self.app.main_window.async_display('> not connected')
+                    io= False
+                    return
+
                 # I/O is piped to/from smoothie
                 self.app.main_window.async_display("> running script: {}".format(cmd))
                 p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
-                self.app.comms._reroute_incoming_data_to= lambda x: self._send_it(p, x)
+                self.app.comms.redirect_incoming(lambda x: self._send_it(p, x))
 
                 # so we can see which has output
                 poll_obj = select.poll()
@@ -203,6 +209,7 @@ class MacrosWidget(StackLayout):
 
                     p.poll()
 
+                self.app.main_window.async_display('> script complete')
             else:
                 # just display results
                 self.app.main_window.async_display("> {}".format(cmd))
@@ -220,6 +227,5 @@ class MacrosWidget(StackLayout):
                 self.app.main_window.async_display('>>> script exception, see log')
 
         finally:
-            if io:
-                self.app.comms._reroute_incoming_data_to= None
-            self.app.main_window.async_display('> script complete')
+            if io and self.app.is_connected:
+                self.app.comms.redirect_incoming(None)

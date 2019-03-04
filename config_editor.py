@@ -89,13 +89,13 @@ class ConfigEditor(Screen):
             if len(t) >= 2:
                 self.rv.data.append({'k': t[0], 'v': t[1]})
             elif t[0] == 'ok':
-                self.app.get_running_app().comms._reroute_incoming_data_to= None
+                self.app.get_running_app().comms.redirect_incoming(None)
 
     def populate(self):
         self.rv.data= []
         self.app= App.get_running_app()
         # get config, parse and populate
-        self.app.comms._reroute_incoming_data_to= self._add_line
+        self.app.comms.redirect_incoming(self._add_line)
         # issue command
         self.app.comms.write('cat /sd/config\n')
         self.app.comms.write('\n') # get an ok to indicate end of cat
@@ -122,6 +122,6 @@ class ConfigEditor(Screen):
         self.app.comms.write("config-set sd {} {}\n".format(k, v))
 
     def close(self):
-        self.app.get_running_app().comms._reroute_incoming_data_to= None
+        self.app.get_running_app().comms.redirect_incoming(None)
         self.rv.data= []
         self.manager.current = 'main'

@@ -172,9 +172,6 @@ class Comms():
             self.proto.send_message(data)
 
     def _get_reports(self):
-        if self._reroute_incoming_data_to is not None:
-            return
-
         queries= self.app.main_window.get_queries()
         if queries:
             self._write(queries)
@@ -326,18 +323,10 @@ class Comms():
     def _parse_sdcard_list(self, done_cb):
         self.log.debug('Comms: _parse_sdcard_list')
 
-        if self.timer:
-            # temorarily turn off status timer so we don't get unexpected lines in our file list
-            self.timer.cancel()
-            self.timer= None
-            restart_timer= True
-        else:
-            restart_timer= False
-
         # setup callback to receieve and parse listing data
         files= []
         f= asyncio.Future()
-        self._reroute_incoming_data_to= lambda x: self._rcv_sdcard_line(x, files, f)
+        self.redirect_incoming(lambda x: self._rcv_sdcard_line(x, files, f))
 
         # issue command
         self._write('M20\n')
@@ -351,11 +340,7 @@ class Comms():
             self.log.warning("Comms: Timeout waiting for sd card list")
             files= []
 
-        # turn off rerouting
-        self._reroute_incoming_data_to= None
-
-        if restart_timer:
-            self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
+        self.redirect_incoming(None)
 
         # call upstream callback with results
         done_cb(files)
@@ -374,6 +359,23 @@ class Comms():
         else:
             # accumulate the incoming lines
             files.append(l)
+
+    def redirect_incoming(self, l):
+        if l:
+            if self.timer:
+                # temorarily turn off status timer so we don't get unexpected lines
+                self.timer.cancel()
+                self.timer= None
+                self._restart_timer= True
+            else:
+                self._restart_timer= False
+            self._reroute_incoming_data_to= l
+        else:
+            # turn off rerouting
+            self._reroute_incoming_data_to= None
+
+            if self._restart_timer:
+                self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
 
     # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
     # Note the data could be a line fragment and we need to only process complete lines terminated with \n
