@@ -182,6 +182,12 @@ class MacrosWidget(StackLayout):
                     io= False
                     return
 
+                repeating= False
+                if cmd.startswith('-'):
+                    # repeating output on same line
+                    repeating= True
+                    cmd= cmd[1:]
+
                 # I/O is piped to/from smoothie
                 self.app.main_window.async_display("> running script: {}".format(cmd))
                 p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
@@ -198,14 +204,17 @@ class MacrosWidget(StackLayout):
                         if pr[0] == p.stdout.name:
                             s= p.stdout.readline()
                             if s:
-                                self.app.main_window.async_display("<<< script: {}".format(s.rstrip()))
+                                if not repeating:
+                                    self.app.main_window.async_display("<<< script: {}".format(s.rstrip()))
                                 self.app.comms.write('{}'.format(s))
 
                         elif pr[0] == p.stderr.name:
                             e= p.stderr.readline()
                             if e:
-                                Logger.debug("MacrosWidget: script stderr: {}".format(e))
-                                self.app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
+                                if repeating:
+                                    self.app.main_window.async_display('{}\r'.format(e.rstrip()))
+                                else:
+                                    self.app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
 
                     p.poll()
 

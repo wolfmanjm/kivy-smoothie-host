@@ -267,12 +267,17 @@ class MainWindow(BoxLayout):
 
         return super(MainWindow, self).on_touch_down(touch)
 
-    def add_line_to_log(self, s):
+    def add_line_to_log(self, s, overwrite=False):
         ''' Add lines to the log window, which is trimmed to the last 200 lines '''
         max_lines= 200 # TODO needs to be configurable
+        n= len(self.ids.log_window.data)
+        if overwrite:
+            self.ids.log_window.data[n-1]= ({'text':s})
+            return
+
         self.ids.log_window.data.append({'text':s})
         # we use some hysterysis here so we don't truncate every line added over max_lines
-        n= len(self.ids.log_window.data) - max_lines # how many lines over our max
+        n= n - max_lines # how many lines over our max
         if n > 10:
             # truncate log to last max_lines, we delete the oldest 10 or so lines
             del self.ids.log_window.data[0:n]
@@ -310,7 +315,10 @@ class MainWindow(BoxLayout):
         while not self._q.empty():
             # we need this loop until q is empty as trigger only triggers once per frame
             data= self._q.get(False)
-            self.display(data)
+            if data.endswith('\r'):
+                self.add_line_to_log(data[0:-1], True)
+            else:
+                self.add_line_to_log(data)
 
     @mainthread
     def connected(self):

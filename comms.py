@@ -363,7 +363,7 @@ class Comms():
     def redirect_incoming(self, l):
         if l:
             if self.timer:
-                # temorarily turn off status timer so we don't get unexpected lines
+                # temporarily turn off status timer so we don't get unexpected lines
                 self.timer.cancel()
                 self.timer= None
                 self._restart_timer= True
