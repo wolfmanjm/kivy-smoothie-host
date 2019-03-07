@@ -1,0 +1,114 @@
+G0 | Move to the given coordinates.
+G1 | Move to the given coordinates
+G2 | Clockwise circular motion
+G3 | Counter-clockwise motion
+G4 | Dwell S<seconds> or P<milliseconds or float seconds(grbl)>
+G10 | Do firmware extruder retract
+G11 | Do firmware extruder un-retract
+G10 Ln | Set workspace coordinates n is 2 or 20, Pn is WCS
+G17 | Select XYZ plane
+G18 | Select XZY plane
+G19 | Select YZX plane
+G20 | Inch mode
+G21 | Millimeter mode
+G28 | Home the given axis
+G28.1 | Set Predefined Position
+G28.2 | Move to Predefined Position
+G28.3 | Set Manual Homing position
+G28.4 | Manual Homing based on actuator position
+G28.5 | Clears the homed flag for the specified axis, or all if not specifed
+G28.6 | Shows the homing status of each axis
+G29 | Probes the bed and outputs the bed heights
+G30 | Simple Z probe at current XY
+G31 | Depends on levelling strategy selected,
+G32 | Execute current levelling strategy or for delta do trim calibration
+G38.2 | Standard probe in direction XYZ
+G38.3 | Standard probe in direction XYZ
+G53 | next move is in MCS
+G54-G59 | select workspace coordinate system
+G90 | set Absolute mode
+G91 | set Relative mode
+G92 | Set global workspace coordinate system
+G92.1 | Reset G92
+G92.4 | manually set homing (MCS) for XYZ
+M3 | Starts the spindle. S<speed in RPM>
+M5 | Stops the spindle
+M17 | Enable stepper motors
+M18 | Disable stepper motors
+M20 | List SD card files
+M21 | Initialize the SD card
+M23 | Select a file
+M24 | Start or resume SD card print
+M25 | Pause SD card print
+M26 | Abort a SD card print
+M27 | Report print progress
+M28 | Begin write to SD card
+M29 | End write to SD card
+M30 | Delete a file on the SD card
+M32 | Select a file, and start playing it
+M82 | Set absolute mode for extruder only
+M83 | Set relative mode for extruder only
+M84 | Disable steppers
+M92 | Set axis steps per mm for XYZ axis and/or ABC axis
+M104 | Set Extruder Temperature. S<temperature>
+M105 | Read current temp
+M106 | Turn fan ON
+M107 | Turn fan OFF
+M109 | Set Extruder Temperature and Wait S<temperature>
+M110 | Set current line number
+M112 | Halt all operations, turn off heaters, go into Halt state
+M114 | Show current position of all axes, XYZ will be the last requested position
+M114.1 | Show current real time position of all axes
+M114.2 | Show current real time machine position of all axes
+M114.3 | Show current real time actuator position of all actuators
+M114.4 | Show last milestone
+M114.5 | Show last machine position
+M117 | Display message on LCD, blank message will clear it
+M119 | Show limit switch status
+M120 | Push the current state
+M121 | Pop the last saved state
+M140 | Set Bed Temperature S<temperature>
+M143 | Set Maximum Temperature S<heater index> P<temperature>
+M190 | Set Bed Temperature and Wait S<temperature>
+M200 | Set E units for volumetric extrusion D<filament diameter> set to 0 to disable volumetric extrusion
+M203 | Set maximum cartesian feedrate <mm/sec>
+M203.1 | Set maximum actuator feedrate <mm/sec>
+M203 | Set maximum volumetric rate V<rate> in mm³/sec
+M204 | Set default acceleration S<acceleration> in mm/sec²
+M205 | set X<junction deviation> Z<z junction deviation> S<minimum planner speed>
+M206 | Set homing offsets
+M207 | Set retract length S<length> F<feedrate> mm/min Z<additional zlift> Q<zlift feedrate> mm/min
+M208 | Set retract recover length S<mm> F<feedrate> mm/min
+M220 | set speed factor override percentage S<percent>
+M221 | set flow rate factor override S<percent>
+M301 | set PID parameters X<i_max> Y<max_pwm> S<heater> P<nnn> I<nnn> D<nnn>
+M303 | Begin PID auto-tune cycle  E<hotendid> S<temperature>
+M304 | Abort PID auto-tuning
+M305 | Set parameters for the thermistor, B<beta> R<r0> X<t0> P<ID> of the thermistor
+M306 | Set homing offsets based on current position
+M370 | clears the ZGrid and the bed levelling is disabled
+M374 | save calibration grid
+M375 | load calibration grid
+M375.1 | display the current grid
+M400 | Wait for the queue to be empty
+M407 | Get filament detector information
+M500 | Save settings to an override file
+M501 | Load config-override file optionally specifying the extension
+M502 | Delete the override file
+M503 | Display overridden settings
+M504 | Save the settings to an override file with specified extension
+M557 | Defines probe points
+M561 | Clears the plane and the bed leveling is disabled
+M565 | Defines the probe offsets from the nozzle or tool head
+M600 | Suspend print in progress
+M601 | Resume suspended print
+M665 | Set arm solution specific settings: Delta - L<arm length> R<arm radius> Z<max height>
+M666 | sets trim values for the endstops
+M670 | ZProbe feedrates S<slow> K<fast> R<return> Z<maxz> H<probe ht> I<invert> D<dwell>
+M906 | Set Current in milliamp X<n> Y<n> Z<n>
+M907 | Set Current control via digipot X<n> Y<n> Z<n>
+M909 | Set microsteps X<n> Y<n> Z<n> (1/n)
+M910.x | Setup advanced driver chips that support SPI setup
+M957 | Report the current spindle speed and PWM value
+M958 | Report the current spindle PID parameters
+M999 | Reset from a halted state caused by limit switch

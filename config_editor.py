@@ -5,8 +5,8 @@ from kivy.clock import mainthread
 
 from multi_input_box import MultiInputBox
 
-kv = """
-<Row@BoxLayout>:
+Builder.load_string('''
+<CERow@BoxLayout>:
     canvas.before:
         Color:
             rgba: 0.5, 0.5, 0.5, 1
@@ -68,7 +68,7 @@ kv = """
             scroll_type: ['bars', 'content']
             scroll_wheel_distance: dp(114)
             bar_width: dp(10)
-            viewclass: 'Row'
+            viewclass: 'CERow'
             RecycleBoxLayout:
                 default_size: None, dp(32)
                 default_size_hint: 1, None
@@ -76,9 +76,7 @@ kv = """
                 height: self.minimum_height
                 orientation: 'vertical'
                 spacing: dp(2)
-"""
-
-Builder.load_string(kv)
+''')
 
 class ConfigEditor(Screen):
 

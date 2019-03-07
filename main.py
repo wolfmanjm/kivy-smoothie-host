@@ -37,6 +37,7 @@ from viewer import GcodeViewerScreen
 from web_server import ProgressServer
 from camera_screen import CameraScreen
 from config_editor import ConfigEditor
+from gcode_help import GcodeHelp
 
 import subprocess
 import traceback
@@ -208,36 +209,22 @@ class KbdWidget(GridLayout):
     def do_action(self, key):
         if key == 'Send':
             #Logger.debug("KbdWidget: Sending {}".format(self.display.text))
-            self._add_line_to_log('<< {}'.format(self.display.text))
-            self.app.comms.write('{}\n'.format(self.display.text))
-            self.last_command = self.display.text
+            if self.display.text.strip():
+                self._add_line_to_log('<< {}'.format(self.display.text))
+                self.app.comms.write('{}\n'.format(self.display.text))
+                self.last_command = self.display.text
             self.display.text = ''
         elif key == 'Repeat':
             self.display.text = self.last_command
         elif key == 'BS':
             self.display.text = self.display.text[:-1]
+        elif key == '?':
+            self.handle_input('?')
         else:
             self.display.text += key
 
     def handle_input(self, s):
-        if s.startswith('!'):
-            # shell command send to unix shell
-            self._add_line_to_log('> {}'.format(s))
-            try:
-                p = subprocess.Popen(s[1:], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-                result, err = p.communicate()
-                for l in result.splitlines():
-                    self._add_line_to_log(l)
-                for l in err.splitlines():
-                    self._add_line_to_log(l)
-                if p.returncode != 0:
-                    self._add_line_to_log('returncode: {}'.format(p.returncode))
-            except Exception as err:
-                    self._add_line_to_log('> command exception: {}'.format(err))
-        else:
-            self._add_line_to_log('<< {}'.format(s))
-            self.app.comms.write('{}\n'.format(s))
-
+        self.app.command_input(s)
         self.display.text = ''
 
 class MainWindow(BoxLayout):
@@ -939,6 +926,8 @@ class SmoothieHost(App):
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
         self.config_editor= ConfigEditor(name='config_editor')
         self.sm.add_widget(self.config_editor)
+        self.gcode_help= GcodeHelp(name='gcode_help')
+        self.sm.add_widget(self.gcode_help)
 
         self.main_window= ms.ids.main_window
 
@@ -1042,6 +1031,30 @@ class SmoothieHost(App):
                     self.main_window.ids.log_window.data= []
 
         return False
+
+    def command_input(self, s):
+        if s.startswith('!'):
+            # shell command send to unix shell
+            self.main_window.display('> {}'.format(s))
+            try:
+                p = subprocess.Popen(s[1:], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+                result, err = p.communicate()
+                for l in result.splitlines():
+                    self.main_window.display(l)
+                for l in err.splitlines():
+                    self.main_window.display(l)
+                if p.returncode != 0:
+                    self.main_window.display('returncode: {}'.format(p.returncode))
+            except Exception as err:
+                    self.main_window.display('> command exception: {}'.format(err))
+
+        elif s == '?':
+            self.gcode_help.populate()
+            self.sm.current= 'gcode_help'
+
+        else:
+            self.main_window.display('<< {}'.format(s))
+            self.comms.write('{}\n'.format(s))
 
     # when we hit enter it refocuses the the input
     def _refocus_text_input(self,*args):
