@@ -740,7 +740,7 @@ class SmoothieHost(App):
 
                 { "type": "numeric",
                   "title": "Desktop Layout",
-                  "desc": "Set for a Desktop layout, 1 is small, 2 is large, otherwise it is RPI 7in touch screen layout",
+                  "desc": "Select Desktop layout, 1 is small, 2 is large, otherwise it is RPI 7in touch screen layout",
                   "section": "UI",
                   "key": "layout_type"
                 },
