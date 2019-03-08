@@ -1,7 +1,7 @@
 # kivy-smoothie-host
 A Smoothie host, written in Kivy for running on rpi with touch screen or on a desktop.
 
-This is a work in progress
+This is a work in progress, but is stable and ready for everyday use.
 
 This uses python >= 3.4.3
 
@@ -32,7 +32,7 @@ You can select 3d printer mode or CNC mode from the Settings menu, this can affe
 - The Console panel has a keyboard for entering gcodes and if you touch the edit field a keyboard will pop up for typing commands (non gcodes). If you precede the command with ! it will be sent to the linux shell instead of smoothie. Sending ? will pop up a GCode reference screen.
 - The Extruder Panel is used to control temperatures and extuder. You can switch between gauge view and graph view by swiping left or right (or double click)
 - The Jog Panel has the usual jog controls.
-- The Macro Panel is user configurable buttons panel to control whatever you want. (Edit the `macros.ini` file)
+- The Macro Panel is a user configurable buttons panel to control whatever you want. (Edit the `macros.ini` file)
   There is a `sample-macros.ini` just copy that to `macros.ini` and edit as appropriate to define your own macro buttons.
 - The DRO Panel shows current MCS and WCS, and allows easy selection of the WCS to use, and allows setting of WCS
 - The MPG Panel is a simulation of an MPG pendant, it allows control of movement via a simulated rotary knob. (There is an optional module to take controls from a real MPG USB pendant).
