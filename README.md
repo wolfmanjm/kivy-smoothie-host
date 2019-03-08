@@ -5,8 +5,8 @@ This is a work in progress, but is stable and ready for everyday use.
 
 This uses python >= 3.4.3
 
-Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI touch screen.
-Also runs on pretty much any Linux desktop (and maybe Mac or Windows if Kivy runs on them).
+Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI touch screen. (No XWindows)
+Also runs on pretty much any Linux XWindows desktop (and maybe Mac or Windows if Kivy runs on them).
 
 ## Goal
 The goal is to have a small touch screen host that can run a smoothie and is better than an LCD Panel, and almost as good as a host PC running pronterface.
@@ -58,7 +58,7 @@ Simple macro buttons can be created by clicking the green `New Macro` button.
 
 ### Rasbian/Debian Stretch
 
-Install the latest raspbian stretch lite... 
+Install the latest raspbian stretch lite... (No XWindows)
 https://downloads.raspberrypi.org/raspbian_lite_latest
 
 Follow these instructions if using an rpi 3 B+ and rasbian stretch...
