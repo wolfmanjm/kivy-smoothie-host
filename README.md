@@ -5,7 +5,7 @@ This is a work in progress, but is stable and ready for everyday use.
 
 This uses python >= 3.4.3
 
-Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI touch screen. (No XWindows)
+Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows)
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac or Windows if Kivy runs on them).
 
 ## Goal
@@ -57,6 +57,8 @@ Simple macro buttons can be created by clicking the green `New Macro` button.
 ## Install on RPI
 
 ### Rasbian/Debian Stretch
+
+(Only tested on genuine RPI 7" multitouch screen).
 
 Install the latest raspbian stretch lite... (No XWindows)
 https://downloads.raspberrypi.org/raspbian_lite_latest
