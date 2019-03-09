@@ -69,10 +69,10 @@ Once loaded boot into the sdcard, and then update raspbian stretch...
 * sudo apt-get upgrade
 * setup wifi using  ```sudo raspi-config```
 
-smoopi is normally run on bootup, but in order to allow you to login and do the initial setup is is initially down. You will need to hook up a keyboard temporarily so you can access the login and run raspi-config etc.
+smoopi is normally run on bootup, but in order to allow you to login and do the initial setup it is initially down. You will need to hook up a keyboard temporarily so you can access the login and run raspi-config etc.
 
 Once that is done setup smoopi to run on boot by doing ```sudo rm /home/pi/sv/smoopi/down``` and start smoopi with ```sudo sv up /etc/service/smoopi```
-Once running use the System menu upgrade to fetch the latest smoopi.
+Once running use the System menu upgrade to fetch the latest smoopi. If that is successful, then quit under the System menu and smoopi will exit and then be restarted by runit.
 
 
 ### Rasbian/Debian Stretch
