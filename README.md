@@ -56,6 +56,23 @@ Simple macro buttons can be created by clicking the green `New Macro` button.
 
 ## Install on RPI
 
+### Image
+For RPI  and touch screen you can just download the image....
+http://smoothieware.org/_media/bin/smoopi.img
+And image it to an sdcard using for instance https://www.balena.io/etcher/
+
+Once loaded boot into the sdcard, and then update rpi and smoopi...
+* login in with username pi and password raspberry
+* sudo apt-get update
+* sudo apt-get upgrade
+* setup wifi using  sudo raspi-config
+
+smoopi should run on bootup, so you will need to hook up a keyboard temporarily and stop it with sudo sv down /etc/service/smoopi so you can access the login and run raspi-config.
+
+Once that is done restart smoopi with sudo sv up /etc/service/smoopi
+Once running use the System menu upgrade to fetch the latest smoopi.
+
+
 ### Rasbian/Debian Stretch
 
 (Only tested on genuine RPI 7" multitouch screen).
