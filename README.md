@@ -62,15 +62,16 @@ For RPI  and touch screen you can just download the image which has a fully runi
 Download from http://smoothieware.org/_media/bin/smoopi.img
 And image it to an sdcard using for instance https://www.balena.io/etcher/
 
-Once loaded boot into the sdcard, and then update rpi and smoopi...
+Once loaded boot into the sdcard, and then update raspbian stretch...
+
 * login in with username pi and password raspberry
 * sudo apt-get update
 * sudo apt-get upgrade
-* setup wifi using  sudo raspi-config
+* setup wifi using  ```sudo raspi-config```
 
-smoopi should run on bootup, so you will need to hook up a keyboard temporarily and stop it with sudo sv down /etc/service/smoopi so you can access the login and run raspi-config.
+smoopi should run on bootup, so you will need to hook up a keyboard temporarily and stop it with ```sudo sv down /etc/service/smoopi``` so you can access the login and run raspi-config.
 
-Once that is done restart smoopi with sudo sv up /etc/service/smoopi
+Once that is done restart smoopi with ```sudo sv up /etc/service/smoopi```
 Once running use the System menu upgrade to fetch the latest smoopi.
 
 
@@ -171,12 +172,12 @@ To allow the program to shutdown the RPI when the shutdown menu entry is selecte
 
 ### Autostart Smoopi (Optional)
 
-To autostart smoopi on boot but run as the sysop user follow these directions...
-(if using a rasbian installation replace user sysop with pi)
+To autostart smoopi on boot but run as the pi user follow these directions. (Assuming you are using stretch)...
+(if using a kivypie installation replace user pi with sysop)
 
 1. Install runit (sudo apt-get install runit). On Raspbian Stretch also do ```sudo apt-get install runit-systemd```
-2. in the sysop home directory run ```tar xvf INSTALLDIR/runit_setup.tar``` (where INSTALLDIR is where you checked out the smoopi source)
-3. sudo ln -s /home/sysop/sv/smoopi /etc/service (or sudo ln -s /home/pi/sv/smoopi if not using kivypie)
+2. in the /home/pi directory run ```tar xvf ./smoopi/runit-setup-stretch.tar``` (presuming you checked out the smoopi source into /home/pi/smoopi)
+3. sudo ln -s /home/pi/sv/smoopi /etc/service
 
 
 To allow Smoopi to connect to the smoothie when auto start by runit you need to do this...
