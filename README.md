@@ -82,6 +82,12 @@ For instance...
     sudo pip3 install -U Cython==0.28.2
     sudo pip3 install git+https://github.com/kivy/kivy.git@master
 
+*NOTE* If the kivy crashes when you run it, then you may need to install a downgraded version like this...
+
+    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@038acbf
+
+This installs a known working version.
+
 On an rpi3b+ it seems the double tap time needs to be increased to be usable..
 
     # in file ~/.kivy/config.ini
