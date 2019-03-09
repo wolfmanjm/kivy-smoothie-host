@@ -57,8 +57,9 @@ Simple macro buttons can be created by clicking the green `New Macro` button.
 ## Install on RPI
 
 ### Image
-For RPI  and touch screen you can just download the image....
-http://smoothieware.org/_media/bin/smoopi.img
+For RPI  and touch screen you can just download the image which has a fully runign version smoopi with autostart, blanking etc, so no need to do anything else.
+
+Download from http://smoothieware.org/_media/bin/smoopi.img
 And image it to an sdcard using for instance https://www.balena.io/etcher/
 
 Once loaded boot into the sdcard, and then update rpi and smoopi...
@@ -136,9 +137,15 @@ Install some smoopi dependencies...
 
     > pip3 install pyserial pyserial-asyncio aiofiles
 
+Install Smoopi itself
+
+    > mkdir smoopi
+    > cd smoopi
+    > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git .
+
 Run with...
 
-> python3 main.py
+    > python3 main.py
 
 NOTE make sure the ```~/.kivy/config.ini``` has the following set so the virtual keyboard works in a usable fashion on an RRI touch screen...
 
