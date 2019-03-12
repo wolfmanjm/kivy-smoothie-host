@@ -139,7 +139,7 @@ class Comms():
         self.do_query= False
         self.last_tool= None
         self.is_suspend= False
-
+        self.m0= None
         self.log = logging.getLogger() #.getChild('Comms')
         #logging.getLogger().setLevel(logging.DEBUG)
 
@@ -632,15 +632,23 @@ class Comms():
                     if len(l) == 0 or l.startswith(';') or l.startswith('('):
                         continue
 
-                    if self.abort_stream:
-                        break
-
                     if l.startswith('T'):
                         self.last_tool= l
 
-                    # handle tool change M6 or M06
-                    if self.app.manual_tool_change and (l == "M6" or l == "M06" or "M6 " in l or "M06 " in l):
-                        tool_change_state= 1
+                    if self.app.manual_tool_change:
+                        # handle tool change M6 or M06
+                        if l == "M6" or l == "M06" or "M6 " in l or "M06 " in l:
+                            tool_change_state= 1
+
+                    if self.app.wait_on_m0:
+                        # handle M0 if required
+                        if l == "M0" or l == "M00":
+                            # we basically wait for the continue dialog to be dismissed
+                            self.app.main_window.m0_dlg()
+                            self.m0= asyncio.Event()
+                            yield from self.m0.wait()
+                            self.m0= None
+                            continue
 
                 if self.abort_stream:
                     break
@@ -749,6 +757,10 @@ class Comms():
             self.log.info('Comms: Streaming complete: {}'.format(success))
 
         return success
+
+    def release_m0(self):
+        if self.m0:
+            self.m0.set()
 
     @staticmethod
     def file_len(fname):

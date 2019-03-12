@@ -624,6 +624,13 @@ class MainWindow(BoxLayout):
         # Print is paused by gcode command M6, prompt for tool change
         self.display("ACTION NEEDED: Manual Tool Change:\n Tool: {}\nWait for machine to stop, then you can jog around to change the tool.\n tap resume to continue".format(l))
 
+    @mainthread
+    def m0_dlg(self):
+        MessageBox(text='M0 Pause, click OK to continue', cb= self._m0_dlg).open()
+
+    def _m0_dlg(self, ok):
+        self.app.comms.release_m0()
+
     # called by query timer in comms context, return strings for queries to send
     def get_queries(self):
         if not self.app.is_connected or self.is_printing:
@@ -679,6 +686,7 @@ class SmoothieHost(App):
     is_show_camera= BooleanProperty(False)
     manual_tool_change= BooleanProperty(False)
     is_v2= BooleanProperty(True)
+    wait_on_m0= BooleanProperty(False)
 
     #Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
@@ -704,6 +712,7 @@ class SmoothieHost(App):
             'report_rate': '1',
             'blank_timeout': '0',
             'manual_tool_change' : 'false',
+            'wait_on_m0' : 'false',
             'fast_stream': 'false',
             'v2' : 'false'
         })
@@ -790,6 +799,13 @@ class SmoothieHost(App):
                 },
 
                 { "type": "bool",
+                  "title": "Wait on M0",
+                  "desc": "On M0 popup a dialog and pause until it is dismissed",
+                  "section": "General",
+                  "key": "wait_on_m0"
+                },
+
+                { "type": "bool",
                   "title": "Version 2 Smoothie",
                   "desc": "Select for version 2 smoothie",
                   "section": "General",
@@ -866,6 +882,8 @@ class SmoothieHost(App):
             self.blank_timeout= float(value)
         elif token == ('General', 'manual_tool_change'):
             self.manual_tool_change= value == '1'
+        elif token == ('General', 'wait_on_m0'):
+            self.wait_on_m0= value == '1'
         elif token == ('General', 'v2'):
             self.is_v2 = value == '1'
         elif token == ('Web', 'camera_url'):
@@ -916,6 +934,7 @@ class SmoothieHost(App):
         self.is_webserver= self.config.getboolean('Web', 'webserver')
         self.is_show_camera= self.config.getboolean('Web', 'show_video')
         self.manual_tool_change= self.config.getboolean('General', 'manual_tool_change')
+        self.wait_on_m0= self.config.getboolean('General', 'wait_on_m0')
         self.is_v2= self.config.getboolean('General', 'v2')
 
         self.comms= Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
