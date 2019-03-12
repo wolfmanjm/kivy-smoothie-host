@@ -251,6 +251,7 @@ __NOTE__ to use the T0 and T1 buttons in the Extruder panel the temperature cont
 ## Pendants
 There is support for a hacked raw MPG pendant using a Teensy as a rawhid device.
 
+### Home made
 Project here...
 * https://github.com/wolfmanjm/mpg-usb
 * install as described there
@@ -279,6 +280,8 @@ Then you will have the MPG/Pendant controller available for jogging etc.
 
 (NOTE you need the latest version of smoothieware dated greater than 1 October 2018 to support the $J command)
 
+### HB04 wired  USB
+COMING SOON ... Support for the HB04 wired MACH3 USB pendant.
 
 # Screen shots
 ![Extruder Screen](screen1.png)
