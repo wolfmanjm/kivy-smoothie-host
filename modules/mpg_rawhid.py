@@ -142,8 +142,9 @@ class MPG_rawhid():
                         mult= data[3]
                         step= self.twos_comp(data[4], 8)
                         s= data[5]
+                        estop= data[6]
 
-                        Logger.debug("MPG_rawhid: axis: {}, mult: {}, step: {}, speed: {}".format(axis, mult, step, s))
+                        Logger.debug("MPG_rawhid: axis: {}, mult: {}, step: {}, speed: {}, estop: {}".format(axis, mult, step, s, estop))
 
                         # a= data[7]
                         # b= data[8]
@@ -151,6 +152,10 @@ class MPG_rawhid():
                         # d= data[10]
                         # us= a<<24 | b<<16 | c << 8 | d
                         # print("us= {}".format(us))
+
+                        if estop == 0 and app.is_connected:
+                            app.comms.write('\x18')
+                            continue
 
                         if not app.is_connected or app.main_window.is_printing:
                             continue
