@@ -153,12 +153,19 @@ class MPG_rawhid():
                         # us= a<<24 | b<<16 | c << 8 | d
                         # print("us= {}".format(us))
 
-                        if estop == 0 and app.is_connected:
-                            app.comms.write('\x18')
+                        if app.is_connected:
+                            if estop == 1 and app.status != 'Alarm':
+                                app.comms.write('\x18')
+                                continue
+
+                        else:
                             continue
 
-                        if not app.is_connected or app.main_window.is_printing:
+                        if app.main_window.is_printing:
                             continue
+
+                        if axis == 0:
+                            continue;
 
                         alut= {1:'X', 2:'Y', 3:'Z', 4:'A'}
                         dist= 0.01 * step * mult
