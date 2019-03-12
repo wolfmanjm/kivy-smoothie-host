@@ -740,8 +740,6 @@ class SmoothieHost(App):
             'show_video': 'false',
             'camera_url': 'http://localhost:8080/?action=snapshot'
         })
-        # in case we added something to the defaults, make sure they are written to the ini file
-        config.update_config('smoothiehost.ini')
 
     def build_settings(self, settings):
         jsondata = """
@@ -907,7 +905,8 @@ class SmoothieHost(App):
             m.stop()
 
     def on_start(self):
-        pass
+        # in case we added something to the defaults, make sure they are written to the ini file
+        self.config.update_config('smoothiehost.ini')
 
     def build(self):
         self.is_desktop= self.config.getint('UI', 'layout_type')
