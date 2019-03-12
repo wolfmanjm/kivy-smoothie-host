@@ -624,20 +624,23 @@ class Comms():
                         break
 
                     l= line.strip()
+
+                    if l.startswith('(MSG'):
+                        self.app.main_window.async_display(l)
+                        continue
+
                     if len(l) == 0 or l.startswith(';') or l.startswith('('):
                         continue
 
                     if self.abort_stream:
                         break
 
+                    if l.startswith('T'):
+                        self.last_tool= l
+
                     # handle tool change M6 or M06
-                    if self.app.manual_tool_change and ("M6 " in l or "M06 " in l):
-                        if self.last_tool != l:
-                            tool_change_state= 1
-                            self.last_tool= l
-                        else:
-                            # seems sometimes the tool change is duplicated so ignore if the tool is the same
-                            continue
+                    if self.app.manual_tool_change and (l == "M6" or l == "M06" or "M6 " in l or "M06 " in l):
+                        tool_change_state= 1
 
                 if self.abort_stream:
                     break
@@ -654,7 +657,7 @@ class Comms():
                         line= "M600\n"
                         # we need to pause the stream here immediately, but the real _stream_pause will be called by suspend
                         self.pause_stream= True # we don't normally set this directly
-                        self.app.main_window.tool_change_prompt(l)
+                        self.app.main_window.tool_change_prompt("{} - {}".format(l, self.last_tool))
                         tool_change_state= 0
 
                 # s= time.time()
