@@ -120,18 +120,6 @@ On an rpi3b+ it seems the double tap time needs to be increased to be usable..
     triple_tap_distance = 20
     triple_tap_time = 600 # <- and this to be > than double_tap_time
 
-
-### OR kivypie
-or use kivypie from here  http://kivypie.mitako.eu/ and the official 7" touch screen, pretty much runs out-of-the-box. 
-(NOTE WIFI does not work for the rpi3 A+/B+, so use Rasbian Stretch above).
-
-If you do not have kivypie, but have jessie installed and just want kivy for rpi then...
-
-    $ echo "deb http://archive.mitako.eu/ jessie main" > /etc/apt/sources.list.d/mitako.list
-    $ curl -L http://archive.mitako.eu/archive-mitako.gpg.key | apt-key add -
-    $ apt-get update
-    $ sudo apt-get install python3-kivypie
-
 ### Common setup
 It is recommended to do this:- 
 
@@ -177,7 +165,6 @@ To allow the program to shutdown the RPI when the shutdown menu entry is selecte
 ### Autostart Smoopi (Optional)
 
 To autostart smoopi on boot but run as the pi user follow these directions. (Assuming you are using stretch)...
-(if using a kivypie installation replace user pi with sysop)
 
 1. Install runit (sudo apt-get install runit). On Raspbian Stretch also do ```sudo apt-get install runit-systemd```
 2. in the /home/pi directory run ```tar xvf ./smoopi/runit-setup-stretch.tar``` (presuming you checked out the smoopi source into /home/pi/smoopi)
@@ -199,7 +186,7 @@ The smoopi app will start, and will also start on boot. (To stop it you type ```
 
 ### Shutdown and Startup button for RPI (Optional)
 Optionally to add a button to boot and to shutdown the rpi install a NORMALLY OPEN push button on pins 5 and 6 on the header, 
-then you need to add the shutdown script to autostart... ```sudo ln -s /home/sysop/sv/shutdown /etc/service```. NOTE you may need a capacitor across the button to stop noise shutting down the system.
+then you need to add the shutdown script to autostart... ```sudo ln -s /home/pi/sv/shutdown /etc/service```. NOTE you may need a capacitor across the button to stop noise shutting down the system.
 
 ### Backlight on RPI
 To allow Smoopi to turn on/off the backlight you need to do this...
