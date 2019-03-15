@@ -268,7 +268,40 @@ Then you will have the MPG/Pendant controller available for jogging etc.
 (NOTE you need the latest version of smoothieware dated greater than 1 October 2018 to support the $J command)
 
 ### HB04 wired  USB
-COMING SOON ... Support for the HB04 wired MACH3 USB pendant.
+Support for the wired LHB04 MACH3 USB pendant is now available.
+add the following to the smoothiehost.ini file...
+
+    [modules]
+    hb04 = 0x10ce:0xeb70
+
+    [hb04]
+    # user defined macro buttons
+    macro1 = G0 X20 Y20
+    macro2 = G0 {axis}0
+
+The easyhid still needs to be installed...
+
+* sudo apt-get install libffi-dev
+* sudo apt-get install libhidapi-libusb0
+* git clone https://github.com/ahtn/python-easyhid
+* cd python-easyhid
+* sudo python3 setup.py install
+
+then add this to /etc/udev/rules.d/50-HB04.rules...
+
+    SUBSYSTEMS=="usb", ATTRS{idVendor}=="10ce", ATTRS{idProduct}=="eb70", MODE:="0666"
+
+Plug in the HB04 and turn it on, then run smoopi.
+
+Many of the buttons have default actions, but can be redefined in the [hb04] section of the ini file. NOTE that if ```{axis}``` appears in the macro it will be replaced by the currently selected axis.
+
+The hard coded buttons are the step button which increases the move multiplier, and the MPG button next to it which decreases the multiplier.
+
+The Stop button will send a kill/halt to smoothie and the reset will send $X to unkill.
+
+The move to origin and home buttons do as you would expect.
+The ```=0``` button sets the WCS of the selected axis to 0.
+
 
 # Screen shots
 ![Extruder Screen](screen1.png)

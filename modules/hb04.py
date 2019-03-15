@@ -7,6 +7,7 @@ from kivy.app import App
 import threading
 import traceback
 import math
+import configparser
 
 hb04= None
 def start(args=""):
@@ -148,7 +149,7 @@ class HB04():
     alut= {0: 'off', 0x11:'X', 0x12:'Y', 0x13:'Z', 0x18:'A', 0x15: 'F', 0x14: 'S'}
     mul = 1
     mullut= {0x00: 1, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
-    macrobut= {"spindle": "M3"}
+    macrobut= {}
 
     def __init__(self, vid, pid):
         # HB04 vendor ID and product ID
@@ -171,6 +172,16 @@ class HB04():
         self.quit= True
         self.t.join()
 
+    def load_macros(self):
+        # load user defined macro buttons
+        try:
+            config = configparser.ConfigParser()
+            config.read('smoothiehost.ini')
+            for (key, v) in config.items('hb04'):
+                self.macrobut[key] = v
+        except Exception as err:
+            Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
+
     def handle_button(self, btn, axis):
         # button look up table
         butlut= {
@@ -190,9 +201,13 @@ class HB04():
             16:      "macro7",
         }
         name= butlut[btn]
+
         if(name in self.macrobut):
             # use redefined macro
             cmd= self.macrobut[name]
+            if "{axis}" in cmd:
+                cmd = cmd.replace("{axis}", axis)
+
             self.app.comms.write("{}\n".format(cmd))
             return True
 
@@ -201,7 +216,7 @@ class HB04():
         if btn == BUT_HOME:
             cmd= "$H"
         elif btn == BUT_ORIGIN:
-            cmd= "G0 X0 Y0"
+            cmd= "G90 G0 X0 Y0"
         elif btn == BUT_PROBEZ:
             cmd= "G30"
         elif btn == BUT_ZERO:
@@ -215,6 +230,7 @@ class HB04():
 
     def _run(self):
         self.app= App.get_running_app()
+        self.load_macros()
 
         try:
             # Open a connection to the HB04
