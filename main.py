@@ -1027,10 +1027,10 @@ class SmoothieHost(App):
             75: "Z{}".format(v),
             78: "Z{}".format(-v)
         }
-        fr= self.main_window.ids.tabs.jog_rose.xy_feedrate
+
         s= choices.get(keycode, None)
         if s is not None:
-            self.comms.write('M120 G91 G0 {} F{} M121\n'.format(s, fr))
+            self.comms.write('$J {}\n'.format(s))
             return True
 
         # handle command history if in desktop mode

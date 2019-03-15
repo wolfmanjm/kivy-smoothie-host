@@ -79,7 +79,7 @@ Once that is done setup smoopi to run on boot by doing...
 Once running use the System menu upgrade to fetch the latest smoopi. If that is successful, then quit under the System menu and smoopi will exit and then be restarted by runit.
 
 
-### Rasbian/Debian Stretch
+### Rasbian/Debian Stretch on RPI
 
 (Only tested on genuine RPI 7" multitouch screen).
 
