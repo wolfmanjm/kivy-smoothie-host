@@ -236,7 +236,7 @@ This requires the latest FirmwareBin/firmware-latest.bin from Smoothie github, (
 __NOTE__ to use the T0 and T1 buttons in the Extruder panel the temperature controls need to have the following designators 'T' and 'T1'. The temperature for the currently selected tool will show, and the set temp will apply to that tool.
 
 ## Pendants
-There is support for a hacked raw MPG pendant using a Teensy as a rawhid device.
+There is support for a home made MPG pendant using a Teensy as a rawhid device. Also the LHB04 Mach3 pendant.
 
 ### Home made
 Project here...
@@ -278,6 +278,19 @@ add the following to the smoothiehost.ini file...
     # user defined macro buttons
     macro1 = G0 X20 Y20
     macro2 = G0 {axis}0
+    #macro7 = 
+    #macro3 = 
+    #macro6 = 
+    #half = 
+    #safez = 
+    #spindle = 
+    #start = 
+    #rewind = 
+    # predefined buttons can be overriden
+    #origin = G90 G0 X0 Y0
+    #probez = G30
+    #zero = G10 L20 P0 {axis}0
+    #home = $H
 
 The easyhid still needs to be installed...
 
@@ -293,11 +306,11 @@ then add this to /etc/udev/rules.d/50-HB04.rules...
 
 Plug in the HB04 and turn it on, then run smoopi.
 
-Many of the buttons have default actions, but can be redefined in the [hb04] section of the ini file. NOTE that if ```{axis}``` appears in the macro it will be replaced by the currently selected axis.
+Many of the buttons have default actions, but can be redefined in the ```[hb04]``` section of the ini file. NOTE that if ```{axis}``` appears in the macro it will be replaced by the currently selected axis.
 
 The hard coded buttons are the step button which increases the move multiplier, and the MPG button next to it which decreases the multiplier.
 
-The Stop button will send a kill/halt to smoothie and the reset will send $X to unkill.
+The Stop button will send a kill/halt (control X) to smoothie and the reset will send ```$X``` to unkill.
 
 The move to origin and home buttons do as you would expect.
 The ```=0``` button sets the WCS of the selected axis to 0.
