@@ -328,10 +328,11 @@ class HB04():
         except:
             Logger.warn("HB04: Exception - {}".format(traceback.format_exc()))
 
-    def to_le(self, x):
-        (l, h)= list((abs(x) >> i) & 0xFF for i in range(0,16,8))
-        if x < 0:
-            h= h|0x80
+    def to_le(self, x, neg=False):
+        l = abs(x) & 0xFF
+        h = (abs(x) >> 8) & 0xFF
+        if neg and x < 0:
+            h |= 0x80
         return (l, h)
 
     def setwcs(self, axis, v):
@@ -341,7 +342,7 @@ class HB04():
         (l, h) = self.to_le(int(i))
         self.lcd_data[off[axis]]= l
         self.lcd_data[off[axis]+1]= h
-        (l, h) = self.to_le(f)
+        (l, h) = self.to_le(f, True)
         self.lcd_data[off[axis]+2]= l
         self.lcd_data[off[axis]+3]= h
 
@@ -352,7 +353,7 @@ class HB04():
         (l, h) = self.to_le(int(i))
         self.lcd_data[off[axis]]= l
         self.lcd_data[off[axis]+1]= h
-        (l, h) = self.to_le(f)
+        (l, h) = self.to_le(f, True)
         self.lcd_data[off[axis]+2]= l
         self.lcd_data[off[axis]+3]= h
 
