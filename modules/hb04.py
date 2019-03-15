@@ -150,6 +150,7 @@ class HB04():
     mul = 1
     mullut= {0x00: 1, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
     macrobut= {}
+    s_ovr= 100
 
     def __init__(self, vid, pid):
         # HB04 vendor ID and product ID
@@ -317,10 +318,16 @@ class HB04():
 
                     if wheel != 0:
                         if axis == 'F':
-                            # TODO adjust feed override
+                            # adjust feed override
+                            o= self.app.fro + wheel
+                            if o < 10: o= 10
+                            self.app.comms.write("M220 S{}".format(o));
                             continue
                         if axis == 'S':
-                            # TODO adjust S override
+                            # adjust S override, laser power? (TODO maybe this is tool speed?)
+                            self.s_ovr= self.s_ovr + wheel
+                            if self.s_ovr < 1: o= 1
+                            self.app.comms.write("M221 S{}".format(self.s_ovr));
                             continue
 
                         # must be one of XYZA so send jogging command
@@ -347,6 +354,7 @@ class HB04():
         except:
             Logger.warn("HB04: Exception - {}".format(traceback.format_exc()))
 
+    # converts a 16 bit value to little endian bytes sutiable for HB04 protocol
     def to_le(self, x, neg=False):
         l = abs(x) & 0xFF
         h = (abs(x) >> 8) & 0xFF
@@ -409,6 +417,6 @@ class HB04():
         self.setmcs('X', mpos[0])
         self.setmcs('Y', mpos[1])
         self.setmcs('Z', mpos[2])
-        self.setovr(self.app.fro, 100)
+        self.setovr(self.app.fro, self.s_ovr)
         self.setfs(self.app.frr, self.app.sr)
         self.update_lcd()
