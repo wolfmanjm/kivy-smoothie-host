@@ -324,11 +324,14 @@ class HB04():
                             continue
 
                         # must be one of XYZA so send jogging command
-                        step= -1 if wheel < 0 else 1
+                        # velocity_mode:
+                        # step= -1 if wheel < 0 else 1
+                        # s = -wheel if wheel < 0 else wheel
+                        # if s > 5: s == 5 # seems the max realistic we get
+                        # speed= s/5.0 # scale where 5 is max speed
+                        step= wheel # speed of wheel will move more increments rather than increase feed rate
                         dist= 0.001 * step * self.mullut[self.mul]
-                        s = -wheel if wheel < 0 else wheel
-                        if s > 5: s == 5 # seems the max realistic we get
-                        speed= s/5.0 # scale where 5 is max speed
+                        speed= 1.0
                         self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
                         #print("$J {}{} F{}\n".format(axis, dist, speed))
 

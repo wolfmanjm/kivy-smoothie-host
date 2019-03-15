@@ -292,7 +292,7 @@ add the following to the smoothiehost.ini file...
     #zero = G10 L20 P0 {axis}0
     #home = $H
 
-The easyhid still needs to be installed...
+Python Easyhid needs to be installed...
 
 * sudo apt-get install libffi-dev
 * sudo apt-get install libhidapi-libusb0
@@ -300,7 +300,7 @@ The easyhid still needs to be installed...
 * cd python-easyhid
 * sudo python3 setup.py install
 
-then add this to /etc/udev/rules.d/50-HB04.rules...
+then add this to ```/etc/udev/rules.d/50-HB04.rules```...
 
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="10ce", ATTRS{idProduct}=="eb70", MODE:="0666"
 
@@ -309,6 +309,7 @@ Plug in the HB04 and turn it on, then run smoopi.
 Many of the buttons have default actions, but can be redefined in the ```[hb04]``` section of the ini file. NOTE that if ```{axis}``` appears in the macro it will be replaced by the currently selected axis.
 
 The hard coded buttons are the step button which increases the move multiplier, and the MPG button next to it which decreases the multiplier.
+at x1 each encoder click moves 0.001mm, at x10 it moves 0.01mm, at x100 it moves 0.1mm etc.
 
 The Stop button will send a kill/halt (control X) to smoothie and the reset will send ```$X``` to unkill.
 
