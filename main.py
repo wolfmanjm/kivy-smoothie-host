@@ -372,6 +372,7 @@ class MainWindow(BoxLayout):
         if not self.app.is_cnc:
             self.ids.extruder.curtool= int(a[9][1])
         self.ids.dro_widget.curwcs= a[1]
+        self.app.is_inch= a[3] == 'G20'
 
     @mainthread
     def alarm_state(self, s):
@@ -678,6 +679,7 @@ class SmoothieHost(App):
     fro= NumericProperty(100)
     sr= NumericProperty(0)
     lp= NumericProperty(0)
+    is_inch= BooleanProperty(False)
     is_desktop= NumericProperty(0)
     is_cnc= BooleanProperty(False)
     tab_top= BooleanProperty(False)

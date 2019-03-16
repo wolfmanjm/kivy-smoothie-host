@@ -412,6 +412,9 @@ class HB04():
     def setmul(self, m):
         self.lcd_data[35]= m
 
+    def setinch(self, b):
+        self.lcd_data[36]= 0x80 if b else 0x00
+
     def update_lcd(self):
            n= self.hid.write(self.lcd_data)
             #print("Sent {} out of {}".format(n, len(lcd_data)))
@@ -428,4 +431,14 @@ class HB04():
         self.setmcs('Z', mpos[2])
         self.setovr(self.f_ovr, self.s_ovr)
         self.setfs(self.app.frr, self.app.sr)
+        if self.app.status == "Run":
+            self.setmul(self.mul|0x60)
+        elif self.app.status == "Home":
+            self.setmul(self.mul|0x50)
+        elif self.app.status == "Alarm":
+            self.setmul(self.mul|0x20)
+        else:
+            self.setmul(self.mul)
+
+        self.setinch(self.app.is_inch)
         self.update_lcd()

@@ -423,7 +423,8 @@ class Comms():
                 except:
                     self.log.error("Comms: error parsing status")
 
-            elif s.startswith('[PRB:'):
+            elif s.startswith('[PRB:') or (s.startswith('[') and ':' in s):
+                # Handle PRB returns and $#
                 self.app.main_window.async_display(s)
 
             elif s.startswith('['):

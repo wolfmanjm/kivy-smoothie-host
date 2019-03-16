@@ -70,7 +70,7 @@ M121 | Pop the last saved state
 M140 | Set Bed Temperature S<temperature>
 M143 | Set Maximum Temperature S<heater index> P<temperature>
 M190 | Set Bed Temperature and Wait S<temperature>
-M200 | Set E units for volumetric extrusion D<filament diameter> set to 0 to disable volumetric extrusion
+M200 | Set E units for volumetric extrusion D<filament diameter> 
 M203 | Set maximum cartesian feedrate <mm/sec>
 M203.1 | Set maximum actuator feedrate <mm/sec>
 M203 | Set maximum volumetric rate V<rate> in mm³/sec
@@ -79,8 +79,8 @@ M205 | set X<junction deviation> Z<z junction deviation> S<minimum planner speed
 M206 | Set homing offsets
 M207 | Set retract length S<length> F<feedrate> mm/min Z<additional zlift> Q<zlift feedrate> mm/min
 M208 | Set retract recover length S<mm> F<feedrate> mm/min
-M220 | set speed factor override percentage S<percent>
-M221 | set flow rate factor override S<percent>
+M220 | set speed factor override S<percent>
+M221 | set flow rate factor override or Laser power override S<percent>
 M301 | set PID parameters X<i_max> Y<max_pwm> S<heater> P<nnn> I<nnn> D<nnn>
 M303 | Begin PID auto-tune cycle  E<hotendid> S<temperature>
 M304 | Abort PID auto-tuning
