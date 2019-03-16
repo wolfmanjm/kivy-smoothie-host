@@ -274,7 +274,9 @@ add the following to the smoothiehost.ini file...
     [modules]
     hb04 = 0x10ce:0xeb70
 
-    [hb04]
+The button functions can be defined in the hb04.ini file...
+
+    [macros]
     # user defined macro buttons
     macro1 = G0 X20 Y20
     macro2 = G0 {axis}0

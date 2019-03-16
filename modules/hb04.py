@@ -177,8 +177,8 @@ class HB04():
         # load user defined macro buttons
         try:
             config = configparser.ConfigParser()
-            config.read('smoothiehost.ini')
-            for (key, v) in config.items('hb04'):
+            config.read('hb04.ini')
+            for (key, v) in config.items('macros'):
                 self.macrobut[key] = v
         except Exception as err:
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
