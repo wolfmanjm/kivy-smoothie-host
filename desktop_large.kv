@@ -141,6 +141,12 @@
                     text: 'X{:1.1f} Y{:1.1f} Z{:1.1f}'.format(*root.wpos)
                     color: 0,0,0,1
                 Label:
+                    id: armi
+                    text: '{}|{}'.format('A' if app.is_abs else 'R', 'I' if app.is_inch else 'M')
+                    size_hint_x: None
+                    width: status.texture_size[0]
+                    color: 0,0,0,1
+                Label:
                     id: eta
                     text: 'ETA: {}'.format(root.eta)
                     color: 0,0,0,1

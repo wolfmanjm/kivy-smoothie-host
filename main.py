@@ -373,6 +373,7 @@ class MainWindow(BoxLayout):
             self.ids.extruder.curtool= int(a[9][1])
         self.ids.dro_widget.curwcs= a[1]
         self.app.is_inch= a[3] == 'G20'
+        self.app.is_abs= a[4] == 'G90'
 
     @mainthread
     def alarm_state(self, s):
@@ -647,10 +648,9 @@ class MainWindow(BoxLayout):
             current_tab= self.ids.tabs.current_tab.text
             if current_tab == 'Macros': # macros screen
                 cmd += self.ids.macros.update_buttons()
-            elif current_tab == 'DRO': # DRO screen
-                cmd += self.ids.dro_widget.update_buttons()
-            elif current_tab == 'Extruder': # extruder screen
-                cmd += self.ids.extruder.update_buttons()
+
+            # always need the $I
+            cmd += self.ids.dro_widget.update_buttons()
 
         else:
             # in desktop mode we need to poll for state changes for macros and DRO
@@ -680,6 +680,7 @@ class SmoothieHost(App):
     sr= NumericProperty(0)
     lp= NumericProperty(0)
     is_inch= BooleanProperty(False)
+    is_abs= BooleanProperty(True)
     is_desktop= NumericProperty(0)
     is_cnc= BooleanProperty(False)
     tab_top= BooleanProperty(False)
