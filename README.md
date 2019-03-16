@@ -274,7 +274,7 @@ add the following to the smoothiehost.ini file...
     [modules]
     hb04 = 0x10ce:0xeb70
 
-The button functions can be defined in the hb04.ini file...
+The button functions can be defined in the hb04.ini file (see the sample-hb04.ini file)...
 
     [macros]
     # user defined macro buttons
@@ -308,7 +308,7 @@ then add this to ```/etc/udev/rules.d/50-HB04.rules```...
 
 Plug in the HB04 and turn it on, then run smoopi.
 
-Many of the buttons have default actions, but can be redefined in the ```[hb04]``` section of the ini file. NOTE that if ```{axis}``` appears in the macro it will be replaced by the currently selected axis.
+Many of the buttons have default actions, but can be redefined in the ```[macros]``` section of the hb04.ini file. NOTE that if ```{axis}``` appears in the macro it will be replaced by the currently selected axis.
 
 The hard coded buttons are the step button which increases the move multiplier, and the MPG button next to it which decreases the multiplier.
 at x1 each encoder click moves 0.001mm, at x10 it moves 0.01mm, at x100 it moves 0.1mm etc.
