@@ -150,6 +150,7 @@ class HB04():
     mul = 1
     mullut= {0x00: 1, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
     macrobut= {}
+    f_ovr= 100
     s_ovr= 100
 
     def __init__(self, vid, pid):
@@ -222,6 +223,8 @@ class HB04():
             cmd= "G30"
         elif btn == BUT_ZERO:
             cmd= "G10 L20 P0 {}0".format(axis)
+        elif btn == BUT_SAFEZ:
+            cmd= "G91 G0 Z20 G90"
 
         if cmd:
             self.app.comms.write("{}\n".format(cmd))
@@ -261,6 +264,10 @@ class HB04():
                     if size == 0:
                         # timeout
                         if self.app.is_connected:
+                            if self.f_ovr != self.app.fro:
+                                self.app.comms.write("M220 S{}".format(self.f_ovr));
+                            # if self.s_ovr != self.app.sr:
+                            #     self.app.comms.write("M221 S{}".format(self.s_ovr));
                             self.refresh_lcd()
                         continue
 
@@ -319,15 +326,17 @@ class HB04():
                     if wheel != 0:
                         if axis == 'F':
                             # adjust feed override
-                            o= self.app.fro + wheel
-                            if o < 10: o= 10
-                            self.app.comms.write("M220 S{}".format(o));
+                            self.f_ovr += wheel
+                            if self.f_ovr < 10: self.f_ovr= 10
+                            self.setovr(self.f_ovr, self.s_ovr)
+                            self.update_lcd()
                             continue
                         if axis == 'S':
                             # adjust S override, laser power? (TODO maybe this is tool speed?)
-                            self.s_ovr= self.s_ovr + wheel
-                            if self.s_ovr < 1: o= 1
-                            self.app.comms.write("M221 S{}".format(self.s_ovr));
+                            self.s_ovr += wheel
+                            if self.s_ovr < 1: self.s_ovr= 1
+                            self.setovr(self.f_ovr, self.s_ovr)
+                            self.update_lcd()
                             continue
 
                         # must be one of XYZA so send jogging command
@@ -417,6 +426,6 @@ class HB04():
         self.setmcs('X', mpos[0])
         self.setmcs('Y', mpos[1])
         self.setmcs('Z', mpos[2])
-        self.setovr(self.app.fro, self.s_ovr)
+        self.setovr(self.f_ovr, self.s_ovr)
         self.setfs(self.app.frr, self.app.sr)
         self.update_lcd()
