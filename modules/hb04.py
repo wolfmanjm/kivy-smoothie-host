@@ -362,11 +362,12 @@ class HB04():
                     Logger.info("HB04: Disconnected from HID device")
 
                 else:
-                    Logger.error("HB04: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
+                    Logger.debug("HB04: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
                     time.sleep(5)
 
             except:
-                Logger.warn("HB04: Exception - {}".format(traceback.format_exc()))
+                Logger.warn("HB04: Exception")
+                Logger.debug("HB04: Exception - {}".format(traceback.format_exc()))
                 if self.hid.opened:
                     self.hid.close()
                 time.sleep(5)
