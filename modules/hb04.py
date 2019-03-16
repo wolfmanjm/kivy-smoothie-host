@@ -8,6 +8,7 @@ import threading
 import traceback
 import math
 import configparser
+import time
 
 hb04= None
 def start(args=""):
@@ -30,6 +31,7 @@ class HB04HID:
     def __init__(self, verbose=False):
         self.verbose = verbose
         self.hid = None
+        self.opened= False
         return None
 
     # Initialize libhid and connect to USB device.
@@ -40,7 +42,7 @@ class HB04HID:
     # Returns True on success.
     # Returns False on failure.
     def open(self, vid, pid):
-        retval = False
+        self.opened = False
 
         # Stores an enumeration of all the connected USB HID devices
         #en = Enumeration(vid=vid, pid=pid)
@@ -63,7 +65,7 @@ class HB04HID:
         self.hid.open()
 
         Logger.debug("HB04HID: Opened: {}".format(self.hid.description()))
-
+        self.opened= True
         return True
 
     # Close HID connection and clean up.
@@ -72,6 +74,7 @@ class HB04HID:
     # Returns False on failure.
     def close(self):
         self.hid.close()
+        self.opened= False
         return True
 
     # Send a USB packet to the connected USB device.
@@ -236,134 +239,140 @@ class HB04():
         self.app= App.get_running_app()
         self.load_macros()
 
-        try:
-            # Open a connection to the HB04
-            if self.hid.open(self.vid, self.pid):
+        while not self.quit:
+            try:
+                # Open a connection to the HB04
+                if self.hid.open(self.vid, self.pid):
 
-                Logger.info("HB04: Connected to HID device %04X:%04X" % (self.vid, self.pid))
+                    Logger.info("HB04: Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
-                # setup LCD
-                self.setwcs('X', 0)
-                self.setwcs('Y', 0)
-                self.setwcs('Z', 0)
-                self.setmcs('X', 0)
-                self.setmcs('Y', 0)
-                self.setmcs('Z', 0)
-                self.setovr(100, 100)
-                self.setfs(3000, 10000)
-                self.setmul(self.mul)
-                self.update_lcd()
+                    # setup LCD
+                    self.setwcs('X', 0)
+                    self.setwcs('Y', 0)
+                    self.setwcs('Z', 0)
+                    self.setmcs('X', 0)
+                    self.setmcs('Y', 0)
+                    self.setmcs('Z', 0)
+                    self.setovr(100, 100)
+                    self.setfs(3000, 10000)
+                    self.setmul(self.mul)
+                    self.update_lcd()
 
-                # Infinite loop to read data from the HB04
-                while not self.quit:
-                    data = self.hid.recv(timeout=500)
-                    if data is None:
-                        continue
-
-                    size = len(data)
-                    if size == 0:
-                        # timeout
-                        if self.app.is_connected:
-                            if self.f_ovr != self.app.fro:
-                                self.app.comms.write("M220 S{}".format(self.f_ovr));
-                            # if self.s_ovr != self.app.sr:
-                            #     self.app.comms.write("M221 S{}".format(self.s_ovr));
-                            self.refresh_lcd()
-                        continue
-
-                    if data[0] != 0x04:
-                        Logger.error("HB04: Not an HB04 HID packet")
-                        continue
-
-                    btn_1 = data[1]
-                    btn_2 = data[2]
-                    wheel_mode = data[3]
-                    wheel= self.twos_comp(data[4], 8)
-                    xor_day= data[5]
-                    Logger.debug("HB04: btn_1: {}, btn_2: {}, mode: {}, wheel: {}".format(btn_1, btn_2, self.alut[wheel_mode], wheel))
-
-                    # handle move multiply buttons
-                    if btn_1 == BUT_STEP:
-                        self.mul += 1
-                        if self.mul > 10: self.mul = 1
-                        self.setmul(self.mul)
-                        self.update_lcd()
-                        continue
-
-                    if btn_1 == BUT_MPG:
-                        self.mul -= 1
-                        if self.mul < 1: self.mul = 10
-                        self.setmul(self.mul)
-                        self.update_lcd()
-                        continue
-
-                    if not self.app.is_connected:
-                        continue
-
-                    if btn_1 == BUT_STOP and self.app.status != 'Alarm':
-                        self.app.comms.write('\x18')
-                        continue
-
-                    if btn_1 == BUT_RESET and self.app.status == 'Alarm':
-                        self.app.comms.write('$X\n')
-                        continue
-
-
-                    # don't do jogging etc if printing
-                    if self.app.main_window.is_printing:
-                        continue
-
-                    if wheel_mode == 0:
-                        # when OFF all other buttons are ignored
-                        continue;
-
-                    axis= self.alut[wheel_mode]
-
-                    # handle other fixed and macro buttons
-                    if btn_1 != 0 and self.handle_button(btn_1, axis):
-                        continue
-
-                    if wheel != 0:
-                        if axis == 'F':
-                            # adjust feed override
-                            self.f_ovr += wheel
-                            if self.f_ovr < 10: self.f_ovr= 10
-                            self.setovr(self.f_ovr, self.s_ovr)
-                            self.update_lcd()
+                    # Infinite loop to read data from the HB04
+                    while not self.quit:
+                        data = self.hid.recv(timeout=500)
+                        if data is None:
                             continue
-                        if axis == 'S':
-                            # adjust S override, laser power? (TODO maybe this is tool speed?)
-                            self.s_ovr += wheel
-                            if self.s_ovr < 1: self.s_ovr= 1
-                            self.setovr(self.f_ovr, self.s_ovr)
+
+                        size = len(data)
+                        if size == 0:
+                            # timeout
+                            if self.app.is_connected:
+                                if self.f_ovr != self.app.fro:
+                                    self.app.comms.write("M220 S{}".format(self.f_ovr));
+                                # if self.s_ovr != self.app.sr:
+                                #     self.app.comms.write("M221 S{}".format(self.s_ovr));
+                                self.refresh_lcd()
+                            continue
+
+                        if data[0] != 0x04:
+                            Logger.error("HB04: Not an HB04 HID packet")
+                            continue
+
+                        btn_1 = data[1]
+                        btn_2 = data[2]
+                        wheel_mode = data[3]
+                        wheel= self.twos_comp(data[4], 8)
+                        xor_day= data[5]
+                        Logger.debug("HB04: btn_1: {}, btn_2: {}, mode: {}, wheel: {}".format(btn_1, btn_2, self.alut[wheel_mode], wheel))
+
+                        # handle move multiply buttons
+                        if btn_1 == BUT_STEP:
+                            self.mul += 1
+                            if self.mul > 10: self.mul = 1
+                            self.setmul(self.mul)
                             self.update_lcd()
                             continue
 
-                        # must be one of XYZA so send jogging command
-                        # velocity_mode:
-                        # step= -1 if wheel < 0 else 1
-                        # s = -wheel if wheel < 0 else wheel
-                        # if s > 5: s == 5 # seems the max realistic we get
-                        # speed= s/5.0 # scale where 5 is max speed
-                        step= wheel # speed of wheel will move more increments rather than increase feed rate
-                        dist= 0.001 * step * self.mullut[self.mul]
-                        speed= 1.0
-                        self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
-                        #print("$J {}{} F{}\n".format(axis, dist, speed))
+                        if btn_1 == BUT_MPG:
+                            self.mul -= 1
+                            if self.mul < 1: self.mul = 10
+                            self.setmul(self.mul)
+                            self.update_lcd()
+                            continue
+
+                        if not self.app.is_connected:
+                            continue
+
+                        if btn_1 == BUT_STOP and self.app.status != 'Alarm':
+                            self.app.comms.write('\x18')
+                            continue
+
+                        if btn_1 == BUT_RESET and self.app.status == 'Alarm':
+                            self.app.comms.write('$X\n')
+                            continue
 
 
-                # Close the HB04 connection
-                self.hid.close()
+                        # don't do jogging etc if printing
+                        if self.app.main_window.is_printing:
+                            continue
 
-                Logger.info("HB04: Disconnected from HID device")
+                        if wheel_mode == 0:
+                            # when OFF all other buttons are ignored
+                            continue;
 
-            else:
-                Logger.error("HB04: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
+                        axis= self.alut[wheel_mode]
 
-        except:
-            Logger.warn("HB04: Exception - {}".format(traceback.format_exc()))
+                        # handle other fixed and macro buttons
+                        if btn_1 != 0 and self.handle_button(btn_1, axis):
+                            continue
 
-    # converts a 16 bit value to little endian bytes sutiable for HB04 protocol
+                        if wheel != 0:
+                            if axis == 'F':
+                                # adjust feed override
+                                self.f_ovr += wheel
+                                if self.f_ovr < 10: self.f_ovr= 10
+                                self.setovr(self.f_ovr, self.s_ovr)
+                                self.update_lcd()
+                                continue
+                            if axis == 'S':
+                                # adjust S override, laser power? (TODO maybe this is tool speed?)
+                                self.s_ovr += wheel
+                                if self.s_ovr < 1: self.s_ovr= 1
+                                self.setovr(self.f_ovr, self.s_ovr)
+                                self.update_lcd()
+                                continue
+
+                            # must be one of XYZA so send jogging command
+                            # velocity_mode:
+                            # step= -1 if wheel < 0 else 1
+                            # s = -wheel if wheel < 0 else wheel
+                            # if s > 5: s == 5 # seems the max realistic we get
+                            # speed= s/5.0 # scale where 5 is max speed
+                            step= wheel # speed of wheel will move more increments rather than increase feed rate
+                            dist= 0.001 * step * self.mullut[self.mul]
+                            speed= 1.0
+                            self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
+                            #print("$J {}{} F{}\n".format(axis, dist, speed))
+
+
+                    # Close the HB04 connection
+                    self.hid.close()
+
+                    Logger.info("HB04: Disconnected from HID device")
+
+                else:
+                    Logger.error("HB04: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
+                    time.sleep(5)
+
+            except:
+                Logger.warn("HB04: Exception - {}".format(traceback.format_exc()))
+                if self.hid.opened:
+                    self.hid.close()
+                time.sleep(5)
+            # retry connection unless we were asked to quit
+
+    # converts a 16 bit value to little endian bytes suitable for HB04 protocol
     def to_le(self, x, neg=False):
         l = abs(x) & 0xFF
         h = (abs(x) >> 8) & 0xFF
