@@ -147,7 +147,7 @@ class HB04():
             0,          # state?
             0,0,0,0,0   # padding
         ]
-
+    lock = threading.RLock()
 
     alut= {0: 'off', 0x11:'X', 0x12:'Y', 0x13:'Z', 0x18:'A', 0x15: 'F', 0x14: 'S'}
     mul = 1
@@ -247,20 +247,28 @@ class HB04():
                     Logger.info("HB04: Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
                     # setup LCD
-                    self.setwcs('X', 0)
-                    self.setwcs('Y', 0)
-                    self.setwcs('Z', 0)
-                    self.setmcs('X', 0)
-                    self.setmcs('Y', 0)
-                    self.setmcs('Z', 0)
-                    self.setovr(100, 100)
+                    wpos= self.app.wpos
+                    mpos= self.app.mpos
+
+                    self.setwcs('X', wpos[0])
+                    self.setwcs('Y', wpos[1])
+                    self.setwcs('Z', wpos[2])
+                    self.setmcs('X', mpos[0])
+                    self.setmcs('Y', mpos[1])
+                    self.setmcs('Z', mpos[2])
+                    self.setovr(self.f_ovr, self.s_ovr)
                     self.setfs(3000, 10000)
                     self.setmul(self.mul)
                     self.update_lcd()
 
+                    # get notified when these change
+                    self.app.bind(wpos=self.update_wpos)
+                    self.app.bind(mpos=self.update_mpos)
+                    self.app.bind(fro=self.update_fro)
+
                     # Infinite loop to read data from the HB04
                     while not self.quit:
-                        data = self.hid.recv(timeout=500)
+                        data = self.hid.recv(timeout=1000)
                         if data is None:
                             continue
 
@@ -363,14 +371,19 @@ class HB04():
 
                 else:
                     Logger.debug("HB04: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
-                    time.sleep(5)
 
             except:
                 Logger.warn("HB04: Exception")
                 Logger.debug("HB04: Exception - {}".format(traceback.format_exc()))
                 if self.hid.opened:
                     self.hid.close()
+
+            self.app.unbind(wpos=self.update_wpos)
+            self.app.unbind(mpos=self.update_mpos)
+            self.app.unbind(fro=self.update_fro)
+            if not self.quit:
                 time.sleep(5)
+
             # retry connection unless we were asked to quit
 
     # converts a 16 bit value to little endian bytes suitable for HB04 protocol
@@ -386,60 +399,64 @@ class HB04():
         (f, i) = math.modf(v) # split into fraction and integer
         f= int(round(f*10000)) # we only need 3dp
         (l, h) = self.to_le(int(i))
+        self.lock.acquire()
         self.lcd_data[off[axis]]= l
         self.lcd_data[off[axis]+1]= h
         (l, h) = self.to_le(f, True)
         self.lcd_data[off[axis]+2]= l
         self.lcd_data[off[axis]+3]= h
+        self.lock.release()
 
     def setmcs(self, axis, v):
         off= {'X': 15, 'Y': 19, 'Z': 23}
         (f, i) = math.modf(v) # split into fraction and integer
         f= int(round(f*10000)) # we only need 3dp
         (l, h) = self.to_le(int(i))
+        self.lock.acquire()
         self.lcd_data[off[axis]]= l
         self.lcd_data[off[axis]+1]= h
         (l, h) = self.to_le(f, True)
         self.lcd_data[off[axis]+2]= l
         self.lcd_data[off[axis]+3]= h
+        self.lock.release()
 
     def setovr(self, f, s):
         (l, h) = self.to_le(int(round(f)))
+        self.lock.acquire()
         self.lcd_data[27]= l
         self.lcd_data[28]= h
         (l, h) = self.to_le(int(round(s)))
         self.lcd_data[29]= l
         self.lcd_data[30]= h
+        self.lock.release()
 
     def setfs(self, f, s):
         (l, h) = self.to_le(int(round(f)))
+        self.lock.acquire()
         self.lcd_data[31]= l
         self.lcd_data[32]= h
         (l, h) = self.to_le(int(round(s)))
         self.lcd_data[33]= l
         self.lcd_data[34]= h
+        self.lock.release()
 
     def setmul(self, m):
+        self.lock.acquire()
         self.lcd_data[35]= m
+        self.lock.release()
 
     def setinch(self, b):
+        self.lock.acquire()
         self.lcd_data[36]= 0x80 if b else 0x00
+        self.lock.release()
 
     def update_lcd(self):
-           n= self.hid.write(self.lcd_data)
-            #print("Sent {} out of {}".format(n, len(lcd_data)))
+        self.lock.acquire()
+        n= self.hid.write(self.lcd_data)
+        self.lock.release()
+        #print("Sent {} out of {}".format(n, len(lcd_data)))
 
     def refresh_lcd(self):
-        wpos= self.app.wpos
-        mpos= self.app.mpos
-
-        self.setwcs('X', wpos[0])
-        self.setwcs('Y', wpos[1])
-        self.setwcs('Z', wpos[2])
-        self.setmcs('X', mpos[0])
-        self.setmcs('Y', mpos[1])
-        self.setmcs('Z', mpos[2])
-        self.setovr(self.f_ovr, self.s_ovr)
         self.setfs(self.app.frr, self.app.sr)
         if self.app.status == "Run":
             self.setmul(self.mul|0x60)
@@ -452,3 +469,19 @@ class HB04():
 
         self.setinch(self.app.is_inch)
         self.update_lcd()
+
+    def update_wpos(self, i, v):
+        self.setwcs('X', v[0])
+        self.setwcs('Y', v[1])
+        self.setwcs('Z', v[2])
+        self.update_lcd()
+
+    def update_mpos(self, i, v):
+        self.setmcs('X', v[0])
+        self.setmcs('Y', v[1])
+        self.setmcs('Z', v[2])
+        self.update_lcd()
+
+    def update_fro(self, i, v):
+        self.f_ovr= v
+        self.setovr(self.f_ovr, self.s_ovr)
