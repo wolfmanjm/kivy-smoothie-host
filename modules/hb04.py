@@ -144,14 +144,14 @@ class HB04():
             0, 0,       # F
             0, 0,       # S
             0x01,       # step mul
-            0,          # state?
+            0,          # inch/mm
             0,0,0,0,0   # padding
         ]
     lock = threading.RLock()
 
     alut= {0: 'off', 0x11:'X', 0x12:'Y', 0x13:'Z', 0x18:'A', 0x15: 'F', 0x14: 'S'}
     mul = 1
-    mullut= {0x00: 1, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
+    mullut= {0x00: 0, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
     macrobut= {}
     f_ovr= 100
     s_ovr= 100

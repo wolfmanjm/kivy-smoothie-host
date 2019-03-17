@@ -172,7 +172,6 @@ class Comms():
             self.proto.send_message(data)
 
     def _get_reports(self):
-        self.timer= None
         queries= self.app.main_window.get_queries()
         if queries:
             self._write(queries)
@@ -516,8 +515,7 @@ class Comms():
         self.app.main_window.update_status(status, d)
 
         # schedule next report
-        if self.timer is None:
-            self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
+        self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
 
 
     def handle_alarm(self, s):
