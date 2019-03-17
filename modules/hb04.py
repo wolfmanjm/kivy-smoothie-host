@@ -246,18 +246,11 @@ class HB04():
 
                     Logger.info("HB04: Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
-                    # setup LCD
-                    wpos= self.app.wpos
-                    mpos= self.app.mpos
-
-                    self.setwcs('X', wpos[0])
-                    self.setwcs('Y', wpos[1])
-                    self.setwcs('Z', wpos[2])
-                    self.setmcs('X', mpos[0])
-                    self.setmcs('Y', mpos[1])
-                    self.setmcs('Z', mpos[2])
+                    # setup LCD with current settings
+                    self.setwcs(self.app.wpos)
+                    self.setmcs(self.app.mpos)
                     self.setovr(self.f_ovr, self.s_ovr)
-                    self.setfs(3000, 10000)
+                    self.setfs(self.app.frr, self.app.sr)
                     self.setmul(self.mul)
                     self.update_lcd()
 
@@ -382,43 +375,37 @@ class HB04():
             self.app.unbind(mpos=self.update_mpos)
             self.app.unbind(fro=self.update_fro)
             if not self.quit:
+                # retry connection in 5 seconds unless we were asked to quit
                 time.sleep(5)
 
-            # retry connection unless we were asked to quit
 
     # converts a 16 bit value to little endian bytes suitable for HB04 protocol
     def to_le(self, x, neg=False):
         l = abs(x) & 0xFF
         h = (abs(x) >> 8) & 0xFF
-        if neg and x < 0:
+        if neg:
             h |= 0x80
         return (l, h)
 
-    def setwcs(self, axis, v):
-        off= {'X': 3, 'Y': 7, 'Z': 11}
-        (f, i) = math.modf(v) # split into fraction and integer
-        f= int(round(f*10000)) # we only need 3dp
-        (l, h) = self.to_le(int(i))
+    def _setv(self, off, a):
         self.lock.acquire()
-        self.lcd_data[off[axis]]= l
-        self.lcd_data[off[axis]+1]= h
-        (l, h) = self.to_le(f, True)
-        self.lcd_data[off[axis]+2]= l
-        self.lcd_data[off[axis]+3]= h
+        for v in a:
+            (f, i) = math.modf(v) # split into fraction and integer
+            f= int(round(f*10000)) # we only need 3dp
+            (l, h) = self.to_le(int(i))
+            self.lcd_data[off]= l
+            self.lcd_data[off+1]= h
+            (l, h) = self.to_le(f, v < 0)
+            self.lcd_data[off+2]= l
+            self.lcd_data[off+3]= h
+            off += 4
         self.lock.release()
 
-    def setmcs(self, axis, v):
-        off= {'X': 15, 'Y': 19, 'Z': 23}
-        (f, i) = math.modf(v) # split into fraction and integer
-        f= int(round(f*10000)) # we only need 3dp
-        (l, h) = self.to_le(int(i))
-        self.lock.acquire()
-        self.lcd_data[off[axis]]= l
-        self.lcd_data[off[axis]+1]= h
-        (l, h) = self.to_le(f, True)
-        self.lcd_data[off[axis]+2]= l
-        self.lcd_data[off[axis]+3]= h
-        self.lock.release()
+    def setwcs(self, a):
+        self._setv(3, a)
+
+    def setmcs(self, a):
+        self._setv(15, a)
 
     def setovr(self, f, s):
         (l, h) = self.to_le(int(round(f)))
@@ -471,15 +458,11 @@ class HB04():
         self.update_lcd()
 
     def update_wpos(self, i, v):
-        self.setwcs('X', v[0])
-        self.setwcs('Y', v[1])
-        self.setwcs('Z', v[2])
+        self.setwcs(v)
         self.update_lcd()
 
     def update_mpos(self, i, v):
-        self.setmcs('X', v[0])
-        self.setmcs('Y', v[1])
-        self.setmcs('Z', v[2])
+        self.setmcs(v)
         self.update_lcd()
 
     def update_fro(self, i, v):
