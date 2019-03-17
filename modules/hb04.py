@@ -248,7 +248,7 @@ class HB04():
 
                     # setup LCD with current settings
                     self.setwcs(self.app.wpos)
-                    self.setmcs(self.app.mpos)
+                    self.setmcs(self.app.mpos[0:3])
                     self.setovr(self.f_ovr, self.s_ovr)
                     self.setfs(self.app.frr, self.app.sr)
                     self.setmul(self.mul)
@@ -462,7 +462,7 @@ class HB04():
         self.update_lcd()
 
     def update_mpos(self, i, v):
-        self.setmcs(v)
+        self.setmcs(v[0:3])
         self.update_lcd()
 
     def update_fro(self, i, v):
