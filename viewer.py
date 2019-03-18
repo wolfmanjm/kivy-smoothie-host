@@ -257,7 +257,7 @@ class GcodeViewerScreen(Screen):
             else:
                 return yc,zc
 
-    extract_gcode= re.compile("(G|X|Y|Z|I|J|K|E|S)(-?\d*\.?\d+\.?)")
+    extract_gcode= re.compile("(G|X|Y|Z|I|J|K|E|S)(-?\d*\.?\d*\.?)")
     def parse_gcode_file(self, fn, target_layer= 0, one_layer= False):
         # open file parse gcode and draw
         Logger.debug("GcodeViewerScreen: parsing file {}". format(fn))
@@ -303,249 +303,255 @@ class GcodeViewerScreen(Screen):
             #     f.seek(self.last_file_pos)
             #     self.last_file_pos= None
             #     print('Jumped to Saved position: {}'.format(self.last_file_pos))
-            for l in f:
+            for ln in f:
                 cnt += 1
-                l = l.strip()
-                if not l: continue
-                if l.startswith(';'): continue
-                if l.startswith('('): continue
-                p= l.find(';')
-                if p >= 0: l= l[:p]
-                matches = self.extract_gcode.findall(l)
-                if len(matches) == 0: continue
+                ln = ln.strip()
+                if not ln: continue
+                if ln.startswith(';'): continue
+                if ln.startswith('('): continue
+                p= ln.find(';')
+                if p >= 0: ln= ln[:p]
+                # split off multiple G commands
+                ll= ln.split('G')
+                for l in ll:
+                    if not l: continue
+                    l = "G" + l
+                    print(l)
+                    matches = self.extract_gcode.findall(l)
+                    if len(matches) == 0: continue
 
-                #print(cnt, matches)
-                d= dict((m[0], float(m[1])) for m in matches)
+                    #print(cnt, matches)
+                    d= dict((m[0], float(m[1])) for m in matches)
 
-                # handle modal commands
-                if 'G' not in d and ('X' in d or 'Y' in d or 'Z' in d or 'S' in d) :
-                    d['G'] = modal_g
+                    # handle modal commands
+                    if 'G' not in d and ('X' in d or 'Y' in d or 'Z' in d or 'S' in d) :
+                        d['G'] = modal_g
 
-                # G92 E0 resets E
-                if 'G' in d and d['G'] == 92 and 'E' in d:
-                    laste= float(d['E'])
-                    has_e= True
+                    # G92 E0 resets E
+                    if 'G' in d and d['G'] == 92 and 'E' in d:
+                        laste= float(d['E'])
+                        has_e= True
 
-                if 'G' in d and (d['G'] == 91 or d['G'] == 90):
-                    rel_move= d['G'] == 91
+                    if 'G' in d and (d['G'] == 91 or d['G'] == 90):
+                        rel_move= d['G'] == 91
 
-                # only deal with G0/1/2/3
-                if d['G'] > 3: continue
+                    # only deal with G0/1/2/3
+                    if d['G'] > 3: continue
 
-                modal_g= d['G']
+                    modal_g= d['G']
 
-                # see if it is 3d printing (ie has an E axis on a G1)
-                if not has_e and ('E' in d and 'G' in d and d['G'] == 1): has_e= True
+                    # see if it is 3d printing (ie has an E axis on a G1)
+                    if not has_e and ('E' in d and 'G' in d and d['G'] == 1): has_e= True
 
-                if rel_move:
-                    x += 0 if 'X' not in d else float(d['X'])
-                    y += 0 if 'Y' not in d else float(d['Y'])
-                    z += 0 if 'Z' not in d else float(d['Z'])
-
-                else:
-                    x= lastpos[0] if 'X' not in d else float(d['X'])
-                    y= lastpos[1] if 'Y' not in d else float(d['Y'])
-                    z= lastpos[2] if 'Z' not in d else float(d['Z'])
-
-                i= 0.0 if 'I' not in d else float(d['I'])
-                j= 0.0 if 'J' not in d else float(d['J'])
-                self.rval= 0.0 if 'R' not in d else float(d['R'])
-
-                e= laste if 'E' not in d else float(d['E'])
-                s= lasts if 'S' not in d else float(d['S'])
-
-                if not self.twod_mode :
-                    # handle layers (when Z changes)
-                    if z == -1:
-                        # no z seen yet
-                        layer= -1
-                        continue
-
-                    if lastz is None:
-                        # first layer
-                        lastz= z
-                        layer= 1
-
-
-                    if z != lastz:
-                        # count layers
-                        layer += 1
-                        lastz= z
-
-                    # wait until we get to the requested layer
-                    if layer != target_layer:
-                        lastpos[2]= z
-                        continue
-
-                    if layer > target_layer and one_layer:
-                        # FIXME for some reason this does not work, -- not counting layers
-                        #self.last_file_pos= f.tell()
-                        #print('Saved position: {}'.format(self.last_file_pos))
-                        break
-
-                    self.current_z= z
-
-                found_layer= True
-
-                Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}, s= {}".format(x, y, z, s))
-
-                # find bounding box
-                if math.isnan(min_x) or x < min_x: min_x= x
-                if math.isnan(min_y) or y < min_y: min_y= y
-                if math.isnan(max_x) or x > max_x: max_x= x
-                if math.isnan(max_y) or y > max_y: max_y= y
-
-                gcode= d['G']
-
-                # accumulating vertices is more efficient but we need to flush them at some point
-                # Here we flush them if we encounter a new G code like G3 following G1
-                if last_gcode != gcode:
-                    # flush vertices
-                    if points:
-                        self.canv.add(Color(0, 0, 0))
-                        self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
-                        points= []
-
-                last_gcode= gcode
-
-                # in slicer generated files there is no G0 so we need a way to know when to draw, so if there is an E then draw else don't
-                if gcode == 0:
-                    #print("move to: {}, {}, {}".format(x, y, z))
-                    # draw moves in dashed red
-                    self.canv.add(Color(1, 0, 0))
-                    self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, dash_offset= 1, cap='none', joint='none'))
-
-                elif gcode == 1:
-                    if ('X' in d or 'Y' in d):
-                        if self.laser_mode and s <= 0.01:
-                            # do not draw non cutting lines
-                            if points:
-                                # draw accumulated points upto this point
-                                self.canv.add(Color(0, 0, 0))
-                                self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
-                                points= []
-
-                        # for 3d printers (has_e) only draw if there is an E
-                        elif not has_e or 'E' in d:
-                            # if a CNC gcode file or there is an E in the G1 (3d printing)
-                            #print("draw to: {}, {}, {}".format(x, y, z))
-                            # collect points but don't draw them yet
-                            if len(points) < 2:
-                                points.append(lastpos[0])
-                                points.append(lastpos[1])
-
-                            points.append(x)
-                            points.append(y)
-
-                        else:
-                            # a G1 with no E, treat as G0 and draw moves in red
-                            #print("move to: {}, {}, {}".format(x, y, z))
-                            if points:
-                                # draw accumulated points upto this point
-                                self.canv.add(Color(0, 0, 0))
-                                self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
-                                points= []
-                            # now draw the move in red
-                            self.canv.add(Color(1, 0, 0))
-                            self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, cap='none', joint='none'))
+                    if rel_move:
+                        x += 0 if 'X' not in d else float(d['X'])
+                        y += 0 if 'Y' not in d else float(d['Y'])
+                        z += 0 if 'Z' not in d else float(d['Z'])
 
                     else:
-                        # A G1 with no X or Y, maybe E only move (retract) or Z move (layer change)
+                        x= lastpos[0] if 'X' not in d else float(d['X'])
+                        y= lastpos[1] if 'Y' not in d else float(d['Y'])
+                        z= lastpos[2] if 'Z' not in d else float(d['Z'])
+
+                    i= 0.0 if 'I' not in d else float(d['I'])
+                    j= 0.0 if 'J' not in d else float(d['J'])
+                    self.rval= 0.0 if 'R' not in d else float(d['R'])
+
+                    e= laste if 'E' not in d else float(d['E'])
+                    s= lasts if 'S' not in d else float(d['S'])
+
+                    if not self.twod_mode :
+                        # handle layers (when Z changes)
+                        if z == -1:
+                            # no z seen yet
+                            layer= -1
+                            continue
+
+                        if lastz is None:
+                            # first layer
+                            lastz= z
+                            layer= 1
+
+
+                        if z != lastz:
+                            # count layers
+                            layer += 1
+                            lastz= z
+
+                        # wait until we get to the requested layer
+                        if layer != target_layer:
+                            lastpos[2]= z
+                            continue
+
+                        if layer > target_layer and one_layer:
+                            # FIXME for some reason this does not work, -- not counting layers
+                            #self.last_file_pos= f.tell()
+                            #print('Saved position: {}'.format(self.last_file_pos))
+                            break
+
+                        self.current_z= z
+
+                    found_layer= True
+
+                    Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}, s= {}".format(x, y, z, s))
+
+                    # find bounding box
+                    if math.isnan(min_x) or x < min_x: min_x= x
+                    if math.isnan(min_y) or y < min_y: min_y= y
+                    if math.isnan(max_x) or x > max_x: max_x= x
+                    if math.isnan(max_y) or y > max_y: max_y= y
+
+                    gcode= d['G']
+
+                    # accumulating vertices is more efficient but we need to flush them at some point
+                    # Here we flush them if we encounter a new G code like G3 following G1
+                    if last_gcode != gcode:
+                        # flush vertices
                         if points:
-                            # draw accumulated points upto this point
                             self.canv.add(Color(0, 0, 0))
                             self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
                             points= []
 
+                    last_gcode= gcode
 
-                elif gcode in [2, 3]: # CW=2,CCW=3 circle
-                    # code cribbed from bCNC
-                    xyz= []
-                    xyz.append((lastpos[0],lastpos[1],lastpos[2]))
-                    uc,vc = self.motionCenter(gcode, plane, lastpos, [x,y,z], i, j)
+                    # in slicer generated files there is no G0 so we need a way to know when to draw, so if there is an E then draw else don't
+                    if gcode == 0:
+                        #print("move to: {}, {}, {}".format(x, y, z))
+                        # draw moves in dashed red
+                        self.canv.add(Color(1, 0, 0))
+                        self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, dash_offset= 1, cap='none', joint='none'))
 
-                    if plane == XY:
-                        u0 = lastpos[0]
-                        v0 = lastpos[1]
-                        w0 = lastpos[2]
-                        u1 = x
-                        v1 = y
-                        w1 = z
-                    elif plane == XZ:
-                        u0 = lastpos[0]
-                        v0 = lastpos[2]
-                        w0 = lastpos[1]
-                        u1 = x
-                        v1 = z
-                        w1 = y
-                        gcode = 5-gcode # flip 2-3 when XZ plane is used
-                    else:
-                        u0 = lastpos[1]
-                        v0 = lastpos[2]
-                        w0 = lastpos[0]
-                        u1 = y
-                        v1 = z
-                        w1 = x
-                    phi0 = math.atan2(v0-vc, u0-uc)
-                    phi1 = math.atan2(v1-vc, u1-uc)
-                    try:
-                        sagitta = 1.0-CNC_accuracy/self.rval
-                    except ZeroDivisionError:
-                        sagitta = 0.0
-                    if sagitta>0.0:
-                        df = 2.0*math.acos(sagitta)
-                        df = min(df, math.pi/4.0)
-                    else:
-                        df = math.pi/4.0
+                    elif gcode == 1:
+                        if ('X' in d or 'Y' in d):
+                            if self.laser_mode and s <= 0.01:
+                                # do not draw non cutting lines
+                                if points:
+                                    # draw accumulated points upto this point
+                                    self.canv.add(Color(0, 0, 0))
+                                    self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                                    points= []
 
-                    if gcode==2:
-                        if phi1>=phi0-1e-10: phi1 -= 2.0*math.pi
-                        ws  = (w1-w0)/(phi1-phi0)
-                        phi = phi0 - df
-                        while phi>phi1:
-                            u = uc + self.rval*math.cos(phi)
-                            v = vc + self.rval*math.sin(phi)
-                            w = w0 + (phi-phi0)*ws
-                            phi -= df
-                            if plane == XY:
-                                xyz.append((u,v,w))
-                            elif plane == XZ:
-                                xyz.append((u,w,v))
+                            # for 3d printers (has_e) only draw if there is an E
+                            elif not has_e or 'E' in d:
+                                # if a CNC gcode file or there is an E in the G1 (3d printing)
+                                #print("draw to: {}, {}, {}".format(x, y, z))
+                                # collect points but don't draw them yet
+                                if len(points) < 2:
+                                    points.append(lastpos[0])
+                                    points.append(lastpos[1])
+
+                                points.append(x)
+                                points.append(y)
+
                             else:
-                                xyz.append((w,u,v))
-                    else:
-                        if phi1<=phi0+1e-10: phi1 += 2.0*math.pi
-                        ws  = (w1-w0)/(phi1-phi0)
-                        phi = phi0 + df
-                        while phi<phi1:
-                            u = uc + self.rval*math.cos(phi)
-                            v = vc + self.rval*math.sin(phi)
-                            w = w0 + (phi-phi0)*ws
-                            phi += df
-                            if plane == XY:
-                                xyz.append((u,v,w))
-                            elif plane == XZ:
-                                xyz.append((u,w,v))
-                            else:
-                                xyz.append((w,u,v))
+                                # a G1 with no E, treat as G0 and draw moves in red
+                                #print("move to: {}, {}, {}".format(x, y, z))
+                                if points:
+                                    # draw accumulated points upto this point
+                                    self.canv.add(Color(0, 0, 0))
+                                    self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                                    points= []
+                                # now draw the move in red
+                                self.canv.add(Color(1, 0, 0))
+                                self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width= 1, cap='none', joint='none'))
 
-                    xyz.append((x,y,z))
-                    # plot the points
-                    points= []
-                    for t in xyz:
-                        x1,y1,z1 = t
-                        points.append(x1)
-                        points.append(y1)
-
-                    self.canv.add(Color(0, 0, 0))
-                    self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
-                    points= []
+                        else:
+                            # A G1 with no X or Y, maybe E only move (retract) or Z move (layer change)
+                            if points:
+                                # draw accumulated points upto this point
+                                self.canv.add(Color(0, 0, 0))
+                                self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                                points= []
 
 
-                # always remember last position
-                lastpos= [x, y, z]
-                laste= e
-                lasts= s
+                    elif gcode in [2, 3]: # CW=2,CCW=3 circle
+                        # code cribbed from bCNC
+                        xyz= []
+                        xyz.append((lastpos[0],lastpos[1],lastpos[2]))
+                        uc,vc = self.motionCenter(gcode, plane, lastpos, [x,y,z], i, j)
+
+                        if plane == XY:
+                            u0 = lastpos[0]
+                            v0 = lastpos[1]
+                            w0 = lastpos[2]
+                            u1 = x
+                            v1 = y
+                            w1 = z
+                        elif plane == XZ:
+                            u0 = lastpos[0]
+                            v0 = lastpos[2]
+                            w0 = lastpos[1]
+                            u1 = x
+                            v1 = z
+                            w1 = y
+                            gcode = 5-gcode # flip 2-3 when XZ plane is used
+                        else:
+                            u0 = lastpos[1]
+                            v0 = lastpos[2]
+                            w0 = lastpos[0]
+                            u1 = y
+                            v1 = z
+                            w1 = x
+                        phi0 = math.atan2(v0-vc, u0-uc)
+                        phi1 = math.atan2(v1-vc, u1-uc)
+                        try:
+                            sagitta = 1.0-CNC_accuracy/self.rval
+                        except ZeroDivisionError:
+                            sagitta = 0.0
+                        if sagitta>0.0:
+                            df = 2.0*math.acos(sagitta)
+                            df = min(df, math.pi/4.0)
+                        else:
+                            df = math.pi/4.0
+
+                        if gcode==2:
+                            if phi1>=phi0-1e-10: phi1 -= 2.0*math.pi
+                            ws  = (w1-w0)/(phi1-phi0)
+                            phi = phi0 - df
+                            while phi>phi1:
+                                u = uc + self.rval*math.cos(phi)
+                                v = vc + self.rval*math.sin(phi)
+                                w = w0 + (phi-phi0)*ws
+                                phi -= df
+                                if plane == XY:
+                                    xyz.append((u,v,w))
+                                elif plane == XZ:
+                                    xyz.append((u,w,v))
+                                else:
+                                    xyz.append((w,u,v))
+                        else:
+                            if phi1<=phi0+1e-10: phi1 += 2.0*math.pi
+                            ws  = (w1-w0)/(phi1-phi0)
+                            phi = phi0 + df
+                            while phi<phi1:
+                                u = uc + self.rval*math.cos(phi)
+                                v = vc + self.rval*math.sin(phi)
+                                w = w0 + (phi-phi0)*ws
+                                phi += df
+                                if plane == XY:
+                                    xyz.append((u,v,w))
+                                elif plane == XZ:
+                                    xyz.append((u,w,v))
+                                else:
+                                    xyz.append((w,u,v))
+
+                        xyz.append((x,y,z))
+                        # plot the points
+                        points= []
+                        for t in xyz:
+                            x1,y1,z1 = t
+                            points.append(x1)
+                            points.append(y1)
+
+                        self.canv.add(Color(0, 0, 0))
+                        self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                        points= []
+
+
+                    # always remember last position
+                    lastpos= [x, y, z]
+                    laste= e
+                    lasts= s
 
         if not found_layer:
             # we hit the end of file before finding the layer we want
@@ -618,7 +624,7 @@ class GcodeViewerScreen(Screen):
         Logger.debug("GcodeViewerScreen: done loading")
 
     def update_tool(self, dt= 0):
-        if not self.is_visible: return
+        if not self.is_visible or not self.app.is_connected: return
 
         # follow the tool path
         #self.canv.remove_group("tool")
