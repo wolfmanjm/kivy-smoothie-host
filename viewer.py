@@ -844,9 +844,9 @@ if __name__ == '__main__':
             self.sm.add_widget(StartScreen(name='main'))
             self.sm.add_widget(GcodeViewerScreen(name='gcode'))
             if len(sys.argv) > 1: self.sm.current= 'gcode'
-            level = LOG_LEVELS.get('debug')
+            level = LOG_LEVELS.get('debug') if len(sys.argv) > 2 else LOG_LEVELS.get('info')
             Logger.setLevel(level=level)
-            logging.getLogger().setLevel(logging.DEBUG)
+            # logging.getLogger().setLevel(logging.DEBUG)
             return self.sm
 
     GcodeViewerApp().run()
