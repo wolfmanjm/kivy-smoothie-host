@@ -374,7 +374,7 @@ class MainWindow(BoxLayout):
         self.ids.dro_widget.curwcs= a[1]
         self.app.is_inch= a[3] == 'G20'
         self.app.is_abs= a[4] == 'G90'
-        self.is_spindle_on= a[7] == 'M3'
+        self.app.is_spindle_on= a[7] == 'M3'
 
     @mainthread
     def alarm_state(self, s):

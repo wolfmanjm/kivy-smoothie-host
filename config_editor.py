@@ -111,7 +111,7 @@ class ConfigEditor(Screen):
             sw= "switch.{}".format(opts['Name'])
             self.rv.data.insert(0, {'k': "{}.input_off_command".format(sw), 'v': opts['Off Command']})
             self.rv.data.insert(0, {'k': "{}.input_on_command".format(sw), 'v': opts['On Command']})
-            self.rv.data.insert(0, {'k': "{}.output_pin".format(sw), 'v': opts['pin']})
+            self.rv.data.insert(0, {'k': "{}.output_pin".format(sw), 'v': opts['Pin']})
             self.rv.data.insert(0, {'k': "{}.enable".format(sw), 'v': 'true'})
             for i in range(4):
                 self.save_change(self.rv.data[i]['k'], self.rv.data[i]['v'])

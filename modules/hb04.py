@@ -229,7 +229,7 @@ class HB04():
         elif btn == BUT_SAFEZ:
             cmd= "G91 G0 Z20 G90"
         elif btn == BUT_SPINDLE:
-            cmd= "M5" if app.is_spindle_on else "M3"
+            cmd= "M5" if self.app.is_spindle_on else "M3"
 
         if cmd:
             self.app.comms.write("{}\n".format(cmd))
