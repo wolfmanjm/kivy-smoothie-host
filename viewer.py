@@ -311,37 +311,47 @@ class GcodeViewerScreen(Screen):
                 if ln.startswith('('): continue
                 p= ln.find(';')
                 if p >= 0: ln= ln[:p]
-                # split off multiple G commands
-                ll= ln.split('G')
-                for l in ll:
-                    if not l: continue
-                    l = "G" + l
-                    print(l)
-                    matches = self.extract_gcode.findall(l)
-                    if len(matches) == 0: continue
+                matches = self.extract_gcode.findall(ln)
 
-                    #print(cnt, matches)
-                    d= dict((m[0], float(m[1])) for m in matches)
+                # this handles multiple G codes on one line
+                gcodes = []
+                d= {}
+                for m in matches:
+                    #print(m)
+                    if m[0] == 'G' and 'G' in d:
+                        # we have another G code on the same line
+                        gcodes.append(d)
+                        d= {}
+                    d[m[0]]= float(m[1])
+
+                gcodes.append(d)
+
+                for d in gcodes:
+                    if not d: continue
+
+                    Logger.debug("GcodeViewerScreen: d={}".format(d))
 
                     # handle modal commands
                     if 'G' not in d and ('X' in d or 'Y' in d or 'Z' in d or 'S' in d) :
                         d['G'] = modal_g
 
+                    gcode= int(d['G'])
+
                     # G92 E0 resets E
-                    if 'G' in d and d['G'] == 92 and 'E' in d:
+                    if 'G' in d and gcode == 92 and 'E' in d:
                         laste= float(d['E'])
                         has_e= True
 
-                    if 'G' in d and (d['G'] == 91 or d['G'] == 90):
-                        rel_move= d['G'] == 91
+                    if 'G' in d and (gcode == 91 or gcode == 90):
+                        rel_move= gcode == 91
 
                     # only deal with G0/1/2/3
-                    if d['G'] > 3: continue
+                    if gcode > 3: continue
 
-                    modal_g= d['G']
+                    modal_g= gcode
 
                     # see if it is 3d printing (ie has an E axis on a G1)
-                    if not has_e and ('E' in d and 'G' in d and d['G'] == 1): has_e= True
+                    if not has_e and ('E' in d and 'G' in d and gcode == 1): has_e= True
 
                     if rel_move:
                         x += 0 if 'X' not in d else float(d['X'])
@@ -401,7 +411,12 @@ class GcodeViewerScreen(Screen):
                     if math.isnan(max_x) or x > max_x: max_x= x
                     if math.isnan(max_y) or y > max_y: max_y= y
 
-                    gcode= d['G']
+                    # handle radius if G2/3
+                    if gcode >= 2:
+                        max_x= max(x+i, max_x)
+                        min_x= min(x+i, min_x)
+                        max_y= max(y+i, max_y)
+                        min_y= min(y+i, max_y)
 
                     # accumulating vertices is more efficient but we need to flush them at some point
                     # Here we flush them if we encounter a new G code like G3 following G1
