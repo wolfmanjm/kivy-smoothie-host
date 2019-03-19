@@ -413,10 +413,10 @@ class GcodeViewerScreen(Screen):
 
                     # handle radius if G2/3
                     if gcode >= 2:
-                        max_x= max(x+i, max_x)
-                        min_x= min(x+i, min_x)
-                        max_y= max(y+i, max_y)
-                        min_y= min(y+i, max_y)
+                        max_x= max(x+i, x+j, max_x)
+                        min_x= min(x+i, x+j, min_x)
+                        max_y= max(y+j, y+i, max_y)
+                        min_y= min(y+j, y+i, max_y)
 
                     # accumulating vertices is more efficient but we need to flush them at some point
                     # Here we flush them if we encounter a new G code like G3 following G1
