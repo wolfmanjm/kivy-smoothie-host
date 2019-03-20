@@ -283,7 +283,6 @@ The button functions can be defined in the hb04.ini file (see the sample-hb04.in
     #macro7 = 
     #macro3 = 
     #macro6 = 
-    #half = 
     #start = 
     #rewind = 
     # predefined buttons can be overriden
@@ -293,6 +292,7 @@ The button functions can be defined in the hb04.ini file (see the sample-hb04.in
     #zero = G10 L20 P0 {axis}0
     #home = $H
     #spindle = M3 or M5 depending on whether spindle switch is on or off
+    #half = "G90 G0 {}{}".format(axis, self.app.wpos[axis-88]/2)
 
 Python Easyhid needs to be installed...
 
@@ -318,6 +318,7 @@ The Stop button will send a kill/halt (control X) to smoothie and the reset will
 The move to origin and home buttons do as you would expect.
 The ```=0``` button sets the WCS of the selected axis to 0.
 The spindle button will toggle the spindle switch on and off (if one is defined)
+The ```=1/2``` button will move the currently selected axis to half the current WCS. (ie if WCS is set to 0,0 at front left and spnidle is at right edge it would move to the middle in X)
 
 # Screen shots
 ![Extruder Screen](screen1.png)
