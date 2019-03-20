@@ -318,7 +318,7 @@ The Stop button will send a kill/halt (control X) to smoothie and the reset will
 The move to origin and home buttons do as you would expect.
 The ```=0``` button sets the WCS of the selected axis to 0.
 The spindle button will toggle the spindle switch on and off (if one is defined)
-The ```=1/2``` button will set the WCS of the currently selected axis to half the current position. (eg if WCS is set to 0 at left edge and spindle is at right edge it would set the WCS X to half the current value so then going to X0 ```=0```  it would move the spindle to the center X position)
+The ```=1/2``` button will set the WCS of the currently selected axis to half the current position. (eg if WCS is set to 0 at left edge and spindle is at right edge it would set the WCS X to half the current value so then going to G0 X0 it would move the spindle to the center X position)
 
 # Screen shots
 ![Extruder Screen](screen1.png)
