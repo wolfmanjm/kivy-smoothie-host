@@ -230,6 +230,8 @@ class HB04():
             cmd= "G91 G0 Z20 G90"
         elif btn == BUT_SPINDLE:
             cmd= "M5" if self.app.is_spindle_on else "M3"
+        elif btn == BUT_HALF:
+            cmd= "G90 G0 {}{}".format(axis, self.app.wpos[axis-88]/2) # axis-'X'
 
         if cmd:
             self.app.comms.write("{}\n".format(cmd))
