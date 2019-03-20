@@ -231,7 +231,7 @@ class HB04():
         elif btn == BUT_SPINDLE:
             cmd= "M5" if self.app.is_spindle_on else "M3"
         elif btn == BUT_HALF:
-            cmd= "G90 G0 {}{}".format(axis, self.app.wpos[axis-88]/2) # axis-'X'
+            cmd= "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis)-ord('X')]/2)
 
         if cmd:
             self.app.comms.write("{}\n".format(cmd))
@@ -371,7 +371,7 @@ class HB04():
 
             except:
                 Logger.warn("HB04: Exception")
-                Logger.debug("HB04: Exception - {}".format(traceback.format_exc()))
+                Logger.error("HB04: Exception - {}".format(traceback.format_exc()))
                 if self.hid.opened:
                     self.hid.close()
 
