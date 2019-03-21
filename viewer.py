@@ -133,14 +133,9 @@ class GcodeViewerScreen(Screen):
         self.comms= comms
         self.twod_mode= self.app.is_cnc
         self.rval= 0.0
-        self.timer= None
 
     def loading(self, l=1):
-        if self.timer:
-            self.timer.cancel()
-            self.timer= None
-            self.valid= False
-
+        self.valid= False
         self.li= Image(source='img/image-loading.gif')
         self.add_widget(self.li)
         self.ids.surface.canvas.remove(self.canv)
@@ -156,8 +151,9 @@ class GcodeViewerScreen(Screen):
         if self._loaded_ok:
             # not sure why we need to do this
             self.ids.surface.top= Window.height
-            if not self.timer: # and self.app.status == "Run":
-                self.timer= Clock.schedule_interval(self.update_tool, 0.5)
+            if self.app.is_connected:
+                self.app.bind(wpos=self.update_tool)
+
 
     def _load_file(self, l):
         self._loaded_ok= False
@@ -175,9 +171,8 @@ class GcodeViewerScreen(Screen):
         self.ids.surface.canvas.add(self.canv)
 
     def clear(self):
-        if self.timer:
-            self.timer.cancel()
-            self.timer= None
+        self.app.unbind(wpos=self.update_tool)
+
         if  self.li:
             self.remove_widget(self.li)
             self.li= None
@@ -573,7 +568,6 @@ class GcodeViewerScreen(Screen):
         if not found_layer:
             # we hit the end of file before finding the layer we want
             Logger.info("GcodeViewerScreen: last layer was at {}".format(lastz))
-            if self.timer: self.timer.cancel()
             self.last_target_layer-=1
             return
 
@@ -589,7 +583,6 @@ class GcodeViewerScreen(Screen):
         dy= max_y-min_y
         if dx == 0 or dy == 0 :
             Logger.warning("GcodeViewerScreen: size is bad, maybe need 2D mode")
-            if self.timer: self.timer.cancel()
             return
 
         dx += 4
@@ -641,18 +634,19 @@ class GcodeViewerScreen(Screen):
         self._loaded_ok= True
         Logger.debug("GcodeViewerScreen: done loading")
 
-    def update_tool(self, dt= 0):
+    def update_tool(self, i, v):
         if not self.is_visible or not self.app.is_connected: return
 
         # follow the tool path
         #self.canv.remove_group("tool")
-        x= self.app.wpos[0]
-        y= self.app.wpos[1]
+        x= v[0]
+        y= v[1]
         r= (10.0/self.ids.surface.scale)/self.scale
         g= self.canv.get_group("tool")
-        g[2].circle= (x, y, r)
-        # g[4].pos= x, y-r/2
-        # g[6].pos= x-r/2, y
+        if g:
+            g[2].circle= (x, y, r)
+            # g[4].pos= x, y-r/2
+            # g[6].pos= x-r/2, y
 
     def transform_to_wpos(self, posx, posy):
         ''' convert touch coords to local scatter widget coords, relative to lower bottom corner '''
@@ -677,8 +671,8 @@ class GcodeViewerScreen(Screen):
         #     self.stop_cursor(x, y)
         #     self.start_cursor(x, y)
 
-        # adjust size of tool marker
-        self.update_tool()
+        # hide tool marker
+        self.canv.remove_group('tool')
 
     def start_cursor(self, x, y):
         tx, ty= self.transform_to_wpos(x, y)
