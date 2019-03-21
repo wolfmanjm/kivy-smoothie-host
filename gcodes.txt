@@ -22,7 +22,7 @@ G29 | Probes the bed and outputs the bed heights
 G30 | Simple Z probe at current XY
 G31 | Depends on levelling strategy selected,
 G32 | Execute current levelling strategy or for delta do trim calibration
-G38.2 | Standard probe in direction XYZ
+G38.2 | Standard probe in direction XYZ, halt on error
 G38.3 | Standard probe in direction XYZ
 G53 | next move is in MCS
 G54-G59 | select workspace coordinate system

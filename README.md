@@ -288,7 +288,7 @@ The button functions can be defined in the hb04.ini file (see the sample-hb04.in
     # predefined buttons can be overriden
     #safez = G91 G0 Z20 G90
     #origin = G90 G0 X0 Y0
-    #probez = G30
+    #probez = G38.3 Z-25
     #zero = G10 L20 P0 {axis}0
     #home = $H
     #spindle = M3 or M5 depending on whether spindle switch is on or off

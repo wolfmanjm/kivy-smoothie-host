@@ -223,7 +223,7 @@ class HB04():
         elif btn == BUT_ORIGIN:
             cmd= "G90 G0 X0 Y0"
         elif btn == BUT_PROBEZ:
-            cmd= "G30"
+            cmd= "G38.3 Z-25"
         elif btn == BUT_ZERO:
             cmd= "G10 L20 P0 {}0".format(axis)
         elif btn == BUT_SAFEZ:
