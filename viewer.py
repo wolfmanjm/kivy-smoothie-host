@@ -20,6 +20,7 @@ import re
 import math
 import time
 import threading
+import traceback
 
 Builder.load_string('''
 <GcodeViewerScreen>:
@@ -163,6 +164,7 @@ class GcodeViewerScreen(Screen):
         try:
             self.parse_gcode_file(self.app.gcode_file, l, True)
         except:
+            print(traceback.format_exc())
             mb = MessageBox(text='File not found: {}'.format(self.app.gcode_file))
             mb.open()
 
@@ -625,11 +627,12 @@ class GcodeViewerScreen(Screen):
         self.canv.add(Line(points=[-10, 0, self.ids.surface.width/scale, 0], width= 1, cap='none', joint='none'))
 
         # tool position marker
-        x= self.app.wpos[0]
-        y= self.app.wpos[1]
-        r= (10.0/self.ids.surface.scale)/scale
-        self.canv.add(Color(1, 0, 0, mode='rgb', group="tool"))
-        self.canv.add(Line(circle=(x, y, r), group="tool"))
+        if self.app.is_connected:
+            x= self.app.wpos[0]
+            y= self.app.wpos[1]
+            r= (10.0/self.ids.surface.scale)/scale
+            self.canv.add(Color(1, 0, 0, mode='rgb', group="tool"))
+            self.canv.add(Line(circle=(x, y, r), group="tool"))
 
         # self.canv.add(Rectangle(pos=(x, y-r/2), size=(1/scale, r), group="tool"))
         # self.canv.add(Rectangle(pos=(x-r/2, y), size=(r, 1/scale), group="tool"))
