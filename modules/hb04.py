@@ -371,7 +371,7 @@ class HB04():
 
             except:
                 Logger.warn("HB04: Exception")
-                Logger.error("HB04: Exception - {}".format(traceback.format_exc()))
+                Logger.debug("HB04: Exception - {}".format(traceback.format_exc()))
                 if self.hid.opened:
                     self.hid.close()
 

@@ -361,6 +361,9 @@ class Comms():
             files.append(l)
 
     def redirect_incoming(self, l):
+        async_main_loop.call_soon_threadsafe(self._redirect_incoming, l)
+
+    def _redirect_incoming(self, l):
         if l:
             if self.timer:
                 # temporarily turn off status timer so we don't get unexpected lines
@@ -375,7 +378,7 @@ class Comms():
             self._reroute_incoming_data_to= None
 
             if self._restart_timer:
-                self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
+                self.timer = async_main_loop.call_later(0.1, self._get_reports)
 
     # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
     # Note the data could be a line fragment and we need to only process complete lines terminated with \n
