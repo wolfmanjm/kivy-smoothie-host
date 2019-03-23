@@ -57,7 +57,7 @@ Simple macro buttons can be created by clicking the green `New Macro` button.
 ## Install on RPI
 
 ### Image
-For RPI  and touch screen you can just download the image which has a fully runign version smoopi with autostart, blanking etc, so no need to do anything else.
+For RPI  and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else.
 
 Download from http://smoothieware.org/_media/bin/smoopi.img
 And image it to an sdcard using for instance https://www.balena.io/etcher/
