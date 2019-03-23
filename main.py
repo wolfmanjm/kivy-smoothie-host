@@ -105,6 +105,7 @@ class DROWidget(RelativeLayout):
         self.app.comms.write('{}\n'.format(v))
 
     def reset_axis(self, a):
+        # only used for ABC axis
         self.app.comms.write('G92 {}0\n'.format(a))
 
     def update_buttons(self):
@@ -119,7 +120,6 @@ class DROWidget(RelativeLayout):
                 i.state= 'normal'
 
 class MPGWidget(RelativeLayout):
-    """docstring for MPGWidget"""
     last_pos= NumericProperty(0)
     selected_axis= StringProperty('X')
 
