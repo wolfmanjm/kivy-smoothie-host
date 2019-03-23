@@ -321,17 +321,28 @@ The spindle button will toggle the spindle switch on and off (if one is defined)
 The ```=1/2``` button will set the WCS of the currently selected axis to half the current position. (eg if WCS is set to 0 at left edge and spindle is at right edge it would set the WCS X to half the current value so then going to G0 X0 it would move the spindle to the center X position)
 
 # Screen shots
+## Extruder screens
 ![Extruder Screen](pics/screen1.png)
 ![Temp Graph](pics/temp-graph.png)
+## DRO screen
 ![DRO Screen](pics/dro_mode.png)
+## Command screen
 ![Command Screen](pics/screen2.png)
+## Jog screen
 ![Jog Screen](pics/screen3.png)
+## Macro screen
 ![Macro Screen](pics/macro-screen.png)
+## MPG screen
 ![MPG Screen](pics/mpg-mode.png)
+## Config Editor
 ![Config editor](pics/config-editor.png)
+## GCode viewer 
 ![Gcode Viewer Screen](pics/viewerscreen.png)
 ![Selection in Gcode Viewer Screen](pics/viewer-select.png)
+## Settings
 ![Settings](pics/settings.png)
+## GCode help screen
 ![GCode Help Screen](pics/gcode-help.png)
+## Desktop mode
 ![Desktop Screen](pics/desktop-mode.png)
 
