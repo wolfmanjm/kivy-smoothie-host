@@ -38,6 +38,7 @@ from web_server import ProgressServer
 from camera_screen import CameraScreen
 from config_editor import ConfigEditor
 from gcode_help import GcodeHelp
+from text_editor import TextEditor
 
 import subprocess
 import traceback
@@ -667,6 +668,15 @@ class MainWindow(BoxLayout):
         self.app.config_editor.populate()
         self.app.sm.current= 'config_editor'
 
+    def text_editor(self):
+        # get file to view
+        f= Factory.filechooser()
+        f.open(self.last_path, title= 'File to Edit', cb= self._text_editor)
+
+    def _text_editor(self, file_path, directory):
+        self.app.text_editor.open(file_path)
+        self.app.sm.current= 'text_editor'
+
 class MainScreen(Screen):
     pass
 
@@ -952,6 +962,8 @@ class SmoothieHost(App):
         self.sm.add_widget(self.config_editor)
         self.gcode_help= GcodeHelp(name='gcode_help')
         self.sm.add_widget(self.gcode_help)
+        self.text_editor= TextEditor(name='text_editor')
+        self.sm.add_widget(self.text_editor)
 
         self.main_window= ms.ids.main_window
 

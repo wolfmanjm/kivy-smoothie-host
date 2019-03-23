@@ -73,6 +73,9 @@
                     on_press: root.config_editor()
                     disabled: not app.is_connected or root.is_printing
                 ActionButton:
+                    text: 'Text Editor'
+                    on_press: root.text_editor()
+                ActionButton:
                     text: 'Blank Screen'
                     on_press: app.blank_screen()
                 ActionButton:
