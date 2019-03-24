@@ -16,6 +16,7 @@ Builder.load_string('''
         readonly: root.ro
         idx: root.index
         on_text_validate: root.parent.parent.parent.parent.save_change(root.index, self.text)
+        on_focus: root.parent.parent.parent.parent.got_focus(root.index)
 
 <TextEditor>:
     rv: rv
@@ -39,6 +40,10 @@ Builder.load_string('''
             ToggleButton:
                 text: 'Editable' if root.editable else "Readonly"
                 on_press: root.set_edit()
+            Button:
+                text: 'Insert Line'
+                on_press: root.insert()
+                disabled: not root.editable
             Button:
                 text: 'Save'
                 on_press: root.save()
@@ -78,6 +83,21 @@ class TextEditor(Screen):
             for l in self.rv.data:
                 # writeout file
                 print(l)
+
+    def got_focus(self, i):
+        print("Got focus: {}".format(i))
+
+    def insert(self):
+        #get position at top center of RecycleView (upper limit)
+        pos = self.rv.to_local(self.rv.center_x, self.rv.height)
+        #check which items collides with the given position
+        i= self.rv.layout_manager.get_view_index_at(pos)
+        # TODO now see which line is selected and insert before that
+        self.rv.data.insert(i, {'value': "new line", 'index': i, 'ro': False})
+        # we need to renumber all following lines
+        cnt= len(self.rv.data)
+        for j in range(i+1, cnt):
+            self.rv.data[j]['index'] = j
 
     def set_edit(self):
         self.editable= not self.editable
