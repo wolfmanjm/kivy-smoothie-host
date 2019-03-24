@@ -14,6 +14,8 @@ from kivy.uix.label import Label
 from functools import partial
 from kivy.clock import Clock
 
+import os
+
 Builder.load_string('''
 <Row>:
     value: ''
@@ -51,7 +53,7 @@ Builder.load_string('''
                 text: 'Close'
                 on_press: root.close()
             ToggleButton:
-                text: 'Editable' if root.editable else "Readonly"
+                text: 'Edit' if not root.editable else "Readonly"
                 on_press: root.set_edit()
             Button:
                 text: 'Insert before'
@@ -100,14 +102,20 @@ class Row(BoxLayout):
         self.rv.refresh_from_data()
 
 class TextEditor(Screen):
-    editable= BooleanProperty(True)
+    editable= BooleanProperty(False)
 
     def open(self, fn):
+        self.fn= fn
         cnt= 0
         with open(fn) as f:
             for line in f:
                 self.rv.data.append({'value': line.rstrip(), 'index': cnt, 'ro': not self.editable})
                 cnt += 1
+        self.max_cnt= cnt
+        # add dummy lines at end so we can edit the last few files without keyboard covering them
+        for i in range(10):
+            self.rv.data.append({'value': '', 'index': -1, 'ro': True})
+
         Row.rv= self.rv
 
     def close(self):
@@ -117,9 +125,12 @@ class TextEditor(Screen):
     def save(self):
         if self.editable:
             # rename old file to .bak
-            for l in self.rv.data:
-                # writeout file
-                print(l)
+            os.rename(self.fn, self.fn+'.bak')
+            with open(self.fn, 'w') as f:
+                for l in self.rv.data:
+                    # writeout file
+                    if l['index'] >= 0:
+                        f.write("{}\n".format(l['value']))
 
     def insert(self, before):
         # now see which line is selected and insert before or after that
@@ -132,9 +143,9 @@ class TextEditor(Screen):
             i= i+1
 
         self.rv.data.insert(i, {'value': "ENTER TEXT", 'index': i, 'ro': False})
+        self.max_cnt+=1
         # we need to renumber all following lines
-        cnt= len(self.rv.data)
-        for j in range(i+1, cnt):
+        for j in range(i+1, self.max_cnt):
             self.rv.data[j]['index'] = j
 
         self.rv.refresh_from_data()
@@ -149,6 +160,7 @@ class TextEditor(Screen):
     def set_edit(self):
         self.editable= not self.editable
         for l in self.rv.data:
-            l['ro']= not self.editable
+            if l['index'] >= 0:
+                l['ro']= not self.editable
         self.rv.refresh_from_data()
 
