@@ -32,6 +32,8 @@ Builder.load_string('''
             height: sp(32)
             text: root.value
             multiline: False
+            use_bubble: False
+            use_handles: False
 
         BoxLayout:
             size_hint_y: None
