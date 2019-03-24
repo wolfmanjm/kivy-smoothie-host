@@ -5,8 +5,15 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 Builder.load_string('''
+<Row@BoxLayout>:
+    value: ''
+    TextInput:
+        text: root.value
+        multiline: False
+        readonly: Falsef
+
 <TextEditor>:
-    te: te
+    rv: rv
     BoxLayout:
         canvas:
             Color:
@@ -14,7 +21,7 @@ Builder.load_string('''
             Rectangle:
                 size: self.size
                 pos: self.pos
-        te: te
+        rv: rv
         orientation: 'vertical'
         BoxLayout:
             size_hint_y: None
@@ -26,26 +33,38 @@ Builder.load_string('''
                 on_press: root.close()
             Button:
                 text: 'Edit'
-                on_press: te.readonly= False
+                on_press: root.set_edit()
             Button:
                 text: 'Save'
                 on_press: root.save()
 
-        TextInput:
-            id: te
-            readonly: True
-            text: ""
+        RecycleView:
+            id: rv
+            scroll_type: ['bars', 'content']
+            scroll_wheel_distance: dp(114)
+            bar_width: dp(10)
+            viewclass: 'Row'
+            RecycleBoxLayout:
+                default_size: None, dp(32)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
 ''')
 
 class TextEditor(Screen):
     def open(self, fn):
         with open(fn) as f:
-            self.te.text= f.read()
-        self.te.cursor= (0,0)
+            for line in f:
+                self.rv.data.append({'value': line.rstrip()})
 
     def close(self):
-        self.te.text= ""
+        self.rv.data= []
         self.manager.current = 'main'
 
     def save(self):
-        print(self.te.text)
+        for l in self.rv.data:
+            print(l)
+
+    def set_edit(self):
+        pass
