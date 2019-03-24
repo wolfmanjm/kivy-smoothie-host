@@ -4,9 +4,16 @@ from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import BooleanProperty
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.uix.behaviors import FocusBehavior
+from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+from kivy.uix.textinput import TextInput
+from kivy.uix.label import Label
 
 Builder.load_string('''
-<Row@BoxLayout>:
+<SelectableBox>:
     value: ''
     index: 0
     ro: True
@@ -40,9 +47,13 @@ Builder.load_string('''
                 text: 'Editable' if root.editable else "Readonly"
                 on_press: root.set_edit()
             Button:
-                text: 'Insert Line'
-                on_press: root.insert()
-                disabled: not root.editable
+                text: 'Insert before'
+                on_press: root.insert(True)
+                disabled: not root.editable or rv.selected_idx < 0
+            Button:
+                text: 'Insert after'
+                on_press: root.insert(False)
+                disabled: not root.editable or rv.selected_idx < 0
             Button:
                 text: 'Save'
                 on_press: root.save()
@@ -53,14 +64,48 @@ Builder.load_string('''
             scroll_type: ['bars', 'content']
             scroll_wheel_distance: dp(114)
             bar_width: dp(10)
-            viewclass: 'Row'
-            RecycleBoxLayout:
+            viewclass: 'SelectableBox'
+            selected_idx: -1
+            SelectableRecycleBoxLayout:
                 default_size: None, dp(32)
                 default_size_hint: 1, None
                 size_hint_y: None
                 height: self.minimum_height
                 orientation: 'vertical'
+                #multiselect: True
+                #touch_multiselect: True
 ''')
+
+class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
+                                 RecycleBoxLayout):
+    ''' Adds selection and focus behaviour to the view. '''
+
+class SelectableBox(RecycleDataViewBehavior, BoxLayout):
+    ''' Add selection support to the Label '''
+    index = None
+    selected = BooleanProperty(False)
+
+    def refresh_view_attrs(self, rv, index, data):
+        ''' Catch and handle the view changes '''
+        self.index = index
+        return super(SelectableBox, self).refresh_view_attrs(
+            rv, index, data)
+
+    def on_touch_down(self, touch):
+        ''' Add selection on touch down '''
+        super(SelectableBox, self).on_touch_down(touch)
+        if self.collide_point(*touch.pos):
+            return self.parent.select_with_touch(self.index, touch)
+
+    def apply_selection(self, rv, index, is_selected):
+        ''' Respond to the selection of items in the view. '''
+        self.selected = is_selected
+        if is_selected:
+            #print("selection changed to {0}".format(rv.data[index]))
+            rv.selected_idx = index
+        else:
+            #print("selection removed for {0}".format(rv.data[index]))
+            rv.selected_idx = -1
 
 class TextEditor(Screen):
     editable= BooleanProperty(False)
@@ -83,13 +128,17 @@ class TextEditor(Screen):
                 # writeout file
                 print(l)
 
-    def insert(self):
-        #get position at top center of RecycleView (upper limit)
-        pos = self.rv.to_local(self.rv.center_x, self.rv.height)
-        #check which items collides with the given position
-        i= self.rv.layout_manager.get_view_index_at(pos)
-        # TODO now see which line is selected and insert before that
-        self.rv.data.insert(i, {'value': "new line", 'index': i, 'ro': False})
+    def insert(self, before):
+        # now see which line is selected and insert before or after that
+        i= self.rv.selected_idx
+        if i < 0:
+            #print("No line is selected")
+            return
+        if not before:
+            # insert after selected line
+            i= i+1
+
+        self.rv.data.insert(i, {'value': "ENTER TEXT", 'index': i, 'ro': False})
         # we need to renumber all following lines
         cnt= len(self.rv.data)
         for j in range(i+1, cnt):
