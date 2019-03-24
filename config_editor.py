@@ -87,7 +87,7 @@ class ConfigEditor(Screen):
             if len(t) >= 2:
                 self.rv.data.append({'k': t[0], 'v': t[1]})
             elif t[0] == 'ok':
-                self.app.get_running_app().comms.redirect_incoming(None)
+                self.app.comms.redirect_incoming(None)
 
     def populate(self):
         self.rv.data= []
@@ -120,6 +120,6 @@ class ConfigEditor(Screen):
         self.app.comms.write("config-set sd {} {}\n".format(k, v))
 
     def close(self):
-        self.app.get_running_app().comms.redirect_incoming(None)
+        self.app.comms.redirect_incoming(None)
         self.rv.data= []
         self.manager.current = 'main'

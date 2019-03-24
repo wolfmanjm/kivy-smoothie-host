@@ -140,6 +140,7 @@ class Comms():
         self.last_tool= None
         self.is_suspend= False
         self.m0= None
+        self.about_to_redirect= False
         self.log = logging.getLogger() #.getChild('Comms')
         #logging.getLogger().setLevel(logging.DEBUG)
 
@@ -172,6 +173,7 @@ class Comms():
             self.proto.send_message(data)
 
     def _get_reports(self):
+        if self.about_to_redirect: return
         queries= self.app.main_window.get_queries()
         if queries:
             self._write(queries)
@@ -361,6 +363,7 @@ class Comms():
             files.append(l)
 
     def redirect_incoming(self, l):
+        if l: self.about_to_redirect= True
         async_main_loop.call_soon_threadsafe(self._redirect_incoming, l)
 
     def _redirect_incoming(self, l):
@@ -373,6 +376,8 @@ class Comms():
             else:
                 self._restart_timer= False
             self._reroute_incoming_data_to= l
+            self.about_to_redirect= False
+
         else:
             # turn off rerouting
             self._reroute_incoming_data_to= None

@@ -16,7 +16,6 @@ Builder.load_string('''
         readonly: root.ro
         idx: root.index
         on_text_validate: root.parent.parent.parent.parent.save_change(root.index, self.text)
-        on_focus: root.parent.parent.parent.parent.got_focus(root.index)
 
 <TextEditor>:
     rv: rv
@@ -83,9 +82,6 @@ class TextEditor(Screen):
             for l in self.rv.data:
                 # writeout file
                 print(l)
-
-    def got_focus(self, i):
-        print("Got focus: {}".format(i))
 
     def insert(self):
         #get position at top center of RecycleView (upper limit)
