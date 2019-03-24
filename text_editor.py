@@ -3,7 +3,7 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.properties import BooleanProperty
+from kivy.properties import BooleanProperty, ObjectProperty
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
@@ -15,7 +15,7 @@ from functools import partial
 from kivy.clock import Clock
 
 Builder.load_string('''
-<SelectableBox>:
+<Row>:
     value: ''
     index: 0
     ro: True
@@ -25,9 +25,11 @@ Builder.load_string('''
         text: root.value
         multiline: False
         readonly: root.ro
+        is_focusable: not root.ro
         idx: root.index
         background_color: (.0, 0.9, .1, 1) if root.selected else (0.8, 0.8, 0.8, 1)
-        on_text_validate: root.parent.parent.parent.parent.save_change(root.index, self.text)
+        on_text_validate: root.save_change(root.index, self.text)
+        on_focus: root.on_focus(*args)
 
 <TextEditor>:
     rv: rv
@@ -69,9 +71,9 @@ Builder.load_string('''
             scroll_type: ['bars', 'content']
             scroll_wheel_distance: dp(114)
             bar_width: dp(10)
-            viewclass: 'SelectableBox'
+            viewclass: 'Row'
             selected_idx: -1
-            SelectableRecycleBoxLayout:
+            RecycleBoxLayout:
                 default_size: None, dp(32)
                 default_size_hint: 1, None
                 size_hint_y: None
@@ -81,46 +83,32 @@ Builder.load_string('''
                 #touch_multiselect: True
 ''')
 
-class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
-                                 RecycleBoxLayout):
-    ''' Adds selection and focus behaviour to the view. '''
+class Row(BoxLayout):
+    selected= BooleanProperty(False)
+    rv= ObjectProperty()
 
-class SelectableBox(RecycleDataViewBehavior, BoxLayout):
-    ''' Add selection support to the Label '''
-    index = None
-    selected = BooleanProperty(False)
-
-    def refresh_view_attrs(self, rv, index, data):
-        ''' Catch and handle the view changes '''
-        self.index = index
-        return super(SelectableBox, self).refresh_view_attrs(
-            rv, index, data)
-
-    def on_touch_down(self, touch):
-        ''' Add selection on touch down '''
-        super(SelectableBox, self).on_touch_down(touch)
-        if self.collide_point(*touch.pos):
-            return self.parent.select_with_touch(self.index, touch)
-
-    def apply_selection(self, rv, index, is_selected):
-        ''' Respond to the selection of items in the view. '''
-        self.selected = is_selected
-        if is_selected:
-            #print("selection changed to {0}".format(rv.data[index]))
-            rv.selected_idx = index
+    def on_focus(self, i, v):
+        self.selected= v
+        if v:
+            self.rv.selected_idx= self.index
         else:
-            #print("selection removed for {0}".format(rv.data[index]))
-            rv.selected_idx = -1
+            self.rv.selected_idx= -1
+
+    def save_change(self, k, v):
+        #print("line {} changed to {}\n".format(k, v))
+        self.rv.data[k]['value']= v
+        self.rv.refresh_from_data()
 
 class TextEditor(Screen):
-    editable= BooleanProperty(False)
+    editable= BooleanProperty(True)
 
     def open(self, fn):
         cnt= 0
         with open(fn) as f:
             for line in f:
-                self.rv.data.append({'value': line.rstrip(), 'index': cnt, 'ro': True})
+                self.rv.data.append({'value': line.rstrip(), 'index': cnt, 'ro': not self.editable})
                 cnt += 1
+        Row.rv= self.rv
 
     def close(self):
         self.rv.data= []
@@ -164,12 +152,3 @@ class TextEditor(Screen):
             l['ro']= not self.editable
         self.rv.refresh_from_data()
 
-    def save_change(self, k, v):
-        #print("line {} changed to {}\n".format(k, v))
-        if self.editable:
-            self.rv.data[k]['value']= v
-            self.rv.refresh_from_data()
-            Clock.schedule_once(partial(self._deselect_it, k), 0.1)
-    def _deselect_it(self, i, *largs):
-        self.rv.view_adapter.get_visible_view(i).selected= False
-        self.rv.selected_idx= -1
