@@ -11,17 +11,22 @@ from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.textinput import TextInput
 from kivy.uix.label import Label
+from functools import partial
+from kivy.clock import Clock
 
 Builder.load_string('''
 <SelectableBox>:
     value: ''
     index: 0
     ro: True
+    ti: ti
     TextInput:
+        id: ti
         text: root.value
         multiline: False
         readonly: root.ro
         idx: root.index
+        background_color: (.0, 0.9, .1, 1) if root.selected else (0.8, 0.8, 0.8, 1)
         on_text_validate: root.parent.parent.parent.parent.save_change(root.index, self.text)
 
 <TextEditor>:
@@ -143,6 +148,14 @@ class TextEditor(Screen):
         cnt= len(self.rv.data)
         for j in range(i+1, cnt):
             self.rv.data[j]['index'] = j
+
+    #     self.rv.refresh_from_data()
+    #     Clock.schedule_once(partial(self._refocus_it, i))
+
+    # def _refocus_it(self, i, *largs):
+    #     print("set focus to index {}".format(i))
+    #     self.rv.view_adapter.get_visible_view(i).ti.focus= True
+    #     self.rv.view_adapter.get_visible_view(i).ti.select_all()
 
     def set_edit(self):
         self.editable= not self.editable
