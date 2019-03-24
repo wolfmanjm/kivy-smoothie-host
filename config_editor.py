@@ -87,10 +87,11 @@ class ConfigEditor(Screen):
             if len(t) >= 2:
                 self.rv.data.append({'k': t[0], 'v': t[1]})
             elif t[0] == 'ok':
-                self.app.comms.redirect_incoming(None)
                 # add dummy lines at end so we can edit the last few lines without keyboard covering them
                 for i in range(10):
                     self.rv.data.append({'k': '', 'v': ''})
+
+                self.app.comms.redirect_incoming(None)
 
     def populate(self):
         self.rv.data= []

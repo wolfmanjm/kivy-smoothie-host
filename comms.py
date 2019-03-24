@@ -135,12 +135,12 @@ class Comms():
         self.file_streamer= None
         self.report_rate= reportrate
         self._reroute_incoming_data_to= None
+        self._restart_timer= False
         self.is_streaming= False
         self.do_query= False
         self.last_tool= None
         self.is_suspend= False
         self.m0= None
-        self.about_to_redirect= False
         self.log = logging.getLogger() #.getChild('Comms')
         #logging.getLogger().setLevel(logging.DEBUG)
 
@@ -173,7 +173,8 @@ class Comms():
             self.proto.send_message(data)
 
     def _get_reports(self):
-        if self.about_to_redirect: return
+        if self._restart_timer: return
+
         queries= self.app.main_window.get_queries()
         if queries:
             self._write(queries)
@@ -363,7 +364,6 @@ class Comms():
             files.append(l)
 
     def redirect_incoming(self, l):
-        if l: self.about_to_redirect= True
         async_main_loop.call_soon_threadsafe(self._redirect_incoming, l)
 
     def _redirect_incoming(self, l):
@@ -377,7 +377,6 @@ class Comms():
                 self._restart_timer= False
 
             self._reroute_incoming_data_to= l
-            self.about_to_redirect= False
 
         else:
             # turn off rerouting
@@ -385,6 +384,7 @@ class Comms():
 
             if self._restart_timer:
                 self.timer = async_main_loop.call_later(0.1, self._get_reports)
+                self._restart_timer= False
 
     # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
     # Note the data could be a line fragment and we need to only process complete lines terminated with \n
