@@ -9,10 +9,11 @@ Builder.load_string('''
 <Row@BoxLayout>:
     value: ''
     index: 0
+    ro: True
     TextInput:
         text: root.value
         multiline: False
-        readonly: False
+        readonly: root.ro
         idx: root.index
         on_text_validate: root.parent.parent.parent.parent.save_change(root.index, self.text)
 
@@ -64,7 +65,7 @@ class TextEditor(Screen):
         cnt= 0
         with open(fn) as f:
             for line in f:
-                self.rv.data.append({'value': line.rstrip(), 'index': cnt})
+                self.rv.data.append({'value': line.rstrip(), 'index': cnt, 'ro': True})
                 cnt += 1
 
     def close(self):
@@ -78,6 +79,9 @@ class TextEditor(Screen):
 
     def set_edit(self):
         self.editable= not self.editable
+        for l in self.rv.data:
+            l['ro']= not self.editable
+        self.rv.refresh_from_data()
 
     def save_change(self, k, v):
         #print("line {} changed to {}\n".format(k, v))
