@@ -103,13 +103,9 @@ For instance...
        xclip xsel
     sudo apt-get install python3-pip
     sudo pip3 install -U Cython==0.28.2
-    sudo pip3 install git+https://github.com/kivy/kivy.git@master
+    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@86b6e19
 
-*NOTE* If kivy crashes when you run it, or you get "No available video device" error then you may need to install a downgraded version like this...
-
-    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@038acbf
-
-This installs a known working version.
+This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable.
 
 On an rpi3b+ it seems the double tap time needs to be increased to be usable..
 
@@ -213,7 +209,7 @@ https://kivy.org/docs/installation/installation.html
 2. sudo apt-get update
 3. sudo apt-get install python3-kivy
 
-or get the latest version of kivy if the distro version is too old (currently using  1.10.x)
+or get the latest version of kivy if the distro version is too old (currently using  1.10.1)
 
     sudo pip3 install kivy
 

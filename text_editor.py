@@ -32,6 +32,8 @@ Builder.load_string('''
         background_color: (.0, 0.9, .1, 1) if root.selected else (0.8, 0.8, 0.8, 1)
         on_text_validate: root.save_change(root.index, self.text)
         on_focus: root.on_focus(*args)
+        use_bubble: False
+        use_handles: False
 
 <TextEditor>:
     rv: rv

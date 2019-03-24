@@ -27,6 +27,8 @@ Builder.load_string('''
         height: sp(32)
         multiline: False
         on_text_validate: root.parent.parent.parent.parent.save_change(root.k, self.text)
+        use_bubble: False
+        use_handles: False
 
 <ConfigEditor>:
     rv: rv
