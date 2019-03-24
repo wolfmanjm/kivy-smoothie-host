@@ -112,7 +112,7 @@ class TextEditor(Screen):
                 self.rv.data.append({'value': line.rstrip(), 'index': cnt, 'ro': not self.editable})
                 cnt += 1
         self.max_cnt= cnt
-        # add dummy lines at end so we can edit the last few files without keyboard covering them
+        # add dummy lines at end so we can edit the last few lines without keyboard covering them
         for i in range(10):
             self.rv.data.append({'value': '', 'index': -1, 'ro': True})
 

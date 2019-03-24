@@ -375,6 +375,7 @@ class Comms():
                 self._restart_timer= True
             else:
                 self._restart_timer= False
+
             self._reroute_incoming_data_to= l
             self.about_to_redirect= False
 

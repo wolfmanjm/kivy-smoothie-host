@@ -88,6 +88,9 @@ class ConfigEditor(Screen):
                 self.rv.data.append({'k': t[0], 'v': t[1]})
             elif t[0] == 'ok':
                 self.app.comms.redirect_incoming(None)
+                # add dummy lines at end so we can edit the last few lines without keyboard covering them
+                for i in range(10):
+                    self.rv.data.append({'k': '', 'v': ''})
 
     def populate(self):
         self.rv.data= []
@@ -117,6 +120,7 @@ class ConfigEditor(Screen):
                 self.save_change(self.rv.data[i]['k'], self.rv.data[i]['v'])
 
     def save_change(self, k, v):
+        if k == '': return # ignore the dummy lines
         self.app.comms.write("config-set sd {} {}\n".format(k, v))
 
     def close(self):
