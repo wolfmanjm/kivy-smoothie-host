@@ -67,10 +67,10 @@ class NativeFileChooser():
 
             elif self.use_zenity:
                 os.unsetenv('WINDOWID') # needed so dialog pops up infront of my window
-                path= self._run_command(['zenity', '--title', self.title, '--file-selection', '--filename', self.start_dir+'/', '--file-filter', 'GCode files | *.g *.gcode *.nc'])
+                path= self._run_command(['zenity', '--title', self.title, '--file-selection', '--filename', self.start_dir+'/', '--file-filter', 'GCode files | *.g *.gcode *.nc *.gc'])
 
             elif self.use_kdialog:
-                path= self._run_command(['kdialog', '--title', self.title, '--getopenfilename', self.start_dir, '*.g *.gcode *.nc'])
+                path= self._run_command(['kdialog', '--title', self.title, '--getopenfilename', self.start_dir, '*.g *.gcode *.nc *.gc'])
             else:
                 self.failed= True
 

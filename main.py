@@ -671,7 +671,7 @@ class MainWindow(BoxLayout):
     def text_editor(self):
         # get file to view
         f= Factory.filechooser()
-        f.open(self.last_path, title= 'File to Edit', cb= self._text_editor)
+        f.open(self.last_path, title= 'File to Edit', filters=['*'], cb= self._text_editor)
 
     def _text_editor(self, file_path, directory):
         self.app.text_editor.open(file_path)
@@ -732,7 +732,7 @@ class SmoothieHost(App):
             'v2' : 'false'
         })
         config.setdefaults('UI', {
-            'layout_type': 0,
+            'display_type': "RPI",
             'cnc': 'false',
             'tab_top': 'false',
             'screen_size': 'auto',
@@ -762,11 +762,12 @@ class SmoothieHost(App):
                 { "type": "title",
                   "title": "UI Settings" },
 
-                { "type": "numeric",
+                { "type": "options",
                   "title": "Desktop Layout",
-                  "desc": "Select Desktop layout, 1 is small, 2 is large, otherwise it is RPI 7in touch screen layout",
+                  "desc": "Select Display layout, RPI is for 7in touch screen layout",
                   "section": "UI",
-                  "key": "layout_type"
+                  "key": "display_type",
+                  "options": ["RPI Touch", "Small Desktop", "Large Desktop"]
                 },
 
                 { "type": "bool",
@@ -924,7 +925,16 @@ class SmoothieHost(App):
         self.config.update_config('smoothiehost.ini')
 
     def build(self):
-        self.is_desktop= self.config.getint('UI', 'layout_type')
+        lt= self.config.get('UI', 'display_type')
+        if lt == "RPI Touch":
+            self.is_desktop= 0
+        elif lt == "Small Desktop":
+            self.is_desktop= 1
+        elif lt == "Large Desktop":
+            self.is_desktop= 2
+        else:
+            self.is_desktop= 0
+
         # load the layouts for the desktop screen
         if self.is_desktop == 1:
             Builder.load_file('desktop.kv')
@@ -962,8 +972,9 @@ class SmoothieHost(App):
         self.sm.add_widget(self.config_editor)
         self.gcode_help= GcodeHelp(name='gcode_help')
         self.sm.add_widget(self.gcode_help)
-        self.text_editor= TextEditor(name='text_editor')
-        self.sm.add_widget(self.text_editor)
+        if self.is_desktop == 0:
+            self.text_editor= TextEditor(name='text_editor')
+            self.sm.add_widget(self.text_editor)
 
         self.main_window= ms.ids.main_window
 

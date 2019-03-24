@@ -74,7 +74,9 @@ class TextEditor(Screen):
 
     def save(self):
         if self.editable:
+            # rename old file to .bak
             for l in self.rv.data:
+                # writeout file
                 print(l)
 
     def set_edit(self):

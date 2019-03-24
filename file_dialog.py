@@ -1,5 +1,5 @@
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
+from kivy.properties import ListProperty, StringProperty, ObjectProperty, BooleanProperty
 from kivy.uix.popup import Popup
 from kivy.lang import Builder
 from kivy.uix.filechooser import FileSystemLocal, FileSystemAbstract
@@ -88,7 +88,7 @@ Builder.load_string('''
             dirselect: True # Because otherwise touch screen is broken
             path: root.path
             filter_dirs: not root.show_dirs
-            filters: ['*.g', '*.gcode', '*.nc', '*.ngc']
+            filters: root.filters
             sort_func: lambda a, b: root.sort_folders_first(sort_type.state == 'normal', reverse.state == 'down', a, b)
             file_system: root.filesystem
             FileChooserIconLayout
@@ -126,6 +126,7 @@ class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
     cancel = ObjectProperty(None)
     path= StringProperty()
+    filters= ListProperty()
     filesystem= ObjectProperty()
     show_dirs= BooleanProperty(True)
 
@@ -147,7 +148,7 @@ class FileDialog(FloatLayout):
     def dismiss_popup(self):
         self._popup.dismiss()
 
-    def open(self, path= None, title= "File to Print", file_list= None, cb= None):
+    def open(self, path= None, title= "File to Print", filters=['*.g', '*.gcode', '*.nc', '*.ngc'], file_list= None, cb= None):
 
         self.cb= cb
 
@@ -161,7 +162,7 @@ class FileDialog(FloatLayout):
             fs= Factory.filesystem()
             show_dirs= True
 
-        content = LoadDialog(load=self._load, cancel=self.dismiss_popup, path=path if path else os.path.expanduser("~"), filesystem= fs, show_dirs= show_dirs)
+        content = LoadDialog(load=self._load, cancel=self.dismiss_popup, path=path if path else os.path.expanduser("~"), filesystem= fs, show_dirs= show_dirs, filters=filters)
 
         self._popup = Popup(title=title, content=content, size_hint=(0.9, 0.9))
         self._popup.open()

@@ -59,15 +59,8 @@
                 on_press: root.show_viewer()
 
             ActionGroup:
-                text: 'System'
+                text: 'Tools'
                 mode: 'spinner'
-                ActionButton:
-                    text: 'Select Port'
-                    disabled: app.is_connected
-                    on_press: root.change_port()
-                ActionButton:
-                    text: 'Settings'
-                    on_press: app.open_settings()
                 ActionButton:
                     text: 'Config Editor'
                     on_press: root.config_editor()
@@ -76,21 +69,34 @@
                     text: 'Text Editor'
                     on_press: root.text_editor()
                 ActionButton:
+                    text: 'Camera'
+                    on_press: root.show_camera_screen()
+                    disabled: not app.is_show_camera
+
+            ActionGroup:
+                text: 'System'
+                mode: 'spinner'
+
+                ActionButton:
+                    text: 'Select Port'
+                    disabled: app.is_connected
+                    on_press: root.change_port()
+                ActionButton:
+                    text: 'Settings'
+                    on_press: app.open_settings()
+                ActionButton:
                     text: 'Blank Screen'
                     on_press: app.blank_screen()
+                ActionButton:
+                    text: 'Update'
+                    on_press: root.do_update()
+
                 ActionButton:
                     text: 'Quit'
                     on_press: root.ask_exit()
                 ActionButton:
                     text: 'Shutdown'
                     on_press: root.ask_shutdown()
-                ActionButton:
-                    text: 'Update'
-                    on_press: root.do_update()
-                ActionButton:
-                    text: 'Camera'
-                    on_press: root.show_camera_screen()
-                    disabled: not app.is_show_camera
 
     BoxLayout:
         orientation: 'horizontal'
