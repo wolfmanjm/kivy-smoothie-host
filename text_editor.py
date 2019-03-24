@@ -149,13 +149,14 @@ class TextEditor(Screen):
         for j in range(i+1, cnt):
             self.rv.data[j]['index'] = j
 
-    #     self.rv.refresh_from_data()
-    #     Clock.schedule_once(partial(self._refocus_it, i))
+        self.rv.refresh_from_data()
+        Clock.schedule_once(partial(self._refocus_it, i), 0.3)
 
-    # def _refocus_it(self, i, *largs):
-    #     print("set focus to index {}".format(i))
-    #     self.rv.view_adapter.get_visible_view(i).ti.focus= True
-    #     self.rv.view_adapter.get_visible_view(i).ti.select_all()
+    def _refocus_it(self, i, *largs):
+        self.rv.view_adapter.get_visible_view(i).ti.focus= True
+        Clock.schedule_once(partial(self._select_it, i))
+    def _select_it(self, i, *largs):
+        self.rv.view_adapter.get_visible_view(i).ti.select_all()
 
     def set_edit(self):
         self.editable= not self.editable
@@ -168,3 +169,7 @@ class TextEditor(Screen):
         if self.editable:
             self.rv.data[k]['value']= v
             self.rv.refresh_from_data()
+            Clock.schedule_once(partial(self._deselect_it, k), 0.1)
+    def _deselect_it(self, i, *largs):
+        self.rv.view_adapter.get_visible_view(i).selected= False
+        self.rv.selected_idx= -1
