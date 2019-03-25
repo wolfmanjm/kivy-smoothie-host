@@ -396,6 +396,7 @@ class MainWindow(BoxLayout):
 
     def _do_restart(self, ok):
         if ok:
+            self.app.stop()
             os.execl(sys.executable, sys.executable, *sys.argv)
 
     def ask_shutdown(self):
