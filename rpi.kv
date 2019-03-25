@@ -92,8 +92,11 @@
                     on_press: root.do_update()
 
                 ActionButton:
+                    text: 'Restart'
+                    on_press: root.ask_exit(True)
+                ActionButton:
                     text: 'Quit'
-                    on_press: root.ask_exit()
+                    on_press: root.ask_exit(False)
                 ActionButton:
                     text: 'Shutdown'
                     on_press: root.ask_shutdown()
