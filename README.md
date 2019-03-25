@@ -105,7 +105,8 @@ For instance...
     sudo pip3 install -U Cython==0.28.2
     sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@86b6e19
 
-This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable.
+This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable. 
+```git+https://github.com/kivy/kivy.git@stable``` seems to work ok too so long as it is v1.10.1.
 
 On an rpi3b+ it seems the double tap time needs to be increased to be usable..
 

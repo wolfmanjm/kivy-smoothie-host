@@ -148,6 +148,23 @@ class HB04():
             0,0,0,0,0   # padding
         ]
     lock = threading.RLock()
+    # button look up table
+    butlut= {
+        1:       "origin",
+        2:        "start",
+        3:       "rewind",
+        4:       "probez",
+        5:       "macro3",
+        6:         "half",
+        7:         "zero",
+        8:        "safez",
+        9:         "home",
+        10:      "macro1",
+        11:      "macro2",
+        12:     "spindle",
+        15:      "macro6",
+        16:      "macro7",
+    }
 
     alut= {0: 'off', 0x11:'X', 0x12:'Y', 0x13:'Z', 0x18:'A', 0x15: 'F', 0x14: 'S'}
     mul = 1
@@ -188,23 +205,6 @@ class HB04():
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
 
     def handle_button(self, btn, axis):
-        # button look up table
-        butlut= {
-            1:       "origin",
-            2:        "start",
-            3:       "rewind",
-            4:       "probez",
-            5:       "macro3",
-            6:         "half",
-            7:         "zero",
-            8:        "safez",
-            9:         "home",
-            10:      "macro1",
-            11:      "macro2",
-            12:     "spindle",
-            15:      "macro6",
-            16:      "macro7",
-        }
         name= butlut[btn]
 
         if(name in self.macrobut):
