@@ -740,7 +740,7 @@ class SmoothieHost(App):
             'v2' : 'false'
         })
         config.setdefaults('UI', {
-            'display_type': "RPI",
+            'display_type': "RPI Touch",
             'cnc': 'false',
             'tab_top': 'false',
             'screen_size': 'auto',
