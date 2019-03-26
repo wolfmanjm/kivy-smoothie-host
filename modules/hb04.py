@@ -205,7 +205,7 @@ class HB04():
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
 
     def handle_button(self, btn, axis):
-        name= butlut[btn]
+        name= self.butlut[btn]
 
         if(name in self.macrobut):
             # use redefined macro
@@ -371,7 +371,7 @@ class HB04():
 
             except:
                 Logger.warn("HB04: Exception")
-                Logger.debug("HB04: Exception - {}".format(traceback.format_exc()))
+                Logger.info("HB04: Exception - {}".format(traceback.format_exc()))
                 if self.hid.opened:
                     self.hid.close()
 
