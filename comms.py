@@ -301,11 +301,11 @@ class Comms():
 
         # parse into a dict of name: value
         d= {y[0].strip():y[1].strip() for y in [x.split(':', 1) for x in l]}
-        if not 'X-CNC' in d: d['X-CNC']= 0
+        if not 'X-CNC' in d: d['X-CNC']= '0'
         if not 'FIRMWARE_NAME' in d: d['FIRMWARE_NAME']= 'UNKNOWN'
         if not 'FIRMWARE_VERSION' in d: d['FIRMWARE_VERSION']= 'UNKNOWN'
 
-        self.log.info("Comms: Firmware: {}, Version: {}, CNC: {}".format(d['FIRMWARE_NAME'], d['FIRMWARE_VERSION'], 'Yes' if d['X-CNC'] == 1 else 'No'))
+        self.log.info("Comms: Firmware: {}, Version: {}, CNC: {}".format(d['FIRMWARE_NAME'], d['FIRMWARE_VERSION'], 'Yes' if d['X-CNC'] == '1' else 'No'))
         self.app.main_window.async_display(s)
 
     def list_sdcard(self, done_cb):
