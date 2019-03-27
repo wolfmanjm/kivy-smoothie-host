@@ -201,6 +201,7 @@ class HB04():
             config.read('hb04.ini')
             for (key, v) in config.items('macros'):
                 self.macrobut[key] = v
+            self.mul = config.getint("defaults", "multiplier", fallback=8)
         except Exception as err:
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
 
