@@ -226,6 +226,8 @@ Run as
 
 In settings set the desktop layout to 1 or 2 and restart. 1 is for smaller screens and 2 is for bigger screens.
 
+__NOTE__ all the files are coded UTF-8 so make sure your locale (LANG=en_US.utf8) is set to a UTF-8 variety otherwise you will get weird errors from deep within python/kivy.
+
 ## Smoothie version required
 
 This requires the latest FirmwareBin/firmware-latest.bin from Smoothie github, (or FirmwareBin/firmware-cnc-latest.bin).

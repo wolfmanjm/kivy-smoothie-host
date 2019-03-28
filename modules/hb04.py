@@ -195,13 +195,16 @@ class HB04():
         self.t.join()
 
     def load_macros(self):
-        # load user defined macro buttons
         try:
             config = configparser.ConfigParser()
             config.read('hb04.ini')
+            # load user defined macro buttons
             for (key, v) in config.items('macros'):
                 self.macrobut[key] = v
+
+            # load any default settings
             self.mul = config.getint("defaults", "multiplier", fallback=8)
+
         except Exception as err:
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
 
@@ -232,7 +235,7 @@ class HB04():
         elif btn == BUT_SPINDLE:
             cmd= "M5" if self.app.is_spindle_on else "M3"
         elif btn == BUT_HALF:
-            cmd= "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis)-ord('X')]/2)
+            cmd= "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis)-ord('X')]/2.0)
 
         if cmd:
             self.app.comms.write("{}\n".format(cmd))
