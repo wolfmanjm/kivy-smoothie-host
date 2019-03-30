@@ -34,6 +34,11 @@ Builder.load_string('''
             height: self.texture_size[1]
 
         BoxLayout:
+            canvas.before:
+                Color:
+                    rgb: 0.5, 0.5, 0.5, 0.5
+                Rectangle:
+                    size: self.size
             id: view_window
             pos_hint: {'top': 1}
             Scatter:
@@ -814,7 +819,8 @@ if __name__ == '__main__':
 
     Builder.load_string('''
 <StartScreen>:
-    on_leave: print('leaving start')
+    #on_leave: print('leaving start')
+    on_enter: app.stop()
     Button:
         text: 'press me'
         on_press: root.manager.current = 'gcode'
