@@ -322,8 +322,8 @@ class HB04():
                             continue
 
 
-                        # don't do jogging etc if printing
-                        if self.app.main_window.is_printing:
+                        # don't do jogging etc if printing unless we are suspended
+                        if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
                             continue
 
                         if wheel_mode == 0:
