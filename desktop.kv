@@ -75,7 +75,7 @@
                     disabled: not app.is_show_camera
                 ActionButton:
                     text: 'Reprint Last'
-                    disabled: app.gcode_file == ''
+                    disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
                     on_press: app.main_window.reprint()
                 ActionButton:
                     text: 'View Last'
