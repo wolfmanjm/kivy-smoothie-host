@@ -28,13 +28,3 @@
         text: 'Feed Hold' if app.status != 'Hold' else 'Resume'
         on_press: root.send('!') if app.status != 'Hold' else root.send('~')
 
-    MacroButton:
-        text: 'Reprint Last'
-        disabled: app.gcode_file == ''
-        on_press: app.main_window.reprint()
-
-    MacroButton:
-        text: 'View Last'
-        disabled: app.gcode_file == ''
-        on_press: app.main_window.review()
-
