@@ -18,7 +18,7 @@ class ToolScripts():
         t.start()
 
     def _probe(self, x=None, y=None, z=None):
-       cmd= ""
+        cmd= ""
         if x:
             cmd += "X{} ".format(x)
 
