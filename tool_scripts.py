@@ -104,7 +104,7 @@ class ToolScripts():
             # probe left
             r2= self._probe(x = -100)
 
-            diam= r1[0] - r2[0]
+            diam= r1['X'] - r2['X']
 
             # center in X
             self._moveby(x = diam/2.0)
@@ -118,12 +118,12 @@ class ToolScripts():
             # probe front
             r2= self._probe(y = -100)
 
-            diam= r1[1] - r2[1]
+            diam= r1['Y'] - r2['Y']
 
             # center in Y
             self._moveby(y = diam/2.0)
 
-            # tell us the appprox diameter
+            # tell us the approx diameter
             self.app.main_window.async_display("Diameter is {}, less the tool diameter".format(diam))
 
         except Exception as msg:
