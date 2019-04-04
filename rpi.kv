@@ -85,7 +85,7 @@
                 ActionButton:
                     text: 'Find Center'
                     disabled: not app.is_connected or root.is_printing
-                    on_press: app.tools.find_center()
+                    on_press: app.tool_scripts.find_center()
 
             ActionGroup:
                 text: 'System'
