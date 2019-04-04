@@ -37,6 +37,8 @@ class ToolScripts():
         if not self.app.comms.okcnt.wait(120):
             raise Exception("probe timed out")
 
+        self.app.comms.okcnt.clear()
+
         r= self.app.last_probe
         if not r["status"]:
             raise Exception("probe failed")
@@ -59,6 +61,11 @@ class ToolScripts():
 
         if cmd:
             self.app.comms.write("G91 G0 {} G90\n".format(cmd))
+            # wait for it to complete
+            if not self.app.comms.okcnt.wait(120):
+                raise Exception("moveby timed out")
+
+            self.app.comms.okcnt.clear()
 
     def _moveto(self, x=None, y=None, z=None):
         cmd= ""
@@ -73,6 +80,11 @@ class ToolScripts():
 
         if cmd:
             self.app.comms.write("G90 G0 {}\n".format(cmd))
+            # wait for it to complete
+            if not self.app.comms.okcnt.wait(120):
+                raise Exception("moveto timed out")
+
+            self.app.comms.okcnt.clear()
 
 
     def _find_center_thread(self):
