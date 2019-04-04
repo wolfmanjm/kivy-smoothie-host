@@ -39,6 +39,7 @@ from camera_screen import CameraScreen
 from config_editor import ConfigEditor
 from gcode_help import GcodeHelp
 from text_editor import TextEditor
+from tools import Tools
 
 import subprocess
 import traceback
@@ -726,6 +727,8 @@ class SmoothieHost(App):
         self.loaded_modules= []
         self.secs= 0
         self.fast_stream= False
+        self.last_probe= {'X': 0, 'Y': 0, 'Z':0, 'status': False}
+        self.tools= Tools()
 
     def build_config(self, config):
         config.setdefaults('General', {

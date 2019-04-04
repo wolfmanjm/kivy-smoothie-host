@@ -424,7 +424,7 @@ class Comms():
 
                 # if there is anything after the ok display it
                 if len(s) > 2:
-                    self.app.main_window.async_display('{}'.format(s[3:]))
+                    self.app.main_window.async_display('ok {}'.format(s[3:]))
 
             elif s.startswith('<'):
                 try:
@@ -432,8 +432,12 @@ class Comms():
                 except:
                     self.log.error("Comms: error parsing status")
 
-            elif s.startswith('[PRB:') or (s.startswith('[') and ':' in s):
-                # Handle PRB returns and $#
+            elif s.startswith('[PRB:'):
+                # Handle PRB reply
+                self.handle_probe(s)
+
+            elif s.startswith('[') and ':' in s:
+                # Handle $# reply
                 self.app.main_window.async_display(s)
 
             elif s.startswith('['):
@@ -526,6 +530,13 @@ class Comms():
         # schedule next report
         self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
 
+    def handle_probe(self, s):
+        # [PRB:1.000,80.137,10.000:0]
+        l= s[5:-1].split(':')
+        c= l[0].split(',')
+        st= l[1]
+        self.app.main_window.async_display("Probe: {} - X: {}, Y: {}, Z: {}".format(st, c[0], c[1], c[2]))
+        self.app.last_probe= {'X': float(c[0]), 'Y': float(c[1]), 'Z': float(c[2]), 'status': st == '1'}
 
     def handle_alarm(self, s):
         ''' handle case where smoothie sends us !! or an error of some sort '''
