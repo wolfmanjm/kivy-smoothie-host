@@ -17,8 +17,21 @@ class ToolScripts():
         t= threading.Thread(target=self._find_center_thread, daemon=True)
         t.start()
 
-    def _probe(self, axis, dirn):
-        self.app.comms.write("G38.3 {}{}\n".format(axis, dirn))
+    def _probe(self, x=None, y=None, z=None):
+       cmd= ""
+        if x:
+            cmd += "X{} ".format(x)
+
+        if y:
+            cmd += "Y{} ".format(y)
+
+        if z:
+            cmd += "Z{}".format(z)
+
+        if not cmd:
+            raise Exception("need to specify an axis to probe")
+
+        self.app.comms.write("G38.3 {}\n".format(cmd))
 
         # wait for it to complete
         if not self.app.comms.okcnt.wait(120):
@@ -33,6 +46,34 @@ class ToolScripts():
         # return result
         return r
 
+    def _moveby(self, x=None, y=None, z=None):
+        cmd= ""
+        if x:
+            cmd += "X{} ".format(x)
+
+        if y:
+            cmd += "Y{} ".format(y)
+
+        if z:
+            cmd += "Z{}".format(z)
+
+        if cmd:
+            self.app.comms.write("G91 G0 {} G90\n".format(cmd))
+
+    def _moveto(self, x=None, y=None, z=None):
+        cmd= ""
+        if x:
+            cmd += "X{} ".format(x)
+
+        if y:
+            cmd += "Y{} ".format(y)
+
+        if z:
+            cmd += "Z{}".format(z)
+
+        if cmd:
+            self.app.comms.write("G90 G0 {}\n".format(cmd))
+
 
     def _find_center_thread(self):
         self.app.main_window.async_display("Starting find center....")
@@ -44,31 +85,32 @@ class ToolScripts():
             wp= self.app.wpos
 
             # probe right
-            r1= self._probe("X", 100)
-            # move back to start
-            self.app.comms.write("G0 X{}\n".format(wp[0]))
+            r1= self._probe(x = 100)
+
+            # move back to starting x
+            self._moveto(x = wp[0])
 
             # probe left
-            r2= self._probe("X", -100)
+            r2= self._probe(x = -100)
 
             diam= r1[0] - r2[0]
 
             # center in X
-            self.app.comms.write("G91 G0 X{} G90\n".format(diam/2.0))
+            self._moveby(x = diam/2.0)
 
             # probe back
-            r1= self._probe("Y", +100)
+            r1= self._probe(y = +100)
 
-            # to speed things up a bit get back to approx center
-            self.app.comms.write("G91 G0 Y{} G90\n".format(-diam/2.0))
+            # move back to starting y
+            self._moveto(y = wp[1])
 
             # probe front
-            r2= self._probe("Y", -100)
+            r2= self._probe(y = -100)
 
             diam= r1[1] - r2[1]
 
             # center in Y
-            self.app.comms.write("G91 G0 Y{} G90\n".format(diam/2.0))
+            self._moveby(y = diam/2.0)
 
             # tell us the appprox diameter
             self.app.main_window.async_display("Diameter is {}, less the tool diameter".format(diam))
