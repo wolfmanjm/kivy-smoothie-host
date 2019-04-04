@@ -81,6 +81,10 @@
                     text: 'View Last'
                     disabled: app.gcode_file == ''
                     on_press: app.main_window.review()
+                ActionButton:
+                    text: 'Find Center'
+                    disabled: not app.is_connected or root.is_printing
+                    on_press: app.tool_scripts.find_center()
 
             ActionGroup:
                 text: 'System'
