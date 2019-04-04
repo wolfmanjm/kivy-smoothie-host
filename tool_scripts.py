@@ -3,6 +3,7 @@ import kivy
 from kivy.logger import Logger
 from kivy.app import App
 import threading
+import traceback
 
 class ToolScripts():
     """ Handle some builtin convenience scripts """
@@ -42,8 +43,6 @@ class ToolScripts():
         r= self.app.last_probe
         if not r["status"]:
             raise Exception("probe failed")
-
-        print(r)
 
         # return result
         return r
@@ -128,6 +127,7 @@ class ToolScripts():
             self.app.main_window.async_display("Diameter is {}, less the tool diameter".format(diam))
 
         except Exception as msg:
+            Logger.info("Tools: Exception - {}".format(traceback.format_exc()))
             Logger.error("Tools: find_center: Got exception: {}".format(msg))
             self.app.main_window.async_display("find center failed: {}".format(msg))
 
