@@ -65,6 +65,8 @@ class ToolScripts():
                 raise Exception("moveby timed out")
 
             self.app.comms.okcnt.clear()
+            if self.app.main_window.status == 'Alarm':
+                raise Exception("ALARM detected")
 
     def _moveto(self, x=None, y=None, z=None):
         cmd= ""
@@ -84,7 +86,8 @@ class ToolScripts():
                 raise Exception("moveto timed out")
 
             self.app.comms.okcnt.clear()
-
+            if self.app.main_window.status == 'Alarm':
+                raise Exception("ALARM detected")
 
     def _find_center_thread(self):
         self.app.main_window.async_display("Starting find center....")
@@ -124,10 +127,10 @@ class ToolScripts():
             self._moveby(y = diam/2.0)
 
             # tell us the approx diameter
-            self.app.main_window.async_display("Diameter is {}, less the tool diameter".format(diam))
+            self.app.main_window.async_display("Diameter is {}, plus the tool diameter".format(diam))
 
         except Exception as msg:
-            Logger.info("Tools: Exception - {}".format(traceback.format_exc()))
+            # Logger.info("Tools: Exception - {}".format(traceback.format_exc()))
             Logger.error("Tools: find_center: Got exception: {}".format(msg))
             self.app.main_window.async_display("find center failed: {}".format(msg))
 
