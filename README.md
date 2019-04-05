@@ -56,6 +56,17 @@ Simple macro buttons can be created by clicking the green `New Macro` button.
 
 ## Install on RPI
 
+**NOTE** on the current image and all install on raspbian you need to add this...
+
+    > sudo jove /etc/udev/rules.d/90-smoothie.rules
+    and add this...
+
+    SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6015", MODE="0666"
+    SUBSYSTEM=="tty", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6015", MODE="0666", SYMLINK+="smoothie%n"
+    ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6015", RUN+="/bin/stty -F /dev/ttyACM%n -echo -echoe -echok"
+
+The last line is quite important otherwise you get a whole lot of ok's echoed back to smoothie when it opens. This does not appear to be needed on a desktop probably due to the speed it is setup vs the rpi.
+
 ### Image
 For RPI  and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else.
 
@@ -175,7 +186,7 @@ To allow Smoopi to connect to the smoothie when auto start by runit you need to 
 
     SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6015", MODE="0666"
     SUBSYSTEM=="tty", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6015", MODE="0666", SYMLINK+="smoothie%n"
-
+    ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6015", RUN+="/bin/stty -F /dev/ttyACM%n -echo -echoe -echok"
 
 smoopi is now managed by runit. (This has the side effect of restarting smoopi if it crashes).
 
