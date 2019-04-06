@@ -96,13 +96,14 @@ class ToolScripts():
         try:
 
             # get current position
-            wp= self.app.wpos
+            wpx= self.app.wpos[0]
+            wpy= self.app.wpos[1]
 
             # probe right
             r1= self._probe(x = 100)
 
             # move back to starting x
-            self._moveto(x = wp[0])
+            self._moveto(x = wpx)
 
             # probe left
             r2= self._probe(x = -100)
@@ -113,10 +114,10 @@ class ToolScripts():
             self._moveby(x = diam/2.0)
 
             # probe back
-            r1= self._probe(y = +100)
+            r1= self._probe(y = 100)
 
             # move back to starting y
-            self._moveto(y = wp[1])
+            self._moveto(y = wpy)
 
             # probe front
             r2= self._probe(y = -100)
