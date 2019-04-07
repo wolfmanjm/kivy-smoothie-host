@@ -13,6 +13,7 @@ from functools import partial
 import subprocess
 import threading
 import select
+import re
 
 '''
 user defined macros are configurable and stored in a configuration file called macros.ini
@@ -77,7 +78,7 @@ class MacrosWidget(StackLayout):
                     btn.bind(on_press= partial(self.exec_script, script, io, args))
                     self.add_widget(btn)
 
-            # add simple macro buttons
+            # add simple macro buttons (with optional prompts)
             for (key, v) in config.items('macro buttons'):
                 btn = Factory.MacroButton()
                 btn.text= key
@@ -145,8 +146,35 @@ class MacrosWidget(StackLayout):
             t[4].state = 'down'
             t[4].text = t[1]
 
+    def _substitute_args(self, m, arg):
+        """ substitude {?prompt}) with prompted value """
+
+        # get arguments to prompt for
+        v= [x[2:-1] for x in m]
+
+        mb = MultiInputBox(title="Arguments for {}".format(arg))
+        mb.setOptions(v, partial(self._do_substitute_exec, m, arg))
+        mb.open()
+
+    def _do_substitute_exec(self, m, arg, opts):
+        for i in m:
+            v= opts[i[2:-1]]
+            if v:
+                arg= arg.replace(i, v)
+            else:
+                self.app.main_window.async_display("ERROR: argument missing for {}".format(i))
+                return
+
+        self.app.comms.write('{}\n'.format(arg))
+
     def send(self, cmd, *args):
-        self.app.comms.write('{}\n'.format(cmd))
+        # look for {?prompt}) and substitute entered value if found
+        m= re.findall(r'\{\?[^}]+\}', cmd)
+        if m:
+            self._substitute_args(m, cmd)
+        else:
+            # plain command just send it
+            self.app.comms.write('{}\n'.format(cmd))
 
     def exec_script(self, cmd, io, params, *args):
         if params is not None:

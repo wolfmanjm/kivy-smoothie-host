@@ -12,12 +12,15 @@ class ToolScripts():
         super(ToolScripts, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
+    # public methods
     def find_center(self):
         """ Finds the center of a circle """
         # needs to be run in a thread
         t= threading.Thread(target=self._find_center_thread, daemon=True)
         t.start()
 
+
+    # private methods
     def _probe(self, x=None, y=None, z=None):
         cmd= ""
         if x:
