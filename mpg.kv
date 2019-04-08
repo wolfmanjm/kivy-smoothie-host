@@ -62,7 +62,7 @@
     Label:
         pos_hint: {'top': 0.92}
         id: pos_lab
-        text: '{:+09.3f}'.format(root.last_pos)
+        text: '{:+09.3f}'.format(root.last_pos) if root.selected_index >= 0 else '{:9.0f}'.format(root.last_pos)
         font_size: '70sp'
         font_name: "data/fonts/RobotoMono-Regular.ttf"
         size_hint_y: None

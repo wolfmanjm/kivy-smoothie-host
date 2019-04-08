@@ -131,6 +131,7 @@ class MPGWidget(RelativeLayout):
         self.app = App.get_running_app()
 
     def handle_action(self):
+        # Run button pressed
         if self.selected_index == -1:
             # change feed override
             self.app.comms.write('M220 S{}'.format(round(self.last_pos, 1)))
