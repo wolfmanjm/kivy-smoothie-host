@@ -6,6 +6,8 @@
         Rectangle:
             pos: self.pos
             size: self.size
+    on_selected_axis: root.selected_index= ord(args[1]) - ord('X') if args[1] != 'Fo' else -1
+    on_selected_index: root.index_changed(args[1])
 
     BoxLayout:
         orientation: 'horizontal'
@@ -29,6 +31,13 @@
             on_state: if self.state == 'down': root.selected_axis= self.text
         ToggleButton:
             text: 'Z'
+            group: 'axis'
+            size_hint_y: None
+            height: 40
+            on_state: if self.state == 'down': root.selected_axis= self.text
+        ToggleButton:
+            id: Fo
+            text: 'Fo'
             group: 'axis'
             size_hint_y: None
             height: 40
@@ -86,6 +95,7 @@
         size_hint: None, None
         size: 80, 40
         on_press: root.last_pos= 0
+        disabled: Fo.state == 'down'
 
     ToggleButton:
         id: mpg_mode_tb
@@ -93,11 +103,13 @@
         text: 'MPG Mode'
         size_hint: None, None
         size: 80, 40
+        disabled: Fo.state == 'down'
 
     ToggleButton:
         id: abs_mode_tb
-        disabled: mpg_mode_tb.state == 'down'
+        disabled: mpg_mode_tb.state == 'down' or Fo.state == 'down'
         pos_hint: {'x': 0.01, 'y': 0.6}
-        text: 'REL' if self.state == 'down' else 'ABS'
+        text: 'ABS' if self.state == 'down' else 'REL'
         size_hint: None, None
         size: 80, 40
+        on_state: root.abs_mode_changed()

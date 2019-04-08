@@ -147,7 +147,7 @@ class MacrosWidget(StackLayout):
             t[4].text = t[1]
 
     def _substitute_args(self, m, arg):
-        """ substitude {?prompt}) with prompted value """
+        """ substitute {?prompt}) with prompted value """
 
         # get arguments to prompt for
         v= [x[2:-1] for x in m]

@@ -124,22 +124,34 @@ class DROWidget(RelativeLayout):
 class MPGWidget(RelativeLayout):
     last_pos= NumericProperty(0)
     selected_axis= StringProperty('X')
+    selected_index= NumericProperty(0)
 
     def __init__(self, **kwargs):
         super(MPGWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
     def handle_action(self):
+        if self.selected_index == -1:
+            # change feed override
+            self.app.comms.write('M220 S{}'.format(round(self.last_pos, 1)))
+            return
+
         # if in non MPG mode then issue G0 in abs or rel depending on settings
         # if in MPG mode then issue $J commands when they occur
         if not self.ids.mpg_mode_tb.state == 'down':
             # normal mode
-            cmd1= 'G91 G0' if self.ids.abs_mode_tb.state == 'down' else 'G0'
-            cmd2= 'G90' if self.ids.abs_mode_tb.state == 'down' else ''
+            cmd1= 'G0' if self.ids.abs_mode_tb.state == 'down' else 'G91 G0'
+            cmd2= '' if self.ids.abs_mode_tb.state == 'down' else 'G90'
             #print('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
             self.app.comms.write('{} {}{} {}\n'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
 
     def handle_change(self, ticks):
+        if self.selected_index == -1:
+            # change feed override
+            self.last_pos += ticks
+            if self.last_pos < 1: self.last_pos= 1
+            return
+        # change an axis
         if self.ids.x01.active:
             d= 0.01 * ticks
         elif self.ids.x001.active:
@@ -151,6 +163,20 @@ class MPGWidget(RelativeLayout):
         #MPG mode
         if self.ids.mpg_mode_tb.state == 'down':
             self.app.comms.write('$J {}{}\n'.format(self.selected_axis.upper(), d))
+
+    def index_changed(self, i):
+        if i == -1:
+            # Feedrate overide
+            self.last_pos= self.app.fro
+        elif self.ids.abs_mode_tb.state == 'down':
+            # show current axis position
+            self.last_pos= self.app.wpos[i]
+        else:
+            # relative mode zero it
+            self.last_pos= 0
+
+    def abs_mode_changed(self):
+        self.index_changed(self.selected_index)
 
 class CircularButton(ButtonBehavior, Widget):
     text= StringProperty()
