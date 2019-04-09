@@ -35,7 +35,7 @@ You can select 3d printer mode or CNC mode from the Settings menu, this can affe
 - The Macro Panel is a user configurable buttons panel to control whatever you want. (Edit the `macros.ini` file)
   There is a `sample-macros.ini` just copy that to `macros.ini` and edit as appropriate to define your own macro buttons.
 - The DRO Panel shows current MCS and WCS, and allows easy selection of the WCS to use, and allows setting of WCS
-- The MPG Panel is a simulation of an MPG pendant, it allows control of movement via a simulated rotary knob. (There is an optional module to take controls from a real MPG USB pendant).
+- The MPG Panel is a simulation of an MPG pendant, it allows control of movement and feedrate override via a simulated rotary knob. (There is an optional module to take controls from a real MPG USB pendant).
 - The config editor displays the current smoothie config in a scrollable window, values can be updated click the return key and then will update the config on sd accordingly. (reset is of course required to take effect).
 
 There is a gcode visualizer window that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
@@ -55,6 +55,13 @@ Macros buttons can prompt for input and substitute the given variables.
 (See sample-macros.ini for examples).
 Simple macro buttons can be created by clicking the green `New Macro` button.
 
+
+### CNC Support (PCB milling etc)
+There are features specifically implemented to make CNC use easier.
+- Tool change can be enabled which will catch Tn/M6 commands and suspend the job allowing you to manually change the drill bit and/or tool and then return to the point it was suspended. Full jogging and resetting of Z0 is allowed while suspended.
+Cambam gcode is supported and will show the size of the bit required in the console window. Flatcam gcode is supported but a minor postprocess on the gcode needs to be done so the comment showing the tool required is moved to before the M6 (it is currently after the M6 so you don't see it until after you resume).
+- M0 can be enabled and any (MSG, xxxx) is displayed in the console window. However M0 simply pauses the job until the dialog is dismissed. This presumes the tool heights are all thhe same and no jogging is required to change a tool
+- The viewer allows setting the WCS to any arbitrary point on the workpiece, and to move to any point on the workpiece. This allows positioning and size checking before the job is run.
 
 ## Install on RPI
 
