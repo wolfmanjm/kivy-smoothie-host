@@ -838,6 +838,8 @@ if __name__ == '__main__':
             super(GcodeViewerApp, self).__init__(**kwargs)
             if len(sys.argv) > 1:
                 self.gcode_file= sys.argv[1]
+                if not self.gcode_file.endswith('.gcode'):
+                    self.is_cnc= True
             else:
                 self.gcode_file= 'test.gcode' #'circle-test.g'
 

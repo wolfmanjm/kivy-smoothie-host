@@ -137,6 +137,9 @@ class MPGWidget(RelativeLayout):
             self.app.comms.write('M220 S{}'.format(round(self.last_pos, 1)))
             return
 
+        if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
+            return
+
         # if in non MPG mode then issue G0 in abs or rel depending on settings
         # if in MPG mode then issue $J commands when they occur
         if not self.ids.mpg_mode_tb.state == 'down':
@@ -152,6 +155,10 @@ class MPGWidget(RelativeLayout):
             self.last_pos += ticks
             if self.last_pos < 1: self.last_pos= 1
             return
+
+        if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
+            return
+
         # change an axis
         if self.ids.x01.active:
             d= 0.01 * ticks
