@@ -812,7 +812,7 @@ class SmoothieHost(App):
                   "desc": "Select Display layout, RPI is for 7in touch screen layout",
                   "section": "UI",
                   "key": "display_type",
-                  "options": ["RPI Touch", "Small Desktop", "Large Desktop"]
+                  "options": ["RPI Touch", "Small Desktop", "Large Desktop", "Wide Desktop"]
                 },
 
                 { "type": "bool",
@@ -971,14 +971,14 @@ class SmoothieHost(App):
 
     def build(self):
         lt= self.config.get('UI', 'display_type')
-        if lt == "RPI Touch":
-            self.is_desktop= 0
-        elif lt == "Small Desktop":
-            self.is_desktop= 1
-        elif lt == "Large Desktop":
-            self.is_desktop= 2
-        else:
-            self.is_desktop= 0
+        dtlut = {
+            "RPI Touch": 0,
+            "Small Desktop": 1,
+            "Large Desktop": 2,
+            "Wide Desktop": 3
+        }
+
+        self.is_desktop= dtlut.get(lt, 0)
 
         # load the layouts for the desktop screen
         if self.is_desktop == 1:
@@ -993,6 +993,10 @@ class SmoothieHost(App):
                 elif 'x' in s:
                     (w, h)= s.split('x')
                     Window.size= (int(w), int(h))
+
+        elif self.is_desktop == 3:
+            Builder.load_file('desktop-wide.kv')
+            Window.size= (1280, 800)
 
         else:
             self.is_desktop= 0
@@ -1011,6 +1015,7 @@ class SmoothieHost(App):
         self.gcode_file= self.config.get('General', 'last_print_file')
         self.sm = ScreenManager()
         ms= MainScreen(name='main')
+        self.main_window= ms.ids.main_window
         self.sm.add_widget(ms)
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms= self.comms))
         self.config_editor= ConfigEditor(name='config_editor')
@@ -1021,7 +1026,6 @@ class SmoothieHost(App):
             self.text_editor= TextEditor(name='text_editor')
             self.sm.add_widget(self.text_editor)
 
-        self.main_window= ms.ids.main_window
 
         self.blank_timeout= self.config.getint('General', 'blank_timeout')
         Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))

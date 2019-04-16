@@ -1,11 +1,5 @@
 <MPGWidget>:
     # RelativeLayout
-    canvas.before:
-        Color:
-            rgba: 0.5, 0.5, 0.5, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
     on_selected_axis: root.selected_index= ord(args[1]) - ord('X') if args[1] != 'Fo' else -1
     on_selected_index: root.index_changed(args[1])
 

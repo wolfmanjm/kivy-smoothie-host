@@ -230,10 +230,21 @@ https://kivy.org/docs/installation/installation.html
 2. sudo apt-get update
 3. sudo apt-get install python3-kivy
 
-or get the latest version of kivy if the distro version is too old (currently using  1.10.1)
+If this does not work or is too old...
 
-    sudo pip3 install kivy
+    sudo apt-get update
+    sudo apt-get install libsdl2-dev libsdl2-image-dev \
+       libsdl2-mixer-dev libsdl2-ttf-dev \
+       pkg-config libgl1-mesa-dev libgles2-mesa-dev \
+       python3-setuptools libgstreamer1.0-dev git-core \
+       gstreamer1.0-plugins-{bad,base,good,ugly} \
+       gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
+       xclip xsel
+    sudo apt-get install python3-pip
+    sudo pip3 install -U Cython==0.28.2
+    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable
 
+stable seems to work ok so long as it is v1.10.1.
 
 Install some dependencies we need...
 
@@ -244,7 +255,7 @@ Run as
     > cd kivy-smoothie-host
     > python3 main.py
 
-In settings set the desktop layout to 1 or 2 and restart. 1 is for smaller screens and 2 is for bigger screens.
+In settings set the desktop layout to Small Desktop or Large Desktop and restart.  The large desktop layout can also have a size specified by editing the smoothiehost.ini file and changing eg ```screen_size = 1024x900``` under the [UI] section.
 
 __NOTE__ all the files are coded UTF-8 so make sure your locale (LANG=en_US.utf8 or even LANG=C.UTF-8) is set to a UTF-8 variety otherwise you will get weird errors from deep within python/kivy.
 
