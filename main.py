@@ -985,18 +985,14 @@ class SmoothieHost(App):
             Builder.load_file('desktop.kv')
             Window.size= (1024, 768)
 
-        elif self.is_desktop == 2:
-                Builder.load_file('desktop_large.kv')
-                s= self.config.get('UI', 'screen_size')
-                if s == 'auto':
-                    Window.size= (1280, 1024)
-                elif 'x' in s:
-                    (w, h)= s.split('x')
-                    Window.size= (int(w), int(h))
-
-        elif self.is_desktop == 3:
-            Builder.load_file('desktop-wide.kv')
-            Window.size= (1280, 800)
+        elif self.is_desktop == 2 or self.is_desktop == 3:
+            Builder.load_file('desktop_large.kv' if self.is_desktop == 2 else 'desktop-wide.kv')
+            s= self.config.get('UI', 'screen_size')
+            if s == 'auto':
+                Window.size= (1280, 1024) if self.is_desktop == 2 else (1280, 800)
+            elif 'x' in s:
+                (w, h)= s.split('x')
+                Window.size= (int(w), int(h))
 
         else:
             self.is_desktop= 0
