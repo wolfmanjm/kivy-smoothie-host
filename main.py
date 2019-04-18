@@ -209,6 +209,10 @@ class JogRoseWidget(BoxLayout):
         self.xy_feedrate= self.app.config.get('Jog', 'xy_feedrate')
 
     def handle_action(self, axis, v):
+        if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
+            self.app.main_window.display("NOTE: Cannot jog while printing")
+            return
+
         x10= self.ids.x10cb.active
         if x10:
             v *= 10
@@ -1057,10 +1061,6 @@ class SmoothieHost(App):
         if self.is_cnc:
             # remove Extruder panel from tabpanel and tab
             self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.extruder_tab)
-
-            # else:
-            #     # remove MPG panel
-            #     self.main_window.ids.tc.remove_widget(self.main_window.ids.tc.mpg_tab)
 
         # if not CNC mode then do not show the ZABC buttons in jogrose
         if not self.is_cnc:
