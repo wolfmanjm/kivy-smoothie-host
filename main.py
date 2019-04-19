@@ -421,7 +421,7 @@ class MainWindow(BoxLayout):
         ''' called when smoothie is in Alarm state and it is sent a gcode '''
         self.add_line_to_log("! Alarm state: {}".format(s))
 
-    def ask_exit(self, restart=false):
+    def ask_exit(self, restart=False):
         # are you sure?
         if restart:
             mb = MessageBox(text='Restart - Are you Sure?', cb= self._do_restart)
