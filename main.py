@@ -817,7 +817,7 @@ class SmoothieHost(App):
                   "desc": "Select Display layout, RPI is for 7in touch screen layout",
                   "section": "UI",
                   "key": "display_type",
-                  "options": ["RPI Touch", "Small Desktop", "Large Desktop", "Wide Desktop"]
+                  "options": ["RPI Touch", "Small Desktop", "Large Desktop", "Wide Desktop", "RPI Full Screen"]
                 },
 
                 { "type": "bool",
@@ -980,7 +980,8 @@ class SmoothieHost(App):
             "RPI Touch": 0,
             "Small Desktop": 1,
             "Large Desktop": 2,
-            "Wide Desktop": 3
+            "Wide Desktop": 3,
+            "RPI Full Screen": 4
         }
 
         self.is_desktop= dtlut.get(lt, 0)
@@ -990,14 +991,16 @@ class SmoothieHost(App):
             Builder.load_file('desktop.kv')
             Window.size= (1024, 768)
 
-        elif self.is_desktop == 2 or self.is_desktop == 3:
+        elif self.is_desktop == 2 or self.is_desktop == 3 or self.is_desktop == 4:
             Builder.load_file('desktop_large.kv' if self.is_desktop == 2 else 'desktop_wide.kv')
-            s= self.config.get('UI', 'screen_size')
-            if s == 'auto':
-                Window.size= (1280, 1024) if self.is_desktop == 2 else (1280, 800)
-            elif 'x' in s:
-                (w, h)= s.split('x')
-                Window.size= (int(w), int(h))
+            if self.is_desktop != 4:
+                # because rpi_egl does not like to be told the size
+                s= self.config.get('UI', 'screen_size')
+                if s == 'auto':
+                    Window.size= (1280, 1024) if self.is_desktop == 2 else (1280, 800)
+                elif 'x' in s:
+                    (w, h)= s.split('x')
+                    Window.size= (int(w), int(h))
 
         else:
             self.is_desktop= 0
