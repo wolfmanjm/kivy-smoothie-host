@@ -760,6 +760,7 @@ class SmoothieHost(App):
             self.use_com_port= None
         self.webserver= False
         self._blanked= False
+        self.blank_timeout= 0
         self.last_touch_time= 0
         self.camera_url= None
         self.loaded_modules= []
@@ -1059,8 +1060,9 @@ class SmoothieHost(App):
 
         # setup for cnc or 3d printer
         if self.is_cnc:
-            # remove Extruder panel from tabpanel and tab
-            self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.extruder_tab)
+            if self.is_desktop < 3:
+                # remove Extruder panel from tabpanel and tab
+                self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.extruder_tab)
 
         # if not CNC mode then do not show the ZABC buttons in jogrose
         if not self.is_cnc:
