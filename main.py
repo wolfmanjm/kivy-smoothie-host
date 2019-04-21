@@ -1089,7 +1089,7 @@ class SmoothieHost(App):
         return self.sm
 
     def _on_keyboard_down(self, instance, key, scancode, codepoint, modifiers):
-        print("key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
+        #print("key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
         # control uses finer move, shift uses coarse move
         v= 0.1
         if len(modifiers) == 1:
