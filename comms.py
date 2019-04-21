@@ -12,12 +12,13 @@ import subprocess
 import socket
 import time
 
-async_main_loop= None
+async_main_loop = None
+
 
 class SerialConnection(asyncio.Protocol):
-    def __init__(self, cb, f, is_net= False):
+    def __init__(self, cb, f, is_net=False):
         super().__init__()
-        self.log = logging.getLogger() #.getChild('SerialConnection')
+        self.log = logging.getLogger()  # getChild('SerialConnection')
         self.log.debug('SerialConnection: creating SerialConnection')
         self.cb = cb
         self.f= f
@@ -40,7 +41,7 @@ class SerialConnection(asyncio.Protocol):
             transport.set_write_buffer_limits(high=1024, low=256)
             self.log.info('Buffer limits: {} - {}'.format(transport._high_water, transport._low_water))
         else:
-            #transport.serial.rts = False  # You can manipulate Serial object via transport
+            # transport.serial.rts = False  # You can manipulate Serial object via transport
             transport.serial.reset_input_buffer()
             transport.serial.reset_output_buffer()
 

@@ -5,6 +5,7 @@ from kivy.app import App
 import threading
 import traceback
 
+
 class ToolScripts():
     """ Handle some builtin convenience scripts """
 
@@ -16,13 +17,12 @@ class ToolScripts():
     def find_center(self):
         """ Finds the center of a circle """
         # needs to be run in a thread
-        t= threading.Thread(target=self._find_center_thread, daemon=True)
+        t = threading.Thread(target=self._find_center_thread, daemon=True)
         t.start()
-
 
     # private methods
     def _probe(self, x=None, y=None, z=None):
-        cmd= ""
+        cmd = ""
         if x:
             cmd += "X{} ".format(x)
 
@@ -43,7 +43,7 @@ class ToolScripts():
 
         self.app.comms.okcnt.clear()
 
-        r= self.app.last_probe
+        r = self.app.last_probe
         if not r["status"]:
             raise Exception("probe failed")
 
@@ -51,7 +51,7 @@ class ToolScripts():
         return r
 
     def _moveby(self, x=None, y=None, z=None):
-        cmd= ""
+        cmd = ""
         if x:
             cmd += "X{} ".format(x)
 
@@ -72,7 +72,7 @@ class ToolScripts():
                 raise Exception("ALARM detected")
 
     def _moveto(self, x=None, y=None, z=None):
-        cmd= ""
+        cmd = ""
         if x:
             cmd += "X{} ".format(x)
 
@@ -95,43 +95,44 @@ class ToolScripts():
     def _find_center_thread(self):
         self.app.main_window.async_display("Starting find center....")
 
-        self.app.comms.okcnt= threading.Event()
+        self.app.comms.okcnt = threading.Event()
         try:
 
             # get current position
-            wpx= self.app.wpos[0]
-            wpy= self.app.wpos[1]
+            wpx = self.app.wpos[0]
+            wpy = self.app.wpos[1]
 
             # probe right
-            r1= self._probe(x = 100)
+            r1 = self._probe(x=100)
 
             # move back to starting x
-            self._moveto(x = wpx)
+            self._moveto(x=wpx)
 
             # probe left
-            r2= self._probe(x = -100)
+            r2 = self._probe(x=-100)
 
-            diam= r1['X'] - r2['X']
+            diam = r1['X'] - r2['X']
 
             # center in X
-            self._moveby(x = diam/2.0)
+            self._moveby(x=diam / 2.0)
 
             # probe back
-            r1= self._probe(y = 100)
+            r1 = self._probe(y=100)
 
             # move back to starting y
-            self._moveto(y = wpy)
+            self._moveto(y=wpy)
 
             # probe front
-            r2= self._probe(y = -100)
+            r2 = self._probe(y=-100)
 
-            diam= r1['Y'] - r2['Y']
+            diam = r1['Y'] - r2['Y']
 
             # center in Y
-            self._moveby(y = diam/2.0)
+            self._moveby(y=diam / 2.0)
 
             # tell us the approx diameter
-            self.app.main_window.async_display("Diameter is {}, plus the tool diameter".format(diam))
+            self.app.main_window.async_display(
+                "Diameter is {}, plus the tool diameter".format(diam))
 
         except Exception as msg:
             # Logger.info("Tools: Exception - {}".format(traceback.format_exc()))
@@ -142,5 +143,4 @@ class ToolScripts():
             self.app.main_window.async_display("find center completed")
 
         finally:
-            self.app.okcnt= None
-
+            self.app.okcnt = None

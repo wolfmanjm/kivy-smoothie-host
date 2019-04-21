@@ -56,6 +56,7 @@ import signal
 
 Window.softinput_mode = 'below_target'
 
+
 class NumericInput(TextInput):
     """Text input that shows a numeric keypad"""
     def __init__(self, **kwargs):
@@ -63,36 +64,39 @@ class NumericInput(TextInput):
 
     def on_focus(self, i, v):
         if v:
-            self._last= self.text
-            self.text= ""
+            self._last = self.text
+            self.text = ""
             if App.get_running_app().is_desktop == 0:
                 self.show_keyboard()
                 if self.keyboard.widget:
-                    self.keyboard.widget.layout= "numeric.json"
-                    self.m_keyboard= self.keyboard.widget
+                    self.keyboard.widget.layout = "numeric.json"
+                    self.m_keyboard = self.keyboard.widget
         else:
-            if self.text == "": self.text= self._last
+            if self.text == "":
+                self.text = self._last
             if App.get_running_app().is_desktop == 0:
                 self.hide_keyboard()
-                self.m_keyboard.layout= "qwerty"
+                self.m_keyboard.layout = "qwerty"
 
     def on_parent(self, widget, parent):
         if App.get_running_app().is_desktop != 0:
             return
-        self.keyboard_mode= 'managed'
+        self.keyboard_mode = 'managed'
+
 
 class DROWidget(RelativeLayout):
     """DROWidget Shows realtime information in a DRO style"""
-    curwcs= StringProperty('')
+    curwcs = StringProperty('')
+
     def __init__(self, **kwargs):
         super(DROWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
     def enter_wpos(self, axis, v):
-        i= ord(axis) - ord('x')
+        i = ord(axis) - ord('x')
         try:
             # needed because the filter does not allow -ive numbers WTF!!!
-            f= float(v.strip())
+            f = float(v.strip())
         except:
             Logger.warning("DROWidget: invalid float input: {}".format(v))
             # set the display back to what it was, this looks odd but it forces the display to update
@@ -117,14 +121,15 @@ class DROWidget(RelativeLayout):
         # foreach WCS button see if it is active or not
         for i in self.ids.wcs_buts.children:
             if i.text == self.curwcs:
-                i.state= 'down'
+                i.state = 'down'
             else:
-                i.state= 'normal'
+                i.state = 'normal'
+
 
 class MPGWidget(RelativeLayout):
-    last_pos= NumericProperty(0)
-    selected_axis= StringProperty('X')
-    selected_index= NumericProperty(0)
+    last_pos = NumericProperty(0)
+    selected_axis = StringProperty('X')
+    selected_index = NumericProperty(0)
 
     def __init__(self, **kwargs):
         super(MPGWidget, self).__init__(**kwargs)
@@ -144,16 +149,17 @@ class MPGWidget(RelativeLayout):
         # if in MPG mode then issue $J commands when they occur
         if not self.ids.mpg_mode_tb.state == 'down':
             # normal mode
-            cmd1= 'G0' if self.ids.abs_mode_tb.state == 'down' else 'G91 G0'
-            cmd2= '' if self.ids.abs_mode_tb.state == 'down' else 'G90'
-            #print('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
+            cmd1 = 'G0' if self.ids.abs_mode_tb.state == 'down' else 'G91 G0'
+            cmd2 = '' if self.ids.abs_mode_tb.state == 'down' else 'G90'
+            # print('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
             self.app.comms.write('{} {}{} {}\n'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
 
     def handle_change(self, ticks):
         if self.selected_index == -1:
             # change feed override
             self.last_pos += ticks
-            if self.last_pos < 1: self.last_pos= 1
+            if self.last_pos < 1:
+                self.last_pos = 1
             return
 
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
@@ -161,14 +167,14 @@ class MPGWidget(RelativeLayout):
 
         # change an axis
         if self.ids.x01.active:
-            d= 0.01 * ticks
+            d = 0.01 * ticks
         elif self.ids.x001.active:
-            d= 0.001 * ticks
+            d = 0.001 * ticks
         else:
-            d= 0.1 * ticks
-        self.last_pos= self.last_pos + d
-        axis= self.selected_axis
-        #MPG mode
+            d = 0.1 * ticks
+        self.last_pos = self.last_pos + d
+        axis = self.selected_axis
+        # MPG mode
         if self.ids.mpg_mode_tb.state == 'down':
             self.app.comms.write('$J {}{}\n'.format(self.selected_axis.upper(), d))
 
@@ -1180,6 +1186,7 @@ class SmoothieHost(App):
 
     def _every_second(self, dt):
         ''' called every second '''
+
         self.secs += 1
         if self.blank_timeout > 0 and not self.main_window.is_printing:
             self.last_touch_time += 1
