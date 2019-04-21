@@ -1088,7 +1088,8 @@ class SmoothieHost(App):
 
         return self.sm
 
-    def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
+    def _on_keyboard_down(self, instance, key, scancode, codepoint, modifiers):
+        print("key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
         # control uses finer move, shift uses coarse move
         v= 0.1
         if len(modifiers) == 1:
@@ -1098,15 +1099,15 @@ class SmoothieHost(App):
                 v= 1
 
         choices = {
-            82: "Y{}".format(v),
-            79: "X{}".format(v),
-            81: "Y{}".format(-v),
-            80: "X{}".format(-v),
-            75: "Z{}".format(v),
-            78: "Z{}".format(-v)
+            273: "Y{}".format(v),
+            275: "X{}".format(v),
+            274: "Y{}".format(-v),
+            276: "X{}".format(-v),
+            280: "Z{}".format(v),
+            281: "Z{}".format(-v)
         }
 
-        s= choices.get(keycode, None)
+        s= choices.get(key, None)
         if s is not None:
             self.comms.write('$J {}\n'.format(s))
             return True
@@ -1114,16 +1115,16 @@ class SmoothieHost(App):
         # handle command history if in desktop mode
         if self.is_desktop > 0:
             if v == 0.01: # it is a control key
-                if text == 'p':
+                if codepoint == 'p':
                     # get previous history by finding all the recently sent commands
                     history = [x['text'] for x in self.main_window.ids.log_window.data if x['text'].startswith('<< ')]
                     if history:
                         last= history.pop()
                         self.main_window.ids.entry.text= last[3:]
-                elif text == 'n':
+                elif codepoint == 'n':
                     # get next history
                     pass
-                elif text == 'c':
+                elif codepoint == 'c':
                     # clear console
                     self.main_window.ids.log_window.data= []
 
