@@ -40,7 +40,7 @@
             ActionButton:
                 id: print_but
                 disabled: not app.is_connected
-                text: 'Print' # also 'Pause'/'Resume'
+                text: 'Run' # also 'Pause'/'Resume'
                 #important: True
                 on_press: root.start_print()
             ActionButton:
@@ -76,7 +76,7 @@
                     on_press: root.show_camera_screen()
                     disabled: not app.is_show_camera
                 ActionButton:
-                    text: 'Reprint Last'
+                    text: 'ReRun Last'
                     disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
                     on_press: app.main_window.reprint()
                 ActionButton:

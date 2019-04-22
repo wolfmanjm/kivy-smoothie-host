@@ -298,13 +298,16 @@ class Comms():
 
     def _parse_m115(self, s):
         # split fields
-        l= s.split(',')
+        ll = s.split(',')
 
         # parse into a dict of name: value
-        d= {y[0].strip():y[1].strip() for y in [x.split(':', 1) for x in l]}
-        if not 'X-CNC' in d: d['X-CNC']= '0'
-        if not 'FIRMWARE_NAME' in d: d['FIRMWARE_NAME']= 'UNKNOWN'
-        if not 'FIRMWARE_VERSION' in d: d['FIRMWARE_VERSION']= 'UNKNOWN'
+        d = {y[0].strip(): y[1].strip() for y in [x.split(':', 1) for x in ll]}
+        if 'X-CNC' not in d:
+            d['X-CNC'] = '0'
+        if 'FIRMWARE_NAME' not in d:
+            d['FIRMWARE_NAME'] = 'UNKNOWN'
+        if 'FIRMWARE_VERSION' not in d:
+            d['FIRMWARE_VERSION'] = 'UNKNOWN'
 
         self.log.info("Comms: Firmware: {}, Version: {}, CNC: {}".format(d['FIRMWARE_NAME'], d['FIRMWARE_VERSION'], 'Yes' if d['X-CNC'] == '1' else 'No'))
         self.app.main_window.async_display(s)
@@ -349,14 +352,14 @@ class Comms():
         # call upstream callback with results
         done_cb(files)
 
-    def _rcv_sdcard_line(self, l, files, f):
+    def _rcv_sdcard_line(self, ll, files, f):
         # accumulate the file list, called with each line recieved
 
-        if l.startswith('Begin file list') or l == 'ok':
+        if ll.startswith('Begin file list') or ll == 'ok':
             # ignore these lines
             return
 
-        if l.startswith('End file list'):
+        if ll.startswith('End file list'):
             # signal we are done (TODO should we wait for the ok?)
             f.set_result(None)
 
@@ -594,7 +597,7 @@ class Comms():
     @asyncio.coroutine
     def stream_file(self, fn):
         self.log.info('Comms: Streaming file {} to port'.format(fn))
-        self.is_streaming= True;
+        self.is_streaming = True
         self.abort_stream= False
         self.pause_stream= False #.set() # start out not paused
         self.last_tool= None

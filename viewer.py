@@ -106,7 +106,7 @@ Builder.load_string('''
                 disabled: not root.select_mode
                 on_press: root.move_gantry()
             Button:
-                text: 'Print'
+                text: 'Run'
                 disabled: not app.is_connected
                 on_press: root.print()
             Button:

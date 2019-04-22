@@ -365,7 +365,7 @@ class MainWindow(BoxLayout):
         self.app.is_connected = True
         self.ids.connect_button.state = 'down'
         self.ids.connect_button.text = "Disconnect"
-        self.ids.print_but.text = 'Print'
+        self.ids.print_but.text = 'Run'
         self.paused = False
         self.is_printing = False
 
@@ -547,10 +547,10 @@ class MainWindow(BoxLayout):
             self.nlines = None
 
         self.start_print_time = datetime.datetime.now()
-        self.display('>>> Printing file: {}, {} lines'.format(file_path, self.nlines))
+        self.display('>>> Running file: {}, {} lines'.format(file_path, self.nlines))
 
         if self.app.comms.stream_gcode(file_path, progress=lambda x: self.display_progress(x)):
-            self.display('>>> Print started at: {}'.format(self.start_print_time.strftime('%x %X')))
+            self.display('>>> Run started at: {}'.format(self.start_print_time.strftime('%x %X')))
         else:
             self.display('WARNING Unable to start print')
             return
@@ -572,7 +572,7 @@ class MainWindow(BoxLayout):
 
     def reprint(self):
         # are you sure?
-        mb = MessageBox(text='Reprint {}?'.format(self.app.gcode_file), cb=self._reprint)
+        mb = MessageBox(text='ReRun {}?'.format(self.app.gcode_file), cb=self._reprint)
         mb.open()
 
     def _reprint(self, ok):
@@ -585,11 +585,11 @@ class MainWindow(BoxLayout):
     @mainthread
     def stream_finished(self, ok):
         ''' called when streaming gcode has finished, ok is True if it completed '''
-        self.ids.print_but.text = 'Print'
+        self.ids.print_but.text = 'Run'
         self.is_printing = False
         now = datetime.datetime.now()
-        self.display('>>> printing finished {}'.format('ok' if ok else 'abnormally'))
-        self.display(">>> Print ended at : {}".format(now.strftime('%x %X')))
+        self.display('>>> Run finished {}'.format('ok' if ok else 'abnormally'))
+        self.display(">>> Run ended at : {}".format(now.strftime('%x %X')))
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
         self.display(">>> Elapsed time: {}".format(et))
         self.eta = '--:--:--'

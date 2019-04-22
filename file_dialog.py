@@ -148,7 +148,7 @@ class FileDialog(FloatLayout):
     def dismiss_popup(self):
         self._popup.dismiss()
 
-    def open(self, path= None, title= "File to Print", filters=['*.g', '*.gcode', '*.nc', '*.ngc'], file_list= None, cb= None):
+    def open(self, path= None, title= "File to Run", filters=['*.g', '*.gcode', '*.nc', '*.ngc'], file_list= None, cb= None):
 
         self.cb= cb
 
