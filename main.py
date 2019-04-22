@@ -97,7 +97,7 @@ class DROWidget(RelativeLayout):
         try:
             # needed because the filter does not allow -ive numbers WTF!!!
             f = float(v.strip())
-        except:
+        except Exception:
             Logger.warning("DROWidget: invalid float input: {}".format(v))
             # set the display back to what it was, this looks odd but it forces the display to update
             self.app.wpos[i] = self.app.wpos[i]
@@ -542,7 +542,7 @@ class MainWindow(BoxLayout):
         try:
             self.nlines = Comms.file_len(file_path)  # get number of lines so we can do progress and ETA
             Logger.debug('MainWindow: number of lines: {}'.format(self.nlines))
-        except:
+        except Exception:
             Logger.warning('MainWindow: exception in file_len: {}'.format(traceback.format_exc()))
             self.nlines = None
 
@@ -674,7 +674,7 @@ class MainWindow(BoxLayout):
 
                 if need_update:
                     self.add_line_to_log(">>> Update: Restart may be required")
-        except:
+        except Exception:
             self.add_line_to_log(">>> Update: Error trying to update. See log")
             Logger.error('MainWindow: {}'.format(traceback.format_exc()))
 
@@ -1057,7 +1057,7 @@ class SmoothieHost(App):
                 Factory.register('filechooser', cls=NativeFileChooser)
                 try:
                     f = Factory.filechooser()
-                except:
+                except Exception:
                     Logger.error("SmoothieHost: can't use selected file chooser: {}".format(filechooser))
                     Factory.unregister('filechooser')
                     Factory.register('filechooser', cls=FileDialog)
@@ -1186,7 +1186,7 @@ class SmoothieHost(App):
                 else:
                     Logger.info("load_modules: module {} failed to start".format(key))
 
-        except:
+        except Exception:
             Logger.warn("load_modules: exception: {}".format(traceback.format_exc()))
 
     def _every_second(self, dt):
@@ -1204,14 +1204,14 @@ class SmoothieHost(App):
             with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
                 f.write('1\n')
             self._blanked = True
-        except:
+        except Exception:
             Logger.warning("SmoothieHost: unable to blank screen")
 
     def unblank_screen(self):
         try:
             with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
                 f.write('0\n')
-        except:
+        except Exception:
             pass
 
     def _on_touch(self, a, b):

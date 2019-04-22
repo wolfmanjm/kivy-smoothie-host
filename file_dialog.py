@@ -122,21 +122,22 @@ Builder.load_string('''
                 on_release: root.load(filechooser.path, filechooser.selection)
 ''')
 
+
 class LoadDialog(FloatLayout):
     load = ObjectProperty(None)
     cancel = ObjectProperty(None)
-    path= StringProperty()
-    filters= ListProperty()
-    filesystem= ObjectProperty()
-    show_dirs= BooleanProperty(True)
+    path = StringProperty()
+    filters = ListProperty()
+    filesystem = ObjectProperty()
+    show_dirs = BooleanProperty(True)
 
     def sort_folders_first(self, b, r, files, filesystem):
         if b:
-            return (sorted(f for f in files if  filesystem.is_dir(f)) +
+            return (sorted(f for f in files if filesystem.is_dir(f)) +
                     sorted(f for f in files if not filesystem.is_dir(f)))
         else:
             # reverse sort by date
-            return ([a[1] for a in sorted(((filesystem.getdate(f),f) for f in files), key=lambda x: x[0], reverse=r)])
+            return ([a[1] for a in sorted(((filesystem.getdate(f), f) for f in files), key=lambda x: x[0], reverse=r)])
 
 
 class FileDialog(FloatLayout):
@@ -148,21 +149,21 @@ class FileDialog(FloatLayout):
     def dismiss_popup(self):
         self._popup.dismiss()
 
-    def open(self, path= None, title= "File to Run", filters=['*.g', '*.gcode', '*.nc', '*.ngc'], file_list= None, cb= None):
+    def open(self, path=None, title="File to Run", filters=['*.g', '*.gcode', '*.nc', '*.ngc'], file_list=None, cb=None):
 
-        self.cb= cb
+        self.cb = cb
 
         if file_list is not None:
             print("{}: {}".format(title, file_list))
-            fs= Factory.filesystemsd()
+            fs = Factory.filesystemsd()
             fs.open(file_list)
-            path= '/sd/'
-            show_dirs= False
+            path = '/sd/'
+            show_dirs = False
         else:
-            fs= Factory.filesystem()
-            show_dirs= True
+            fs = Factory.filesystem()
+            show_dirs = True
 
-        content = LoadDialog(load=self._load, cancel=self.dismiss_popup, path=path if path else os.path.expanduser("~"), filesystem= fs, show_dirs= show_dirs, filters=filters)
+        content = LoadDialog(load=self._load, cancel=self.dismiss_popup, path=path if path else os.path.expanduser("~"), filesystem=fs, show_dirs=show_dirs, filters=filters)
 
         self._popup = Popup(title=title, content=content, size_hint=(0.9, 0.9))
         self._popup.open()
