@@ -74,11 +74,11 @@
                     on_press: root.show_camera_screen()
                     disabled: not app.is_show_camera
                 ActionButton:
-                    text: 'ReRun Last'
+                    text: 'Run Last File'
                     disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
                     on_press: app.main_window.reprint()
                 ActionButton:
-                    text: 'View Last'
+                    text: 'View Last FIle'
                     disabled: app.gcode_file == ''
                     on_press: app.main_window.review()
                 ActionButton:
