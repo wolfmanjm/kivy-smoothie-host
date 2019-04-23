@@ -79,6 +79,7 @@ M205 | set X<junction deviation> Z<z junction deviation> S<minimum planner speed
 M206 | Set homing offsets
 M207 | Set retract length S<length> F<feedrate> mm/min Z<additional zlift> Q<zlift feedrate> mm/min
 M208 | Set retract recover length S<mm> F<feedrate> mm/min
+M211 | Show softendstops status, S0 turns off soft endstops
 M220 | set speed factor override S<percent>
 M221 | set flow rate factor override or Laser power override S<percent>
 M301 | set PID parameters X<i_max> Y<max_pwm> S<heater> P<nnn> I<nnn> D<nnn>

@@ -403,7 +403,7 @@ class Comms():
         for s in ll:
             if self._fragment:
                 # handle line fragment
-                s = ''.join( (self._fragment, s) )
+                s = ''.join((self._fragment, s))
                 self._fragment = None
 
             if not s.endswith('\n'):
@@ -411,9 +411,10 @@ class Comms():
                 self._fragment = s
                 break
 
-            s = s.rstrip() # strip off \n
+            s = s.rstrip()  # strip off \n
 
-            if len(s) == 0: continue
+            if len(s) == 0:
+                continue
 
             # send the line to the requested destination for processing
             if self._reroute_incoming_data_to is not None:
@@ -464,10 +465,10 @@ class Comms():
                 # handle // action:pause etc
                 pos = s.find('action:')
                 if pos >= 0:
-                    act = s[pos+7:].strip() # extract action command
+                    act = s[pos + 7:].strip()  # extract action command
                     if act in 'pause':
                         self.app.main_window.async_display('>>> Smoothie requested Pause')
-                        self.is_suspend = True # this currently only happens if we suspend (M600)
+                        self.is_suspend = True  # this currently only happens if we suspend (M600)
                         self._stream_pause(True, False)
                     elif act in 'resume':
                         self.app.main_window.async_display('>>> Smoothie requested Resume')
@@ -511,7 +512,7 @@ class Comms():
         self.app.main_window.update_state(ll)
 
     def handle_status(self, s):
-        #<Idle|MPos:68.9980,-49.9240,40.0000,12.3456|WPos:68.9980,-49.9240,40.0000|F:12345.12|S:1.2>
+        # <Idle|MPos:68.9980,-49.9240,40.0000,12.3456|WPos:68.9980,-49.9240,40.0000|F:12345.12|S:1.2>
         # if temp readings are enabled then also returns T:25.0,0.0|B:25.2,0.0
         s = s[1:-1]  # strip off < .. >
 
@@ -527,7 +528,7 @@ class Comms():
         status = ll[0]
 
         # strip of rest into a dict of name: [values,...,]
-        d = { a: [float(y) for y in b.split(',')] for a, b in [x.split(':') for x in ll[1:]] }
+        d = {a: [float(y) for y in b.split(',')] for a, b in [x.split(':') for x in ll[1:]]}
 
         self.log.debug('Comms: got status:{} - rest: {}'.format(status, d))
 
@@ -571,7 +572,7 @@ class Comms():
     def _stream_file(self, fn):
         self.file_streamer = asyncio.async(self.stream_file(fn))
 
-    def stream_pause(self, pause, do_abort= False):
+    def stream_pause(self, pause, do_abort=False):
         ''' called from external thread to pause or kill in process streaming '''
         async_main_loop.call_soon_threadsafe(self._stream_pause, pause, do_abort)
 
@@ -854,7 +855,7 @@ if __name__ == "__main__":
             print("tool change: {}\n".format(l))
 
     if len(sys.argv) < 3:
-        print("Usage: {} port file".format(sys.argv[0]));
+        print("Usage: {} port file".format(sys.argv[0]))
         exit(0)
 
     app = CommsApp()
@@ -880,31 +881,31 @@ if __name__ == "__main__":
 
         if nlines:
             now = datetime.datetime.now()
-            d = (now-start).seconds
+            d = (now - start).seconds
             if n > 10 and d > 10:
                 # we have to wait a bit to get reasonable estimates
-                lps = n/d
-                eta = (nlines-n)/lps
+                lps = n / d
+                eta = (nlines - n) / lps
             else:
                 eta = 0
             et = datetime.timedelta(seconds=int(eta))
-            print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
+            print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n / nlines, et))
 
     try:
         t = comms.connect(sys.argv[1])
-        if app.start_event.wait(5): # wait for connected as it is in a separate thread
+        if app.start_event.wait(5):  # wait for connected as it is in a separate thread
             if app.is_connected:
                 # wait for startup to clear up any incoming oks
-                sleep(5) # Time in seconds.
+                sleep(5)  # Time in seconds.
 
                 comms.stream_gcode(sys.argv[2], progress=lambda x: display_progress(x))
-                app.end_event.wait() # wait for streaming to complete
+                app.end_event.wait()  # wait for streaming to complete
 
                 print("File sent: {}".format('Ok' if app.ok else 'Failed'))
                 now = datetime.datetime.now()
                 print("Print ended at : {}".format(now.strftime('%x %X')))
                 if start:
-                    et = datetime.timedelta(seconds= int((now-start).seconds))
+                    et = datetime.timedelta(seconds=int((now - start).seconds))
                     print("Elapsed time: {}".format(et))
 
             else:
@@ -916,7 +917,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Interrupted- aborting")
         comms._stream_pause(False, True)
-        app.end_event.wait() # wait for streaming to complete
+        app.end_event.wait()  # wait for streaming to complete
 
     finally:
         # now stop the comms if it is connected or running

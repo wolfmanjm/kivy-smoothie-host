@@ -8,6 +8,7 @@ from kivy.factory import Factory
 import os
 from os.path import getmtime
 
+
 class FileSystemLocalEx(FileSystemLocal):
     def __init__(self):
         super(FileSystemLocalEx, self).__init__()
@@ -15,7 +16,9 @@ class FileSystemLocalEx(FileSystemLocal):
     def getdate(self, fn):
         return getmtime(fn)
 
+
 Factory.register('filesystem', cls=FileSystemLocalEx)
+
 
 class FileSystemSDCard(FileSystemAbstract):
     '''
@@ -36,18 +39,17 @@ class FileSystemSDCard(FileSystemAbstract):
 
     def __init__(self, **kwargs):
         super(FileSystemSDCard, self).__init__(**kwargs)
-        self._files= None
+        self._files = None
 
     def open(self, files):
         ''' files is a dict with { filename: {size: nnn, isdir: False}, ..., } '''
-        self._files= files
+        self._files = files
 
     def listdir(self, fn):
         if self._files is None:
             return []
 
         return self._files.keys()
-
 
     def getsize(self, fn):
         if self._files is None:
@@ -66,6 +68,7 @@ class FileSystemSDCard(FileSystemAbstract):
             return True
 
         return self._files[fn]['isdir']
+
 
 Factory.register('filesystemsd', cls=FileSystemSDCard)
 

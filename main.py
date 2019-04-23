@@ -787,7 +787,7 @@ class SmoothieHost(App):
             'last_gcode_path': os.path.expanduser("~"),
             'last_print_file': '',
             'serial_port': 'serial:///dev/ttyACM0',
-            'report_rate': '1',
+            'report_rate': '1.0',
             'blank_timeout': '0',
             'manual_tool_change': 'false',
             'wait_on_m0': 'false',
