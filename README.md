@@ -8,6 +8,8 @@ This uses python >= 3.4.3
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows)
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac or Windows if Kivy runs on them).
 
+The minimum usable resolution is 800x480.
+
 ## Goal
 The goal is to have a small touch screen host that can run a smoothie and is better than an LCD Panel, and almost as good as a host PC running pronterface.
 It is not meant to be a replacement for say Octoprint whose goals are different.
@@ -101,7 +103,7 @@ Once running use the System menu upgrade to fetch the latest smoopi. If that is 
 
 ### Rasbian/Debian Stretch on RPI
 
-(Only tested on genuine RPI 7" multitouch screen).
+(Tested on genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
 Install the latest raspbian stretch lite... (No XWindows)
 https://downloads.raspberrypi.org/raspbian_lite_latest
@@ -136,6 +138,20 @@ On an rpi3b+ it seems the double tap time needs to be increased to be usable..
     double_tap_time = 400 # <-- increase this from the 200 default
     triple_tap_distance = 20
     triple_tap_time = 600 # <- and this to be > than double_tap_time
+
+#### Keyboard and Mouse support
+Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. This HIDInput is broken in all the current releases of Kivy, but I have submitted a PR to Kivy with a fixed version. In the meantime you will need to replace the KIVYINSTALLDIR/kivy/input/providers/hidinput.py with this version: https://github.com/wolfmanjm/kivy/blob/master/kivy/input/providers/hidinput.py
+
+You will also need to add the following line to your ```~/.kivy/config.ini``` file under the ```[input]``` section:-
+    
+    [input]
+    %(name)s = probesysfs,provider=hidinput
+    
+and the following line under the ```[modules]``` section:-
+
+    [modules]
+    cursor = 1
+
 
 ### Common setup
 It is recommended to do this:- 
