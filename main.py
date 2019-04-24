@@ -579,6 +579,11 @@ class MainWindow(BoxLayout):
         if ok:
             self._start_print()
 
+    @mainthread
+    def start_last_file(self):
+        if self.app.gcode_file:
+            self._start_print()
+
     def review(self):
         self._show_viewer(self.app.gcode_file, self.last_path)
 

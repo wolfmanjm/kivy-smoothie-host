@@ -181,9 +181,9 @@ class HB04():
 
     def twos_comp(self, val, bits):
         """compute the 2's complement of int value val"""
-        if (val & (1 << (bits - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
-            val = val - (1 << bits)        # compute negative value
-        return val                         # return positive value as is
+        if (val & (1 << (bits - 1))) != 0:  # if sign bit is set e.g., 8bit: 128-255
+            val = val - (1 << bits)         # compute negative value
+        return val                          # return positive value as is
 
     def start(self):
         self.quit= False
@@ -221,21 +221,23 @@ class HB04():
             return True
 
         # some buttons have default functions
-        cmd= None
+        cmd = None
         if btn == BUT_HOME:
-            cmd= "$H"
+            cmd = "$H"
         elif btn == BUT_ORIGIN:
-            cmd= "G90 G0 X0 Y0"
+            cmd = "G90 G0 X0 Y0"
         elif btn == BUT_PROBEZ:
-            cmd= "G38.3 Z-25"
+            cmd = "G38.3 Z-25"
         elif btn == BUT_ZERO:
-            cmd= "G10 L20 P0 {}0".format(axis)
+            cmd = "G10 L20 P0 {}0".format(axis)
         elif btn == BUT_SAFEZ:
-            cmd= "G91 G0 Z20 G90"
+            cmd = "G91 G0 Z20 G90"
         elif btn == BUT_SPINDLE:
-            cmd= "M5" if self.app.is_spindle_on else "M3"
+            cmd = "M5" if self.app.is_spindle_on else "M3"
         elif btn == BUT_HALF:
-            cmd= "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis)-ord('X')]/2.0)
+            cmd = "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis) - ord('X')] / 2.0)
+        elif btn == BUT_START:
+            self.app.main_window.start_last_file()
 
         if cmd:
             self.app.comms.write("{}\n".format(cmd))
@@ -244,7 +246,7 @@ class HB04():
         return False
 
     def _run(self):
-        self.app= App.get_running_app()
+        self.app = App.get_running_app()
         self.load_macros()
 
         while not self.quit:
