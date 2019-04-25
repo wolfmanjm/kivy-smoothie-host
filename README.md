@@ -61,9 +61,20 @@ Simple macro buttons can be created by clicking the green `New Macro` button.
 ### CNC Support (PCB milling etc)
 There are features specifically implemented to make CNC use easier.
 - Tool change can be enabled which will catch Tn/M6 commands and suspend the job allowing you to manually change the drill bit and/or tool and then return to the point it was suspended. Full jogging and resetting of Z0 is allowed while suspended.
-Cambam gcode is supported and will show the size of the bit required in the console window. Flatcam gcode is supported but a minor postprocess on the gcode needs to be done so the comment showing the tool required is moved to before the M6 (it is currently after the M6 so you don't see it until after you resume).
-- M0 can be enabled and any (MSG, xxxx) is displayed in the console window. However M0 simply pauses the job until the dialog is dismissed. This presumes the tool heights are all thhe same and no jogging is required to change a tool
-- The viewer allows setting the WCS to any arbitrary point on the workpiece, and to move to any point on the workpiece. This allows positioning and size checking before the job is run.
+NOTE for toolchange to be caught my Smoopi the M6 must be on a line by itself or on a line and followed by at least one space...
+(eg ```M6\n``` or ```T6 M6 \n```, however ```T5 M6``` will not be caught)
+
+- Cambam tool change gcode is supported if the profile is modified to output Tn followed by M6 on the next line, and will show the size of the bit required in the console window.
+    
+      <ToolChange>{$clearance}
+      T{$tool.index} {$comment} T{$tool.index} : {$tool.diameter} {$endcomment}
+      M6</ToolChange>
+
+- Flatcam gcode is supported but a minor postprocess on the gcode needs to be done so the comment showing the tool required is moved to before the M6 (it is currently after the M6 so you don't see it until after you resume).
+
+```M0``` can be enabled and any (MSG, xxxx) is displayed in the console window. However M0 simply pauses the job until the dialog is dismissed. This presumes the tool heights are all thhe same and no jogging is required to change a tool
+
+The viewer allows setting the WCS to any arbitrary point on the workpiece, and to move to any point on the workpiece. This allows positioning and size checking before the job is run.
 
 ## Install on RPI
 

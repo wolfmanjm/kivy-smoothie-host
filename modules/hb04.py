@@ -468,11 +468,11 @@ class HB04():
     def refresh_lcd(self):
         self.setfs(self.app.frr, self.app.sr)
         if self.app.status == "Run":
-            self.setmul(self.mul|0x60)
+            self.setmul(self.mul | 0x60)
         elif self.app.status == "Home":
-            self.setmul(self.mul|0x50)
+            self.setmul(self.mul | 0x50)
         elif self.app.status == "Alarm":
-            self.setmul(self.mul|0x20)
+            self.setmul(self.mul | 0x20)
         else:
             self.setmul(self.mul)
 
