@@ -331,7 +331,7 @@ The button functions can be defined in the hb04.ini file (see the sample-hb04.in
     #macro6 = 
     #rewind = 
     # predefined buttons can be overriden
-    #start =  { runs last file }
+    #start = runs last file viewed or run
     #safez = G91 G0 Z20 G90
     #origin = G90 G0 X0 Y0
     #probez = G38.3 Z-25
