@@ -61,10 +61,10 @@ Simple macro buttons can be created by clicking the green `New Macro` button.
 ### CNC Support (PCB milling etc)
 There are features specifically implemented to make CNC use easier.
 - Tool change can be enabled which will catch Tn/M6 commands and suspend the job allowing you to manually change the drill bit and/or tool and then return to the point it was suspended. Full jogging and resetting of Z0 is allowed while suspended.
-NOTE for toolchange to be caught my Smoopi the M6 must be on a line by itself or on a line and followed by at least one space...
-(eg ```M6\n``` or ```T6 M6 \n```, however ```T5 M6``` will not be caught)
+NOTE for toolchange to be caught by Smoopi the M6 must be on a line by itself or on a line and followed by at least one space, or at the end of the line...
+(eg ```M6\n``` or ```T6 M6\n```)
 
-- Cambam tool change gcode is supported if the profile is modified to output Tn followed by M6 on the next line, and will show the size of the bit required in the console window.
+- Cambam tool change gcode is supported if the profile is slightly modified to output Tn followed by M6 on the next line, and will show the size of the bit required in the console window.
     
       <ToolChange>{$clearance}
       T{$tool.index} {$comment} T{$tool.index} : {$tool.diameter} {$endcomment}

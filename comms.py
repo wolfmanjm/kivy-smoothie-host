@@ -665,7 +665,7 @@ class Comms():
 
                     if self.app.manual_tool_change:
                         # handle tool change M6 or M06
-                        if l == "M6" or l == "M06" or "M6 " in l or "M06 " in l:
+                        if l == "M6" or l == "M06" or "M6 " in l or "M06 " in l or l.endswith("M6"):
                             tool_change_state = 1
 
                     if self.app.wait_on_m0:
