@@ -224,6 +224,9 @@ class HB04():
             cmd = self.macrobut[name]
             if "{axis}" in cmd:
                 cmd = cmd.replace("{axis}", axis)
+            elif "find-center" == cmd:
+                self.app.tool_scripts.find_center()
+                return True
 
             self.app.comms.write("{}\n".format(cmd))
             return True
