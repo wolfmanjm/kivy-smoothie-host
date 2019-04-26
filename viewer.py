@@ -420,13 +420,6 @@ class GcodeViewerScreen(Screen):
                     if math.isnan(max_x) or x > max_x: max_x = x
                     if math.isnan(max_y) or y > max_y: max_y = y
 
-                    # handle radius if G2/3
-                    if gcode >= 2:
-                        max_x = max(x+i, x+j, max_x)
-                        min_x = min(x+i, x+j, min_x)
-                        max_y = max(y+j, y+i, max_y)
-                        min_y = min(y+j, y+i, max_y)
-
                     # accumulating vertices is more efficient but we need to flush them at some point
                     # Here we flush them if we encounter a new G code like G3 following G1
                     if last_gcode != gcode:
@@ -565,6 +558,10 @@ class GcodeViewerScreen(Screen):
                             x1,y1,z1 = t
                             points.append(x1)
                             points.append(y1)
+                            max_x = max(x1, max_x)
+                            min_x = min(x1, min_x)
+                            max_y = max(y1, max_y)
+                            min_y = min(y1, min_y)
 
                         self.canv.add(Color(0, 0, 0))
                         self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
