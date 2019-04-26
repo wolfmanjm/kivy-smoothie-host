@@ -36,6 +36,7 @@ from file_dialog import FileDialog
 from viewer import GcodeViewerScreen
 from web_server import ProgressServer
 from camera_screen import CameraScreen
+from spindle_camera import SpindleCamera
 from config_editor import ConfigEditor
 from gcode_help import GcodeHelp
 from text_editor import TextEditor
@@ -764,6 +765,7 @@ class SmoothieHost(App):
     main_window = ObjectProperty()
     gcode_file = StringProperty()
     is_show_camera = BooleanProperty(False)
+    is_spindle_camera = BooleanProperty(False)
     manual_tool_change = BooleanProperty(False)
     is_v2 = BooleanProperty(True)
     wait_on_m0 = BooleanProperty(False)
@@ -797,7 +799,8 @@ class SmoothieHost(App):
             'manual_tool_change': 'false',
             'wait_on_m0': 'false',
             'fast_stream': 'false',
-            'v2': 'false'
+            'v2': 'false',
+            'is_spindle_camera': 'false'
         })
         config.setdefaults('UI', {
             'display_type': "RPI Touch",
@@ -887,6 +890,13 @@ class SmoothieHost(App):
                   "desc": "On M0 popup a dialog and pause until it is dismissed",
                   "section": "General",
                   "key": "wait_on_m0"
+                },
+
+                { "type": "bool",
+                  "title": "Spindle Camera",
+                  "desc": "Enable the spindle camera screen",
+                  "section": "General",
+                  "key": "is_spindle_camera"
                 },
 
                 { "type": "bool",
@@ -1028,6 +1038,7 @@ class SmoothieHost(App):
         self.tab_top = self.config.getboolean('UI', 'tab_top')
         self.is_webserver = self.config.getboolean('Web', 'webserver')
         self.is_show_camera = self.config.getboolean('Web', 'show_video')
+        self.is_spindle_camera = self.config.getboolean('General', 'is_spindle_camera')
         self.manual_tool_change = self.config.getboolean('General', 'manual_tool_change')
         self.wait_on_m0 = self.config.getboolean('General', 'wait_on_m0')
         self.is_v2 = self.config.getboolean('General', 'v2')
@@ -1094,6 +1105,10 @@ class SmoothieHost(App):
         if self.is_show_camera:
             self.camera_url = self.config.get('Web', 'camera_url')
             self.sm.add_widget(CameraScreen(name='camera'))
+
+        if self.is_spindle_camera:
+            self.spindle_camera = SpindleCamera(name='spindle camera')
+            self.sm.add_widget(self.spindle_camera)
 
         # load any modules specified in config
         self._load_modules()
