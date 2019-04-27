@@ -6,13 +6,15 @@ import time
 
 Builder.load_string('''
 <SpindleCamera>:
+    on_enter: camera.play = True
+    on_leave: camera.play = False
     BoxLayout:
         orientation: 'vertical'
         canvas.after:
             Color:
                 rgb: 1, 0, 0
             Line:
-                points: [self.center_x, 0, self.center_x, self.height]
+                points: [self.center_x, 40, self.center_x, self.height]
                 width: 1
                 cap: 'none'
                 joint: 'none'
@@ -30,6 +32,18 @@ Builder.load_string('''
             id: camera
             resolution: (640, 480)
             play: False
+        BoxLayout:
+            orientation: 'horizontal'
+            Button:
+                text: 'Back'
+                size_hint_y: None
+                height: 40
+                on_press: root.manager.current = 'main'
+            Button:
+                text: 'Capture'
+                size_hint_y: None
+                height: 40
+                on_press: root.capture()
 ''')
 
 
@@ -45,17 +59,12 @@ if __name__ == '__main__':
     Builder.load_string('''
 <StartScreen>:
     BoxLayout:
-        ToggleButton:
+        Button:
             id: play_but
             text: 'Play'
             on_press: app.play()
             size_hint_y: None
-            height: '48dp'
-        Button:
-            text: 'Capture'
-            size_hint_y: None
-            height: '48dp'
-            on_press: app.capture()
+            height: 40
 ''')
 
     class StartScreen(Screen):
@@ -74,10 +83,6 @@ if __name__ == '__main__':
             return self.sm
 
         def play(self):
-            self.sc.ids['camera'].play = self.scr.ids['play_but'].state != 'normal'
             self.sm.current = 'spindle camera'
-
-        def capture(self):
-            self.sc.capture()
 
     TestCamera().run()
