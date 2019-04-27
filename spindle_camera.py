@@ -9,31 +9,32 @@ Builder.load_string('''
     on_enter: camera.play = True
     on_leave: camera.play = False
     BoxLayout:
-        orientation: 'vertical'
-        canvas.after:
-            Color:
-                rgb: 1, 0, 0
-            Line:
-                points: [self.center_x, 40, self.center_x, self.height]
-                width: 1
-                cap: 'none'
-                joint: 'none'
-            Line:
-                points: [0, self.center_y, self.width, self.center_y]
-                width: 1
-                cap: 'none'
-                joint: 'none'
-            Line:
-                circle:
-                    (self.center_x, self.center_y, 20)
+        orientation: 'horizontal'
 
         camera: camera
         Camera:
+            canvas.after:
+                Color:
+                    rgb: 1, 0, 0
+                Line:
+                    points: [self.center_x, 0, self.center_x, self.height]
+                    width: 1
+                    cap: 'none'
+                    joint: 'none'
+                Line:
+                    points: [0, self.center_y, self.width, self.center_y]
+                    width: 1
+                    cap: 'none'
+                    joint: 'none'
+                Line:
+                    circle:
+                        (self.center_x, self.center_y, 20)
             id: camera
             resolution: (640, 480)
             play: False
         BoxLayout:
-            orientation: 'horizontal'
+            size_hint: 0.15, None
+            orientation: 'vertical'
             Button:
                 text: 'Back'
                 size_hint_y: None
@@ -63,6 +64,11 @@ if __name__ == '__main__':
             id: play_but
             text: 'Play'
             on_press: app.play()
+            size_hint_y: None
+            height: 40
+        Button:
+            text: 'Exit'
+            on_press: app.stop()
             size_hint_y: None
             height: 40
 ''')
