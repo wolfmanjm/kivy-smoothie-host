@@ -71,9 +71,13 @@
                     on_press: root.config_editor()
                     disabled: not app.is_connected or root.is_printing
                 ActionButton:
-                    text: 'Camera'
+                    text: 'Web Cam'
                     on_press: root.show_camera_screen()
                     disabled: not app.is_show_camera
+                ActionButton:
+                    text: 'Spindle Cam'
+                    on_press: app.sm.current = 'spindle camera'
+                    disabled: not app.is_spindle_camera
                 ActionButton:
                     text: 'Run Last File'
                     disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
