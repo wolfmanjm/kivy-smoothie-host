@@ -36,19 +36,33 @@ Builder.load_string('''
             size_hint: 0.15, None
             orientation: 'vertical'
             Button:
-                text: 'Back'
+                text: 'Zero'
                 size_hint_y: None
                 height: 40
-                on_press: root.manager.current = 'main'
+                on_press: root.setzero()
             Button:
                 text: 'Capture'
                 size_hint_y: None
                 height: 40
                 on_press: root.capture()
+            Button:
+                text: 'Back'
+                size_hint_y: None
+                height: 40
+                on_press: root.manager.current = 'main'
 ''')
 
 
 class SpindleCamera(Screen):
+    def __init__(self, **kwargs):
+        super(SpindleCamera, self).__init__(**kwargs)
+        self.app = App.get_running_app()
+
+    def setzero(self):
+        if self.app.comms:
+            self.app.comms.write('G10 L20 P0 X0 Y0\n')
+            self.app.wpos[0] = self.app.wpos[1] = 0
+
     def capture(self):
         camera = self.ids['camera']
         timestr = time.strftime("%Y%m%d_%H%M%S")
@@ -77,6 +91,7 @@ if __name__ == '__main__':
         pass
 
     class TestCamera(App):
+        comms = None
 
         def build(self):
             # Window.size = (800, 480)
