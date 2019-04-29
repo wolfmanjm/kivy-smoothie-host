@@ -59,6 +59,7 @@ class ProgressServer(object):
     def start(self, app, port):
         self.port = port
         self.app = app
+        self.myServer = None
         t = threading.Thread(target=self._start)
         t.start()
 

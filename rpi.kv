@@ -21,7 +21,7 @@
 
 <MainWindow>:
     orientation: 'vertical'
-
+    tools_menu: tools_menu
     ActionBar:
         pos_hint: {'top':1}
         ActionView:
@@ -60,6 +60,7 @@
                 on_press: root.show_viewer()
 
             ActionGroup:
+                id: tools_menu
                 text: 'Tools'
                 mode: 'spinner'
                 ActionButton:
@@ -70,14 +71,6 @@
                     text: 'Text Editor'
                     on_press: root.text_editor()
                 ActionButton:
-                    text: 'Web Cam'
-                    on_press: root.show_camera_screen()
-                    disabled: not app.is_show_camera
-                ActionButton:
-                    text: 'Spindle Cam'
-                    on_press: app.sm.current = 'spindle camera'
-                    disabled: not app.is_spindle_camera
-                ActionButton:
                     text: 'Run Last File'
                     disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
                     on_press: app.main_window.reprint()
@@ -85,7 +78,6 @@
                     text: 'View Last File'
                     disabled: app.gcode_file == ''
                     on_press: app.main_window.review()
-
                 ActionButton:
                     text: 'Find Center'
                     disabled: not app.is_connected or root.is_printing

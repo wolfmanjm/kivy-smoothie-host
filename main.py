@@ -16,6 +16,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
 from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.uix.tabbedpanel import TabbedPanel
+from kivy.uix.actionbar import ActionButton
 
 from kivy.properties import NumericProperty, StringProperty, ObjectProperty, ListProperty, BooleanProperty
 from kivy.vector import Vector
@@ -1101,11 +1102,12 @@ class SmoothieHost(App):
 
         if self.is_show_camera:
             self.camera_url = self.config.get('Web', 'camera_url')
-            self.sm.add_widget(CameraScreen(name='camera'))
+            self.sm.add_widget(CameraScreen(name='web cam'))
+            self.main_window.tools_menu.add_widget(ActionButton(text='Web Cam', on_press=lambda x: self._show_web_cam()))
 
         if self.is_spindle_camera:
-            self.spindle_camera = SpindleCamera(name='spindle camera')
-            self.sm.add_widget(self.spindle_camera)
+            self.sm.add_widget(SpindleCamera(name='spindle camera'))
+            self.main_window.tools_menu.add_widget(ActionButton(text='Spindle Cam', on_press=lambda x: self._show_spindle_cam()))
 
         # load any modules specified in config
         self._load_modules()
@@ -1115,6 +1117,12 @@ class SmoothieHost(App):
             self.unblank_screen()
 
         return self.sm
+
+    def _show_spindle_cam(self):
+        self.sm.current = "spindle camera"
+
+    def _show_web_cam(self):
+        self.sm.current = "web cam"
 
     def _on_keyboard_down(self, instance, key, scancode, codepoint, modifiers):
         # print("key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
@@ -1251,7 +1259,10 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
     Logger.error("Unhandled Exception:")
     Logger.error("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
-    App.get_running_app().stop()
+    try:
+        App.get_running_app().stop()
+    except Exception:
+        pass
 
 
 # we want to handle TERM signal cleanly (sent by sv down)
