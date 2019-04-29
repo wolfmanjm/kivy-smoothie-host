@@ -292,6 +292,16 @@ This requires the latest FirmwareBin/firmware-latest.bin from Smoothie github, (
 
 __NOTE__ to use the T0 and T1 buttons in the Extruder panel the temperature controls need to have the following designators 'T' and 'T1'. The temperature for the currently selected tool will show, and the set temp will apply to that tool.
 
+## Cameras
+There is support for a spindle camera (or just a regular camera).
+On a rpi if you are using an rpi camera you need to install a couple of extra modules...
+    
+    pip3 install --user picamera numpy
+
+and remember to enable the camera in raspi-config.
+
+To use a USB camera it should just work.
+
 ## Pendants
 There is support for a home made MPG pendant using a Teensy as a rawhid device. Also the LHB04 Mach3 pendant.
 
