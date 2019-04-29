@@ -57,6 +57,7 @@ class SpindleCamera(Screen):
     def __init__(self, **kwargs):
         super(SpindleCamera, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.nfingers = 0
 
     def setzero(self):
         if self.app.comms:
@@ -67,6 +68,40 @@ class SpindleCamera(Screen):
         camera = self.ids['camera']
         timestr = time.strftime("%Y%m%d_%H%M%S")
         camera.export_to_png("IMG_{}.png".format(timestr))
+
+    def on_touch_down(self, touch):
+        if self.ids.camera.collide_point(touch.x, touch.y):
+            # if within the camera window
+            touch.grab(self)
+            self.nfingers += 1
+            return True
+
+        return super(SpindleCamera, self).on_touch_down(touch)
+
+    def on_touch_move(self, touch):
+        if touch.grab_current is not self:
+            return False
+
+        if self.nfingers >= 2:
+            n = self.nfingers if self.nfingers < 4 else 3
+            m = 10.0 ** (4 - n)
+            dx = touch.dpos[0]
+            dy = touch.dpos[1]
+            if self.app.comms:
+                if abs(dx) > abs(dy):
+                    self.app.comms.write("$J X{}\n".format(dx / m))
+                elif abs(dy) > abs(dx):
+                    self.app.comms.write("$J Y{}\n".format(dy / m))
+
+        return True
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            touch.ungrab(self)
+            self.nfingers -= 1
+            return True
+
+        return super(SpindleCamera, self).on_touch_up(touch)
 
 
 if __name__ == '__main__':
