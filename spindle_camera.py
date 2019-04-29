@@ -36,6 +36,11 @@ Builder.load_string('''
             size_hint: 0.15, None
             orientation: 'vertical'
             Button:
+                text: 'Half'
+                size_hint_y: None
+                height: 40
+                on_press: root.sethalf()
+            Button:
                 text: 'Zero'
                 size_hint_y: None
                 height: 40
@@ -64,6 +69,14 @@ class SpindleCamera(Screen):
             self.app.comms.write('G10 L20 P0 X0 Y0\n')
             self.app.wpos[0] = self.app.wpos[1] = 0
 
+    def sethalf(self):
+        if self.app.comms:
+            x = self.app.wpos[0] / 2.0
+            y = self.app.wpos[1] / 2.0
+            self.app.comms.write("G10 L20 P0 X{} Y{}".format(x, y))
+            self.app.wpos[0] = x
+            self.app.wpos[1] = y
+
     def capture(self):
         camera = self.ids['camera']
         timestr = time.strftime("%Y%m%d_%H%M%S")
@@ -74,6 +87,7 @@ class SpindleCamera(Screen):
             # if within the camera window
             touch.grab(self)
             self.nfingers += 1
+            touch.ud["n"] = self.nfingers
             return True
 
         return super(SpindleCamera, self).on_touch_down(touch)
@@ -82,8 +96,9 @@ class SpindleCamera(Screen):
         if touch.grab_current is not self:
             return False
 
-        if self.nfingers >= 2:
-            n = self.nfingers if self.nfingers < 4 else 3
+        if self.nfingers >= 2 and self.nfingers < 4 and touch.ud["n"] == 1:
+            # we only track the first finger that touched
+            n = self.nfingers
             m = 10.0 ** (4 - n)
             dx = touch.dpos[0]
             dy = touch.dpos[1]
@@ -92,6 +107,12 @@ class SpindleCamera(Screen):
                     self.app.comms.write("$J X{}\n".format(dx / m))
                 elif abs(dy) > abs(dx):
                     self.app.comms.write("$J Y{}\n".format(dy / m))
+
+        elif self.nfingers == 4 and touch.ud["n"] == 1:
+            # we move Z to focus
+            dy = touch.dpos[1]
+            if self.app.comms:
+                self.app.comms.write("$J Z{}\n".format(dy * 0.01))
 
         return True
 
