@@ -36,11 +36,6 @@ Builder.load_string('''
             size_hint: 0.15, None
             orientation: 'vertical'
             Button:
-                text: 'Half'
-                size_hint_y: None
-                height: 40
-                on_press: root.sethalf()
-            Button:
                 text: 'Zero'
                 size_hint_y: None
                 height: 40
@@ -65,17 +60,7 @@ class SpindleCamera(Screen):
         self.nfingers = 0
 
     def setzero(self):
-        if self.app.comms:
-            self.app.comms.write('G10 L20 P0 X0 Y0\n')
-            self.app.wpos[0] = self.app.wpos[1] = 0
-
-    def sethalf(self):
-        if self.app.comms:
-            x = self.app.wpos[0] / 2.0
-            y = self.app.wpos[1] / 2.0
-            self.app.comms.write("G10 L20 P0 X{} Y{}".format(x, y))
-            self.app.wpos[0] = x
-            self.app.wpos[1] = y
+        self.app.comms.write('G10 L20 P0 X0 Y0\n')
 
     def capture(self):
         camera = self.ids['camera']
@@ -102,17 +87,16 @@ class SpindleCamera(Screen):
             m = 10.0 ** (4 - n)
             dx = touch.dpos[0]
             dy = touch.dpos[1]
-            if self.app.comms:
-                if abs(dx) > abs(dy):
-                    self.app.comms.write("$J X{}\n".format(dx / m))
-                elif abs(dy) > abs(dx):
-                    self.app.comms.write("$J Y{}\n".format(dy / m))
+
+            if abs(dx) > abs(dy):
+                self.app.comms.write("$J X{}\n".format(dx / m))
+            elif abs(dy) > abs(dx):
+                self.app.comms.write("$J Y{}\n".format(dy / m))
 
         elif self.nfingers == 4 and touch.ud["n"] == 1:
             # we move Z to focus
             dy = touch.dpos[1]
-            if self.app.comms:
-                self.app.comms.write("$J Z{}\n".format(dy * 0.01))
+            self.app.comms.write("$J Z{}\n".format(dy * 0.01))
 
         return True
 
@@ -126,7 +110,7 @@ class SpindleCamera(Screen):
 
 
 if __name__ == '__main__':
-
+    import sys
     Builder.load_string('''
 <StartScreen>:
     BoxLayout:
@@ -147,7 +131,7 @@ if __name__ == '__main__':
         pass
 
     class TestCamera(App):
-        comms = None
+        comms = sys.stdout
 
         def build(self):
             # Window.size = (800, 480)

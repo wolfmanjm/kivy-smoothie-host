@@ -7,82 +7,83 @@ from kivy.logger import Logger
 
 import math
 
+
 class ExtruderWidget(BoxLayout):
-    bed_dg= ObjectProperty()
-    hotend_dg= ObjectProperty()
-    last_bed_temp= NumericProperty()
-    last_hotend_temp= NumericProperty()
-    curtool= NumericProperty(-1)
+    bed_dg = ObjectProperty()
+    hotend_dg = ObjectProperty()
+    last_bed_temp = NumericProperty()
+    last_hotend_temp = NumericProperty()
+    curtool = NumericProperty(-1)
 
     def __init__(self, **kwargs):
         super(ExtruderWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.last_bed_temp= self.app.config.getfloat('Extruder', 'last_bed_temp')
-        self.last_hotend_temp= self.app.config.getfloat('Extruder', 'last_hotend_temp')
-        self.temp_changed= False
-        self.temp_set= False
+        self.last_bed_temp = self.app.config.getfloat('Extruder', 'last_bed_temp')
+        self.last_hotend_temp = self.app.config.getfloat('Extruder', 'last_hotend_temp')
+        self.temp_changed = False
+        self.temp_set = False
         self.app.bind(is_connected=self._connected)
 
     def switch_active(self, instance, type, on, value):
         if on:
             if value == 'select':
                 MessageBox(text='Select a temperature first!').open()
-                instance.active= False
+                instance.active = False
             else:
                 self.set_temp(type, value)
-                self.temp_changed= True
+                self.temp_changed = True
                 # save temp whenever we turn it on (not saved if it is changed while already on)
                 if float(value) > 0:
                     self.set_last_temp(type, value)
 
         else:
             self.set_temp(type, '0')
-            self.temp_changed= True
+            self.temp_changed = True
 
     def selected_temp(self, type, temp):
         # new temp selected from dropdown
         if type == 'hotend':
-            self.last_hotend_temp= float(temp)
-            self.temp_set= True
-            self.ids.hotend_slider.value= 0
+            self.last_hotend_temp = float(temp)
+            self.temp_set = True
+            self.ids.hotend_slider.value = 0
             if self.ids.hotend_switch.active:
                 # update temp
                 self.set_temp(type, self.last_hotend_temp)
-                self.temp_changed= True
+                self.temp_changed = True
 
         elif type == 'bed':
-            self.last_bed_temp= float(temp)
-            self.temp_set= True
-            self.ids.bed_slider.value= 0
+            self.last_bed_temp = float(temp)
+            self.temp_set = True
+            self.ids.bed_slider.value = 0
             if self.ids.bed_switch.active:
                 # update temp
                 self.set_temp(type, self.last_bed_temp)
-                self.temp_changed= True
+                self.temp_changed = True
 
     def adjust_temp(self, type, value):
         if value == 'select temp' or self.temp_set:
             # if we programmaticaly set the value ignore it
-            self.temp_set= False
+            self.temp_set = False
             return
 
         if type == 'bed':
-            self.ids.set_bed_temp.text= '{:1.1f}'.format(self.last_bed_temp + float(value))
+            self.ids.set_bed_temp.text = '{:1.1f}'.format(self.last_bed_temp + float(value))
             if self.ids.bed_switch.active:
                 # update temp
                 self.set_temp(type, self.ids.set_bed_temp.text)
-                self.temp_changed= True
+                self.temp_changed = True
         else:
-            self.ids.set_hotend_temp.text= '{:1.1f}'.format(self.last_hotend_temp + float(value))
+            self.ids.set_hotend_temp.text = '{:1.1f}'.format(self.last_hotend_temp + float(value))
             if self.ids.hotend_switch.active:
                 # update temp
                 self.set_temp(type, self.ids.set_hotend_temp.text)
-                self.temp_changed= True
+                self.temp_changed = True
 
     def set_last_temp(self, type, value):
         if type == 'bed':
-            self.last_bed_temp= float(value)
+            self.last_bed_temp = float(value)
         else:
-            self.last_hotend_temp= float(value)
+            self.last_hotend_temp = float(value)
 
         self.app.config.set('Extruder', 'last_{}_temp'.format(type), value)
         self.app.config.write()
@@ -98,7 +99,7 @@ class ExtruderWidget(BoxLayout):
         ''' called to update the temperature display'''
         if self.temp_changed:
             # This allows the setpoint to update on smoothie before using it to turn the heater on/off again
-            self.temp_changed= False
+            self.temp_changed = False
             return
 
         for type in temperatures:
@@ -107,36 +108,36 @@ class ExtruderWidget(BoxLayout):
 
             if type == 'bed':
                 if math.isinf(temp):
-                    self.bed_dg.value= float('inf')
+                    self.bed_dg.value = float('inf')
                     continue
-                self.bed_dg.value= temp
+                self.bed_dg.value = temp
 
                 if not math.isnan(setpoint):
                     if setpoint > 0:
-                        self.ids.set_bed_temp.text= str(setpoint)
-                        self.bed_dg.setpoint_value= setpoint
+                        self.ids.set_bed_temp.text = str(setpoint)
+                        self.bed_dg.setpoint_value = setpoint
                     else:
-                        self.bed_dg.setpoint_value= float('nan')
+                        self.bed_dg.setpoint_value = float('nan')
                         if self.bed_switch.active:
-                            self.bed_switch.active= False
+                            self.bed_switch.active = False
 
             elif type == 'hotend0' or type == 'hotend1':
                 if (self.ids.tool_t0.state == 'down' and type == 'hotend0') or (self.ids.tool_t1.state == 'down' and type == 'hotend1'):
                     if math.isinf(temp):
-                        self.hotend_dg.value= float('inf')
+                        self.hotend_dg.value = float('inf')
                         continue
-                    self.hotend_dg.value= temp
+                    self.hotend_dg.value = temp
 
                     if not math.isnan(setpoint):
                         if setpoint > 0:
-                            self.ids.set_hotend_temp.text= str(setpoint)
-                            self.hotend_dg.setpoint_value= setpoint
+                            self.ids.set_hotend_temp.text = str(setpoint)
+                            self.hotend_dg.setpoint_value = setpoint
                         else:
-                            self.hotend_dg.setpoint_value= float('nan')
+                            self.hotend_dg.setpoint_value = float('nan')
                             if self.hotend_switch.active:
-                                self.hotend_switch.active= False
+                                self.hotend_switch.active = False
                 else:
-                    self.hotend_dg.value= float('inf')
+                    self.hotend_dg.value = float('inf')
 
             else:
                 Logger.error('Extruder: unknown temp type - ' + type)
@@ -166,19 +167,19 @@ class ExtruderWidget(BoxLayout):
         return "$I\n"
 
     def _on_curtool(self):
-        self.ids.tool_t0.state= 'down' if self.curtool == 0 else 'normal'
-        self.ids.tool_t1.state= 'down' if self.curtool == 1 else 'normal'
+        self.ids.tool_t0.state = 'down' if self.curtool == 0 else 'normal'
+        self.ids.tool_t1.state = 'down' if self.curtool == 1 else 'normal'
 
     def _connected(self, w, b):
         if not b:
             # disconnected so reset everything
             self.ids.graph_view.update_temperature("disconnected", 0, 0)
-            self.bed_dg.value= float('inf')
-            self.hotend_dg.value= float('inf')
-            self.hotend_dg.setpoint_value= float('nan')
-            self.bed_dg.setpoint_value= float('nan')
-            self.bed_switch.active= False
-            self.hotend_switch.active= False
+            self.bed_dg.value = float('inf')
+            self.hotend_dg.value = float('inf')
+            self.hotend_dg.setpoint_value = float('nan')
+            self.bed_dg.setpoint_value = float('nan')
+            self.bed_switch.active = False
+            self.hotend_switch.active = False
 
     def on_touch_down(self, touch):
         if self.ids.temps_screen.collide_point(touch.x, touch.y):
@@ -187,4 +188,3 @@ class ExtruderWidget(BoxLayout):
                 return True
 
         return super(ExtruderWidget, self).on_touch_down(touch)
-

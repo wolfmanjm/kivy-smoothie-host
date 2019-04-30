@@ -306,7 +306,6 @@ To use a USB camera it should just work.
 There are various buttons in the spindle camera screen as well as a cross hair in the center.
 
 * Zero will set the X and Y WPOS to zero at the current position
-* Half will set the wpos to half the current position for x and y (this is useful for moving to the center of a rectangle for instance)
 * Capture will create a PNG of the current camera screen in the current directory
 
 To jog and focus you need to use multitouch on an RPI screen. Two fingers slid left or right will jog in the X axis by 0.01mm, three fingers will jog by 0.1mm. Slide up and down will move in Y, it can only move in X or Y, so make sure you move left/right OR up/down.

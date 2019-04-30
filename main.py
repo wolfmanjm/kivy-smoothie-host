@@ -70,7 +70,7 @@ class NumericInput(TextInput):
             self.text = ""
             if App.get_running_app().is_desktop == 0:
                 self.show_keyboard()
-                if self.keyboard.widget:
+                if self.keyboard and self.keyboard.widget:
                     self.keyboard.widget.layout = "numeric.json"
                     self.m_keyboard = self.keyboard.widget
         else:
@@ -78,7 +78,8 @@ class NumericInput(TextInput):
                 self.text = self._last
             if App.get_running_app().is_desktop == 0:
                 self.hide_keyboard()
-                self.m_keyboard.layout = "qwerty"
+                if self.keyboard and self.keyboard.widget:
+                    self.m_keyboard.layout = "qwerty"
 
     def on_parent(self, widget, parent):
         if App.get_running_app().is_desktop != 0:
@@ -96,6 +97,17 @@ class DROWidget(RelativeLayout):
 
     def enter_wpos(self, axis, v):
         i = ord(axis) - ord('x')
+        v = v.strip()
+        if v.startswith('/'):
+            # we divide current value by this
+            try:
+                d = float(v[1:])
+                v = str(self.app.wpos[i] / d)
+            except Exception:
+                Logger.warning("DROWidget: cannot divide by: {}".format(v))
+                self.app.wpos[i] = self.app.wpos[i]
+                return
+
         try:
             # needed because the filter does not allow -ive numbers WTF!!!
             f = float(v.strip())
