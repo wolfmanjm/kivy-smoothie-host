@@ -292,15 +292,27 @@ This requires the latest FirmwareBin/firmware-latest.bin from Smoothie github, (
 
 __NOTE__ to use the T0 and T1 buttons in the Extruder panel the temperature controls need to have the following designators 'T' and 'T1'. The temperature for the currently selected tool will show, and the set temp will apply to that tool.
 
-## Cameras
+## Spindle Camera
 There is support for a spindle camera (or just a regular camera).
-On a rpi if you are using an rpi camera you need to install a couple of extra modules...
+On a rpi if you are using the rpi camera you need to install a couple of extra modules...
     
     pip3 install --user picamera numpy
 
 and remember to enable the camera in raspi-config.
 
 To use a USB camera it should just work.
+
+### Usage
+There are various buttons in the spindle camera screen as well as a cross hair in the center.
+
+* Zero will set the X and Y WPOS to zero at the current position
+* Half will set the wpos to half the current position for x and y (this is useful for moving to the center of a rectangle for instance)
+* Capture will create a PNG of the current camera screen in the current directory
+
+To jog and focus you need to use multitouch on an RPI screen. Two fingers slid left or right will jog in the X axis by 0.01mm, three fingers will jog by 0.1mm. Slide up and down will move in Y, it can only move in X or Y, so make sure you move left/right OR up/down.
+Four finger slides up/down will move the Z axis up/down to focus the camera.
+
+If using one of the desktop layouts you will have access to the jog screen for jogging, or you can use the pendant.
 
 ## Pendants
 There is support for a home made MPG pendant using a Teensy as a rawhid device. Also the LHB04 Mach3 pendant.
