@@ -36,7 +36,7 @@ You can select 3d printer mode or CNC mode from the Settings menu, this can affe
 - The Jog Panel has the usual jog controls.
 - The Macro Panel is a user configurable buttons panel to control whatever you want. (Edit the `macros.ini` file)
   There is a `sample-macros.ini` just copy that to `macros.ini` and edit as appropriate to define your own macro buttons.
-- The DRO Panel shows current MCS and WCS, and allows easy selection of the WCS to use, and allows setting of WCS
+- The DRO Panel shows current MCS and WCS, and allows easy selection of the WCS to use, and allows setting of WCS. If WCS entered is ```/2``` it will halve the current position. (Usefull for moving to the center of things)
 - The MPG Panel is a simulation of an MPG pendant, it allows control of movement and feedrate override via a simulated rotary knob. (There is an optional module to take controls from a real MPG USB pendant).
 - The config editor displays the current smoothie config in a scrollable window, values can be updated click the return key and then will update the config on sd accordingly. (reset is of course required to take effect).
 

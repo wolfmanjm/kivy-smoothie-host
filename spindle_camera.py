@@ -84,14 +84,15 @@ class SpindleCamera(Screen):
         if self.nfingers >= 2 and self.nfingers < 4 and touch.ud["n"] == 1:
             # we only track the first finger that touched
             n = self.nfingers
-            m = 10.0 ** (4 - n)
-            dx = touch.dpos[0]
-            dy = touch.dpos[1]
+            m = 5 if n == 2 else 50
+            # 0.00125 seems to be the smallest move
+            dx = touch.dsx
+            dy = touch.dsy
 
             if abs(dx) > abs(dy):
-                self.app.comms.write("$J X{}\n".format(dx / m))
+                self.app.comms.write("$J X{}\n".format(dx * m))
             elif abs(dy) > abs(dx):
-                self.app.comms.write("$J Y{}\n".format(dy / m))
+                self.app.comms.write("$J Y{}\n".format(dy * m))
 
         elif self.nfingers == 4 and touch.ud["n"] == 1:
             # we move Z to focus
