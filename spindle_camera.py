@@ -89,15 +89,12 @@ class SpindleCamera(Screen):
             dx = touch.dsx
             dy = touch.dsy
 
-            if abs(dx) > abs(dy):
-                self.app.comms.write("$J X{}\n".format(dx * m))
-            elif abs(dy) > abs(dx):
-                self.app.comms.write("$J Y{}\n".format(dy * m))
+            self.app.comms.write("$J X{} Y{}\n".format(dx * m, dy * m))
 
         elif self.nfingers == 4 and touch.ud["n"] == 1:
             # we move Z to focus
-            dy = touch.dpos[1]
-            self.app.comms.write("$J Z{}\n".format(dy * 0.01))
+            dy = touch.dsy
+            self.app.comms.write("$J Z{}\n".format(dy))
 
         return True
 
