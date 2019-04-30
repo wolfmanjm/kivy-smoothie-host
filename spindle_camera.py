@@ -87,9 +87,9 @@ class SpindleCamera(Screen):
             m = 0.01 if n == 2 else 0.1
             dx = 0
             dy = 0
-            if abs(touch.dx / 2.0) > 0:
+            if abs(touch.dx) > 0:
                 dx = m if touch.dx > 0 else -m
-            if abs(touch.dy / 2.0) > 0:
+            if abs(touch.dy) > 0:
                 dy = m if touch.dy > 0 else -m
 
             if dx != 0 or dy != 0:
