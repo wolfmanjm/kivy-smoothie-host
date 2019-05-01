@@ -125,9 +125,9 @@ class SpindleCamera(Screen):
             dx = 0
             dy = 0
             if abs(touch.dx) > 0:
-                dx *= touch.dx
+                dx = m * touch.dx
             if abs(touch.dy) > 0:
-                dy *= touch.dy
+                dy = m * touch.dy
 
             if dx != 0 or dy != 0:
                 if self.invert_jog:
