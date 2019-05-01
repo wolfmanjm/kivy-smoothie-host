@@ -3,11 +3,31 @@ from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.image import Image
-from kivy.uix.behaviors import ToggleButtonBehavior
+from kivy.uix.behaviors import ToggleButtonBehavior, ButtonBehavior
 from kivy.properties import ListProperty
 import time
 
 Builder.load_string('''
+<IButton@IconButton>:
+    canvas.before:
+        Color:
+            rgb: [0.4, 0.4, 0.4] if self.state == 'normal' else [0.5, 0, 0]
+        Ellipse:
+            pos: [self.center[0] - 2 - self.height / 2, self.center[1] - 2 - self.height / 2]
+            size: self.height+4, self.height+4
+    size_hint_y: None
+    height: 40
+
+<ITogButton@IconToggleButton>:
+    canvas.before:
+        Color:
+            rgb: [0.4, 0.4, 0.4] if self.state == 'normal' else [0.5, 0, 0]
+        Ellipse:
+            pos: [self.center[0] - 2 - self.height / 2, self.center[1] - 2 - self.height / 2]
+            size: self.height+4, self.height+4
+    size_hint_y: None
+    height: 40
+
 <SpindleCamera>:
     on_enter: camera.play = True
     on_leave: camera.play = False
@@ -38,37 +58,27 @@ Builder.load_string('''
         BoxLayout:
             size_hint: 0.15, None
             orientation: 'vertical'
-            IconToggleButton:
-                canvas.before:
-                    Color:
-                        rgb: [0.4, 0.4, 0.4] if self.state == 'normal' else [0.5, 0, 0]
-                    Ellipse:
-                        pos: [self.center[0] - self.height / 2, self.center[1] - self.height / 2]
-                        size: self.height, self.height
+            spacing: 8
+            ITogButton:
                 source: "img/cross-mouse.png"
-                size_hint_y: None
-                height: 40
                 on_press: root.toggle_jog(self.state != 'normal')
-            Button:
-                text: 'Zero'
-                size_hint_y: None
-                height: 40
+            IButton:
+                source: "img/set_zero.png"
                 on_press: root.setzero()
-            Button:
-                text: 'Capture'
-                size_hint_y: None
-                height: 40
+            IButton:
+                source: "img/screenshot.png"
                 on_press: root.capture()
-            Button:
-                text: 'Back'
-                size_hint_y: None
-                height: 40
+            IButton:
+                source: "img/back.png"
                 on_press: root.manager.current = 'main'
 ''')
 
 
 class IconToggleButton(ToggleButtonBehavior, Image):
-    bkcolor = ListProperty([1, 0, 0])
+    pass
+
+class IconButton(ButtonBehavior, Image):
+    pass
 
 
 class SpindleCamera(Screen):
