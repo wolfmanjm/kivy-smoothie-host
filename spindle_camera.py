@@ -70,12 +70,13 @@ Builder.load_string('''
 class IconToggleButton(ToggleButtonBehavior, Image):
     bkcolor = ListProperty([1, 0, 0])
 
+
 class SpindleCamera(Screen):
     def __init__(self, **kwargs):
         super(SpindleCamera, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.nfingers = 0
-        self.jog= False
+        self.jog = False
 
     def toggle_jog(self, on):
         self.jog = on
@@ -105,7 +106,7 @@ class SpindleCamera(Screen):
         if self.nfingers >= 1 and self.nfingers < 4 and touch.ud["n"] == 1:
             # we only track the first finger that touched
             n = self.nfingers
-            m = 0.001 * 10**n
+            m = 0.001 * 10**n  # 1 finger moves 0.01, 2 moves 0.1, 3 moves 1.0
             dx = 0
             dy = 0
             if abs(touch.dx) > 0:
