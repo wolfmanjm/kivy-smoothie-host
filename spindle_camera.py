@@ -77,6 +77,7 @@ Builder.load_string('''
 class IconToggleButton(ToggleButtonBehavior, Image):
     pass
 
+
 class IconButton(ButtonBehavior, Image):
     pass
 
