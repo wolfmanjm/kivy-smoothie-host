@@ -305,10 +305,13 @@ To use a USB camera it should just work.
 ### Usage
 There are various buttons in the spindle camera screen as well as a cross hair in the center.
 
-* Zero will set the X and Y WPOS to zero at the current position
-![capture](img/screenshot.png "Capture image") will create a PNG of the current camera screen in the current directory
+* ![zero](img/set_zero.png "Zero WCS") will set the X and Y WPOS to zero at the current position
+* ![capture](img/screenshot.png "Capture image") will create a PNG of the current camera screen in the current directory
+* ![jog](img/cross-mouse.png "Jog Mode") Enters touch jog mode
+* ![back](img/back.png "Go Back") Exits the spindle camera window
 
-To jog and focus you need to use multitouch on an RPI screen. Two fingers slid left or right will jog in the X axis by 0.01mm, three fingers will jog by 0.1mm. Slide up and down will move in Y, it can only move in X or Y, so make sure you move left/right OR up/down.
+To jog and focus you need to use multitouch on an RPI screen. Once the jog mode button is pressed one finger slid left or right will jog in the X axis by 0.01mm, two fingers will jog by 0.1mm, three fingers will jog by 1mm. 
+Slide up and down will move in Y.
 Four finger slides up/down will move the Z axis up/down to focus the camera.
 
 If using one of the desktop layouts you will have access to the jog screen for jogging, or you can use the pendant.
