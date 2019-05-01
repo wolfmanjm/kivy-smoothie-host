@@ -2,6 +2,9 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.image import Image
+from kivy.uix.behaviors import ToggleButtonBehavior
+from kivy.properties import ListProperty
 import time
 
 Builder.load_string('''
@@ -35,6 +38,17 @@ Builder.load_string('''
         BoxLayout:
             size_hint: 0.15, None
             orientation: 'vertical'
+            IconToggleButton:
+                canvas.before:
+                    Color:
+                        rgb: [0.4, 0.4, 0.4] if self.state == 'normal' else [0.5, 0, 0]
+                    Ellipse:
+                        pos: [self.center[0] - self.height / 2, self.center[1] - self.height / 2]
+                        size: self.height, self.height
+                source: "img/cross-mouse.png"
+                size_hint_y: None
+                height: 40
+                on_press: root.toggle_jog(self.state != 'normal')
             Button:
                 text: 'Zero'
                 size_hint_y: None
@@ -53,11 +67,18 @@ Builder.load_string('''
 ''')
 
 
+class IconToggleButton(ToggleButtonBehavior, Image):
+    bkcolor = ListProperty([1, 0, 0])
+
 class SpindleCamera(Screen):
     def __init__(self, **kwargs):
         super(SpindleCamera, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.nfingers = 0
+        self.jog= False
+
+    def toggle_jog(self, on):
+        self.jog = on
 
     def setzero(self):
         self.app.comms.write('G10 L20 P0 X0 Y0\n')
@@ -68,7 +89,7 @@ class SpindleCamera(Screen):
         camera.export_to_png("IMG_{}.png".format(timestr))
 
     def on_touch_down(self, touch):
-        if self.ids.camera.collide_point(touch.x, touch.y):
+        if self.jog and self.ids.camera.collide_point(touch.x, touch.y):
             # if within the camera window
             touch.grab(self)
             self.nfingers += 1
@@ -81,10 +102,10 @@ class SpindleCamera(Screen):
         if touch.grab_current is not self:
             return False
 
-        if self.nfingers >= 2 and self.nfingers < 4 and touch.ud["n"] == 1:
+        if self.nfingers >= 1 and self.nfingers < 4 and touch.ud["n"] == 1:
             # we only track the first finger that touched
             n = self.nfingers
-            m = 0.01 if n == 2 else 0.1
+            m = 0.001 * 10**n
             dx = 0
             dy = 0
             if abs(touch.dx) > 0:
