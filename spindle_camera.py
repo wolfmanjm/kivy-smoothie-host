@@ -113,7 +113,6 @@ class SpindleCamera(Screen):
         return super(SpindleCamera, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
-
         if touch.grab_current is not self:
             return False
 
