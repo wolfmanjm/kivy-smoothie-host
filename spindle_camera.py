@@ -121,13 +121,13 @@ class SpindleCamera(Screen):
         if self.nfingers >= 1 and self.nfingers < 4 and touch.ud["n"] == 1:
             # we only track the first finger that touched
             n = self.nfingers
-            m = 0.001 * 10**n  # 1 finger moves 0.01, 2 moves 0.1, 3 moves 1.0
+            m = 0.001 * 10**(n - 1)  # 1 finger moves 0.001, 2 moves 0.01, 3 moves .1
             dx = 0
             dy = 0
             if abs(touch.dx) > 0:
-                dx = m if touch.dx > 0 else -m
+                dx *= touch.dx
             if abs(touch.dy) > 0:
-                dy = m if touch.dy > 0 else -m
+                dy *= touch.dy
 
             if dx != 0 or dy != 0:
                 if self.invert_jog:
@@ -139,7 +139,7 @@ class SpindleCamera(Screen):
             # we move Z to focus
             dy = touch.dy
             if dy != 0:
-                self.app.comms.write("$J Z{}\n".format(0.1 if dy > 0 else -0.1))
+                self.app.comms.write("$J Z{}\n".format(0.01 * dy))
 
         return True
 
