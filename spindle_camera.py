@@ -13,8 +13,8 @@ Builder.load_string('''
         Color:
             rgb: [0.4, 0.4, 0.4] if self.state == 'normal' else [0.5, 0, 0]
         Ellipse:
-            pos: [self.center[0] - 2 - self.height / 2, self.center[1] - 2 - self.height / 2]
-            size: self.height+4, self.height+4
+            pos: [self.center[0] - self.height / 2, self.center[1] - self.height / 2]
+            size: self.height, self.height
     size_hint_y: None
     height: 40
 
@@ -23,8 +23,8 @@ Builder.load_string('''
         Color:
             rgb: [0.4, 0.4, 0.4] if self.state == 'normal' else [0.5, 0, 0]
         Ellipse:
-            pos: [self.center[0] - 2 - self.height / 2, self.center[1] - 2 - self.height / 2]
-            size: self.height+4, self.height+4
+            pos: [self.center[0] - self.height / 2, self.center[1] - self.height / 2]
+            size: self.height, self.height
     size_hint_y: None
     height: 40
 
@@ -103,7 +103,6 @@ class SpindleCamera(Screen):
         camera.export_to_png("IMG_{}.png".format(timestr))
 
     def on_touch_down(self, touch):
-        print(self.jog, self.invert_jog)
         if self.jog and self.ids.camera.collide_point(touch.x, touch.y):
             # if within the camera window
             touch.grab(self)

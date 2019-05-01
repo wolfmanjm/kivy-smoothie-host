@@ -311,9 +311,11 @@ There are various buttons in the spindle camera screen as well as a cross hair i
 
 ![jog](img/cross-mouse.png "Jog Mode") Enters touch jog mode
 
+![invert](img/invert_jog.png "Invert Jog") Inverts the jog movement
+
 ![back](img/back.png "Go Back") Exits the spindle camera window
 
-To jog and focus you need to use multitouch on an RPI screen. Once the jog mode button is pressed one finger slid left or right will jog in the X axis by 0.01mm, two fingers will jog by 0.1mm, three fingers will jog by 1mm. 
+To jog and focus you need to use multitouch on an RPI screen. Once the jog mode button is pressed one finger slid left or right will jog in the X axis by 0.001mm, two fingers will jog by 0.01mm, three fingers will jog by 0.1mm. 
 Slide up and down will move in Y.
 Four finger slides up/down will move the Z axis up/down to focus the camera.
 
