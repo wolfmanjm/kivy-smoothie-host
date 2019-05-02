@@ -1118,7 +1118,9 @@ class SmoothieHost(App):
             self.main_window.tools_menu.add_widget(ActionButton(text='Web Cam', on_press=lambda x: self._show_web_cam()))
 
         if self.is_spindle_camera:
-            self.sm.add_widget(SpindleCamera(name='spindle camera'))
+            if self.is_desktop in [0, 4]:
+                self.sm.add_widget(SpindleCamera(name='spindle camera'))
+
             self.main_window.tools_menu.add_widget(ActionButton(text='Spindle Cam', on_press=lambda x: self._show_spindle_cam()))
 
         # load any modules specified in config
@@ -1131,9 +1133,10 @@ class SmoothieHost(App):
         return self.sm
 
     def _show_spindle_cam(self):
-        if self.is_desktop == 0:
+        if self.is_desktop in [0, 4]:
             self.sm.current = "spindle camera"
         else:
+            # we run it as a separate program so it is in its own window
             subprocess.Popen(['python3', 'spindle_camera.py'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def _show_web_cam(self):
