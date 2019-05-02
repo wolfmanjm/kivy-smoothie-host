@@ -1131,7 +1131,10 @@ class SmoothieHost(App):
         return self.sm
 
     def _show_spindle_cam(self):
-        self.sm.current = "spindle camera"
+        if self.is_desktop == 0:
+            self.sm.current = "spindle camera"
+        else:
+            subprocess.Popen(['python3', 'spindle_camera.py'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def _show_web_cam(self):
         self.sm.current = "web cam"

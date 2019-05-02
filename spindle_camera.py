@@ -174,6 +174,14 @@ if __name__ == '__main__':
     class TestCamera(App):
         comms = sys.stdout
 
+        def __init__(self, **kwargs):
+            super(TestCamera, self).__init__(**kwargs)
+            self.test = False
+
+            if len(sys.argv) > 1:
+                if sys.argv[1] == 'd':
+                    self.test = True
+
         def build(self):
             # Window.size = (800, 480)
             self.sc = SpindleCamera(name='spindle camera')
@@ -181,6 +189,8 @@ if __name__ == '__main__':
             self.sm = ScreenManager()
             self.sm.add_widget(self.scr)
             self.sm.add_widget(self.sc)
+            if not self.test:
+                self.sm.current = 'spindle camera'
 
             return self.sm
 
