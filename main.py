@@ -304,6 +304,7 @@ class MainWindow(BoxLayout):
         self.config = self.app.config
         self.last_path = self.config.get('General', 'last_gcode_path')
         self.paused = False
+        self.last_line = 0
 
         # print('font size: {}'.format(self.ids.log_window.font_size))
         # Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
@@ -605,7 +606,7 @@ class MainWindow(BoxLayout):
         self.is_printing = False
         now = datetime.datetime.now()
         self.display('>>> Run finished {}'.format('ok' if ok else 'abnormally'))
-        self.display(">>> Run ended at : {}".format(now.strftime('%x %X')))
+        self.display(">>> Run ended at : {}, Last line: {}".format(now.strftime('%x %X'), self.last_line))
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
         self.display(">>> Elapsed time: {}".format(et))
         self.eta = '--:--:--'
@@ -623,7 +624,9 @@ class MainWindow(BoxLayout):
                 eta = 0
 
             # print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
-            self.eta = '{} | {:.1%} | Z{:1.2f}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n / self.nlines, float(self.app.wpos[2]))
+            self.eta = '{} | {:.1%} | L{}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n / self.nlines, n)
+
+        self.last_line = n
 
     def list_sdcard(self):
         if self.app.comms.list_sdcard(self._list_sdcard_results):
