@@ -102,7 +102,7 @@ class IconButton(ButtonBehavior, Image):
 class SpindleCamera(Screen):
     invert_jog = BooleanProperty(False)
     jog = BooleanProperty(False)
-    circle_size = NumericProperty(20)
+    circle_size = NumericProperty(10)
 
     def __init__(self, **kwargs):
         super(SpindleCamera, self).__init__(**kwargs)
