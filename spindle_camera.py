@@ -4,7 +4,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.image import Image
 from kivy.uix.behaviors import ToggleButtonBehavior, ButtonBehavior
-from kivy.properties import ListProperty, BooleanProperty
+from kivy.properties import ListProperty, BooleanProperty, NumericProperty
 import time
 
 Builder.load_string('''
@@ -34,8 +34,9 @@ Builder.load_string('''
     BoxLayout:
         orientation: 'horizontal'
 
-        camera: camera
         Camera:
+            # size_hint: None, None
+            # size: 640, 480
             canvas.after:
                 Color:
                     rgb: 1, 0, 0
@@ -51,14 +52,27 @@ Builder.load_string('''
                     joint: 'none'
                 Line:
                     circle:
-                        (self.center_x, self.center_y, 20)
+                        (self.center_x, self.center_y, root.circle_size)
             id: camera
             resolution: (640, 480)
             play: False
         BoxLayout:
-            size_hint: 0.15, None
+            size_hint: None, 1.0
+            width: 44
             orientation: 'vertical'
             spacing: 8
+            padding: 4
+            Label:
+                text: "Circle"
+                size_hint_y: None
+                size: self.texture_size[0], self.texture_size[1]
+            Slider:
+                orientation: 'vertical'
+                min: 1
+                max: 240
+                value: root.circle_size
+                on_value: root.circle_size = self.value
+
             ITogButton:
                 source: "img/cross-mouse.png"
                 on_state: root.jog = self.state == 'down'
@@ -88,6 +102,7 @@ class IconButton(ButtonBehavior, Image):
 class SpindleCamera(Screen):
     invert_jog = BooleanProperty(False)
     jog = BooleanProperty(False)
+    circle_size = NumericProperty(20)
 
     def __init__(self, **kwargs):
         super(SpindleCamera, self).__init__(**kwargs)
@@ -114,7 +129,7 @@ class SpindleCamera(Screen):
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
-            return False
+            return super(SpindleCamera, self).on_touch_move(touch)
 
         if self.nfingers >= 1 and self.nfingers < 4 and touch.ud["n"] == 1:
             # we only track the first finger that touched
