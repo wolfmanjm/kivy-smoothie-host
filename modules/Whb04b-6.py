@@ -1,4 +1,4 @@
-# implements interface  for the HB04 USB pendant
+# implements interface  for the whb04b USB pendant
 
 from easyhid import Enumeration
 from kivy.logger import Logger
@@ -10,24 +10,24 @@ import math
 import configparser
 import time
 
-hb04 = None
+whb04b = None
 
 
 def start(args=""):
-    global hb04
+    global whb04b
     # print("start with args: {}".format(args))
     pid, vid = args.split(':')
-    hb04 = HB04(int(pid, 16), int(vid, 16))
-    hb04.start()
+    whb04b = whb04b(int(pid, 16), int(vid, 16))
+    whb04b.start()
     return True
 
 
 def stop():
-    global hb04
-    hb04.stop()
+    global whb04b
+    whb04b.stop()
 
 
-class HB04HID:
+class whb04bHID:
     PACKET_LEN = 64
     TIMEOUT = 1000  # milliseconds
     CONNECT_RETRIES = 3
@@ -43,6 +43,9 @@ class HB04HID:
     # @vid - Vendor ID of the USB device.
     # @pid - Product ID of the USB device.
     #
+    # USB vendor  ID = 0x10ce
+    # USB product ID = 0xeb93
+    #
     # Returns True on success.
     # Returns False on failure.
     def open(self, vid, pid):
@@ -57,18 +60,18 @@ class HB04HID:
         # return a list of devices based on the search parameters
         devices = en.find(vid=vid, pid=pid, interface=0)
         if not devices:
-            Logger.debug("HB04HID: No matching device found")
+            Logger.debug("whb04bHID: No matching device found")
             return None
 
         if len(devices) > 1:
-            Logger.debug("HB04HID: more than one device found: {}".format(devices))
+            Logger.debug("whb04bHID: more than one device found: {}".format(devices))
             return None
 
         # open the device
         self.hid = devices[0]
         self.hid.open()
 
-        Logger.debug("HB04HID: Opened: {}".format(self.hid.description()))
+        Logger.debug("whb04bHID: Opened: {}".format(self.hid.description()))
         self.opened = True
         return True
 
@@ -106,38 +109,37 @@ class HB04HID:
     # send feature report, but breaks it into 7 byte packets
     def write(self, data):
         n = 0
-        n += self.hid.send_feature_report(data[0:7], 0x06)
-        n += self.hid.send_feature_report(data[7:14], 0x06)
-        n += self.hid.send_feature_report(data[14:21], 0x06)
-        n += self.hid.send_feature_report(data[21:28], 0x06)
-        n += self.hid.send_feature_report(data[28:35], 0x06)
-        n += self.hid.send_feature_report(data[35:42], 0x06)
+        n += self.hid.send_feature_report(data[0:7], 0x07)
+        n += self.hid.send_feature_report(data[7:14], 0x07)
+        n += self.hid.send_feature_report(data[14:21], 0x07)
+        n += self.hid.send_feature_report(data[21:28], 0x07)
+        n += self.hid.send_feature_report(data[28:35], 0x07)
+        n += self.hid.send_feature_report(data[35:42], 0x07)
+        n += self.hid.send_feature_report(data[42:49], 0x07)
         return n
 
 
 # button definitions
 BUT_NONE = 0
-BUT_RESET = 23
-BUT_STOP = 22
-BUT_ORIGIN = 1
-BUT_START = 2
-BUT_REWIND = 3
-BUT_PROBEZ = 4
-BUT_SPINDLE = 12
-BUT_HALF = 6
-BUT_ZERO = 7
-BUT_SAFEZ = 8
-BUT_HOME = 9
-BUT_MACRO1 = 10
-BUT_MACRO2 = 11
-BUT_MACRO3 = 5
-BUT_MACRO6 = 15
-BUT_MACRO7 = 16
-BUT_STEP = 13
-BUT_MPG = 14
+BUT_RESET = 1
+BUT_STOP = 2
+BUT_START = 3
+BUT_FEED+ = 4
+BUT_FEED- = 5
+BUT_SPINDLE+ = 6
+BUT_SPINDLE- = 7
+BUT_MHOME = 8
+BUT_SAFEZ = 9
+BUT_WHOME= 10
+BUT_SPINDLE = 11
+BUT_FN = 12
+BUT_PROBEZ = 13
+BUT_MACRO10 = 14
+BUT_MPG = 15
+BUT_STEP = 16
 
 
-class HB04():
+class whb04b():
     lcd_data = [
         0xFE, 0xFD, 1,
         0, 0, 0, 0,  # X WC
@@ -158,23 +160,26 @@ class HB04():
     lock = threading.RLock()
     # button look up table
     butlut = {
-        1: "origin",
-        2: "start",
-        3: "rewind",
-        4: "probez",
-        5: "macro3",
-        6: "half",
-        7: "zero",
-        8: "safez",
-        9: "home",
-        10: "macro1",
-        11: "macro2",
-        12: "spindle",
-        15: "macro6",
-        16: "macro7",
+        1: "reset",
+        2: "stop",
+        3: "start",
+        4: "feed+",
+        5: "feed-",
+        6: "spindle+",
+        7: "spindle-",
+        8: "mhome",
+        9: "safez",
+        10: "whome",
+        11: "spindle",
+        12: "fn",
+        13: "probez",
+        14: "macro10",
+        15: "mpg",
+        16: "step",
     }
 
-    alut = {0: 'off', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x18: 'A', 0x15: 'F', 0x14: 'S'}
+    alut = {0X06: 'OFF', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x14: 'A', 0x15: 'B', 0x16: 'C'} # button off + set Axis
+##   blut = {0X0d: '0.001', 0x0e '0.01', 0x0f: '0.1', 0x10: '1', 0x1a: '60', 0x1b: '100', 0x1c: 'LEAD'} # button for set speed + lead
     mul = 1
     mullut = {0x00: 0, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
     macrobut = {}
@@ -182,10 +187,10 @@ class HB04():
     s_ovr = 100
 
     def __init__(self, vid, pid):
-        # HB04 vendor ID and product ID
+        # whb04b vendor ID and product ID
         self.vid = vid
         self.pid = pid
-        self.hid = HB04HID()
+        self.hid = whb04bHID()
 
     def twos_comp(self, val, bits):
         """compute the 2's complement of int value val"""
@@ -205,7 +210,7 @@ class HB04():
     def load_macros(self):
         try:
             config = configparser.ConfigParser()
-            config.read('hb04.ini')
+            config.read('whb04b.ini')
             # load user defined macro buttons
             for (key, v) in config.items('macros'):
                 self.macrobut[key] = v
@@ -214,7 +219,7 @@ class HB04():
             self.mul = config.getint("defaults", "multiplier", fallback=8)
 
         except Exception as err:
-            Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
+            Logger.warning('whb04b: WARNING - exception parsing config file: {}'.format(err))
 
     def handle_button(self, btn, axis):
         name = self.butlut[btn]
@@ -263,10 +268,10 @@ class HB04():
 
         while not self.quit:
             try:
-                # Open a connection to the HB04
+                # Open a connection to the whb04b
                 if self.hid.open(self.vid, self.pid):
 
-                    Logger.info("HB04: Connected to HID device %04X:%04X" % (self.vid, self.pid))
+                    Logger.info("whb04b: Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
                     # setup LCD with current settings
                     self.setwcs(self.app.wpos)
@@ -281,7 +286,7 @@ class HB04():
                     self.app.bind(mpos=self.update_mpos)
                     self.app.bind(fro=self.update_fro)
 
-                    # Infinite loop to read data from the HB04
+                    # Infinite loop to read data from the whb04b
                     while not self.quit:
                         data = self.hid.recv(timeout=1000)
                         if data is None:
@@ -299,7 +304,7 @@ class HB04():
                             continue
 
                         if data[0] != 0x04:
-                            Logger.error("HB04: Not an HB04 HID packet")
+                            Logger.error("whb04b: Not an whb04b HID packet")
                             continue
 
                         btn_1 = data[1]
@@ -307,7 +312,7 @@ class HB04():
                         wheel_mode = data[3]
                         wheel = self.twos_comp(data[4], 8)
                         xor_day = data[5]
-                        Logger.debug("HB04: btn_1: {}, btn_2: {}, mode: {}, wheel: {}".format(btn_1, btn_2, self.alut[wheel_mode], wheel))
+                        Logger.debug("whb04b: btn_1: {}, btn_2: {}, mode: {}, wheel: {}".format(btn_1, btn_2, self.alut[wheel_mode], wheel))
 
                         # handle move multiply buttons
                         if btn_1 == BUT_STEP:
@@ -337,7 +342,7 @@ class HB04():
                             self.app.comms.write('$X\n')
                             continue
 
-                        # don't do jogging etc if printing unless we are suspended
+                        # dont do jogging etc if printing unless we are suspended
                         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
                             continue
 
@@ -381,16 +386,16 @@ class HB04():
                             self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
                             # print("$J {}{} F{}\n".format(axis, dist, speed))
 
-                    # Close the HB04 connection
+                    # Close the whb04b connection
                     self.hid.close()
 
-                    Logger.info("HB04: Disconnected from HID device")
+                    Logger.info("whb04b: Disconnected from HID device")
 
                 else:
-                    Logger.debug("HB04: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
+                    Logger.debug("whb04b: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
 
             except Exception:
-                Logger.error("HB04: Exception - {}".format(traceback.format_exc()))
+                Logger.error("whb04b: Exception - {}".format(traceback.format_exc()))
                 if self.hid.opened:
                     self.hid.close()
 
@@ -401,7 +406,7 @@ class HB04():
                 # retry connection in 5 seconds unless we were asked to quit
                 time.sleep(5)
 
-    # converts a 16 bit value to little endian bytes suitable for HB04 protocol
+    # converts a 16 bit value to little endian bytes suitable for whb04b protocol
     def to_le(self, x, neg=False):
         lo = abs(x) & 0xFF
         hi = (abs(x) >> 8) & 0xFF
