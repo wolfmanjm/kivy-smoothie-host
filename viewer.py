@@ -551,11 +551,11 @@ class GcodeViewerScreen(Screen):
                                 else:
                                     xyz.append((w,u,v))
 
-                        xyz.append((x,y,z))
+                        xyz.append((x, y, z))
                         # plot the points
                         points = []
                         for t in xyz:
-                            x1,y1,z1 = t
+                            x1, y1, z1 = t
                             points.append(x1)
                             points.append(y1)
                             max_x = max(x1, max_x)
@@ -564,9 +564,8 @@ class GcodeViewerScreen(Screen):
                             min_y = min(y1, min_y)
 
                         self.canv.add(Color(0, 0, 0))
-                        self.canv.add(Line(points=points, width= 1, cap='none', joint='none'))
+                        self.canv.add(Line(points=points, width=1, cap='none', joint='none'))
                         points = []
-
 
                     # always remember last position
                     lastpos = [x, y, z]
@@ -587,9 +586,9 @@ class GcodeViewerScreen(Screen):
             points = []
 
         # center the drawing and scale it
-        dx = max_x-min_x
-        dy = max_y-min_y
-        if dx == 0 or dy == 0 :
+        dx = max_x - min_x
+        dy = max_y - min_y
+        if dx == 0 or dy == 0:
             Logger.warning("GcodeViewerScreen: size is bad, maybe need 2D mode")
             return
 
@@ -598,20 +597,20 @@ class GcodeViewerScreen(Screen):
         Logger.debug("GcodeViewerScreen: dx= {}, dy= {}".format(dx, dy))
 
         # add in the translation to center object
-        self.tx = -min_x - dx/2
-        self.ty = -min_y - dy/2
+        self.tx = -min_x - dx / 2
+        self.ty = -min_y - dy / 2
         self.canv.insert(1, Translate(self.tx, self.ty))
         Logger.debug("GcodeViewerScreen: tx= {}, ty= {}".format(self.tx, self.ty))
 
         # scale the drawing to fit the screen
         if abs(dx) > abs(dy):
-            scale = self.ids.surface.width/abs(dx)
-            if abs(dy)*scale > self.ids.surface.height:
-                scale *= self.ids.surface.height/(abs(dy)*scale)
+            scale = self.ids.surface.width / abs(dx)
+            if abs(dy) * scale > self.ids.surface.height:
+                scale *= self.ids.surface.height / (abs(dy) * scale)
         else:
-            scale = self.ids.surface.height/abs(dy)
-            if abs(dx)*scale > self.ids.surface.width:
-                scale *= self.ids.surface.width/(abs(dx)*scale)
+            scale = self.ids.surface.height / abs(dy)
+            if abs(dx) * scale > self.ids.surface.width:
+                scale *= self.ids.surface.width / (abs(dx) * scale)
 
         Logger.debug("GcodeViewerScreen: scale= {}".format(scale))
         self.scale = scale
@@ -624,14 +623,14 @@ class GcodeViewerScreen(Screen):
 
         # axis Markers
         self.canv.add(Color(0, 1, 0, mode='rgb'))
-        self.canv.add(Line(points=[0, -10, 0, self.ids.surface.height/scale], width=1, cap='none', joint='none'))
-        self.canv.add(Line(points=[-10, 0, self.ids.surface.width/scale, 0], width=1, cap='none', joint='none'))
+        self.canv.add(Line(points=[0, -10, 0, self.ids.surface.height / scale], width=1, cap='none', joint='none'))
+        self.canv.add(Line(points=[-10, 0, self.ids.surface.width / scale, 0], width=1, cap='none', joint='none'))
 
         # tool position marker
         if self.app.is_connected:
             x = self.app.wpos[0]
             y = self.app.wpos[1]
-            r = (10.0/self.ids.surface.scale)/scale
+            r = (10.0 / self.ids.surface.scale) / scale
             self.canv.add(Color(1, 0, 0, mode='rgb', group="tool"))
             self.canv.add(Line(circle=(x, y, r), group="tool"))
 
@@ -665,7 +664,7 @@ class GcodeViewerScreen(Screen):
 
     def transform_to_spos(self, posx, posy):
         ''' inverse transform of model coordinates to scatter coordinates '''
-        pos = ((((posx + self.tx) * self.scale) + self.offs[0]) , (((posy + self.ty) * self.scale) + self.offs[1]))
+        pos = ((((posx + self.tx) * self.scale) + self.offs[0]), (((posy + self.ty) * self.scale) + self.offs[1]))
         spos = self.ids.surface.to_window(*pos)
         #print("pos= {}, spos= {}".format(pos, spos))
         return spos
@@ -694,11 +693,11 @@ class GcodeViewerScreen(Screen):
                 Rectangle(pos=(px, 0), size=(1, self.height), group='cursor_group'),
                 Rectangle(pos=(0, py), size=(self.width, 1), group='cursor_group'),
                 Line(circle=(px, py, 20), group='cursor_group'),
-                Rectangle(texture=texture, pos=(px-texture.size[0]/2, py-40), size=texture.size, group='cursor_group')
+                Rectangle(texture=texture, pos=(px - texture.size[0] / 2, py - 40), size=texture.size, group='cursor_group')
             ]
 
     def move_cursor_by(self, dx, dy):
-        x, y = (self.crossx[0].pos[0]+dx, self.crossx[1].pos[1]+dy)
+        x, y = (self.crossx[0].pos[0] + dx, self.crossx[1].pos[1] + dy)
 
         self.crossx[0].pos = x, 0
         self.crossx[1].pos = 0, y
@@ -708,7 +707,7 @@ class GcodeViewerScreen(Screen):
         label.refresh()
         texture = label.texture
         self.crossx[3].texture = texture
-        self.crossx[3].pos = x-texture.size[0]/2, y-40
+        self.crossx[3].pos = x - texture.size[0] / 2, y - 40
 
     def stop_cursor(self, x=0, y=0):
         self.ids.surface.canvas.after.remove_group('cursor_group')
