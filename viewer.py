@@ -29,7 +29,7 @@ Builder.load_string('''
     BoxLayout:
         orientation: 'vertical'
         Label:
-            text: app.gcode_file if app.is_desktop > 0 else ""
+            text: app.gcode_file
             size_hint_y: None
             height: self.texture_size[1]
 

@@ -163,10 +163,10 @@ class MPGWidget(RelativeLayout):
         # if in MPG mode then issue $J commands when they occur
         if not self.ids.mpg_mode_tb.state == 'down':
             # normal mode
-            cmd1 = 'G0' if self.ids.abs_mode_tb.state == 'down' else 'G91 G0'
-            cmd2 = '' if self.ids.abs_mode_tb.state == 'down' else 'G90'
+            cmd = 'G90' if self.ids.abs_mode_tb.state == 'down' else 'G91'
+
             # print('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
-            self.app.comms.write('{} {}{} {}\n'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
+            self.app.comms.write('M120 {} G0 {}{} M121\n'.format(cmd, self.selected_axis, round(self.last_pos, 3)))
 
     def handle_change(self, ticks):
         if self.selected_index == -1:
@@ -240,13 +240,15 @@ class JogRoseWidget(BoxLayout):
         x10 = self.ids.x10cb.active
         if x10:
             v *= 10
+
+        fr = self.xy_feedrate
+
         if axis == 'O':
-            self.app.comms.write('M120 G0 X0 Y0 F{} M121\n'.format(self.xy_feedrate))
+            self.app.comms.write('M120 G21 G90 G0 X0 Y0 F{} M121\n'.format(fr))
         elif axis == 'H':
             self.app.comms.write('$H\n')
         else:
-            fr = self.xy_feedrate
-            self.app.comms.write('M120 G91 G0 {}{} F{} M121\n'.format(axis, v, fr))
+            self.app.comms.write('M120 G21 G91 G0 {}{} F{} M121\n'.format(axis, v, fr))
 
     def update_xy_feedrate(self):
         fr = self.ids.xy_feedrate.text
