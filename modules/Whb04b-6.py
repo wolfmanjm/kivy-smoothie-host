@@ -97,7 +97,7 @@ class whb04bHID:
 
     # Read data from the connected USB device.
     #
-    # @len     - Number of bytes to read. Defaults to PACKET_LEN.
+    # @plen     - Number of bytes to read. Defaults to PACKET_LEN.
     # @timeout - Read timeout, in milliseconds. Defaults to TIMEOUT.
     #
     # Returns the received bytes on success.
@@ -109,79 +109,69 @@ class whb04bHID:
     # send feature report, but breaks it into 7 byte packets
     def write(self, data):
         n = 0
-        n += self.hid.send_feature_report(data[0:7], 0x07)
-        n += self.hid.send_feature_report(data[7:14], 0x07)
-        n += self.hid.send_feature_report(data[14:21], 0x07)
-        n += self.hid.send_feature_report(data[21:28], 0x07)
-        n += self.hid.send_feature_report(data[28:35], 0x07)
-        n += self.hid.send_feature_report(data[35:42], 0x07)
-        n += self.hid.send_feature_report(data[42:49], 0x07)
+        n += self.hid.send_feature_report(data[0:8], 0x07)
+        n += self.hid.send_feature_report(data[8:16], 0x07)
+        n += self.hid.send_feature_report(data[16:24], 0x07)
         return n
 
 
 # button definitions
-BUT_NONE = 0
-BUT_RESET = 1
-BUT_STOP = 2
-BUT_START = 3
-BUT_FEED+ = 4
-BUT_FEED- = 5
-BUT_SPINDLE+ = 6
-BUT_SPINDLE- = 7
-BUT_MHOME = 8
-BUT_SAFEZ = 9
-BUT_WHOME= 10
-BUT_SPINDLE = 11
-BUT_FN = 12
-BUT_PROBEZ = 13
-BUT_MACRO10 = 14
-BUT_MPG = 15
-BUT_STEP = 16
+BUT_NONE = 0x00
+BUT_RESET = 0x01
+BUT_STOP = 0x02
+BUT_START = 0x03
+BUT_FEED+ = 0x04
+BUT_FEED- = 0x05
+BUT_SPINDLE+ = 0x06
+BUT_SPINDLE- = 0x07
+BUT_MHOME = 0x08
+BUT_SAFEZ = 0x09
+BUT_WHOME= 0x0A
+BUT_SPINDLE = 0x0B
+BUT_FN = 0x0C
+BUT_PROBEZ = 0x0D
+BUT_MPG = 0x0E
+BUT_STEP = 0x0F
+BUT_MACRO10 = 0x10
 
 
 class whb04b():
     lcd_data = [
         0xFE, 0xFD, 1,
+        0,           # Mode
         0, 0, 0, 0,  # X WC
         0, 0, 0, 0,  # Y WC
         0, 0, 0, 0,  # Z WC
-        0, 0, 0, 0,  # X MC
-        0, 0, 0, 0,  # Y MC
-        0, 0, 0, 0,  # Z MC
         0, 0,        # F ovr
         0, 0,        # S ovr
-        0, 0,        # F
-        0, 0,        # S
-        0x01,        # step mul
-        0,           # inch/mm
-        0, 0, 0, 0, 0   # padding
+        0, 0, 0, 0,  # padding
     ]
 
     lock = threading.RLock()
     # button look up table
     butlut = {
-        1: "reset",
-        2: "stop",
-        3: "start",
-        4: "feed+",
-        5: "feed-",
-        6: "spindle+",
-        7: "spindle-",
-        8: "mhome",
-        9: "safez",
-        10: "whome",
-        11: "spindle",
-        12: "fn",
-        13: "probez",
-        14: "macro10",
-        15: "mpg",
-        16: "step",
+        0x01: "reset",
+        0x02: "stop",
+        0x03: "start",
+        0x04: "feed+",
+        0x05: "feed-",
+        0x06: "spindle+",
+        0x07: "spindle-",
+        0x08: "mhome",
+        0x09: "safez",
+        0x0A: "whome",
+        0x0B: "spindle",
+        0x0C: "fn",
+        0x0D: "probez",
+        0x0E: "mpg",
+        0x0F: "step",
+        0x10: "macro10",
     }
 
-    alut = {0X06: 'OFF', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x14: 'A', 0x15: 'B', 0x16: 'C'} # button off + set Axis
-##   blut = {0X0d: '0.001', 0x0e '0.01', 0x0f: '0.1', 0x10: '1', 0x1a: '60', 0x1b: '100', 0x1c: 'LEAD'} # button for set speed + lead
+    alut = {0x06: 'OFF', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x14: 'A', 0x15: 'B', 0x16: 'C'} # button off + set Axis
+    slut = {0x0d: '0.001', 0x0e '0.01', 0x0f: '0.1', 0x10: '1', 0x1a: '60', 0x1b: '100', 0x1c: 'LEAD'} # button for set speed + lead
     mul = 1
-    mullut = {0x00: 0, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
+   # mullut = {0x00: 0, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
@@ -238,20 +228,8 @@ class whb04b():
 
         # some buttons have default functions
         cmd = None
-        if btn == BUT_HOME:
-            cmd = "$H"
-        elif btn == BUT_ORIGIN:
-            cmd = "G90 G0 X0 Y0"
-        elif btn == BUT_PROBEZ:
-            cmd = "G38.3 Z-25"
-        elif btn == BUT_ZERO:
-            cmd = "G10 L20 P0 {}0".format(axis)
-        elif btn == BUT_SAFEZ:
-            cmd = "G91 G0 Z20 G90"
-        elif btn == BUT_SPINDLE:
+        if btn == BUT_SPINDLE:
             cmd = "M5" if self.app.is_spindle_on else "M3"
-        elif btn == BUT_HALF:
-            cmd = "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis) - ord('X')] / 2.0)
         elif btn == BUT_START:
             # TODO if running then pause
             self.app.main_window.start_last_file()
@@ -307,12 +285,14 @@ class whb04b():
                             Logger.error("whb04b: Not an whb04b HID packet")
                             continue
 
-                        btn_1 = data[1]
-                        btn_2 = data[2]
-                        wheel_mode = data[3]
-                        wheel = self.twos_comp(data[4], 8)
-                        xor_day = data[5]
-                        Logger.debug("whb04b: btn_1: {}, btn_2: {}, mode: {}, wheel: {}".format(btn_1, btn_2, self.alut[wheel_mode], wheel))
+                        unused = data[1]
+                        btn_1 = data[2]
+                        btn_2 = data[3]
+                        speed_mode = data[4]
+                        axis_mode = data[5]
+                        wheel = self.twos_comp(data[6], 8)
+                        checksum = data[7]
+                        Logger.debug("whb04b: btn_1: {}, btn_2: {}, speed: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.slut[speed_mode], self.alut[axis_mode], wheel))
 
                         # handle move multiply buttons
                         if btn_1 == BUT_STEP:
@@ -346,42 +326,43 @@ class whb04b():
                         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
                             continue
 
-                        if wheel_mode == 0:
+                        if axis_mode == 6:
                             # when OFF all other buttons are ignored
                             continue
 
-                        axis = self.alut[wheel_mode]
+                        axis = self.alut[axis_mode]
+                        f_over = self.slut[speed_mode]
 
                         # handle other fixed and macro buttons
                         if btn_1 != 0 and self.handle_button(btn_1, axis):
                             continue
 
                         if wheel != 0:
-                            if axis == 'F':
-                                # adjust feed override
-                                self.f_ovr += wheel
-                                if self.f_ovr < 10:
-                                    self.f_ovr = 10
-                                self.setovr(self.f_ovr, self.s_ovr)
-                                self.update_lcd()
-                                continue
-                            if axis == 'S':
-                                # adjust S override, laser power? (TODO maybe this is tool speed?)
-                                self.s_ovr += wheel
-                                if self.s_ovr < 1:
-                                    self.s_ovr = 1
-                                self.setovr(self.f_ovr, self.s_ovr)
-                                self.update_lcd()
-                                continue
+                      ##      if axis == 'F':
+                      ##          # adjust feed override
+                      ##          self.f_ovr += wheel
+                      ##          if self.f_ovr < 10:
+                      ##              self.f_ovr = 10
+                      ##          self.setovr(self.f_ovr, self.s_ovr)
+                      ##          self.update_lcd()
+                      ##          continue
+                      ##      if axis == 'S':
+                      ##          # adjust S override, laser power? (TODO maybe this is tool speed?)
+                      ##          self.s_ovr += wheel
+                      ##          if self.s_ovr < 1:
+                      ##              self.s_ovr = 1
+                      ##          self.setovr(self.f_ovr, self.s_ovr)
+                      ##          self.update_lcd()
+                      ##          continue
 
-                            # must be one of XYZA so send jogging command
+                            # must be one of XYZABC so send jogging command
                             # velocity_mode:
                             # step= -1 if wheel < 0 else 1
                             # s = -wheel if wheel < 0 else wheel
                             # if s > 5: s == 5 # seems the max realistic we get
                             # speed= s/5.0 # scale where 5 is max speed
                             step = wheel  # speed of wheel will move more increments rather than increase feed rate
-                            dist = 0.001 * step * self.mullut[self.mul]
+                            dist = 0.001 * step * self.slut[self.mul]
                             speed = 1.0
                             self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
                             # print("$J {}{} F{}\n".format(axis, dist, speed))
