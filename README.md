@@ -6,7 +6,11 @@ This is a work in progress, but is stable and ready for everyday use.
 This uses python >= 3.4.3
 
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows)
-Also runs on pretty much any Linux XWindows desktop (and maybe Mac or Windows if Kivy runs on them).
+Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
+
+It will run on Windows if you install Python 3.5.2, and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
+
+Currently does not run on python versions > 3.6 due to async changes.
 
 The minimum usable resolution is 800x480.
 

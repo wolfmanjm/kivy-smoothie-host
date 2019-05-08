@@ -108,6 +108,7 @@ class SpindleCamera(Screen):
         super(SpindleCamera, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.nfingers = 0
+        self.z_jog = False
 
     def setzero(self):
         self.app.comms.write('G10 L20 P0 X0 Y0\n')
@@ -123,6 +124,8 @@ class SpindleCamera(Screen):
             touch.grab(self)
             self.nfingers += 1
             touch.ud["n"] = self.nfingers
+            if self.nfingers == 4:
+                self.z_jog = True
             return True
 
         return super(SpindleCamera, self).on_touch_down(touch)
@@ -131,7 +134,7 @@ class SpindleCamera(Screen):
         if touch.grab_current is not self:
             return super(SpindleCamera, self).on_touch_move(touch)
 
-        if self.nfingers >= 1 and self.nfingers < 4 and touch.ud["n"] == 1:
+        if (1 <= self.nfingers < 4) and not self.z_jog and touch.ud["n"] == 1:
             # we only track the first finger that touched
             n = self.nfingers
             m = 0.001 * 10**(n - 1)  # 1 finger moves 0.001, 2 moves 0.01, 3 moves .1
@@ -148,7 +151,7 @@ class SpindleCamera(Screen):
                     dy = -dy
                 self.app.comms.write("$J X{} Y{}\n".format(dx, dy))
 
-        elif self.nfingers == 4 and touch.ud["n"] == 1:
+        elif self.z_jog and touch.ud["n"] == 1:
             # we move Z to focus
             dy = touch.dy
             if dy != 0:
@@ -160,6 +163,9 @@ class SpindleCamera(Screen):
         if touch.grab_current is self:
             touch.ungrab(self)
             self.nfingers -= 1
+            if self.nfingers == 0:
+                self.z_jog = False
+
             return True
 
         return super(SpindleCamera, self).on_touch_up(touch)
