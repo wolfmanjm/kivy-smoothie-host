@@ -134,7 +134,7 @@ class SpindleCamera(Screen):
         if touch.grab_current is not self:
             return super(SpindleCamera, self).on_touch_move(touch)
 
-        if (1 <= self.nfingers < 4) and not self.z_jog and touch.ud["n"] == 1:
+        if self.nfingers >= 1 and not self.z_jog and touch.ud["n"] == 1:
             # we only track the first finger that touched
             n = self.nfingers
             m = 0.001 * 10**(n - 1)  # 1 finger moves 0.001, 2 moves 0.01, 3 moves .1
