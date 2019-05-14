@@ -145,11 +145,9 @@ class WHB04B():
         0, 0,        # S ovr
         0, 0, 0, 0,  # padding
     ]
-    
+
     lock = threading.RLock()
     # button look up table
-    
-#        12: "fn",
 
     butlut = {
         1: "reset",
@@ -168,6 +166,7 @@ class WHB04B():
         15: "step",
         16: "macro10",
     }
+    
     butlutfn = {
         1: "macro11",
         2: "macro12",
@@ -186,13 +185,11 @@ class WHB04B():
         16: "macro16",
     }
 
-    alut = {0x06: 'OFF', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x14: 'A', 0x15: 'B', 0x16: 'C'} # button off + set Axis
-    slut = {0x0d: '0.001', 0x0e: '0.01', 0x0f: '0.1', 0x10: '1', 0x1a: '0', 0x1b: '0', 0x1c: '0'} # button for set step multiplier
-    mlut = {0x0d: '2', 0x0e: '5', 0x0f: '10', 0x10: '30', 0x1a: '60', 0x1b: '100', 0x1c: '0'} # button for set mpg %
-    llut = {0x0d: '0', 0x0e: '0', 0x0f: '0', 0x10: '0', 0x1a: '0', 0x1b: '0', 0x1c: '0.001'} # button for set lead mode
-    mul = 1
-    status = 1
-   # mullut = {0x00: 0, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
+    alut = {0x06: 'OFF', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x14: 'A', 0x15: 'B', 0x16: 'C'} # button off or set Axis
+    slut = {0x0d: 0.001, 0x0e: 0.01, 0x0f: 0.1, 0x10: 1, 0x1a: 0, 0x1b: 0, 0x1c: 0}        # combined button for set step   #or 0x1c = lead = 0.001 without multiplier
+    mlut = {0x0d: 2, 0x0e: 5, 0x0f: 10, 0x10: 30, 0x1a: 60, 0x1b: 100, 0x1c: 0}            # combined button for set mpg %  #or 0x1c = lead = 0.001 without multiplier
+#    llut = {0x0d: 0, 0x0e: 0, 0x0f: 0, 0x10: 0, 0x1a: 0, 0x1b: 0, 0x1c: 0.001}            # combined button for set lead mode = secure mode need to select con or step   
+    status = 0                                                                             # start from lead mode = secure mode need to select con or step
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
@@ -225,9 +222,6 @@ class WHB04B():
             # load user defined macro buttons
             for (key, v) in config.items('macros'):
                 self.macrobut[key] = v
-
-            # load any default settings
-#            self.mul = config.getint("defaults", "multiplier", fallback=8)
 
         except Exception as err:
             Logger.warning('WHB04B: WARNING - exception parsing config file: {}'.format(err))
@@ -306,7 +300,7 @@ class WHB04B():
 
         # macro button dont have default functions
         cmd = None
-        
+
         return False
 
 
@@ -366,29 +360,28 @@ class WHB04B():
                         wheel = self.twos_comp(data[6], 8)
 #                        checksum = data[7]
                         Logger.debug("whb04b: btn_1: {}, btn_2: {}, speed: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.slut[speed_mode], self.alut[axis_mode], wheel))
-         
+
                         # only select rotary mode buttons
                         if btn_1 == BUT_STEP:
-                            #self.mul += 1
-                            #if self.mul > 10:
-                            #    self.mul = 1
-                            #self.setmul(self.mul)
                             # TODO create MASK xxxxxx??
                             self.status = 1
                             self.setstatus(self.status)
-#                            self.update_lcd()
+                            self.update_lcd()
                             continue
 
                         if btn_1 == BUT_MPG:
-                            #self.mul -= 1
-                            #if self.mul < 1:
-                            #    self.mul = 10
-                            #self.setmul(self.mul)
                             # TODO create MASK xxxxxx??
                             self.status = 2
                             self.setstatus(self.status)
-#                            self.update_lcd()
+                            self.update_lcd()
                             continue
+
+                        if speed_mode == 0x1c:
+                            # TODO create MASK xxxxxx??   # here is position lead for rotary knob
+                            self.status = 0
+                            self.setstatus(self.status)
+                            self.update_lcd()
+                            #continue                     # maybee i think in this way lcd is updated all the time but if revert the program loop without does the rest of the code
 
                         if not self.app.is_connected:
                             continue
@@ -401,6 +394,10 @@ class WHB04B():
                             self.app.comms.write('$X\n')
                             continue
 
+#                        if btn_1 == BUT_RESET and self.app.is_connected == 0:    # want to make possible to connect/disconnect
+#                            self.is_connected= True
+#                            continue
+
                         # dont do jogging etc if printing unless we are suspended
                         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
                             continue
@@ -409,7 +406,7 @@ class WHB04B():
                             # when OFF all other buttons are ignored
                             continue
 
-                        axis = self.alut[axis_mode]   
+                        axis = self.alut[axis_mode]
                         f_over = self.f_ovr
                         s_over = self.s_ovr
 #                        f_over = self.slut[speed_mode]
@@ -417,7 +414,7 @@ class WHB04B():
                         # handle other fixed and macro buttons
                         if btn_1 != 0 and btn_1 != 12 and self.handle_button(btn_1, axis):
                             continue
-                            
+
                         # handle other fixed and macro buttons
                         if btn_2 != 0 and btn_1 == 12 and self.handle_buttonfn(btn_2, axis):
                             continue
@@ -447,12 +444,15 @@ class WHB04B():
                             # if s > 5: s == 5 # seems the max realistic we get
                             # speed= s/5.0 # scale where 5 is max speed
                             step = wheel  # speed of wheel will move more increments rather than increase feed rate
-#                            dist = 0.001 * step * self.slut[self.speed_mode]
-#                            dist = 0.001 * step * self.slut[speed_mode]
-                            dist = 0.001 * step * self.mlut[speed_mode]
+                            if self.status == 2:
+                                dist = 0.001 * step * self.mlut[speed_mode]
+                            if self.status == 1:
+                               dist = self.slut[speed_mode] * step
+                            if self.status == 0:
+                               dist = 0.001 * step
                             speed = 1.0
                             self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
-                            Logger.debug("$J {}{} F{}\n".format(axis, dist, speed))
+                            #Logger.debug("$J {}{} F{}\n".format(axis, dist, speed))
 
                     # Close the WHB04B connection
                     self.hid.close()
@@ -495,12 +495,12 @@ class WHB04B():
             self.lcd_data[off + 3] = h
             off += 4
         self.lock.release()
-          
+
     def setstatus(self, m):
         self.lock.acquire()
         self.lcd_data[3] = m
         self.lock.release()
-          
+
     def setwcs(self, a):
         self._setv(4, a)
 
@@ -542,7 +542,7 @@ class WHB04B():
         self.lock.acquire()
         n = self.hid.write(self.lcd_data)
         self.lock.release()
-        Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
+        #Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
         Logger.debug("LCD {}".format(self.lcd_data))
 
     def refresh_lcd(self):
