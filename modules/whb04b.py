@@ -109,9 +109,6 @@ class WHB04BHID:
     # send feature report, but breaks it into 7 byte packets
     def write(self, data):
         n = 0
-#        n += self.hid.send_feature_report(data[0:8], 0x07)
-#        n += self.hid.send_feature_report(data[8:16], 0x07)
-#        n += self.hid.send_feature_report(data[16:24], 0x07)
         n += self.hid.send_feature_report(data[0:7], 0x06)
         n += self.hid.send_feature_report(data[7:14], 0x06)
         n += self.hid.send_feature_report(data[14:21], 0x06)
@@ -191,8 +188,8 @@ class WHB04B():
     alut = {0x06: 'OFF', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x14: 'A', 0x15: 'B', 0x16: 'C'} # button off or set Axis
     slut = {0x0d: 0.001, 0x0e: 0.01, 0x0f: 0.1, 0x10: 1, 0x1a: 0, 0x1b: 0, 0x1c: 0}        # combined button for set step   #or 0x1c = lead = 0.001 without multiplier
     mlut = {0x0d: 2, 0x0e: 5, 0x0f: 10, 0x10: 30, 0x1a: 60, 0x1b: 100, 0x1c: 0}            # combined button for set mpg %  #or 0x1c = lead = 0.001 without multiplier
-#    llut = {0x0d: 0, 0x0e: 0, 0x0f: 0, 0x10: 0, 0x1a: 0, 0x1b: 0, 0x1c: 0.001}            # combined button for set lead mode = secure mode need to select con or step   
-    status = 0                                                                             # start from lead mode = secure mode need to select con or step
+#    llut = {0x0d: 0, 0x0e: 0, 0x0f: 0, 0x10: 0, 0x1a: 0, 0x1b: 0, 0x1c: 0.001}            # combined button for set lead mode = secure mode need to select mpg or step   
+    status = 0                                                                             # start from lead mode = secure mode need to select mpg or step
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
@@ -320,17 +317,7 @@ class WHB04B():
 
                     Logger.info("WHB04B: Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
-                    # setup LCD with current settings
-                    self.setwcs(self.app.wpos)
-#                    self.setmcs(self.app.mpos[0:3])
-                    self.setovr(self.f_ovr, self.s_ovr)
-                    self.setstatus(self.status)
-                    self.update_lcd()
 
-                    # get notified when these change
-                    self.app.bind(wpos=self.update_wpos)
-#                    self.app.bind(mpos=self.update_mpos)
-                    self.app.bind(fro=self.update_fro)
 
                     # Infinite loop to read data from the WHB04B
                     while not self.quit:
@@ -353,14 +340,14 @@ class WHB04B():
                             Logger.error("WHB04B: Not an WHB04B HID packet")
                             continue
 
-#                        unused = data[1]
+                        seed = data[1]
                         btn_1 = data[2]
                         btn_2 = data[3]
                         speed_mode = data[4]
                         axis_mode = data[5]
                         wheel = self.twos_comp(data[6], 8)
-#                        checksum = data[7]
-#                        Logger.debug("whb04b: btn_1: {}, btn_2: {}, speed: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.slut[speed_mode], self.alut[axis_mode], wheel))
+                        checksum = data[7]
+                        Logger.debug("whb04b: seed: {}, btn_1: {}, btn_2: {}, speed: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.slut[speed_mode], self.alut[axis_mode], wheel, checksum))
 
                         # only select rotary mode buttons
                         if btn_1 == BUT_STEP:
@@ -382,7 +369,7 @@ class WHB04B():
                             self.status = 0
                             self.setstatus(self.status)
                             self.update_lcd()
-                            #continue                     # maybee i think in this way lcd is updated all the time but if revert the program loop without does the rest of the code
+                            #continue                     # maybee i think in this way lcd is updated all the time but if revert the program loop without execute the rest of the code
 
                         if not self.app.is_connected:
                             continue
@@ -395,14 +382,32 @@ class WHB04B():
                             self.app.comms.write('$X\n')
                             continue
 
-#                        if btn_1 == BUT_RESET and self.app.is_connected == 0:    # want to make possible to connect/disconnect
-#                            self.is_connected= True
+#                        if btn_1 == BUT_RESET and self.app.is_connected == 0:
+#                            self.is_connected= True                            # like to make possible to connect/disconnect 
 #                            continue
 
                         # dont do jogging etc if printing unless we are suspended
                         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
                             continue
-
+                            
+                        # setup LCD with current settings           # moved here for prevent UnboundLocalError: local variable 'data' referenced before assignment
+                                                                    # I think other better way is possible if you check ?
+                        if axis_mode > 0x10 and axis_mode < 0x14:
+                           self.setwcs(self.app.wpos)
+                        if axis_mode > 0x13 and axis_mode < 0x17:
+                           self.setmcs(self.app.mpos[3:6])          # TODO clear unused axis value from ABC
+                           
+                        self.setovr(self.f_ovr, self.s_ovr)
+                        self.setstatus(self.status)
+                        self.update_lcd()
+                        
+                        # get notified when these change
+                        if axis_mode > 0x10 and axis_mode < 0x14:
+                           self.app.bind(wpos=self.update_wpos)
+                        if axis_mode > 0x13 and axis_mode < 0x17:
+                           self.app.bind(mpos=self.update_mpos)      # TODO clear unused axis value from ABC
+                        self.app.bind(fro=self.update_fro)
+                    
                         if axis_mode == 6:
                             # when OFF all other buttons are ignored
                             continue
@@ -467,9 +472,12 @@ class WHB04B():
                 if self.hid.opened:
                     self.hid.close()
 
-            self.app.unbind(wpos=self.update_wpos)
-#            self.app.unbind(mpos=self.update_mpos)
+#            if axis_mode > 0x10 and axis_mode < 0x14:
+#               self.app.unbind(wpos=self.update_wpos)      # removed here for prevent UnboundLocalError: local variable 'data' referenced before assignment
+#            if axis_mode > 0x13 and axis_mode < 0x17:
+#               self.app.unbind(mpos=self.update_mpos)      # TODO clear unused axis value from ABC
             self.app.unbind(fro=self.update_fro)
+            
             if not self.quit:
                 # retry connection in 5 seconds unless we were asked to quit
                 time.sleep(5)
@@ -504,8 +512,8 @@ class WHB04B():
     def setwcs(self, a):
         self._setv(4, a)
 
-#    def setmcs(self, a):
-#        self._setv(15, a)
+    def setmcs(self, a):
+        self._setv(4, a)
 
     def setovr(self, f, s):
         (l, h) = self.to_le(int(round(f)))
@@ -517,6 +525,14 @@ class WHB04B():
         self.lcd_data[19] = h
         self.lock.release()
 
+    def update_lcd(self):
+        self.lock.acquire()
+        n = self.hid.write(self.lcd_data)
+        self.lock.release()
+        Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
+        Logger.debug("LCD {}".format(self.lcd_data))
+
+
 #    def setfs(self, f, s):
 #        (l, h) = self.to_le(int(round(f)))
 #        self.lock.acquire()
@@ -526,24 +542,6 @@ class WHB04B():
 #        self.lcd_data[33] = l
 #        self.lcd_data[34] = h
 #        self.lock.release()
-
-#    def setmul(self, m):
-#        self.lock.acquire()
-#        self.lcd_data[2] = m
-#        self.lock.release()
-
-
-#    def setinch(self, b):
-#        self.lock.acquire()
-#        self.lcd_data[36] = 0x80 if b else 0x00
-#        self.lock.release()
-
-    def update_lcd(self):
-        self.lock.acquire()
-        n = self.hid.write(self.lcd_data)
-        self.lock.release()
-        Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
-        Logger.debug("LCD {}".format(self.lcd_data))
 
     def refresh_lcd(self):
 #        self.setfs(self.app.frr, self.app.sr)
@@ -556,16 +554,15 @@ class WHB04B():
 #        else:
 #            self.setmul(self.mul)
 
-#        self.setinch(self.app.is_inch)
         self.update_lcd()
 
     def update_wpos(self, i, v):
         self.setwcs(v)
         self.update_lcd()
 
-#    def update_mpos(self, i, v):
-#        self.setmcs(v[0:3])
-#        self.update_lcd()
+    def update_mpos(self, i, v):
+        self.setmcs(v[3:6])
+        self.update_lcd()
 
     def update_fro(self, i, v):
         self.f_ovr = v
