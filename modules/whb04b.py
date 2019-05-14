@@ -109,9 +109,12 @@ class WHB04BHID:
     # send feature report, but breaks it into 7 byte packets
     def write(self, data):
         n = 0
-        n += self.hid.send_feature_report(data[0:8], 0x07)
-        n += self.hid.send_feature_report(data[8:16], 0x07)
-        n += self.hid.send_feature_report(data[16:24], 0x07)
+#        n += self.hid.send_feature_report(data[0:8], 0x07)
+#        n += self.hid.send_feature_report(data[8:16], 0x07)
+#        n += self.hid.send_feature_report(data[16:24], 0x07)
+        n += self.hid.send_feature_report(data[0:7], 0x06)
+        n += self.hid.send_feature_report(data[7:14], 0x06)
+        n += self.hid.send_feature_report(data[14:21], 0x06)
         return n
 
 # button definitions
@@ -136,14 +139,14 @@ BUT_MACRO10 = 16
 
 class WHB04B():
     lcd_data = [
-        0xFE, 0xFD, 1, # id + seed
+        0xFE, 0xFD, 0xFE, # id + seed
         0,           # Status
         0, 0, 0, 0,  # X WC
         0, 0, 0, 0,  # Y WC
         0, 0, 0, 0,  # Z WC
         0, 0,        # F ovr
         0, 0,        # S ovr
-        0, 0, 0, 0,  # padding
+        0,           # padding
     ]
 
     lock = threading.RLock()
@@ -317,19 +320,17 @@ class WHB04B():
 
                     Logger.info("WHB04B: Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
-#                    # setup LCD with current settings
-#                    self.setwcs(self.app.wpos)
-##                    self.setmcs(self.app.mpos[0:3])
-#                    self.setovr(self.f_ovr, self.s_ovr)
-##                    self.setfs(self.app.frr, self.app.sr)
-##                    self.setmul(self.mul)
-#                    self.setstatus(self.status)
-#                    self.update_lcd()
+                    # setup LCD with current settings
+                    self.setwcs(self.app.wpos)
+#                    self.setmcs(self.app.mpos[0:3])
+                    self.setovr(self.f_ovr, self.s_ovr)
+                    self.setstatus(self.status)
+                    self.update_lcd()
 
                     # get notified when these change
-#                    self.app.bind(wpos=self.update_wpos)
-##                    self.app.bind(mpos=self.update_mpos)
-#                    self.app.bind(fro=self.update_fro)
+                    self.app.bind(wpos=self.update_wpos)
+#                    self.app.bind(mpos=self.update_mpos)
+                    self.app.bind(fro=self.update_fro)
 
                     # Infinite loop to read data from the WHB04B
                     while not self.quit:
@@ -345,7 +346,7 @@ class WHB04B():
                                     self.app.comms.write("M220 S{}".format(self.f_ovr))
                                 if self.s_ovr != self.app.sr:
                                      self.app.comms.write("M221 S{}".format(self.s_ovr));
-#                                self.refresh_lcd()
+                                self.refresh_lcd()
                             continue
 
                         if data[0] != 0x04:
@@ -359,7 +360,7 @@ class WHB04B():
                         axis_mode = data[5]
                         wheel = self.twos_comp(data[6], 8)
 #                        checksum = data[7]
-                        Logger.debug("whb04b: btn_1: {}, btn_2: {}, speed: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.slut[speed_mode], self.alut[axis_mode], wheel))
+#                        Logger.debug("whb04b: btn_1: {}, btn_2: {}, speed: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.slut[speed_mode], self.alut[axis_mode], wheel))
 
                         # only select rotary mode buttons
                         if btn_1 == BUT_STEP:
@@ -409,7 +410,6 @@ class WHB04B():
                         axis = self.alut[axis_mode]
                         f_over = self.f_ovr
                         s_over = self.s_ovr
-#                        f_over = self.slut[speed_mode]
 
                         # handle other fixed and macro buttons
                         if btn_1 != 0 and btn_1 != 12 and self.handle_button(btn_1, axis):
@@ -452,7 +452,7 @@ class WHB04B():
                                dist = 0.001 * step
                             speed = 1.0
                             self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
-                            #Logger.debug("$J {}{} F{}\n".format(axis, dist, speed))
+                            Logger.debug("$J {}{} F{}\n".format(axis, dist, speed))
 
                     # Close the WHB04B connection
                     self.hid.close()
@@ -467,9 +467,9 @@ class WHB04B():
                 if self.hid.opened:
                     self.hid.close()
 
-#            self.app.unbind(wpos=self.update_wpos)
-##            self.app.unbind(mpos=self.update_mpos)
-#            self.app.unbind(fro=self.update_fro)
+            self.app.unbind(wpos=self.update_wpos)
+#            self.app.unbind(mpos=self.update_mpos)
+            self.app.unbind(fro=self.update_fro)
             if not self.quit:
                 # retry connection in 5 seconds unless we were asked to quit
                 time.sleep(5)
@@ -542,7 +542,7 @@ class WHB04B():
         self.lock.acquire()
         n = self.hid.write(self.lcd_data)
         self.lock.release()
-        #Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
+        Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
         Logger.debug("LCD {}".format(self.lcd_data))
 
     def refresh_lcd(self):
