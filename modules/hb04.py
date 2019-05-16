@@ -292,9 +292,9 @@ class HB04():
                             # timeout
                             if self.app.is_connected:
                                 if self.f_ovr != self.app.fro:
-                                    self.app.comms.write("M220 S{}".format(self.f_ovr))
+                                    self.app.comms.write("M220 S{}\n".format(self.f_ovr))
                                 # if self.s_ovr != self.app.sr:
-                                #     self.app.comms.write("M221 S{}".format(self.s_ovr));
+                                #     self.app.comms.write("M221 S{}\n".format(self.s_ovr));
                                 self.refresh_lcd()
                             continue
 

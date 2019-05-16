@@ -26,7 +26,7 @@ An RPI with 7" touch screen is about the same price as the better LCD panels, an
 ## Usage
 
 To select the port to connect to click the System menu and select Port, then select the serial port from the list, or for a network connection select Network...
-then enter the host or ip optionally followed by the port :23 (23 is the default if not specified), eg smoothieip or 192.168.0.2:23
+then enter the host or ip optionally followed by the port :23 (23 is the default if not specified), eg smoothieip or 192.168.0.2:23 (NOTE network communication is not well tested).
 Once you have selected a port to connect to it is saved in the ini file, and you can then click the connect menu item to connect.
 
 The left screen is the console and displays messages from smoothie, the right screen is a selection of panels (Modes) which can be switched to using the tabs to select the panel you want, you can scroll the left screen up and down by swiping up or down.
@@ -322,6 +322,7 @@ There are various buttons in the spindle camera screen as well as a cross hair i
 To jog and focus you need to use multitouch on an RPI screen. Once the jog mode button is pressed one finger slid left or right will jog in the X axis by 0.001mm, two fingers will jog by 0.01mm, three fingers will jog by 0.1mm. 
 Slide up and down will move in Y.
 Four finger slides up/down will move the Z axis up/down to focus the camera.
+NOTE that only the first finger to touch is tracked so if that is lifted it will no longer jog until all fingers are lifted. If four fingers touch then it enters z jog mode and will stay in that mode until all fingers are lifted.
 
 If using one of the desktop layouts you will have access to the jog screen for jogging, or you can use the pendant.
 
