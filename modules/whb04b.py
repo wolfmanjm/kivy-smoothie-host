@@ -196,15 +196,15 @@ class WHB04B():
         16: "macro16",
     }
 
-    alut = {0x06: 'OFF', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x14: 'A', 0x15: 'B', 0x16: 'C'} # button off or set Axis
-    slut = {0x0d: 0.001, 0x0e: 0.01, 0x0f: 0.1, 0x10: 1, 0x1a: 1, 0x1b: 1, 0x1c: 0}        # combined button for set step   #or 0x1c = lead = move locked 
-    mlut = {0x0d: 2, 0x0e: 5, 0x0f: 10, 0x10: 30, 0x1a: 60, 0x1b: 100, 0x1c: 0}            # combined button for set mpg %  #or 0x1c = lead and after set con ??? 
-    clut = {0x0d: 1, 0x0e: 2, 0x0f: 3, 0x10: 4, 0x1a: 5, 0x1b: 6, 0x1c: 0}                 # lead mode look up table for set con % but don't really know what is for in reality
-    status = 0x03                                                                          # start with lead mode
-    axis_mode = 0x06                                                                       # start with reset status
+    axislut = {0x06: 'OFF', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x14: 'A', 0x15: 'B', 0x16: 'C'} # button off or set Axis
+    steplut = {0x0d: 0.001, 0x0e: 0.01, 0x0f: 0.1, 0x10: 1, 0x1a: 1, 0x1b: 1, 0x1c: 0}        # combined button for set step   #or 0x1c = lead = move locked 
+    mpglut = {0x0d: 2, 0x0e: 5, 0x0f: 10, 0x10: 30, 0x1a: 60, 0x1b: 100, 0x1c: 0}             # combined button for set mpg %  #or 0x1c = lead and after set con ??? 
+    conlut = {0x0d: 1, 0x0e: 2, 0x0f: 3, 0x10: 4, 0x1a: 5, 0x1b: 6, 0x1c: 0}                  # lead mode look up table for set con % but don't really know what is for in reality
+    status = 0x40                                                                             # start with lead mode
+    axis_mode = 0x06                                                                          # start with reset/off status
     macrobut = {}
-    f_ovr = 10
-    s_ovr = 0
+    f_ovr = 100
+    s_ovr = 100
 
     def __init__(self, vid, pid):
         # WHB04B vendor ID and product ID
@@ -329,26 +329,24 @@ class WHB04B():
 
                     Logger.info("WHB04B: Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
+
                         # setup LCD with current settings 
 #                    if axis_mode > 0x10 and axis_mode < 0x14:
-#                       self.setwcs(self.app.wpos)
+#                    self.setwcs(self.app.wpos)
 #                    if axis_mode > 0x13 and axis_mode < 0x17:
-#                       self.setmcs(self.app.mpos[3:6])          # TODO clear unused axis value from ABC
+#                    self.setmcs(self.app.mpos[3:6])          # TODO clear unused axis value from ABC  
+#                    self.setovr(self.f_ovr, self.s_ovr)  
+#                    self.setstatus(self.status)
+#                    self.update_lcd()
 
-                    self.app.unbind(wpos=self.update_wpos)      # removed here for prevent UnboundLocalError: local variable 'data' referenced before assignment
-                    self.app.unbind(mpos=self.update_mpos)      # TODO clear unused axis value from ABC
-                    self.app.unbind(fro=self.update_fro)
+                    self.clear_lcd()
                     
-                    self.setovr(self.f_ovr, self.s_ovr)
-                    self.setstatus(self.status)
-                    self.update_lcd()
-                    
-                    # get notified when these change
-#                    if axis_mode > 0x10 and axis_mode < 0x14:
-#                       self.app.bind(wpos=self.update_wpos)
-#                    if axis_mode > 0x13 and axis_mode < 0x17:
-#                       self.app.bind(mpos=self.update_mpos)      # TODO clear unused axis value from ABC
+                    # refresh var when these change but do not update LCD here
+#                    self.app.bind(mpos=self.update_mpos)      # TODO clear unused axis value from ABC
+                    self.app.bind(wpos=self.update_wpos)
                     self.app.bind(fro=self.update_fro)
+
+
 
                     # Infinite loop to read data from the WHB04B
                     while not self.quit:
@@ -365,7 +363,7 @@ class WHB04B():
                                 # if self.s_ovr != self.app.sr:
                                 #     self.app.comms.write("M221 S{}".format(self.s_ovr));
                                 #     self.app.comms.write("M221 S{}".format(self.s_ovr))      # ; is i think sintaxe error
-                                self.refresh_lcd()
+                                self.update_lcd()
                             continue
 
                         if data[0] != 0x04:
@@ -379,9 +377,25 @@ class WHB04B():
                         axis_mode = data[5]
                         wheel = self.twos_comp(data[6], 8)
                         checksum = data[7]
-                        Logger.debug("whb04b: seed: {}, btn_1: {}, btn_2: {}, speed: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.mlut[speed_mode], self.alut[axis_mode], wheel, checksum))
-
+                        
                         # only select rotary mode buttons
+                        if axis_mode != 6 and self.status > 2:
+                            self.status = 0                             #Refresh all after rotary knob set off
+                            self.setstatus(self.status)                            
+#                            if axis_mode > 0x10 and axis_mode < 0x14:
+                            self.setwcs(self.app.wpos)
+#                            if axis_mode > 0x13 and axis_mode < 0x17:
+#                               self.setmcs(self.app.mpos[3:6])          # TODO clear unused axis value from ABC
+                            self.setovr(self.f_ovr, self.s_ovr)     
+                            self.update_lcd()
+                            #continue
+                            
+                        if speed_mode == 0x1c and axis_mode != 6 and self.status < 2:
+                            self.status = 0               #mode lead = move locked and after keep out from lead this mode are CON
+                            self.setstatus(self.status)   #mode CON because we are out of lead and not in mpg or step or reset
+                            self.update_lcd()
+                            #continue                     #Lead is not a momentary push button do not loop here !
+                            
                         if btn_1 == BUT_STEP:
                             self.status = 1
                             self.setstatus(self.status)
@@ -394,17 +408,13 @@ class WHB04B():
                             self.update_lcd()
                             continue
 
-                        if speed_mode == 0x1c and axis_mode != 6:
-                            self.status = 0               #mode lead = move locked and after keep out from lead this mode are CON
-                            self.setstatus(self.status)
-                            self.update_lcd()
-                            #continue                     #need to check the rest of the code in case of lead mode : button are allowed but move are locked 
+                        if self.status == 0:
+                           Logger.debug("whb04b: seed: {}, btn_1: {}, btn_2: {}, speed CON: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.conlut[speed_mode], self.axislut[axis_mode], wheel, checksum))
+                        if self.status == 1:
+                           Logger.debug("whb04b: seed: {}, btn_1: {}, btn_2: {}, speed STEP: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.steplut[speed_mode], self.axislut[axis_mode], wheel, checksum))
+                        if self.status == 2:
+                           Logger.debug("whb04b: seed: {}, btn_1: {}, btn_2: {}, speed MPG: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.mpglut[speed_mode], self.axislut[axis_mode], wheel, checksum))
 
-                        if speed_mode != 0x1c and axis_mode != 6 and self.status != 2 and self.status != 1:
-                            self.status = 0               #mode CON because we are out of lead and not in mpg or step or reset
-                            self.setstatus(self.status)
-                            self.update_lcd()
-                            
                         if not self.app.is_connected:
                             continue
 
@@ -420,39 +430,17 @@ class WHB04B():
 #                            self.is_connected= True                            # like to make possible to connect/disconnect 
 #                            continue
 
-                        if axis_mode == 6:
+                        if axis_mode == 0x06:
                             # when OFF all other buttons are ignored 0x40 display RESET on the pendant but not work fine
-                           self.status = 0x40 
-                           self.setstatus(self.status)
-                           self.update_lcd()             
-                           self.status = 0x40 
-                           self.setstatus(self.status)
-                           self.update_lcd()              
-                           self.status = 0x40 
-                           self.setstatus(self.status)
-                           self.update_lcd()            
-                           self.status = 0x40 
-                           self.setstatus(self.status)
-                           self.update_lcd()            
-                           self.status = 0x40 
-                           self.setstatus(self.status)
-                           self.update_lcd()            
-                           self.status = 0x40 
-                           self.setstatus(self.status)
-                           self.update_lcd()            
-                           self.status = 0x40 
-                           self.setstatus(self.status)
-                           self.update_lcd()            
-                           self.status = 0x40 
-                           self.setstatus(self.status)
-                           self.update_lcd()            
+                           self.status = 0x40
+                           self.clear_lcd()  
                            continue
                              
                         # dont do jogging etc if printing unless we are suspended
                         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
                             continue
                                                    
-                        axis = self.alut[axis_mode]
+                        axis = self.axislut[axis_mode]
                         f_over = self.f_ovr
                         s_over = self.s_ovr
 
@@ -474,17 +462,21 @@ class WHB04B():
                             # speed= s/5.0 # scale where 5 is max speed
                             step = wheel  # speed of wheel will move more increments rather than increase feed rate
                             if self.status == 2:
-                                dist = 0.001 * step * self.mlut[speed_mode]    #mode mpg
+                                dist = 0.001 * step * self.mpglut[speed_mode]    #mode mpg
                             if self.status == 1:
-                               dist = self.slut[speed_mode] * step             #mode step
+                               dist = self.steplut[speed_mode] * step             #mode step
                             if self.status == 0 and speed_mode == 0x1c:
                                Logger.info("LEAD MODE move locked\n")
                                dist = 0                                        #mode lead = move locked
                             if self.status == 0 and speed_mode != 0x1c:
-                               dist = 0.001 * step * self.clut[speed_mode]     #mode continu ??? maybee don't really know what is for in reality
+                               dist = 0.001 * step * self.conlut[speed_mode]     #mode continu ??? maybee don't really know what is for in reality
                             
+                            self.setwcs(self.app.wpos)
+                            self.update_lcd()
+                               
                             if dist != 0:                                       
                                speed = 1.0                                     #final check if mode lead = move skiped
+                               
                                self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
                                Logger.debug("$J {}{} F{}\n".format(axis, dist, speed))
 
@@ -568,26 +560,41 @@ class WHB04B():
         self.lock.release()
         Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
         Logger.debug("LCD {}".format(self.lcd_data))
-
-    def refresh_lcd(self):
-#        if self.app.status == "Run":
-#            self.setmul(self.mul | 0x60)
-#        elif self.app.status == "Home":
-#            self.setmul(self.mul | 0x50)
-#        elif self.app.status == "Alarm":
-#            self.setmul(self.mul | 0x20)
-#        else:
-#            self.setmul(self.mul)
-        self.update_lcd()
+        
+    def clear_lcd(self):
+        self.lock.acquire()
+        self.lcd_data[3] = self.status
+#        self.lcd_data[4:19] == 0x00
+        self.lcd_data[4] = 0
+        self.lcd_data[5] = 0
+        self.lcd_data[6] = 0
+        self.lcd_data[7] = 0
+        self.lcd_data[8] = 0
+        self.lcd_data[9] = 0
+        self.lcd_data[10] = 0
+        self.lcd_data[11] = 0
+        self.lcd_data[12] = 0
+        self.lcd_data[13] = 0
+        self.lcd_data[14] = 0
+        self.lcd_data[15] = 0
+        self.lcd_data[16] = 0
+        self.lcd_data[17] = 0
+        self.lcd_data[18] = 0
+        self.lcd_data[19] = 0
+        n = self.hid.write(self.lcd_data)
+        self.lock.release()
+        Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
+        Logger.debug("LCD {}".format(self.lcd_data))
 
     def update_wpos(self, i, v):
         self.setwcs(v)
-        self.update_lcd()
+#        self.update_lcd()
 
     def update_mpos(self, i, v):
         self.setmcs(v[3:6])
-        self.update_lcd()
+#        self.update_lcd()
 
     def update_fro(self, i, v):
+#        self.s_ovr = i
         self.f_ovr = v
         self.setovr(self.f_ovr, self.s_ovr)
