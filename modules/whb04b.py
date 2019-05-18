@@ -263,6 +263,7 @@ class WHB04B():
             if self.f_ovr > 400:
                 self.f_ovr = 100
             self.setovr(self.f_ovr, self.s_ovr)
+            self.setstatus(self.status)
             self.update_lcd()
         elif btn == BUT_FEEDM:
             # adjust feed override
@@ -270,6 +271,7 @@ class WHB04B():
             if self.f_ovr < 10:
                 self.f_ovr = 10
             self.setovr(self.f_ovr, self.s_ovr)
+            self.setstatus(self.status)
             self.update_lcd()
         elif btn == BUT_SPINDLEP:
             # adjust S override, (TODO  this is tool speed or laser power)
@@ -277,6 +279,7 @@ class WHB04B():
             if self.s_ovr > 200:
                 self.s_ovr = 10
             self.setovr(self.f_ovr, self.s_ovr)
+            self.setstatus(self.status)
             self.update_lcd()
         elif btn == BUT_SPINDLEM:
             # adjust S override, (TODO  this is tool speed or laser power)
@@ -284,10 +287,38 @@ class WHB04B():
             if self.s_ovr < 10:
                 self.s_ovr = 10
             self.setovr(self.f_ovr, self.s_ovr)
+            self.setstatus(self.status)
             self.update_lcd()
         elif btn == BUT_START:
- # TODO if running then pause
-            self.app.main_window.start_last_file()
+            if self.app.main_window.is_printing and self.app.is_connected:
+#            if self.app.main_window.is_printing:
+               Logger.debug("Do pause")
+               Logger.debug("Do pause")
+               Logger.debug("Do pause")
+               Logger.debug("Do pause")
+               Logger.debug("Do pause")
+               Logger.debug("Do pause")
+               cmd = self.macrobut[pause]
+            elif self.app.main_window.is_suspended and self.app.is_connected:
+#            elif self.app.main_window.is_suspended:
+                 Logger.debug("Do resume")
+                 Logger.debug("Do resume")
+                 Logger.debug("Do resume")
+                 Logger.debug("Do resume")
+                 Logger.debug("Do resume")
+                 Logger.debug("Do resume")
+                 cmd = self.macrobut[resume]
+            elif not self.app.main_window.is_printing and not self.app.main_window.is_suspended and self.app.is_connected:
+#            elif not self.app.main_window.is_printing and not self.app.main_window.is_suspended:
+                 Logger.debug("Do start last file")
+                 Logger.debug("Do start last file")
+                 Logger.debug("Do start last file")
+                 Logger.debug("Do start last file")
+                 Logger.debug("Do start last file")
+                 Logger.debug("Do start last file")
+                 self.app.main_window.start_last_file()       # i think for CNC better to remove this function
+ # TOTRY if running then pause and if pause then resume i think is better for CNC and the best is create 2 macro and call M32 pause.g resume.g
+            #self.app.main_window.start_last_file()       # i think for CNC better to remove this function
 
         if cmd:
             self.app.comms.write("{}\n".format(cmd))
@@ -309,7 +340,6 @@ class WHB04B():
 
             self.app.comms.write("{}\n".format(cmd))
             return True
-
         # macro button dont have default functions
         cmd = None
 
@@ -329,41 +359,45 @@ class WHB04B():
 
                     Logger.info("WHB04B: Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
-
-                        # setup LCD with current settings 
-#                    if axis_mode > 0x10 and axis_mode < 0x14:
-#                    self.setwcs(self.app.wpos)
-#                    if axis_mode > 0x13 and axis_mode < 0x17:
-#                    self.setmcs(self.app.mpos[3:6])          # TODO clear unused axis value from ABC  
-#                    self.setovr(self.f_ovr, self.s_ovr)  
-#                    self.setstatus(self.status)
-#                    self.update_lcd()
-
                     self.clear_lcd()
                     
-                    # refresh var when these change but do not update LCD here
-#                    self.app.bind(mpos=self.update_mpos)      # TODO clear unused axis value from ABC
-                    self.app.bind(wpos=self.update_wpos)
-                    self.app.bind(fro=self.update_fro)
-
-
+                    self.app.bind(fro=self.update_fro)        # update pendant feed override from smoothie value if changed by smoothie
 
                     # Infinite loop to read data from the WHB04B
                     while not self.quit:
                         data = self.hid.recv(timeout=1000)
                         if data is None:
-                            continue
+                           continue
 
                         size = len(data)
                         if size == 0:
-                            # timeout
+                            # LCD update loop when no data received
+                            
+                            if self.status == 0x40 or not self.app.is_connected:
+                               self.clear_lcd()
+                            
+                            # loop continuously here when do nothing
                             if self.app.is_connected:
                                 if self.f_ovr != self.app.fro:
-                                    self.app.comms.write("M220 S{}".format(self.f_ovr))
-                                # if self.s_ovr != self.app.sr:
-                                #     self.app.comms.write("M221 S{}".format(self.s_ovr));
-                                #     self.app.comms.write("M221 S{}".format(self.s_ovr))      # ; is i think sintaxe error
-                                self.update_lcd()
+                                   self.app.comms.write("M220 S{}\n".format(self.f_ovr))        # update smoothie feed override from pendant value if changed by pendant
+                                #if self.s_ovr != self.app.sr:
+                                #   self.app.comms.write("M221 S{}\n".format(self.s_ovr))        # not sure if this work only for extruder oor work also for spindle
+                                
+                                if axis_mode > 0x10 and axis_mode < 0x14: 
+                                   self.setovr(self.f_ovr, self.s_ovr) 
+                                   self.setstatus(self.status)
+                                   self.setwcs(self.app.wpos)
+                                   self.update_lcd()  
+                                elif axis_mode > 0x13 and axis_mode < 0x17:
+                                     self.clear_dro()                         # clear DRO for BC axis : need to be reviewed if more than 4 axis
+                                     self.setovr(self.f_ovr, self.s_ovr) 
+                                     self.setstatus(self.status)
+                                     self.setmcs(self.app.mpos[3:6])          # TODO clear unused axis value from ABC
+                                     self.update_lcd()             
+                                elif axis_mode == 0x06:
+                                     self.clear_lcd() 
+
+                                # loop continuously here when do nothing but app is connected so refresh LCD with machine position
                             continue
 
                         if data[0] != 0x04:
@@ -377,33 +411,25 @@ class WHB04B():
                         axis_mode = data[5]
                         wheel = self.twos_comp(data[6], 8)
                         checksum = data[7]
-                        
-                        # only select rotary mode buttons
-                        if axis_mode != 6 and self.status > 2:
-                            self.status = 0                             #Refresh all after rotary knob set off
-                            self.setstatus(self.status)                            
-#                            if axis_mode > 0x10 and axis_mode < 0x14:
-                            self.setwcs(self.app.wpos)
-#                            if axis_mode > 0x13 and axis_mode < 0x17:
-#                               self.setmcs(self.app.mpos[3:6])          # TODO clear unused axis value from ABC
-                            self.setovr(self.f_ovr, self.s_ovr)     
+
+                        #if speed_mode == 0x1c and axis_mode != 6 and self.status < 2:
+                        if speed_mode == 0x1c:
+                            self.status = 0                       # mode lead = move locked and after keep out from lead this mode are CON
+                            self.setovr(self.f_ovr, self.s_ovr) 
+                            self.setstatus(self.status)           # or mode CON because we are out of lead and not in mpg or step or reset
                             self.update_lcd()
-                            #continue
-                            
-                        if speed_mode == 0x1c and axis_mode != 6 and self.status < 2:
-                            self.status = 0               #mode lead = move locked and after keep out from lead this mode are CON
-                            self.setstatus(self.status)   #mode CON because we are out of lead and not in mpg or step or reset
-                            self.update_lcd()
-                            #continue                     #Lead is not a momentary push button do not loop here !
+                            #continue                             # Lead is not a momentary push button do not loop here !
                             
                         if btn_1 == BUT_STEP:
                             self.status = 1
+                            self.setovr(self.f_ovr, self.s_ovr) 
                             self.setstatus(self.status)
                             self.update_lcd()
                             continue
 
                         if btn_1 == BUT_MPG:
                             self.status = 2
+                            self.setovr(self.f_ovr, self.s_ovr) 
                             self.setstatus(self.status)
                             self.update_lcd()
                             continue
@@ -419,21 +445,19 @@ class WHB04B():
                             continue
 
                         if btn_1 == BUT_STOP and self.app.status != 'Alarm':
-                            self.app.comms.write('\x18')
+                            self.app.comms.write('\x18')                              # send killall to smoothie
                             continue
 
                         if btn_1 == BUT_RESET and self.app.status == 'Alarm':
-                            self.app.comms.write('$X\n')
+                            self.app.comms.write('$X\n')                              # unlock smoothie after killall
                             continue
 
 #                        if btn_1 == BUT_RESET and self.app.is_connected == 0:
-#                            self.is_connected= True                            # like to make possible to connect/disconnect 
+#                            self.app.is_connected == True                            # like to make possible to connect/disconnect if not 
 #                            continue
 
                         if axis_mode == 0x06:
-                            # when OFF all other buttons are ignored 0x40 display RESET on the pendant but not work fine
-                           self.status = 0x40
-                           self.clear_lcd()  
+                           self.clear_lcd()  # when OFF all other buttons are ignored 0x40 display RESET on the pdt but not work because device does not read input data
                            continue
                              
                         # dont do jogging etc if printing unless we are suspended
@@ -441,8 +465,6 @@ class WHB04B():
                             continue
                                                    
                         axis = self.axislut[axis_mode]
-                        f_over = self.f_ovr
-                        s_over = self.s_ovr
 
                         # handle other fixed and macro buttons
                         if btn_1 != 0 and btn_1 != BUT_FN and self.handle_button(btn_1, axis):
@@ -453,7 +475,6 @@ class WHB04B():
                             continue
 
                         if wheel != 0:
-
                             # must be one of XYZABC so send jogging command
                             # velocity_mode:
                             # step= -1 if wheel < 0 else 1
@@ -462,23 +483,26 @@ class WHB04B():
                             # speed= s/5.0 # scale where 5 is max speed
                             step = wheel  # speed of wheel will move more increments rather than increase feed rate
                             if self.status == 2:
-                                dist = 0.001 * step * self.mpglut[speed_mode]    #mode mpg
+                                dist = 0.001 * step * self.mpglut[speed_mode]    # mode mpg
                             if self.status == 1:
-                               dist = self.steplut[speed_mode] * step             #mode step
+                               dist = self.steplut[speed_mode] * step            # mode step
                             if self.status == 0 and speed_mode == 0x1c:
-                               Logger.info("LEAD MODE move locked\n")
-                               dist = 0                                        #mode lead = move locked
+                               Logger.info("LEAD MODE move locked")
+                               dist = 0                                          # mode lead = move locked
                             if self.status == 0 and speed_mode != 0x1c:
-                               dist = 0.001 * step * self.conlut[speed_mode]     #mode continu ??? maybee don't really know what is for in reality
+                               dist = 0.001 * step * self.conlut[speed_mode]     # mode continu ??? maybee don't really know what is for in reality
                             
-                            self.setwcs(self.app.wpos)
-                            self.update_lcd()
-                               
                             if dist != 0:                                       
-                               speed = 1.0                                     #final check if mode lead = move skiped
-                               
+                               speed = 1.0                                       # final check if mode lead = move skiped
                                self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
-                               Logger.debug("$J {}{} F{}\n".format(axis, dist, speed))
+                               Logger.debug("$J {}{} F{}".format(axis, dist, speed))
+                               
+                            if axis_mode > 0x10 and axis_mode < 0x14:            # Update DRO when rotate wheel
+                               self.setwcs(self.app.wpos)                        # axis value for XYZ
+                            if axis_mode > 0x13 and axis_mode < 0x17:
+                               self.clear_dro()                                  # clear DRO for BC axis : need to be reviewed if more than 4 axis
+                               self.setmcs(self.app.mpos[3:6])                   # axis value for ABC
+                            self.update_lcd()
 
                     # Close the WHB04B connection
                     self.hid.close()
@@ -492,10 +516,8 @@ class WHB04B():
                 Logger.error("WHB04B: Exception - {}".format(traceback.format_exc()))
                 if self.hid.opened:
                     self.hid.close()
-                        
-            self.app.unbind(wpos=self.update_wpos)      # TODO clear unused axis value from ABC
-            self.app.unbind(mpos=self.update_mpos)      # TODO clear unused axis value from ABC
-            self.app.unbind(fro=self.update_fro)
+                    
+            self.app.unbind(fro=self.update_fro)        # stop update pendant feed override from smoothie value if changed by smoothie
             
             if not self.quit:
                 # retry connection in 5 seconds unless we were asked to quit
@@ -555,15 +577,15 @@ class WHB04B():
         self.lock.release()
 
     def update_lcd(self):
-        self.lock.acquire()
+        self.lock.acquire()             
         n = self.hid.write(self.lcd_data)
         self.lock.release()
         Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
-        Logger.debug("LCD {}".format(self.lcd_data))
+        Logger.debug("LCD update {}".format(self.lcd_data))
         
     def clear_lcd(self):
         self.lock.acquire()
-        self.lcd_data[3] = self.status
+        self.lcd_data[3] = 0x40             # status 0x40 = RESET
 #        self.lcd_data[4:19] == 0x00
         self.lcd_data[4] = 0
         self.lcd_data[5] = 0
@@ -584,17 +606,21 @@ class WHB04B():
         n = self.hid.write(self.lcd_data)
         self.lock.release()
         Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
-        Logger.debug("LCD {}".format(self.lcd_data))
-
-    def update_wpos(self, i, v):
-        self.setwcs(v)
-#        self.update_lcd()
-
-    def update_mpos(self, i, v):
-        self.setmcs(v[3:6])
-#        self.update_lcd()
+        Logger.debug("LCD clear all {}".format(self.lcd_data))
+        
+    def clear_dro(self):
+        self.lock.acquire()
+        self.lcd_data[8] = 0
+        self.lcd_data[9] = 0
+        self.lcd_data[10] = 0
+        self.lcd_data[11] = 0
+        self.lcd_data[12] = 0
+        self.lcd_data[13] = 0
+        self.lcd_data[14] = 0
+        self.lcd_data[15] = 0
+        self.lock.release()
 
     def update_fro(self, i, v):
-#        self.s_ovr = i
-        self.f_ovr = v
+        self.s_ovr = i
+        self.f_ovr = v                      # update pendant feed override from smoothie value if changed by smoothie
         self.setovr(self.f_ovr, self.s_ovr)
