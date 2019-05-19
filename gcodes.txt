@@ -33,6 +33,9 @@ G92.1 | Reset G92
 G92.4 | manually set homing (MCS) for XYZ
 M3 | Starts the spindle. S<speed in RPM>
 M5 | Stops the spindle
+M7 | Starts the mist switch (for CNC)
+M8 | Starts the flood switch (for CNC)
+M9 | Stops the mist and flood at same time (for CNC)
 M17 | Enable stepper motors
 M18 | Disable stepper motors
 M20 | List SD card files
