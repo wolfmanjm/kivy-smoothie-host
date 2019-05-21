@@ -527,6 +527,7 @@ class MainWindow(BoxLayout):
             if not self.paused:
                 # we clicked the pause button
                 self.app.comms.stream_pause(True)
+                self.app.comms.write('suspend\n')
             else:
                 # we clicked the resume button
                 if self.is_suspended:
