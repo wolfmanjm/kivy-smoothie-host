@@ -60,7 +60,7 @@ Macro buttons can be defined in the `macros.ini` file that can issue simple comm
 Macros buttons can prompt for input and substitute the given variables.
 (See sample-macros.ini for examples).
 Simple macro buttons can be created by clicking the green `New Macro` button.
-
+If a simple macro starts with ```@``` then the following characters are a file name and that file is opened and sent to smoothie. Note that ok is not checked, so it must be a fairly small file of gcodes.
 
 ### CNC Support (PCB milling etc)
 There are features specifically implemented to make CNC use easier.

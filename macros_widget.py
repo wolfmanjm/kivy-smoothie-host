@@ -168,7 +168,21 @@ class MacrosWidget(StackLayout):
 
         self.app.comms.write('{}\n'.format(arg))
 
+    def _send_file(self, fn):
+        try:
+            with open(fn) as f:
+                for line in f:
+                    self.app.comms.write('{}'.format(line))
+
+        except Exception:
+            self.app.main_window.async_display("ERROR: File not found: {}".format(fn))
+
     def send(self, cmd, *args):
+        # if first character is @ then execute contents of the following file name
+        if cmd.startswith('@'):
+            self._send_file(cmd[1:])
+            return
+
         # look for {?prompt}) and substitute entered value if found
         m = re.findall(r'\{\?[^}]+\}', cmd)
         if m:
