@@ -108,7 +108,7 @@ class WHB04BHID:
 
     # Read data from the connected USB device.
     #
-    # @plen     - Number of bytes to read. Defaults to PACKET_LEN.
+    # @plen    - Number of bytes to read. Defaults to PACKET_LEN.
     # @timeout - Read timeout, in milliseconds. Defaults to TIMEOUT.
     #
     # Returns the received bytes on success.
@@ -201,7 +201,7 @@ class WHB04B():
     mpglut = {0x0d: 2, 0x0e: 5, 0x0f: 10, 0x10: 30, 0x1a: 60, 0x1b: 100, 0x1c: 0}             # combined button for set mpg %  #or 0x1c = lead and after set con ???
     conlut = {0x0d: 1, 0x0e: 2, 0x0f: 3, 0x10: 4, 0x1a: 5, 0x1b: 6, 0x1c: 0}                  # lead mode look up table for set con % but don't really know what is for in reality
     status = 0x40                                                                             # start with lead mode
-    axis_mode = 0x06                                                                          # start with reset/off status
+#    axis_mode = 0x06                                                                          # start with reset/off status
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
@@ -242,15 +242,13 @@ class WHB04B():
 
 
     def handle_buttonrun(self, btn, axis):
-        name = self.butlut[btn]
-
-        # some buttons have default functions and are available when machine is running
+        # some buttons have default functions and are available when machine is running and can't be remapped
         cmd = None
         if btn == BUT_FEEDP:
             # adjust feed override
             self.f_ovr += 10
             if self.f_ovr > 400:
-                self.f_ovr = 100
+                self.f_ovr = 400
             self.setovr(self.f_ovr, self.s_ovr)
             self.setstatus(self.status)
             self.update_lcd()
@@ -266,7 +264,7 @@ class WHB04B():
             # adjust S override, (TODO  this is tool speed or laser power)
             self.s_ovr += 10
             if self.s_ovr > 200:
-                self.s_ovr = 10
+                self.s_ovr = 200
             self.setovr(self.f_ovr, self.s_ovr)
             self.setstatus(self.status)
             self.update_lcd()
@@ -363,8 +361,8 @@ class WHB04B():
                     Logger.info("WHB04B: Connected to HID device %04X:%04X" % (self.vid, self.pid))
                     self.app.main_window.async_display("WHB04B - Connected to HID device %04X:%04X" % (self.vid, self.pid))
 
+                    axis_mode = 0x06                                                           # patch for init this var each time you connect to the device for prevent the stupid error : referenced before assignment
                     self.clear_lcd()                                                           # when AXIS OFF all other buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
-
                     self.app.bind(fro=self.update_fro)                                         # update pendant feed override from smoothie value if changed by smoothie
 
                     # Infinite loop to read data from the WHB04B when app is NOT connected so wait for connection and use subloop when connected
@@ -380,17 +378,19 @@ class WHB04B():
 
                         if not self.app.is_connected:
                             self.clear_lcd()                                                   # when host not connected all buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
-                            #self.app.main_window.async_display("WHB04B - UNCONNECTED CLEAR LCD")
-                            continue
+                            #self.app.main_window.async_display("WHB04B - UNCONNECTED HOST to smoothie CLEAR LCD")
+                            
+                            if data[2] == 0x01:
+                                self.app.main_window.connect()                                 # ask smoopi for open serial port to smoothie : IndexError: list index out of range but work...
+                            continue 
 
                         if size == 0:
                             # start subloop here when do nothing but app is connected so refresh LCD with machine position
-# totry if data[5] for remove the stupid error
-######################################################################################################################################################################################
-                            if axis_mode == 0x06:                                                         # at startup this var is not initialised and display this error
+#####################################################################################################################################################################################
+                            if axis_mode == 0x06:                                                         # before patch at startup this var is not initialised and display this error
                                 self.clear_lcd()                                                          # UnboundLocalError: local variable 'axis_mode' referenced before assignment
                                 #self.app.main_window.async_display("WHB04B - AXIS OFF CLEAR LCD no data received")
-                                continue                                       # when AXIS OFF all other buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
+                                continue               # when AXIS OFF all other buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
 ######################################################################################################################################################################################
 
                             if self.app.is_connected:
@@ -430,28 +430,29 @@ class WHB04B():
                         btn_2 = data[3]
                         speed_mode = data[4]
                         axis_mode = data[5]
-                        wheel = self.twos_comp(data[6], 8)                       # not really sure about what 8 is for but without this does not work
+                        wheel = self.twos_comp(data[6], 8)        # not really sure about what is ", 8" but without = not work
                         checksum = data[7]
 #######################################################################################################################################################
                         axis = self.axislut[axis_mode]            # decode axis selected and load ASCII data for axis name BUT ALERT IF PENDANT IS OFF
                                                                   #[ERROR  ] WHB04B: pendant is not powered or Exception - Traceback (most recent call last):
-                                                                  #  File "/home/pi/smoopi/modules/whb04b.py", line 440, in _run
+                                                                  #  File "/home/pi/smoopi/modules/whb04b.py", line 436, in _run
                                                                   #    axis = self.axislut[axis_mode]            # decode axis selected and load ASCII data for axis name
                                                                   #KeyError: 0
+                                                                  #Debug display "#####################################"
 #######################################################################################################################################################
                         if axis_mode == 0x06:
-                            self.clear_lcd()                                                 # when AXIS OFF all other buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
+                            self.clear_lcd()                      # when AXIS OFF all other buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
                             self.app.main_window.async_display("WHB04B - AXIS OFF CLEAR LCD request by pendant")
                             continue
 
-                        #self.app.main_window.async_display("WHB04B - AFTER Loop start Buttons check")
+                        #self.app.main_window.async_display("WHB04B - AFTER Loop start Buttons checking")
 
                         if speed_mode == 0x1c:
                             self.status = 0x00                    # mode lead = move locked and after keep out from lead this mode are CON
                             self.setovr(self.f_ovr, self.s_ovr)   # or mode CON because we are out of lead and not in mpg or step or reset
                             self.setstatus(self.status)
                             self.update_lcd()
-                            #continue                             # Lead is not a momentary push button do not loop here but this seem to not do a loop !
+                            #continue                             # Lead is not a momentary push button do not exit and restart loop here !
 
                         if btn_1 == BUT_STEP:
                             self.status = 0x01
@@ -482,7 +483,7 @@ class WHB04B():
                             if self.app.status == 'Alarm' and self.app.is_connected:
                                 self.app.main_window.do_kill()                             # ask smoopi to clear alarm after killall
                             #elif not self.app.is_connected:
-                            #           self.app.main_window.connect()                     # ask smoopi for open serial port connection to smoothie not work else in other place
+                            #           self.app.main_window.connect()                     # ask smoopi for open serial port connection to smoothie but not work here becaus no check here if unconnected
                             continue
 
 #                        if axis_mode == 0x06:
