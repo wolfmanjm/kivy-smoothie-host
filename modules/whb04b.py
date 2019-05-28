@@ -199,9 +199,9 @@ class WHB04B():
     axislut = {0x06: 'OFF', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x14: 'A', 0x15: 'B', 0x16: 'C'} # button off or set Axis
     steplut = {0x0d: 0.001, 0x0e: 0.01, 0x0f: 0.1, 0x10: 1, 0x1a: 1, 0x1b: 1, 0x1c: 0}        # combined button for set step   #or 0x1c = lead = move locked
     mpglut = {0x0d: 2, 0x0e: 5, 0x0f: 10, 0x10: 30, 0x1a: 60, 0x1b: 100, 0x1c: 0}             # combined button for set mpg %  #or 0x1c = lead and after set con ???
-    conlut = {0x0d: 1, 0x0e: 2, 0x0f: 3, 0x10: 4, 0x1a: 5, 0x1b: 6, 0x1c: 0}                  # lead mode look up table for set con % but don't really know what is for in reality
+#    conlut = {0x0d: 1, 0x0e: 2, 0x0f: 3, 0x10: 4, 0x1a: 5, 0x1b: 6, 0x1c: 0}                  # lead mode look up table for set con % but don't really know what is for in reality
+    conlut = {0x0d: 1, 0x0e: 2, 0x0f: 4, 0x10: 5, 0x1a: 10, 0x1b: 15, 0x1c: 0}                # con mode look up table for set feedoverride
     status = 0x40                                                                             # start with lead mode
-#    axis_mode = 0x06                                                                          # start with reset/off status
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
@@ -501,13 +501,13 @@ class WHB04B():
                             if oneshotdebug4 == 0:
                                 oneshotdebug4 = 1
                                 oneshotdebug5 = 0
-                                self.app.main_window.async_display("WHB04B - LEAD MODE move from wheel locked")
+                                self.app.main_window.async_display("WHB04B - LEAD MODE = wheel locked")
                             #continue                             # Lead is not a momentary push button do not exit and restart loop from here !
                         elif self.status == 0x00 and speed_mode != 0x1c:
                               if oneshotdebug5 == 0:
                                   oneshotdebug5 = 1
                                   oneshotdebug4 = 0
-                                  self.app.main_window.async_display("WHB04B - CON MODE 1 to 6 micron Can be change : any idea welcome ")
+                                  self.app.main_window.async_display("WHB04B - CON MODE = FEEDRATE OVERRIDE")
                             #continue                             # Lead is not a momentary push button do not exit and restart loop from here !
 
                         if self.status == 0:
@@ -527,16 +527,16 @@ class WHB04B():
                         if btn_1 != 0 and btn_1 != BUT_FN and self.handle_buttonrun(btn_1, axis):
                             continue
 
-                        # dont do jogging etc if printing unless we are paused
-                        elif self.app.main_window.is_printing and not self.app.main_window.paused:
-                            continue
+                        ## dont do jogging etc if printing unless we are paused
+                        #elif self.app.main_window.is_printing and not self.app.main_window.paused:
+                        #    continue
 
                         # handle standard fixed and as macro buttons not available when gcode is running
-                        elif btn_1 != 0 and btn_1 != BUT_FN and self.handle_button(btn_1, axis):
+                        elif btn_1 != 0 and btn_1 != BUT_FN and self.handle_button(btn_1, axis) and not self.app.main_window.is_printing:
                             continue
 
                         # handle macro buttons not available when gcode is running
-                        elif btn_2 != 0 and btn_1 == BUT_FN and self.handle_buttonfn(btn_2, axis):
+                        elif btn_2 != 0 and btn_1 == BUT_FN and self.handle_buttonfn(btn_2, axis) and not self.app.main_window.is_printing:
                             continue
 
                         elif wheel != 0:
@@ -547,20 +547,29 @@ class WHB04B():
                             # if s > 5: s == 5 # seems the max realistic we get
                             # speed= s/5.0 # scale where 5 is max speed
                             step = wheel  # speed of wheel will move more increments rather than increase feed rate
-                            if self.status == 2:
+                            if self.status == 2 and not self.app.main_window.is_printing:
                                 dist = 0.001 * step * self.mpglut[speed_mode]    # mode mpg
-                            elif self.status == 1:
+                            elif self.status == 1 and not self.app.main_window.is_printing:
                                dist = self.steplut[speed_mode] * step            # mode step
                             elif self.status == 0 and speed_mode == 0x1c:
-                               self.app.main_window.async_display("WHB04B - LEAD MODE move from wheel locked")
+                               self.app.main_window.async_display("WHB04B - LEAD MODE = wheel locked")
                                dist = 0                                          # mode lead = move locked
                             elif self.status == 0 and speed_mode != 0x1c:
-                               dist = 0.001 * step * self.conlut[speed_mode]     # mode continu ??? maybee don't really know what is for in reality
+                               #dist = 0.001 * step * self.conlut[speed_mode]     # mode continu ??? maybee don't really know what is for in reality
+                               dist = 0
+                               self.f_ovr += 1 * step * self.conlut[speed_mode]  # mode continu NOW = Feed override
+                               if self.f_ovr > 400:
+                                   self.f_ovr = 400     
+                               if self.f_ovr < 10:
+                                   self.f_ovr = 10
+                               self.setovr(self.f_ovr, self.s_ovr)
+                                                              
 
-                            if dist != 0:
+                            if dist != 0 and not self.app.main_window.is_printing:
                                speed = 1.0                                       # final check if mode lead = move skiped
                                self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
                                Logger.debug("$J {}{} F{}".format(axis, dist, speed))
+                               dist = 0                                          # keep secure and reset dist each time
 
                             if axis_mode > 0x10 and axis_mode < 0x14:            # Update DRO when rotate wheel
                                if self.status < 0x80:
@@ -570,6 +579,7 @@ class WHB04B():
                             elif axis_mode > 0x13 and axis_mode < 0x17:
                                self.clear_dro()                                  # clear DRO for ABC axis if less than 6 axis display 0.000
                                self.setmcs(self.app.mpos[3:6])                   # axis value for ABC
+                            
                             self.update_lcd()
 
                     # Close the WHB04B connection
@@ -630,7 +640,7 @@ class WHB04B():
     def setstatus(self, m):
         self.lock.acquire()
         if self.app.status == 'Alarm':
-            self.lcd_data[3] = 0x40         # if Alarm/Kill display RESET but keep DRO value
+            self.lcd_data[3] = 0x40    # if Alarm/Kill display RESET but keep DRO value
         else:
             self.lcd_data[3] = m
         self.lock.release()
