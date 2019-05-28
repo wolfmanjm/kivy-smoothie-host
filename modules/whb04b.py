@@ -71,11 +71,11 @@ class WHB04BHID:
         # return a list of devices based on the search parameters
         devices = en.find(vid=vid, pid=pid, interface=0)
         if not devices:
-            Logger.debug("WHB04BHID: No matching device found")
+            Logger.info("WHB04BHID: No matching device found")
             return None
 
         if len(devices) > 1:
-            Logger.debug("WHB04BHID: more than one device found: {}".format(devices))
+            Logger.info("WHB04BHID: more than one device found: {}".format(devices))
             return None
 
         # open the device
@@ -237,45 +237,80 @@ class WHB04B():
 
         except Exception as err:
             Logger.warning("WHB04B: WARNING - exception parsing config file: {}".format(err))
-            self.app.main_window.async_display("WHB04B - WARNING - exception parsing config file")
+            self.app.main_window.async_display("WHB04B - WARNING - exception parsing config file: {}".format(err))
 
 
 
     def handle_buttonrun(self, btn, axis):
         # some buttons have default functions and are available when machine is running and can't be remapped
-        cmd = None
+
         if btn == BUT_FEEDP:
-            # adjust feed override
             self.f_ovr += 10
             if self.f_ovr > 400:
                 self.f_ovr = 400
             self.setovr(self.f_ovr, self.s_ovr)
             self.setstatus(self.status)
             self.update_lcd()
+            return True
         elif btn == BUT_FEEDM:
-            # adjust feed override
-            self.f_ovr -= 10
-            if self.f_ovr < 10:
-                self.f_ovr = 10
-            self.setovr(self.f_ovr, self.s_ovr)
-            self.setstatus(self.status)
-            self.update_lcd()
+              self.f_ovr -= 10
+              if self.f_ovr < 10:
+                  self.f_ovr = 10
+              self.setovr(self.f_ovr, self.s_ovr)
+              self.setstatus(self.status)
+              self.update_lcd()
+              return True
         elif btn == BUT_SPINDLEP:
-            # adjust S override, (TODO  this is tool speed or laser power)
-            self.s_ovr += 10
-            if self.s_ovr > 200:
-                self.s_ovr = 200
-            self.setovr(self.f_ovr, self.s_ovr)
-            self.setstatus(self.status)
-            self.update_lcd()
+              self.s_ovr += 10                     # adjust S override, (TODO  this is tool speed or laser power)
+              if self.s_ovr > 200:
+                  self.s_ovr = 200
+              self.setovr(self.f_ovr, self.s_ovr)
+              self.setstatus(self.status)
+              self.update_lcd()
+              return True
         elif btn == BUT_SPINDLEM:
-            # adjust S override, (TODO  this is tool speed or laser power)
-            self.s_ovr -= 10
-            if self.s_ovr < 10:
-                self.s_ovr = 10
-            self.setovr(self.f_ovr, self.s_ovr)
-            self.setstatus(self.status)
-            self.update_lcd()
+              self.s_ovr -= 10                      # adjust S override, (TODO  this is tool speed or laser power)
+              if self.s_ovr < 10:
+                  self.s_ovr = 10
+              self.setovr(self.f_ovr, self.s_ovr)
+              self.setstatus(self.status)
+              self.update_lcd()
+              return True
+        elif btn == BUT_STEP:
+              self.status = 0x01
+              self.setovr(self.f_ovr, self.s_ovr)
+              self.setstatus(self.status)
+              self.update_lcd()
+              oneshotdebug4 = 0                                                                     #
+              oneshotdebug5 = 0
+              self.app.main_window.async_display("WHB04B - STEP MODE")
+              return True
+        elif btn == BUT_MPG:
+              self.status = 0x02
+              self.setovr(self.f_ovr, self.s_ovr)
+              self.setstatus(self.status)
+              self.update_lcd()
+              oneshotdebug4 = 0                                                                     #
+              oneshotdebug5 = 0
+              self.app.main_window.async_display("WHB04B - MPG MODE")
+              return True
+        elif btn == BUT_WHOME:
+              if self.status <= 0x02:
+                 self.status = self.status + 0x80                           # set mode absolue for DRO if mode is relative and con or step or mpg
+              elif self.status <= 0x42:
+                 self.status = self.status + 0x40                           # set mode absolue for DRO if mode is RESET
+              elif self.status >= 0x80:
+                 self.status = self.status - 0x80                           # set mode relative for DRO if mode is absolue and con or step or mpg
+              self.setstatus(self.status)
+              self.update_lcd()
+              return True
+        elif btn == BUT_RESET:
+              if self.app.status == 'Alarm' and self.app.is_connected:
+                  self.app.main_window.do_kill()                             # ask smoopi to clear alarm after killall
+              return True
+        elif btn == BUT_STOP and self.app.status != 'Alarm':
+              self.app.main_window._abort_print(True)                         # send killall to smoopi
+              return True
         elif btn == BUT_START:
 #              if not self.app.main_window.is_printing and not self.app.main_window.paused:
 #                      self.app.main_window.start_last_file()        # i think for CNC better to remove this function
@@ -286,18 +321,17 @@ class WHB04B():
                   self.app.main_window.async_display("WHB04B - Do resume")                     # display ok on rpi
 #                  cmd = self.macrobut["resume"]                                               # does not work without checking all move finished before resume gcode by self.app.main_window.start_print()
                   self.app.main_window.start_print()                                           # so for now all is inside the macro
+                  return True
               elif self.app.main_window.is_printing and not self.app.main_window.paused:
                     self.app.main_window.async_display("WHB04B - Do pause")                    # display ok on rpi
                     self.app.main_window.start_print()
 #                    cmd = self.macrobut["suspend"]                                            # does not work for resume without checking all move finished before resume gcode by self.app.main_window.start_print()
 #                    cmd = self.macrobut["pause"]                                              # not tested
+                    return True
               elif not self.app.main_window.is_printing and not self.app.main_window.paused:
                         self.app.main_window.async_display("WHB04B - Do start last file")      # display ok on rpi
                         self.app.main_window.start_last_file()                                 # maybee for CNC better to remove this function ?
-
-        if cmd:
-            self.app.comms.write("{}\n".format(cmd))
-            return True
+                        return True
 
         return False
 
@@ -316,9 +350,8 @@ class WHB04B():
 
             self.app.comms.write("{}\n".format(cmd))
             return True
-        # macro button haven't default functions
+        # some buttons have default functions
         cmd = None
-
         if btn == BUT_SPINDLE:
             cmd = "M5" if self.app.is_spindle_on else "M3"
 
@@ -353,45 +386,55 @@ class WHB04B():
         self.app = App.get_running_app()
         self.load_macros()
 
+        oneshotdebug = 0                                                                      # init var for display one time only Connected to HID... here for prevent : referenced before assignment
+        oneshotdebug2 = 0                                                                     # init var for display one time only Failed to open HID...
+        oneshotdebug3 = 0                                                                     # init var for display one time only Pendant i not powered
+        oneshotdebug4 = 0                                                                     # init var for display one time only Failed to open HID...
+        oneshotdebug5 = 0                                                                     # init var for display one time only Pendant i not powered
+
         while not self.quit:
             try:
                 # Open a connection to the WHB04B
                 if self.hid.open(self.vid, self.pid):
+                    if oneshotdebug == 0:
+                        oneshotdebug = 1                                                      # update var for display one time only Connected to HID...
+                        oneshotdebug2 = 0                                                     # update var for display ont time only Failed to open HID...
+                        Logger.info("WHB04B: Connected to HID device receptor %04X:%04X" % (self.vid, self.pid))
+                        Logger.info("WHB04B - Pendant on/off not synched at starup")
+                        self.app.main_window.async_display("WHB04B - Connected to HID device receptor %04X:%04X" % (self.vid, self.pid))
+                        self.app.main_window.async_display("WHB04B - Pendant on/off not synched at starup")
 
-                    Logger.info("WHB04B: Connected to HID device %04X:%04X" % (self.vid, self.pid))
-                    self.app.main_window.async_display("WHB04B - Connected to HID device %04X:%04X" % (self.vid, self.pid))
-
-                    axis_mode = 0x06                                                           # patch for init this var each time you connect to the device for prevent the stupid error : referenced before assignment
-                    self.clear_lcd()                                                           # when AXIS OFF all other buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
-                    self.app.bind(fro=self.update_fro)                                         # update pendant feed override from smoothie value if changed by smoothie
+                    axis_mode = 0x00                                                          # patch for init this var each time you connect to the device for prevent the stupid error : referenced before assignment
+                    self.status = 0x00                                                        # patch for init this var each time you connect to the device for prevent the stupid error : referenced before assignment
+                    self.clear_lcd()                                                          # when AXIS OFF all other buttons ignored 0x40 display RESET : not work because device does not read input data
+                    self.app.bind(fro=self.update_fro)                                        # update pendant feed override from smoothie value if changed by smoothie
 
                     # Infinite loop to read data from the WHB04B when app is NOT connected so wait for connection and use subloop when connected
+#####################################################################################################################################################################################
                     while not self.quit:
                         data = self.hid.recv(timeout=500)
                         if data is None:
-                            self.app.main_window.async_display("WHB04B - NONE DATA - {}".format(data))  # never see this appening ??? what is the result and what is wanted for data None ???
+                            Logger.debug("WHB04B: NONE DATA - {}".format(data))
+                            self.app.main_window.async_display("WHB04B - NONE DATA - {}".format(data))  # never see this appening ??? what is the result and what is wanted for data None from HB04 ???
                             continue
 
-                        size = len(data)                                                       # FULL SIZE RECEIVED 64 OR BUG ? Maybee try to cut and see what append
+                        size = len(data)                                                                # FULL SIZE RECEIVED 64 OR BUG ? Maybee try to cut and see what append
                         #self.app.main_window.async_display("WHB04B - DATA - {}".format(data))
                         #self.app.main_window.async_display("WHB04B - SIZE - {}".format(size))
 
                         if not self.app.is_connected:
-                            self.clear_lcd()                                                   # when host not connected all buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
+                            self.clear_lcd()                                                            # when host not connected all buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
                             #self.app.main_window.async_display("WHB04B - UNCONNECTED HOST to smoothie CLEAR LCD")
-                            
                             if data[2] == 0x01:
-                                self.app.main_window.connect()                                 # ask smoopi for open serial port to smoothie : IndexError: list index out of range but work...
-                            continue 
+                                self.app.main_window.connect()                                          # pushe reset when unconnected ask smoopi for open serial port to smoothie : IndexError: list index out of range but work...
+                            continue
 
                         if size == 0:
                             # start subloop here when do nothing but app is connected so refresh LCD with machine position
 #####################################################################################################################################################################################
-                            if axis_mode == 0x06:                                                         # before patch at startup this var is not initialised and display this error
-                                self.clear_lcd()                                                          # UnboundLocalError: local variable 'axis_mode' referenced before assignment
-                                #self.app.main_window.async_display("WHB04B - AXIS OFF CLEAR LCD no data received")
-                                continue               # when AXIS OFF all other buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
-######################################################################################################################################################################################
+                            if axis_mode == 0x06:                                                # before patch at startup this var is not initialised and display this error
+                                self.clear_lcd()                                                 # UnboundLocalError: local variable 'axis_mode' referenced before assignment
+                                continue                                                         # when AXIS OFF all other buttons ignored 0x40 display RESET : not work because device does not read input data
 
                             if self.app.is_connected:
                                 if self.f_ovr != self.app.fro:
@@ -403,27 +446,37 @@ class WHB04B():
                                     self.setovr(self.f_ovr, self.s_ovr)
                                     self.setstatus(self.status)
                                     if self.status < 0x80:
-                                        self.setwcs(self.app.wpos)             # axis value for XYZ mode relative
+                                        self.setwcs(self.app.wpos)                               # axis value for XYZ mode relative
                                     elif self.status >= 0x80:
-                                          self.setmcs(self.app.mpos)           # axis value for XYZ mode absolue
+                                          self.setmcs(self.app.mpos)                             # axis value for XYZ mode absolue
                                     self.update_lcd()
                                 elif axis_mode > 0x13 and axis_mode < 0x17:
-                                      self.clear_dro()                         # clear DRO for ABC axis if less than 6 axis display 0.000
+                                      self.clear_dro()                                           # clear DRO for ABC axis if less than 6 axis display 0.000
                                       self.setovr(self.f_ovr, self.s_ovr)
                                       self.setstatus(self.status)
-                                      self.setmcs(self.app.mpos[3:6])          # axis value for ABC only available mode absolue
+                                      self.setmcs(self.app.mpos[3:6])                            # axis value for ABC only available mode absolue
                                       self.update_lcd()
                                 elif axis_mode == 0x06:
-                                      self.clear_lcd()                         # when AXIS OFF all other buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
+                                      self.clear_lcd()                                           # when AXIS OFF all other buttons ignored 0x40 display RESET : not work because device does not read input data
+                                elif axis_mode == 0x00:
+                                      self.status = 0x00                                         # init mode for startup or after disconnecting host from smoothie : display CON
+                                      self.setstatus(self.status)
+                                      self.update_lcd()
 
-                            # end subloop here when do nothing but app is connected so refresh LCD with machine position
                             continue
+                            # end subloop here when do nothing but app is connected so refresh LCD with machine position
+#####################################################################################################################################################################################
 
                             # here is the starting when data are received, whb04b send firstly the data with button pressed, and after send a data with button released
+                            # for Axis and speed rotary knob the device send only the data without release button
                         if data[0] != 0x04:
                             Logger.error("WHB04B: Not an WHB04B HID packet")
                             self.app.main_window.async_display("WHB04B - data ERROR Not an WHB04B HID packet")
                             continue
+                        elif oneshotdebug3 == 1:
+                              Logger.debug("WHB04B: Pendant is powered")
+                              self.app.main_window.async_display("WHB04B - Pendant is powered")
+                              oneshotdebug3 = 0                   # clear var here for reset debug state, used for display only one shot peandant not connected
 
                         seed = data[1]
                         btn_1 = data[2]
@@ -432,98 +485,61 @@ class WHB04B():
                         axis_mode = data[5]
                         wheel = self.twos_comp(data[6], 8)        # not really sure about what is ", 8" but without = not work
                         checksum = data[7]
-#######################################################################################################################################################
-                        axis = self.axislut[axis_mode]            # decode axis selected and load ASCII data for axis name BUT ALERT IF PENDANT IS OFF
-                                                                  #[ERROR  ] WHB04B: pendant is not powered or Exception - Traceback (most recent call last):
-                                                                  #  File "/home/pi/smoopi/modules/whb04b.py", line 436, in _run
-                                                                  #    axis = self.axislut[axis_mode]            # decode axis selected and load ASCII data for axis name
-                                                                  #KeyError: 0
-                                                                  #Debug display "#####################################"
-#######################################################################################################################################################
+
+                        axis = self.axislut[axis_mode]            # decode axis selected and load ASCII data for axis name
+
                         if axis_mode == 0x06:
-                            self.clear_lcd()                      # when AXIS OFF all other buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
+                            self.clear_lcd()                      # when AXIS OFF all other buttons ignored 0x40 display RESET : not work because device does not read input data
                             self.app.main_window.async_display("WHB04B - AXIS OFF CLEAR LCD request by pendant")
                             continue
 
-                        #self.app.main_window.async_display("WHB04B - AFTER Loop start Buttons checking")
-
-                        if speed_mode == 0x1c:
+                        elif speed_mode == 0x1c:
                             self.status = 0x00                    # mode lead = move locked and after keep out from lead this mode are CON
                             self.setovr(self.f_ovr, self.s_ovr)   # or mode CON because we are out of lead and not in mpg or step or reset
                             self.setstatus(self.status)
                             self.update_lcd()
-                            #continue                             # Lead is not a momentary push button do not exit and restart loop here !
+                            if oneshotdebug4 == 0:
+                                oneshotdebug4 = 1
+                                oneshotdebug5 = 0
+                                self.app.main_window.async_display("WHB04B - LEAD MODE move from wheel locked")
+                            #continue                             # Lead is not a momentary push button do not exit and restart loop from here !
+                        elif self.status == 0x00 and speed_mode != 0x1c:
+                              if oneshotdebug5 == 0:
+                                  oneshotdebug5 = 1
+                                  oneshotdebug4 = 0
+                                  self.app.main_window.async_display("WHB04B - CON MODE 1 to 6 micron Can be change : any idea welcome ")
+                            #continue                             # Lead is not a momentary push button do not exit and restart loop from here !
 
-                        if btn_1 == BUT_STEP:
-                            self.status = 0x01
-                            self.setovr(self.f_ovr, self.s_ovr)
-                            self.setstatus(self.status)
-                            self.update_lcd()
-                            continue
-
-                        if btn_1 == BUT_MPG:
-                            self.status = 0x02
-                            self.setovr(self.f_ovr, self.s_ovr)
-                            self.setstatus(self.status)
-                            self.update_lcd()
-                            continue
-
-                        if btn_1 == BUT_WHOME:
-                            if self.status <= 0x02:
-                               self.status = self.status + 0x80                           # set mode absolue for DRO if mode is relative and con or step or mpg
-                            elif self.status <= 0x42:
-                               self.status = self.status + 0x40                           # set mode absolue for DRO if mode is RESET
-                            elif self.status >= 0x80:
-                               self.status = self.status - 0x80                           # set mode relative for DRO if mode is absolue and con or step or mpg
-                            self.setstatus(self.status)
-                            self.update_lcd()
-                            continue
-
-                        if btn_1 == BUT_RESET:
-                            if self.app.status == 'Alarm' and self.app.is_connected:
-                                self.app.main_window.do_kill()                             # ask smoopi to clear alarm after killall
-                            #elif not self.app.is_connected:
-                            #           self.app.main_window.connect()                     # ask smoopi for open serial port connection to smoothie but not work here becaus no check here if unconnected
-                            continue
-
-#                        if axis_mode == 0x06:
-#                           self.clear_lcd()                                                # when AXIS OFF all other buttons are ignored 0x40 display RESET on the pdt : not work because device does not read input data
-#                           continue
-#
                         if self.status == 0:
-                           #Logger.debug("whb04b: seed: {}, btn_1: {}, btn_2: {}, speed CON: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.conlut[speed_mode], self.axislut[axis_mode], wheel, checksum))
-                           Logger.debug("whb04b: btn_1: {}, btn_2: {}, speed CON: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.conlut[speed_mode], self.axislut[axis_mode], wheel))
-                        if self.status == 1:
-                           #Logger.debug("whb04b: seed: {}, btn_1: {}, btn_2: {}, speed STEP: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.steplut[speed_mode], self.axislut[axis_mode], wheel, checksum))
-                           Logger.debug("whb04b: btn_1: {}, btn_2: {}, speed STEP: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.steplut[speed_mode], self.axislut[axis_mode], wheel))
-                        if self.status == 2:
-                           #Logger.debug("whb04b: seed: {}, btn_1: {}, btn_2: {}, speed MPG: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.mpglut[speed_mode], self.axislut[axis_mode], wheel, checksum))
-                           Logger.debug("whb04b: btn_1: {}, btn_2: {}, speed MPG: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.mpglut[speed_mode], self.axislut[axis_mode], wheel))
-
-                        if not self.app.is_connected:
-                            continue                                                        # is really needed here to check connection ???
-
-                        if btn_1 == BUT_STOP and self.app.status != 'Alarm':
-                            self.app.main_window._abort_print(True)                         # send killall to smoopi
-                            continue
+                           #Logger.debug("WHB04B: seed: {}, btn_1: {}, btn_2: {}, speed CON: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.conlut[speed_mode], self.axislut[axis_mode], wheel, checksum))
+                           Logger.debug("WHB04B: btn_1: {}, btn_2: {}, speed CON: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.conlut[speed_mode], self.axislut[axis_mode], wheel))
+                           #self.app.main_window.async_display("WHB04B: btn_1: {}, btn_2: {}, speed CON: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.conlut[speed_mode], self.axislut[axis_mode], wheel))
+                        elif self.status == 1:
+                           #Logger.debug("WHB04B: seed: {}, btn_1: {}, btn_2: {}, speed STEP: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.steplut[speed_mode], self.axislut[axis_mode], wheel, checksum))
+                           Logger.debug("WHB04B: btn_1: {}, btn_2: {}, speed STEP: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.steplut[speed_mode], self.axislut[axis_mode], wheel))
+                           #self.app.main_window.async_display("WHB04B: btn_1: {}, btn_2: {}, speed STEP: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.steplut[speed_mode], self.axislut[axis_mode], wheel))
+                        elif self.status == 2:
+                           #Logger.debug("WHB04B: seed: {}, btn_1: {}, btn_2: {}, speed MPG: {}, axis: {}, wheel: {}, checksum: {}".format(seed, btn_1, btn_2, self.mpglut[speed_mode], self.axislut[axis_mode], wheel, checksum))
+                           Logger.debug("WHB04B: btn_1: {}, btn_2: {}, speed MPG: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.mpglut[speed_mode], self.axislut[axis_mode], wheel))
+                           #self.app.main_window.async_display("WHB04B: btn_1: {}, btn_2: {}, speed MPG: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.mpglut[speed_mode], self.axislut[axis_mode], wheel))
 
                         # handle standard fixed buttons available when gcode is running
                         if btn_1 != 0 and btn_1 != BUT_FN and self.handle_buttonrun(btn_1, axis):
                             continue
 
                         # dont do jogging etc if printing unless we are paused
-                        if self.app.main_window.is_printing and not self.app.main_window.paused:
+                        elif self.app.main_window.is_printing and not self.app.main_window.paused:
                             continue
 
                         # handle standard fixed and as macro buttons not available when gcode is running
-                        if btn_1 != 0 and btn_1 != BUT_FN and self.handle_button(btn_1, axis):
+                        elif btn_1 != 0 and btn_1 != BUT_FN and self.handle_button(btn_1, axis):
                             continue
 
                         # handle macro buttons not available when gcode is running
-                        if btn_2 != 0 and btn_1 == BUT_FN and self.handle_buttonfn(btn_2, axis):
+                        elif btn_2 != 0 and btn_1 == BUT_FN and self.handle_buttonfn(btn_2, axis):
                             continue
 
-                        if wheel != 0:
+                        elif wheel != 0:
                             # must be one of XYZABC so send jogging command
                             # velocity_mode:
                             # step= -1 if wheel < 0 else 1
@@ -533,13 +549,12 @@ class WHB04B():
                             step = wheel  # speed of wheel will move more increments rather than increase feed rate
                             if self.status == 2:
                                 dist = 0.001 * step * self.mpglut[speed_mode]    # mode mpg
-                            if self.status == 1:
+                            elif self.status == 1:
                                dist = self.steplut[speed_mode] * step            # mode step
-                            if self.status == 0 and speed_mode == 0x1c:
-                               Logger.info("LEAD MODE move from pendant locked")
-                               self.app.main_window.async_display("WHB04B - LEAD MODE move from pendant locked")
+                            elif self.status == 0 and speed_mode == 0x1c:
+                               self.app.main_window.async_display("WHB04B - LEAD MODE move from wheel locked")
                                dist = 0                                          # mode lead = move locked
-                            if self.status == 0 and speed_mode != 0x1c:
+                            elif self.status == 0 and speed_mode != 0x1c:
                                dist = 0.001 * step * self.conlut[speed_mode]     # mode continu ??? maybee don't really know what is for in reality
 
                             if dist != 0:
@@ -550,33 +565,45 @@ class WHB04B():
                             if axis_mode > 0x10 and axis_mode < 0x14:            # Update DRO when rotate wheel
                                if self.status < 0x80:
                                   self.setwcs(self.app.wpos)                     # axis value for XYZ
-                               if self.status >= 0x80:
+                               elif self.status >= 0x80:
                                   self.setmcs(self.app.mpos)                     # axis value for XYZ
-                            if axis_mode > 0x13 and axis_mode < 0x17:
+                            elif axis_mode > 0x13 and axis_mode < 0x17:
                                self.clear_dro()                                  # clear DRO for ABC axis if less than 6 axis display 0.000
                                self.setmcs(self.app.mpos[3:6])                   # axis value for ABC
                             self.update_lcd()
 
                     # Close the WHB04B connection
-                    self.hid.close()                                             # never see this appening ???
+                    self.hid.close()                                             # never see this appening code keeped from HB04 ???
                     Logger.info("WHB04B: Disconnected from HID device")
                     self.app.main_window.async_display("WHB04B - Disconnected from HID device")
 
                 else:
-                    Logger.debug("whb04b: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
-                    self.app.main_window.async_display("whb04b - Failed to open HID device %04X:%04X" % (self.vid, self.pid))
+                    if oneshotdebug2 == 0:
+                        oneshotdebug2 = 1                                        # update var for display ont time only Failed to open HID...
+                        oneshotdebug = 0                                         # reset var for display one time only Connected to HID...
+                        Logger.info("WHB04B: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
+                        self.app.main_window.async_display("WHB04B - Failed to open HID device %04X:%04X" % (self.vid, self.pid))
+
 
             except Exception:
-                Logger.error("WHB04B: pendant is not powered or Exception - {}".format(traceback.format_exc()))
-                self.app.main_window.async_display("WHB04B - pendant is not powered or Exception - {}".format(traceback.format_exc()))
+                if oneshotdebug3 == 0:
+                    d = traceback.format_exc()
+                    if self.app.is_connected and ('KeyError: 0' or 'IndexError: list') in d:
+                        oneshotdebug3 = 1                                        # update var for display one time only Pendant i not powered
+                        Logger.debug("WHB04B: Pendant is not powered")
+                        self.app.main_window.async_display("WHB04B - Pendant is not powered")
+                    elif self.app.is_connected:
+                          oneshotdebug3 = 0                                      # reset var here for display each needed time the exception error
+                          Logger.error("WHB04B: Pendant Exception - {}".format(traceback.format_exc()))
+                          self.app.main_window.async_display("WHB04B - Pendant Exception - {}".format(traceback.format_exc()))
+
                 if self.hid.opened:
                     self.hid.close()
 
             self.app.unbind(fro=self.update_fro)                                 # stop update pendant feed override from smoothie value if changed by smoothie
 
             if not self.quit:
-                # retry connection in 5 seconds unless we were asked to quit
-                time.sleep(5)
+                time.sleep(5)                                                    # retry connection in 5 seconds unless we were asked to quit
 
     # converts a 16 bit value to little endian bytes suitable for WHB04B protocol
     def to_le(self, x, neg=False):
@@ -602,7 +629,10 @@ class WHB04B():
 
     def setstatus(self, m):
         self.lock.acquire()
-        self.lcd_data[3] = m
+        if self.app.status == 'Alarm':
+            self.lcd_data[3] = 0x40         # if Alarm/Kill display RESET but keep DRO value
+        else:
+            self.lcd_data[3] = m
         self.lock.release()
 
     def setwcs(self, a):
@@ -625,12 +655,13 @@ class WHB04B():
         self.lock.acquire()
         n = self.hid.write(self.lcd_data)
         self.lock.release()
-        Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
-        Logger.debug("LCD update {}".format(self.lcd_data))
+        #Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
+        #Logger.debug("LCD update {}".format(self.lcd_data))
+        #self.app.main_window.async_display("WHB04B - LCD update {}".format(self.lcd_data))
 
     def clear_lcd(self):
         self.lock.acquire()
-        self.lcd_data[3] = 0x40             # status 0x40 = RESET
+        self.lcd_data[3] = 0x40             # status 0x40 = RESET and clear DRO value
         self.lcd_data[4] = 0
         self.lcd_data[5] = 0
         self.lcd_data[6] = 0
@@ -649,8 +680,6 @@ class WHB04B():
         self.lcd_data[19] = 0
         n = self.hid.write(self.lcd_data)
         self.lock.release()
-        Logger.debug("Sent {} out of {}".format(n, len(self.lcd_data)))
-        Logger.debug("LCD clear all {}".format(self.lcd_data))
 
     def clear_dro(self):
         self.lock.acquire()
@@ -666,11 +695,6 @@ class WHB04B():
         self.lcd_data[13] = 0
         self.lcd_data[14] = 0
         self.lcd_data[15] = 0
-        self.lock.release()
-
-    def absolu_dro(self):
-        self.lock.acquire()
-        self.lcd_data[3] = 0x80
         self.lock.release()
 
     def update_fro(self, i, v):
