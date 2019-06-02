@@ -253,15 +253,13 @@ There is also a camera option in the system menu which allows a preview of the c
 
 ## On linux Desktop (and maybe windows/macos)
 
-Install kivy for python3 from your distro:-
+Install on recent Linux and python >= 3.5 using the fast wheels installation...
+  
+  python3 -m pip install --user --upgrade kivy
 
-https://kivy.org/docs/installation/installation.html
+See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
 
-1. sudo add-apt-repository ppa:kivy-team/kivy
-2. sudo apt-get update
-3. sudo apt-get install python3-kivy
-
-If this does not work or is too old...
+If that does not work then istall from source...
 
     sudo apt-get update
     sudo apt-get install libsdl2-dev libsdl2-image-dev \
