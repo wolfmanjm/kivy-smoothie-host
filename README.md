@@ -140,10 +140,9 @@ For instance...
        xclip xsel
     sudo apt-get install python3-pip
     sudo pip3 install -U Cython==0.28.2
-    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@86b6e19
+    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable-1.10.1
 
-This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable. 
-```git+https://github.com/kivy/kivy.git@stable``` seems to work ok too so long as it is v1.10.1.
+This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable on RPI. 
 
 On an rpi3b+ it seems the double tap time needs to be increased to be usable..
 
@@ -259,7 +258,7 @@ Install on recent Linux and python >= 3.5 using the fast wheels installation...
 
 See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
 
-If that does not work then istall from source...
+If that does not work then install from source...
 
     sudo apt-get update
     sudo apt-get install libsdl2-dev libsdl2-image-dev \
