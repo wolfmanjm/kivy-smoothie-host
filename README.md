@@ -140,10 +140,9 @@ For instance...
        xclip xsel
     sudo apt-get install python3-pip
     sudo pip3 install -U Cython==0.28.2
-    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@86b6e19
+    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable-1.10.1
 
-This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable. 
-```git+https://github.com/kivy/kivy.git@stable``` seems to work ok too so long as it is v1.10.1.
+This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable on RPI. 
 
 On an rpi3b+ it seems the double tap time needs to be increased to be usable..
 
@@ -253,15 +252,13 @@ There is also a camera option in the system menu which allows a preview of the c
 
 ## On linux Desktop (and maybe windows/macos)
 
-Install kivy for python3 from your distro:-
+Install on recent Linux and python >= 3.5 using the fast wheels installation...
+  
+  python3 -m pip install --user --upgrade kivy
 
-https://kivy.org/docs/installation/installation.html
+See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
 
-1. sudo add-apt-repository ppa:kivy-team/kivy
-2. sudo apt-get update
-3. sudo apt-get install python3-kivy
-
-If this does not work or is too old...
+If that does not work then install from source...
 
     sudo apt-get update
     sudo apt-get install libsdl2-dev libsdl2-image-dev \
