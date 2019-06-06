@@ -31,63 +31,69 @@ Builder.load_string('''
 <SpindleCamera>:
     on_enter: camera.play = True
     on_leave: camera.play = False
-    BoxLayout:
-        orientation: 'horizontal'
-
-        Camera:
-            # size_hint: None, None
-            # size: 640, 480
-            canvas.after:
-                Color:
-                    rgb: 1, 0, 0
-                Line:
-                    points: [self.center_x, 0, self.center_x, self.height]
-                    width: 1
-                    cap: 'none'
-                    joint: 'none'
-                Line:
-                    points: [0, self.center_y, self.width, self.center_y]
-                    width: 1
-                    cap: 'none'
-                    joint: 'none'
-                Line:
-                    circle:
-                        (self.center_x, self.center_y, root.circle_size)
-            id: camera
-            resolution: (640, 480)
-            play: False
+    FloatLayout:
         BoxLayout:
-            size_hint: None, 1.0
-            width: 44
-            orientation: 'vertical'
-            spacing: 8
-            padding: 4
-            Label:
-                text: "Circle"
-                size_hint_y: None
-                size: self.texture_size[0], self.texture_size[1]
-            Slider:
-                orientation: 'vertical'
-                min: 1
-                max: 240
-                value: root.circle_size
-                on_value: root.circle_size = self.value
+            orientation: 'horizontal'
 
-            ITogButton:
-                source: "img/cross-mouse.png"
-                on_state: root.jog = self.state == 'down'
-            ITogButton:
-                source: "img/invert_jog.png"
-                on_state: root.invert_jog = self.state == 'down'
-            IButton:
-                source: "img/set_zero.png"
-                on_press: root.setzero()
-            IButton:
-                source: "img/screenshot.png"
-                on_press: root.capture()
-            IButton:
-                source: "img/back.png"
-                on_press: root.manager.current = 'main'
+            Camera:
+                # size_hint: None, None
+                # size: 640, 480
+                canvas.after:
+                    Color:
+                        rgb: 1, 0, 0
+                    Line:
+                        points: [self.center_x, 0, self.center_x, self.height]
+                        width: 1
+                        cap: 'none'
+                        joint: 'none'
+                    Line:
+                        points: [0, self.center_y, self.width, self.center_y]
+                        width: 1
+                        cap: 'none'
+                        joint: 'none'
+                    Line:
+                        circle:
+                            (self.center_x, self.center_y, root.circle_size)
+                id: camera
+                resolution: (640, 480)
+                play: False
+            BoxLayout:
+                size_hint: None, 1.0
+                width: 44
+                orientation: 'vertical'
+                spacing: 8
+                padding: 4
+                Label:
+                    text: "Circle"
+                    size_hint_y: None
+                    size: self.texture_size[0], self.texture_size[1]
+                Slider:
+                    orientation: 'vertical'
+                    min: 1
+                    max: 240
+                    value: root.circle_size
+                    on_value: root.circle_size = self.value
+
+                ITogButton:
+                    source: "img/cross-mouse.png"
+                    on_state: root.jog = self.state == 'down'
+                ITogButton:
+                    source: "img/invert_jog.png"
+                    on_state: root.invert_jog = self.state == 'down'
+                IButton:
+                    source: "img/set_zero.png"
+                    on_press: root.setzero()
+                IButton:
+                    source: "img/screenshot.png"
+                    on_press: root.capture()
+                IButton:
+                    source: "img/back.png"
+                    on_press: root.manager.current = 'main'
+        Label:
+            text: "{:1.3f},{:1.3f}".format(app.wpos[0], app.wpos[1])
+            size_hint: None, None
+            size: self.texture_size
+            pos_hint: {'top': 1.0, 'right': 0.5}
 ''')
 
 
