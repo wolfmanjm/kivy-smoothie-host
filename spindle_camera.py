@@ -90,7 +90,7 @@ Builder.load_string('''
                     source: "img/back.png"
                     on_press: root.manager.current = 'main'
         Label:
-            text: "{:1.3f},{:1.3f}".format(app.wpos[0], app.wpos[1])
+            text: '' if app.wpos == None else "{:1.3f},{:1.3f}".format(app.wpos[0], app.wpos[1])
             size_hint: None, None
             size: self.texture_size
             pos_hint: {'top': 1.0, 'right': 0.5}
@@ -200,6 +200,7 @@ if __name__ == '__main__':
 
     class TestCamera(App):
         comms = sys.stdout
+        wpos = None
 
         def __init__(self, **kwargs):
             super(TestCamera, self).__init__(**kwargs)
