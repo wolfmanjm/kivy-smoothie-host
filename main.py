@@ -25,6 +25,7 @@ from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.core.window import Window
 from kivy.config import ConfigParser
+from kivy.metrics import dp, Metrics
 
 from native_file_chooser import NativeFileChooser
 from mpg_knob import Knob
@@ -803,6 +804,7 @@ class SmoothieHost(App):
         self.fast_stream = False
         self.last_probe = {'X': 0, 'Y': 0, 'Z': 0, 'status': False}
         self.tool_scripts = ToolScripts()
+        self.desktop_changed = False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -822,6 +824,7 @@ class SmoothieHost(App):
             'cnc': 'false',
             'tab_top': 'false',
             'screen_size': 'auto',
+            'screen_pos': 'auto',
             'filechooser': 'default'
         })
 
@@ -972,15 +975,15 @@ class SmoothieHost(App):
 
 
         """
-        config = ConfigParser()
-        config.read('smoothiehost.ini')
-        settings.add_json_panel('SmooPie application', config, data=jsondata)
+        settings.add_json_panel('SmooPie application', self.config, data=jsondata)
 
     def on_config_change(self, config, section, key, value):
         # print("config changed: {} - {}: {}".format(section, key, value))
         token = (section, key)
         if token == ('UI', 'cnc'):
             self.is_cnc = value == "1"
+        elif token == ('UI', 'display_type'):
+            self.desktop_changed = True
         elif token == ('UI', 'tab_top'):
             self.tab_top = value == "1"
         elif token == ('Extruder', 'hotend_presets'):
@@ -1016,6 +1019,23 @@ class SmoothieHost(App):
         # in case we added something to the defaults, make sure they are written to the ini file
         self.config.update_config('smoothiehost.ini')
 
+    def window_request_close(self, win):
+        if self.desktop_changed:
+            # if the desktop changed we reset the window size and pos
+            self.config.set('UI', 'screen_size', 'auto')
+            self.config.set('UI', 'screen_pos', 'auto')
+            self.config.write()
+
+        elif self.is_desktop == 2 or self.is_desktop == 3:
+            # Window.size is automatically adjusted for density, must divide by density when saving size
+            self.config.set('UI', 'screen_size', "{}x{}".format(int(Window.size[0] / Metrics.density), int(Window.size[1] / Metrics.density)))
+            self.config.set('UI', 'screen_pos', "{},{}".format(Window.top, Window.left))
+            Logger.info('close: Window.size: {}, Window.top: {}, Window.left: {}'.format(Window.size, Window.top, Window.left))
+
+            self.config.write()
+
+        return False
+
     def build(self):
         lt = self.config.get('UI', 'display_type')
         dtlut = {
@@ -1043,6 +1063,12 @@ class SmoothieHost(App):
                 elif 'x' in s:
                     (w, h) = s.split('x')
                     Window.size = (int(w), int(h))
+                p = self.config.get('UI', 'screen_pos')
+                if p != 'auto' and ',' in p:
+                    (t, l) = p.split(',')
+                    Window.top = int(t)
+                    Window.left = int(l)
+            Window.bind(on_request_close=self.window_request_close)
 
         else:
             self.is_desktop = 0
