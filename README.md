@@ -154,7 +154,7 @@ On an rpi3b+ it seems the double tap time needs to be increased to be usable..
     triple_tap_time = 600 # <- and this to be > than double_tap_time
 
 #### Keyboard and Mouse support
-Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. This HIDInput is broken in all the current releases of Kivy, but I have submitted a PR to Kivy with a fixed version. In the meantime you will need to replace the KIVYINSTALLDIR/kivy/input/providers/hidinput.py with this version: https://github.com/wolfmanjm/kivy/blob/master/kivy/input/providers/hidinput.py
+Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. This HIDInput is broken in all the releases of Kivy older than 1.11.0. If using an older version of kivy you will need to replace the KIVYINSTALLDIR/kivy/input/providers/hidinput.py with this version: https://github.com/wolfmanjm/kivy/blob/master/kivy/input/providers/hidinput.py
 
 You will also need to add the following line to your ```~/.kivy/config.ini``` file under the ```[input]``` section:-
     
