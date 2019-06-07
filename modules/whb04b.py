@@ -198,9 +198,8 @@ class WHB04B():
 
     axislut = {0x06: 'OFF', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x14: 'A', 0x15: 'B', 0x16: 'C'} # button off or set Axis
     steplut = {0x0d: 0.001, 0x0e: 0.01, 0x0f: 0.1, 0x10: 1, 0x1a: 1, 0x1b: 1, 0x1c: 0}        # combined button for set step   #or 0x1c = lead = move locked
-    mpglut = {0x0d: 2, 0x0e: 5, 0x0f: 10, 0x10: 30, 0x1a: 60, 0x1b: 100, 0x1c: 0}             # combined button for set mpg %  #or 0x1c = lead and after set con ???
-#    conlut = {0x0d: 1, 0x0e: 2, 0x0f: 3, 0x10: 4, 0x1a: 5, 0x1b: 6, 0x1c: 0}                  # lead mode look up table for set con % but don't really know what is for in reality
-    conlut = {0x0d: 1, 0x0e: 2, 0x0f: 4, 0x10: 5, 0x1a: 10, 0x1b: 15, 0x1c: 0}                # con mode look up table for set feedoverride
+    mpglut = {0x0d: 2, 0x0e: 5, 0x0f: 10, 0x10: 30, 0x1a: 60, 0x1b: 100, 0x1c: 0}             # combined button for set mpg %  #or 0x1c = lead = move locked
+    conlut = {0x0d: 1, 0x0e: 2, 0x0f: 3, 0x10: 4, 0x1a: 5, 0x1b: 6, 0x1c: 0}                  # con mode look up table this appears after set lead mode and go back the rotary button
     status = 0x40                                                                             # start with lead mode
     macrobut = {}
     f_ovr = 100
@@ -312,27 +311,14 @@ class WHB04B():
               self.app.main_window._abort_print(True)                         # send killall to smoopi
               return True
         elif btn == BUT_START:
-#              if not self.app.main_window.is_printing and not self.app.main_window.paused:
-#                      self.app.main_window.start_last_file()        # i think for CNC better to remove this function
-#              elif self.app.main_window.paused:
-#                    self.app.main_window.start_print()              # the check is done inside smoopi
-
-              if self.app.main_window.paused:
-                  self.app.main_window.async_display("WHB04B - Do resume")                     # display ok on rpi
-#                  cmd = self.macrobut["resume"]                                               # does not work without checking all move finished before resume gcode by self.app.main_window.start_print()
-                  self.app.main_window.start_print()                                           # so for now all is inside the macro
-                  return True
-              elif self.app.main_window.is_printing and not self.app.main_window.paused:
-                    self.app.main_window.async_display("WHB04B - Do pause")                    # display ok on rpi
-                    self.app.main_window.start_print()
-#                    cmd = self.macrobut["suspend"]                                            # does not work for resume without checking all move finished before resume gcode by self.app.main_window.start_print()
-#                    cmd = self.macrobut["pause"]                                              # not tested
+              if not self.app.main_window.is_printing and not self.app.main_window.paused:
+                      self.app.main_window.async_display("WHB04B - Do start last file")      # display ok on rpi
+                      self.app.main_window.start_last_file()        # i think for CNC better to remove this function
+                      return True
+              elif self.app.main_window.paused or self.app.main_window.is_printing:
+                    self.app.main_window.async_display("WHB04B - Do Resume/Pause")                    # display ok on rpi
+                    self.app.main_window.start_print()              # the check is done inside smoopi
                     return True
-              elif not self.app.main_window.is_printing and not self.app.main_window.paused:
-                        self.app.main_window.async_display("WHB04B - Do start last file")      # display ok on rpi
-                        self.app.main_window.start_last_file()                                 # maybee for CNC better to remove this function ?
-                        return True
-
         return False
 
 
@@ -400,9 +386,7 @@ class WHB04B():
                         oneshotdebug = 1                                                      # update var for display one time only Connected to HID...
                         oneshotdebug2 = 0                                                     # update var for display ont time only Failed to open HID...
                         Logger.info("WHB04B: Connected to HID device receptor %04X:%04X" % (self.vid, self.pid))
-                        Logger.info("WHB04B - Pendant on/off not synched at starup")
                         self.app.main_window.async_display("WHB04B - Connected to HID device receptor %04X:%04X" % (self.vid, self.pid))
-                        self.app.main_window.async_display("WHB04B - Pendant on/off not synched at starup")
 
                     axis_mode = 0x00                                                          # patch for init this var each time you connect to the device for prevent the stupid error : referenced before assignment
                     self.status = 0x00                                                        # patch for init this var each time you connect to the device for prevent the stupid error : referenced before assignment
@@ -474,9 +458,7 @@ class WHB04B():
                             self.app.main_window.async_display("WHB04B - data ERROR Not an WHB04B HID packet")
                             continue
                         elif oneshotdebug3 == 1:
-                              Logger.debug("WHB04B: Pendant is powered")
-                              self.app.main_window.async_display("WHB04B - Pendant is powered")
-                              oneshotdebug3 = 0                   # clear var here for reset debug state, used for display only one shot peandant not connected
+                              oneshotdebug3 = 0                   # clear var here for reset debug state, used for display only one shot peandant not powered
 
                         seed = data[1]
                         btn_1 = data[2]
@@ -523,19 +505,15 @@ class WHB04B():
                            Logger.debug("WHB04B: btn_1: {}, btn_2: {}, speed MPG: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.mpglut[speed_mode], self.axislut[axis_mode], wheel))
                            #self.app.main_window.async_display("WHB04B: btn_1: {}, btn_2: {}, speed MPG: {}, axis: {}, wheel: {}".format(btn_1, btn_2, self.mpglut[speed_mode], self.axislut[axis_mode], wheel))
 
-                        # handle standard fixed buttons available when gcode is running
+                        # handle standard fixed buttons : available when gcode is running
                         if btn_1 != 0 and btn_1 != BUT_FN and self.handle_buttonrun(btn_1, axis):
                             continue
 
-                        ## dont do jogging etc if printing unless we are paused
-                        #elif self.app.main_window.is_printing and not self.app.main_window.paused:
-                        #    continue
-
-                        # handle standard fixed and as macro buttons not available when gcode is running
+                        # handle standard fixed and as remapped buttons : not available when gcode is running
                         elif btn_1 != 0 and btn_1 != BUT_FN and self.handle_button(btn_1, axis) and not self.app.main_window.is_printing:
                             continue
 
-                        # handle macro buttons not available when gcode is running
+                        # handle macro buttons : not available when gcode is running
                         elif btn_2 != 0 and btn_1 == BUT_FN and self.handle_buttonfn(btn_2, axis) and not self.app.main_window.is_printing:
                             continue
 
@@ -555,7 +533,6 @@ class WHB04B():
                                self.app.main_window.async_display("WHB04B - LEAD MODE = wheel locked")
                                dist = 0                                          # mode lead = move locked
                             elif self.status == 0 and speed_mode != 0x1c:
-                               #dist = 0.001 * step * self.conlut[speed_mode]     # mode continu ??? maybee don't really know what is for in reality
                                dist = 0
                                self.f_ovr += 1 * step * self.conlut[speed_mode]  # mode continu NOW = Feed override
                                if self.f_ovr > 400:
