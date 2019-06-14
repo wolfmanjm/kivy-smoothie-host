@@ -202,6 +202,12 @@ class WHB04B():
     conlut = {0x0d: 1, 0x0e: 2, 0x0f: 3, 0x10: 4, 0x1a: 5, 0x1b: 6, 0x1c: 0}                  # con mode look up table this appears after set lead mode and go back the rotary button
     status = 0x40                                                                             # start with lead mode
     macrobut = {}
+    fovermax = 1
+    fovermin = 1
+    foverrange = 1
+    sovermax = 1
+    sovermin = 1
+    soverrange = 1
     f_ovr = 100
     s_ovr = 100
 
@@ -233,6 +239,14 @@ class WHB04B():
             # load user defined macro buttons
             for (key, v) in config.items('macros'):
                 self.macrobut[key] = v
+                
+            # load any default settings
+            self.fovermax = config.getint("defaults", "fovmax", fallback=8)
+            self.fovermin = config.getint("defaults", "fovmin", fallback=8)
+            self.foverrange = config.getint("defaults", "fovrange", fallback=8)
+            self.sovermax = config.getint("defaults", "sovmax", fallback=8)
+            self.sovermin = config.getint("defaults", "sovmin", fallback=8)
+            self.soverrange = config.getint("defaults", "sovrange", fallback=8)
 
         except Exception as err:
             Logger.warning("WHB04B: WARNING - exception parsing config file: {}".format(err))
@@ -244,33 +258,33 @@ class WHB04B():
         # some buttons have default functions and are available when machine is running and can't be remapped
 
         if btn == BUT_FEEDP:
-            self.f_ovr += 10
-            if self.f_ovr > 400:
-                self.f_ovr = 400
+            self.f_ovr += self.foverrange
+            if self.f_ovr > self.fovermax:
+                self.f_ovr = self.fovermax
             self.setovr(self.f_ovr, self.s_ovr)
             self.setstatus(self.status)
             self.update_lcd()
             return True
         elif btn == BUT_FEEDM:
-              self.f_ovr -= 10
-              if self.f_ovr < 10:
-                  self.f_ovr = 10
+              self.f_ovr -= self.foverrange
+              if self.f_ovr < self.fovermin:
+                  self.f_ovr = self.fovermin
               self.setovr(self.f_ovr, self.s_ovr)
               self.setstatus(self.status)
               self.update_lcd()
               return True
         elif btn == BUT_SPINDLEP:
-              self.s_ovr += 10                     # adjust S override, (TODO  this is tool speed or laser power)
-              if self.s_ovr > 200:
-                  self.s_ovr = 200
+              self.s_ovr += self.soverrange                     # adjust S override, (TODO  this is tool speed or laser power)
+              if self.s_ovr > self.sovermax:
+                  self.s_ovr = self.sovermax
               self.setovr(self.f_ovr, self.s_ovr)
               self.setstatus(self.status)
               self.update_lcd()
               return True
         elif btn == BUT_SPINDLEM:
-              self.s_ovr -= 10                      # adjust S override, (TODO  this is tool speed or laser power)
-              if self.s_ovr < 10:
-                  self.s_ovr = 10
+              self.s_ovr -= self.soverrange                      # adjust S override, (TODO  this is tool speed or laser power)
+              if self.s_ovr < self.sovermin:
+                  self.s_ovr = self.sovermin
               self.setovr(self.f_ovr, self.s_ovr)
               self.setstatus(self.status)
               self.update_lcd()
@@ -355,10 +369,14 @@ class WHB04B():
             # use redefined macro
             cmd = self.macrobut[name]
             if "{axis}" in cmd:
-                cmd = cmd.replace("{axis}", axis)
+                 cmd = cmd.replace("{axis}", axis)
             elif "find-center" == cmd:
-                  self.app.tool_scripts.find_center()
-                  return True
+                   self.app.tool_scripts.find_center()
+                   return True
+            elif self.app.is_mist_on and btn == BUT_MPG:          # Toggle macro for mist ON/OFF regarding the actual state
+                  cmd = self.macrobut["macro14toggle"]
+            elif self.app.is_mist_on and btn == BUT_STEP:         # Toggle macro for flood ON/OFF regarding the actual state
+                  cmd = self.macrobut["macro15toggle"]
 
             self.app.comms.write("{}\n".format(cmd))
             return True
@@ -535,10 +553,10 @@ class WHB04B():
                             elif self.status == 0 and speed_mode != 0x1c:
                                dist = 0
                                self.f_ovr += 1 * step * self.conlut[speed_mode]  # mode continu NOW = Feed override
-                               if self.f_ovr > 400:
-                                   self.f_ovr = 400     
-                               if self.f_ovr < 10:
-                                   self.f_ovr = 10
+                               if self.f_ovr > fovermax:
+                                   self.f_ovr = fovermax     
+                               if self.f_ovr < fovermin:
+                                   self.f_ovr = fovermin
                                self.setovr(self.f_ovr, self.s_ovr)
                                                               
 
