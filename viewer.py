@@ -822,11 +822,9 @@ if __name__ == '__main__':
 
     Builder.load_string('''
 <StartScreen>:
-    #on_leave: print('leaving start')
-    on_enter: app.stop()
     Button:
-        text: 'press me'
-        on_press: root.manager.current = 'gcode'
+        text: 'Quit'
+        on_press: app.stop()
 ''')
 
     class StartScreen(Screen):
@@ -852,8 +850,10 @@ if __name__ == '__main__':
             self.sm = ScreenManager()
             self.sm.add_widget(StartScreen(name='main'))
             self.sm.add_widget(GcodeViewerScreen(name='gcode'))
+
             if len(sys.argv) > 1:
                 self.sm.current = 'gcode'
+
             level = LOG_LEVELS.get('debug') if len(sys.argv) > 2 else LOG_LEVELS.get('info')
             Logger.setLevel(level=level)
             # logging.getLogger().setLevel(logging.DEBUG)
