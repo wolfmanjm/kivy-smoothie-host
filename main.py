@@ -984,6 +984,7 @@ class SmoothieHost(App):
             self.is_cnc = value == "1"
         elif token == ('UI', 'display_type'):
             self.desktop_changed = True
+            self.main_window.display("NOTICE: Restart is needed")
         elif token == ('UI', 'tab_top'):
             self.tab_top = value == "1"
         elif token == ('Extruder', 'hotend_presets'):
