@@ -3,7 +3,7 @@ A Smoothie host designed to run on an rpi with multitouch screen or on a desktop
 
 This is a work in progress, but is stable and ready for everyday use.
 
-This uses python >= 3.4.3
+This uses python >= 3.4.3 and <= 3.6
 
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
