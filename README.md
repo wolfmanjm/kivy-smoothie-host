@@ -1,7 +1,7 @@
 # Smoopi
 A Smoothie host designed to run on an rpi with multitouch screen or on a desktop with a mouse and keyboard.
 
-This is a work in progress, but is stable and ready for everyday use.
+This is stable and ready for everyday use.
 
 This uses python >= 3.4.3 and <= 3.6
 
