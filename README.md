@@ -252,7 +252,7 @@ There is also a camera option in the system menu which allows a preview of the c
 
 ## On linux Desktop (and maybe windows/macos)
 
-Install on recent Linux and python >= 3.5 using the fast wheels installation...
+Install on recent Linux and python >= 3.5 and <= 3.6 using the fast wheels installation...
   
   python3 -m pip install --user --upgrade kivy
 
