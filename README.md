@@ -1,16 +1,16 @@
 # Smoopi
-A Smoothie host, written in Kivy for running on rpi with touch screen or on a desktop.
+A Smoothie host designed to run on an rpi with multitouch screen or on a desktop with a mouse and keyboard.
 
-This is a work in progress, but is stable and ready for everyday use.
+This is stable and ready for everyday use.
 
-This uses python >= 3.4.3
+This uses python >= 3.4.3 and <= 3.6
 
-Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows)
+Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
 
 It will run on Windows if you install Python 3.5.2, and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
 
-Currently does not run on python versions > 3.6 due to async changes.
+NOTE it currently does not run on python versions > 3.6 due to async changes.
 
 The minimum usable resolution is 800x480.
 
@@ -252,7 +252,7 @@ There is also a camera option in the system menu which allows a preview of the c
 
 ## On linux Desktop (and maybe windows/macos)
 
-Install on recent Linux and python >= 3.5 using the fast wheels installation...
+Install on recent Linux and python >= 3.5 and <= 3.6 using the fast wheels installation...
   
   python3 -m pip install --user --upgrade kivy
 

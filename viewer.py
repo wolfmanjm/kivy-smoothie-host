@@ -825,9 +825,14 @@ if __name__ == '__main__':
     Button:
         text: 'Quit'
         on_press: app.stop()
+<ExitScreen>:
+    on_enter: app.stop()
 ''')
 
     class StartScreen(Screen):
+        pass
+
+    class ExitScreen(Screen):
         pass
 
     class GcodeViewerApp(App):
@@ -848,11 +853,10 @@ if __name__ == '__main__':
         def build(self):
             Window.size = (1024, 768)
             self.sm = ScreenManager()
-            self.sm.add_widget(StartScreen(name='main'))
+            self.sm.add_widget(StartScreen(name='start'))
             self.sm.add_widget(GcodeViewerScreen(name='gcode'))
-
-            if len(sys.argv) > 1:
-                self.sm.current = 'gcode'
+            self.sm.add_widget(ExitScreen(name='main'))
+            self.sm.current = 'gcode'
 
             level = LOG_LEVELS.get('debug') if len(sys.argv) > 2 else LOG_LEVELS.get('info')
             Logger.setLevel(level=level)
