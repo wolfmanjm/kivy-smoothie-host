@@ -441,6 +441,8 @@ class MainWindow(BoxLayout):
         self.app.is_inch = a[3] == 'G20'
         self.app.is_abs = a[4] == 'G90'
         self.app.is_spindle_on = a[7] == 'M3'
+        self.app.is_mist_on = a[8] == 'M7'
+        self.app.is_flood_on = a[8] == 'M8'
 
     @mainthread
     def alarm_state(self, s):
@@ -774,6 +776,8 @@ class SmoothieHost(App):
     lp = NumericProperty(0)
     is_inch = BooleanProperty(False)
     is_spindle_on = BooleanProperty(False)
+    is_mist_on = BooleanProperty(False)
+    is_flood_on = BooleanProperty(False)
     is_abs = BooleanProperty(True)
     is_desktop = NumericProperty(0)
     is_cnc = BooleanProperty(False)

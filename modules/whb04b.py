@@ -552,11 +552,11 @@ class WHB04B():
                                dist = 0                                          # mode lead = move locked
                             elif self.status == 0 and speed_mode != 0x1c:
                                dist = 0
-                               self.f_ovr += 1 * step * self.conlut[speed_mode]  # mode continu NOW = Feed override
-                               if self.f_ovr > fovermax:
-                                   self.f_ovr = fovermax     
-                               if self.f_ovr < fovermin:
-                                   self.f_ovr = fovermin
+                               self.f_ovr += 1 * step * self.conlut[speed_mode]  # mode continu NOW = Feed override activated after go out from lead mode
+                               if self.f_ovr > self.fovermax:
+                                   self.f_ovr = self.fovermax     
+                               if self.f_ovr < self.fovermin:
+                                   self.f_ovr = self.fovermin
                                self.setovr(self.f_ovr, self.s_ovr)
                                                               
 
