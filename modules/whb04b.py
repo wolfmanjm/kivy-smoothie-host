@@ -307,7 +307,7 @@ class WHB04B():
               oneshotdebug5 = 0
               self.app.main_window.async_display("WHB04B - MPG MODE")
               return True
-        elif btn == BUT_WHOME:
+        elif btn == BUT_MACRO10:
               if self.status <= 0x02:
                  self.status = self.status + 0x80                           # set mode absolue for DRO if mode is relative and con or step or mpg
               elif self.status <= 0x42:
