@@ -408,6 +408,88 @@ The ```=0``` button sets the WCS of the selected axis to 0.
 The spindle button will toggle the spindle switch on and off (if one is defined)
 The ```=1/2``` button will set the WCS of the currently selected axis to half the current position. (eg if WCS is set to 0 at left edge and spindle is at right edge it would set the WCS X to half the current value so then going to G0 X0 it would move the spindle to the center X position)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### WHB04b-6 wireless with USB dongle
+Support for the wireless WHB04b-6 MACH3 USB pendant is now available.
+add the following to the smoothiehost.ini file...
+
+    [modules]
+    whb04b = 0x10ce:0xeb93
+
+The button functions can be defined in the whb04b.ini file (for starting you can use copy and rename the sample_whb04b.ini file)...
+
+    [macros]
+    # user defined macro buttons
+    (see the sample file)
+
+Python Easyhid needs to be installed...
+
+* sudo apt-get install libffi-dev
+* sudo apt-get install libhidapi-libusb0
+* git clone https://github.com/ahtn/python-easyhid
+* cd python-easyhid
+* sudo python3 setup.py install
+
+then add this to ```/etc/udev/rules.d/50-whb04b.rules```...
+
+    SUBSYSTEMS=="usb", ATTRS{idVendor}=="10ce", ATTRS{idProduct}=="eb93", MODE:="0666"
+
+Plug in the WHB04b-6 dongle and turn the unit on, then run smoopi.
+
+Some of the buttons have default actions, but can be redefined in the ```[macros]``` section of the whb04b.ini file. NOTE that if ```{axis}``` appears in the macro it will be replaced by the currently selected axis.
+
+The hard coded buttons are the step button which increases the move multiplier, and the MPG button next to it which decreases the multiplier.
+at x1 each encoder click moves 0.001mm, at x10 it moves 0.01mm, at x100 it moves 0.1mm etc.
+
+The Stop button will send a kill/halt (control X) to smoothie and the reset will send ```$X``` to unkill.
+
+The move to origin and home buttons do as you would expect.
+The spindle button will toggle the spindle switch on and off (if one is defined)
+
+ (these parts need review)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Screen shots
 ## Extruder screens
 ![Extruder Screen](pics/screen1.png)
