@@ -375,7 +375,7 @@ class WHB04B():
                    return True
             elif self.app.is_mist_on and btn == BUT_MPG:          # Toggle macro for mist ON/OFF regarding the actual state
                   cmd = self.macrobut["macro14toggle"]
-            elif self.app.is_mist_on and btn == BUT_STEP:         # Toggle macro for flood ON/OFF regarding the actual state
+            elif self.app.is_flood_on and btn == BUT_STEP:         # Toggle macro for flood ON/OFF regarding the actual state
                   cmd = self.macrobut["macro15toggle"]
 
             self.app.comms.write("{}\n".format(cmd))
@@ -501,13 +501,13 @@ class WHB04B():
                             if oneshotdebug4 == 0:
                                 oneshotdebug4 = 1
                                 oneshotdebug5 = 0
-                                self.app.main_window.async_display("WHB04B - LEAD MODE = wheel locked")
+                                self.app.main_window.async_display("WHB04B - LEAD MODE = Spindle override from Wheel")
                             #continue                             # Lead is not a momentary push button do not exit and restart loop from here !
                         elif self.status == 0x00 and speed_mode != 0x1c:
                               if oneshotdebug5 == 0:
                                   oneshotdebug5 = 1
                                   oneshotdebug4 = 0
-                                  self.app.main_window.async_display("WHB04B - CON MODE = FEEDRATE OVERRIDE")
+                                  self.app.main_window.async_display("WHB04B - CON MODE = Feedrate override from Wheel")
                             #continue                             # Lead is not a momentary push button do not exit and restart loop from here !
 
                         if self.status == 0:
@@ -548,9 +548,16 @@ class WHB04B():
                             elif self.status == 1 and not self.app.main_window.is_printing:
                                dist = self.steplut[speed_mode] * step            # mode step
                             elif self.status == 0 and speed_mode == 0x1c:
-                               self.app.main_window.async_display("WHB04B - LEAD MODE = wheel locked")
+                               self.app.main_window.async_display("WHB04B - LEAD MODE = Spindle override from Wheel")
                                dist = 0                                          # mode lead = move locked
+                               self.s_ovr += 1 * step * self.soverrange          # mode lead NOW = Spindle override activated after going out from lead mode
+                               if self.s_ovr > self.sovermax:
+                                   self.s_ovr = self.sovermax     
+                               if self.s_ovr < self.sovermin:
+                                   self.s_ovr = self.sovermin
+                               self.setovr(self.f_ovr, self.s_ovr)
                             elif self.status == 0 and speed_mode != 0x1c:
+                               self.app.main_window.async_display("WHB04B - CON MODE = Feedrate override from Wheel")
                                dist = 0
                                self.f_ovr += 1 * step * self.conlut[speed_mode]  # mode continu NOW = Feed override activated after go out from lead mode
                                if self.f_ovr > self.fovermax:
