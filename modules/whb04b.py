@@ -340,13 +340,19 @@ class WHB04B():
         name = self.butlut[btn]
 
         if(name in self.macrobut):
-            # use redefined macro
-            cmd = self.macrobut[name]
-            if "{axis}" in cmd:
+            # use redefined macro and standard button from ini + check if script with @
+            
+            cmd = self.macrobut[name]            
+            
+            if cmd.startswith('@'):
+                self._send_script(cmd[1:])
+                self.app.main_window.async_display("Script sended: {}".format(cmd))
+                return True
+            elif "{axis}" in cmd:
                 cmd = cmd.replace("{axis}", axis)
             elif "find-center" == cmd:
-                  self.app.tool_scripts.find_center()
-                  return True
+                self.app.tool_scripts.find_center()
+                return True
 
             self.app.comms.write("{}\n".format(cmd))
             return True
@@ -366,24 +372,38 @@ class WHB04B():
         name = self.butlutfn[btn]
 
         if(name in self.macrobut):
-            # use redefined macro
-            cmd = self.macrobut[name]
-            if "{axis}" in cmd:
-                 cmd = cmd.replace("{axis}", axis)
-            elif "find-center" == cmd:
-                   self.app.tool_scripts.find_center()
-                   return True
-            elif self.app.is_mist_on and btn == BUT_MPG:          # Toggle macro for mist ON/OFF regarding the actual state
-                  cmd = self.macrobut["macro14toggle"]
-            elif self.app.is_flood_on and btn == BUT_STEP:         # Toggle macro for flood ON/OFF regarding the actual state
-                  cmd = self.macrobut["macro15toggle"]
+            # use redefined macro and standard button from ini + check if script with @
 
-            self.app.comms.write("{}\n".format(cmd))
-            return True
+          cmd = self.macrobut[name]            
+            
+          if cmd.startswith('@'):
+                self._send_script(cmd[1:])
+                self.app.main_window.async_display("Script sended: {}".format(cmd))
+                return True
+          elif "{axis}" in cmd:
+                cmd = cmd.replace("{axis}", axis)
+          elif "find-center" == cmd:
+                self.app.tool_scripts.find_center()
+                return True
+          elif self.app.is_mist_on and btn == BUT_MPG:          # Toggle macro for mist ON/OFF regarding the actual state
+                cmd = self.macrobut["macro14toggle"]
+          elif self.app.is_flood_on and btn == BUT_STEP:         # Toggle macro for flood ON/OFF regarding the actual state
+                cmd = self.macrobut["macro15toggle"]
+          
+          self.app.comms.write("{}\n".format(cmd))
+          return True
         # macro button haven't default functions
         return False
 
 
+    def _send_script(self, fn):
+        try:
+            with open(fn) as f:
+                for line in f:
+                    self.app.comms.write('{}'.format(line))
+
+        except Exception:
+            self.app.main_window.async_display("ERROR: File not found: {}".format(fn))
 
 
     def _run(self):
