@@ -29,13 +29,14 @@ Builder.load_string('''
             on_press: root.manager.current= 'main'
 ''')
 
+
 class MjpegViewer(Image):
 
     def start(self, url):
-        self.url= url
+        self.url = url
         self.quit = False
         self.update_image()
-        self.read_queue= Clock.schedule_interval(self.update_image, 0.2)
+        self.read_queue = Clock.schedule_interval(self.update_image, 0.2)
 
     def stop(self):
         self.read_queue.cancel()
@@ -44,7 +45,7 @@ class MjpegViewer(Image):
         try:
             stream = urllib.request.urlopen(self.url)
         except Exception as err:
-            self.quit= True
+            self.quit = True
             Logger.error("MjpegViewer: Failed to open url: {} - error: {}".format(self.url, err))
             return None
 
@@ -66,7 +67,6 @@ class MjpegViewer(Image):
             except Exception as err:
                 Logger.error("MjpegViewer: Failed to read_queue url: {} - error: {}".format(self.url, err))
                 return None
-
 
     def update_image(self, *args):
         if self.quit:

@@ -1151,7 +1151,11 @@ class SmoothieHost(App):
 
         if self.is_spindle_camera:
             if self.is_desktop in [0, 4]:
-                self.sm.add_widget(SpindleCamera(name='spindle camera'))
+                try:
+                    self.sm.add_widget(SpindleCamera(name='spindle camera'))
+                except Exception as err:
+                    self.main_window.display('> failed to load spindle camera: {}'.format(err))
+                    Logger.error('Main: spindle camera exception: {}'.format(err))
 
             self.main_window.tools_menu.add_widget(ActionButton(text='Spindle Cam', on_press=lambda x: self._show_spindle_cam()))
 
