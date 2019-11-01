@@ -83,6 +83,17 @@ NOTE for toolchange to be caught by Smoopi the M6 must be on a line by itself or
 ### Suspend (filament change) support
 M600/suspend is handled correctly, and will suspend the print until the resume button is clicked (this will send M601). A useful thing is to insert ```(MSG any message here)``` in the gcode file before the M600 which will display in the console window, it could be a prompt to change the filament to a specific color for instance.
 
+### Notifications
+EMail notifications can be sent to monitor progress by embedding a token in the gcode file. 
+    
+    (NOTIFY any message here)
+
+When this is read in the gcode file an email is sent with the message.
+In order to send email a file ```notify.ini``` must be created with the SMTP authenticaiton for your email server. (GMail works fine for instance).
+Look at the file ```sample-notify.ini``` and modify accordingly.
+
+Note for gmail users, it is best to setup an application password and use that instead of your gmail login.
+
 ## Install on RPI
 
 **NOTE** on the current image and all installs on raspbian you need to add this...
