@@ -89,7 +89,7 @@ EMail notifications can be sent to monitor progress by embedding a token in the 
     (NOTIFY any message here)
 
 When this is read in the gcode file an email is sent with the message.
-In order to send email a file ```notify.ini``` must be created with the SMTP authenticaiton for your email server. (GMail works fine for instance).
+In order to send email a file ```notify.ini``` must be created with the SMTP authentication for your email server. (GMail works fine for instance).
 Look at the file ```sample-notify.ini``` and modify accordingly.
 
 Note for gmail users, it is best to setup an application password and use that instead of your gmail login.
