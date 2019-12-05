@@ -11,6 +11,7 @@ import serial.tools.list_ports
 import subprocess
 import socket
 import time
+from notify import Notify
 
 async_main_loop = None
 
@@ -652,12 +653,18 @@ class Comms():
                         break
 
                     l = line.strip()
+                    if len(l) == 0 or l.startswith(';'):
+                        continue
 
                     if l.startswith('(MSG'):
                         self.app.main_window.async_display(l)
                         continue
 
-                    if len(l) == 0 or l.startswith(';') or l.startswith('('):
+                    if l.startswith('(NOTIFY'):
+                        Notify.send(l)
+                        continue
+
+                    if l.startswith('('):
                         continue
 
                     if l.startswith('T'):

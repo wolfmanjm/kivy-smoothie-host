@@ -47,6 +47,7 @@ Builder.load_string('''
                 on_press: root.ok()
 ''')
 
+
 class InputBox(Popup):
     text = StringProperty('')
     value = StringProperty('')
@@ -56,13 +57,13 @@ class InputBox(Popup):
     cancel_text = StringProperty('Cancel')
     __events__ = ('on_ok', 'on_cancel')
 
-    def __init__(self,**kwargs):
-        self.window= Window
-        super(InputBox,self).__init__(**kwargs)
+    def __init__(self, **kwargs):
+        self.window = Window
+        super(InputBox, self).__init__(**kwargs)
         self.content = self.ids["content"]
 
     def on_open(self):
-        self.ids.input.focus= True
+        self.ids.input.focus = True
 
     def ok(self):
         self.dispatch('on_ok')
@@ -74,7 +75,7 @@ class InputBox(Popup):
 
     def on_ok(self):
         if self.cb:
-            s= self.ids.input.text
+            s = self.ids.input.text
             self.cb(s)
 
     def on_cancel(self):

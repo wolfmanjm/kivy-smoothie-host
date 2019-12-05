@@ -76,9 +76,23 @@ NOTE for toolchange to be caught by Smoopi the M6 must be on a line by itself or
 
 - Flatcam gcode is supported but a minor postprocess on the gcode needs to be done so the comment showing the tool required is moved to before the M6 (it is currently after the M6 so you don't see it until after you resume).
 
-```M0``` can be enabled and any (MSG, xxxx) is displayed in the console window. However M0 simply pauses the job until the dialog is dismissed. This presumes the tool heights are all thhe same and no jogging is required to change a tool
+- ```M0``` can be enabled and any (MSG, xxxx) is displayed in the console window. However M0 simply pauses the job until the dialog is dismissed. This presumes the tool heights are all thhe same and no jogging is required to change a tool
 
-The viewer allows setting the WCS to any arbitrary point on the workpiece, and to move to any point on the workpiece. This allows positioning and size checking before the job is run.
+- The viewer allows setting the WCS to any arbitrary point on the workpiece, and to move to any point on the workpiece. This allows positioning and size checking before the job is run.
+
+### Suspend (filament change) support
+M600/suspend is handled correctly, and will suspend the print until the resume button is clicked (this will send M601). A useful thing is to insert ```(MSG any message here)``` in the gcode file before the M600 which will display in the console window, it could be a prompt to change the filament to a specific color for instance.
+
+### Notifications
+EMail notifications can be sent to monitor progress by embedding a token in the gcode file. 
+    
+    (NOTIFY any message here)
+
+When this is read in the gcode file an email is sent with the message.
+In order to send email a file ```notify.ini``` must be created with the SMTP authentication for your email server. (GMail works fine for instance).
+Look at the file ```sample-notify.ini``` and modify accordingly.
+
+Note for gmail users, it is best to setup an application password and use that instead of your gmail login.
 
 ## Install on RPI
 

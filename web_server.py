@@ -34,13 +34,13 @@ def make_request_handler_class(app, ip):
 
         def do_GET(self):
             self._set_headers()
-            # TODO query comms for linecnt and say if printing or not and what the progress is
             status = MyRequestHandler.m_app.status
             if MyRequestHandler.m_app.main_window.is_printing:
                 eta = MyRequestHandler.m_app.main_window.eta
                 file = MyRequestHandler.m_app.gcode_file
+                wpos = MyRequestHandler.m_app.wpos
                 self.wfile.write('<head><meta http-equiv="refresh" content="5"></head>\r\n'.encode("utf-8"))
-                self.wfile.write("{} - ETA: {}, File: {}".format(status, eta, file).encode("utf-8"))
+                self.wfile.write("{} - Z: {}, ETA: {}, File: {}".format(status, wpos[2], eta, file).encode("utf-8"))
             else:
                 self.wfile.write("{} - Not Running".format(status).encode("utf-8"))
 
