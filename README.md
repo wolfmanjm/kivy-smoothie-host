@@ -153,10 +153,12 @@ For instance...
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel
     sudo apt-get install python3-pip
-    sudo pip3 install -U Cython==0.28.2
+    sudo pip3 install -U Cython==0.28.2 pillow
     sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable-1.10.1
 
 This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable on RPI. 
+
+*NOTE* if you want to run on an HDMI screen instead of the touch screen, then you need to install  ```sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable``` (remember to make sure pillow is installed though)
 
 On an rpi3b+ it seems the double tap time needs to be increased to be usable..
 
