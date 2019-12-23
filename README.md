@@ -158,7 +158,7 @@ For instance...
 
 This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable on RPI. 
 
-*NOTE* if you want to run on an HDMI screen instead of the touch screen, then you need to install  ```sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable``` (remember to make sure pillow is installed though)
+*NOTE* if you want to run on an HDMI screen instead of the touch screen, then you need to install  ```sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable``` (remember to make sure pillow is installed though). This version allows the mouse to work properly.
 
 On an rpi3b+ it seems the double tap time needs to be increased to be usable..
 
