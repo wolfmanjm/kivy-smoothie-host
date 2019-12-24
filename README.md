@@ -453,4 +453,6 @@ The ```=1/2``` button will set the WCS of the currently selected axis to half th
 ![GCode Help Screen](pics/gcode-help.png)
 ## Desktop mode
 ![Desktop Screen](pics/desktop-mode.png)
+## Wide Screen Desktop mode
+![Wide screen Screen](pics/wide-screen.png)
 
