@@ -183,6 +183,9 @@ and the following line under the ```[modules]``` section:-
     [modules]
     cursor = 1
 
+and disable the onscreen keyboard:-
+
+    keyboard_mode = system
 
 ### Common setup
 It is recommended to do this:- 
