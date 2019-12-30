@@ -144,6 +144,7 @@ class Comms():
         self.last_tool = None
         self.is_suspend = False
         self.m0 = None
+        self.net_connection = False
         self.log = logging.getLogger()  # .getChild('Comms')
         # logging.getLogger().setLevel(logging.DEBUG)
 
@@ -183,7 +184,11 @@ class Comms():
         if queries:
             self._write(queries)
 
-        self._write('?')
+        if self.net_connection:
+            if not self.is_streaming:
+                self._write('?\n')
+        else:
+            self._write('?')
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
