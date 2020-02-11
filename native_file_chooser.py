@@ -45,7 +45,7 @@ class NativeFileChooser():
     def _wx_get_path(self):
         app = wx.App(None)
         style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
-        dialog = wx.FileDialog(None, self.title, defaultDir= self.start_dir, wildcard='GCode files|*.g;*.gcode;*.nc;*.gc|All Files|*', style=style)
+        dialog = wx.FileDialog(None, self.title, defaultDir= self.start_dir, wildcard='GCode files|*.g;*.gcode;*.nc;*.gc;*.ngc|All Files|*', style=style)
         if dialog.ShowModal() == wx.ID_OK:
             path = dialog.GetPath()
         else:
@@ -67,10 +67,10 @@ class NativeFileChooser():
 
             elif self.use_zenity:
                 os.unsetenv('WINDOWID') # needed so dialog pops up infront of my window
-                path= self._run_command(['zenity', '--title', self.title, '--file-selection', '--filename', self.start_dir+'/', '--file-filter', 'GCode files | *.g *.gcode *.nc *.gc'])
+                path= self._run_command(['zenity', '--title', self.title, '--file-selection', '--filename', self.start_dir+'/', '--file-filter', 'GCode files | *.g *.gcode *.nc *.gc *.ngc'])
 
             elif self.use_kdialog:
-                path= self._run_command(['kdialog', '--title', self.title, '--getopenfilename', self.start_dir, '*.g *.gcode *.nc *.gc'])
+                path= self._run_command(['kdialog', '--title', self.title, '--getopenfilename', self.start_dir, '*.g *.gcode *.nc *.gc *.ngc'])
             else:
                 self.failed= True
 
