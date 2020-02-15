@@ -78,9 +78,9 @@ class NumericInput(TextInput):
             if self.text == "":
                 self.text = self._last
             if App.get_running_app().is_desktop == 0:
-                self.hide_keyboard()
                 if self.keyboard and self.keyboard.widget:
                     self.m_keyboard.layout = "qwerty"
+                self.hide_keyboard()
 
     def on_parent(self, widget, parent):
         if App.get_running_app().is_desktop != 0:
