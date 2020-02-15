@@ -406,13 +406,13 @@ class MainWindow(BoxLayout):
 
         if 'F' in d:
             if len(d['F']) == 2:
-                self.app.frr = d['F'][0]
                 self.app.fr = d['F'][0]
+                self.app.frr = d['F'][0]
                 self.app.fro = d['F'][1]
             elif len(d['F']) == 3:
-                # NOTE current smoothie version sends fr and frr in wrong order
-                self.app.frr = d['F'][0]
-                self.app.fr = d['F'][1]
+                # NOTE fr is current actual feedrate and frr is requested feed rate (from the Fxxx)
+                self.app.fr = d['F'][0]
+                self.app.frr = d['F'][1]
                 self.app.fro = d['F'][2]
 
         if 'S' in d:
