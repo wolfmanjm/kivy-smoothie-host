@@ -76,7 +76,7 @@
                     disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
                     on_press: app.main_window.reprint()
                 ActionButton:
-                    text: 'View Last FIle'
+                    text: 'View Last File'
                     disabled: app.gcode_file == ''
                     on_press: app.main_window.review()
                 ActionButton:

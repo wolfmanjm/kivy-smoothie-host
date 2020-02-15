@@ -405,12 +405,14 @@ class MainWindow(BoxLayout):
             self.app.mpos = d['MPos']
 
         if 'F' in d:
-            self.app.fr = d['F'][0]
             if len(d['F']) == 2:
-                self.app.fro = d['F'][1]
                 self.app.frr = d['F'][0]
+                self.app.fr = d['F'][0]
+                self.app.fro = d['F'][1]
             elif len(d['F']) == 3:
-                self.app.frr = d['F'][1]
+                # NOTE current smoothie version sends fr and frr in wrong order
+                self.app.frr = d['F'][0]
+                self.app.fr = d['F'][1]
                 self.app.fro = d['F'][2]
 
         if 'S' in d:
