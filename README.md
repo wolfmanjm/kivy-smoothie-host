@@ -153,10 +153,12 @@ For instance...
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel
     sudo apt-get install python3-pip
-    sudo pip3 install -U Cython==0.28.2
+    sudo pip3 install -U Cython==0.28.2 pillow
     sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable-1.10.1
 
 This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable on RPI. 
+
+*NOTE* if you want to run on an HDMI screen instead of the touch screen, then you need to install  ```sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable``` (remember to make sure pillow is installed though). This version allows the mouse to work properly.
 
 On an rpi3b+ it seems the double tap time needs to be increased to be usable..
 
@@ -168,7 +170,8 @@ On an rpi3b+ it seems the double tap time needs to be increased to be usable..
     triple_tap_time = 600 # <- and this to be > than double_tap_time
 
 #### Keyboard and Mouse support
-Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. This HIDInput is broken in all the releases of Kivy older than 1.11.0. If using an older version of kivy you will need to replace the KIVYINSTALLDIR/kivy/input/providers/hidinput.py with this version: https://github.com/wolfmanjm/kivy/blob/master/kivy/input/providers/hidinput.py
+Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. This HIDInput is broken in all the releases of Kivy older than 1.11.0. If using an older version of kivy you will need to replace the ```KIVYINSTALLDIR/kivy/input/providers/hidinput.py``` (on the image this would be ```/usr/local/lib/python3.5/dist-packages/kivy/input/providers/hidinput.py```)
+with this version: https://github.com/wolfmanjm/kivy/blob/master/kivy/input/providers/hidinput.py
 
 You will also need to add the following line to your ```~/.kivy/config.ini``` file under the ```[input]``` section:-
     
@@ -180,6 +183,9 @@ and the following line under the ```[modules]``` section:-
     [modules]
     cursor = 1
 
+and disable the onscreen keyboard:-
+
+    keyboard_mode = system
 
 ### Common setup
 It is recommended to do this:- 
@@ -529,4 +535,6 @@ The spindle button will toggle the spindle switch on and off (if one is defined)
 ![GCode Help Screen](pics/gcode-help.png)
 ## Desktop mode
 ![Desktop Screen](pics/desktop-mode.png)
+## Wide Screen Desktop mode
+![Wide screen Screen](pics/wide-screen.png)
 

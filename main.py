@@ -78,9 +78,9 @@ class NumericInput(TextInput):
             if self.text == "":
                 self.text = self._last
             if App.get_running_app().is_desktop == 0:
-                self.hide_keyboard()
                 if self.keyboard and self.keyboard.widget:
                     self.m_keyboard.layout = "qwerty"
+                self.hide_keyboard()
 
     def on_parent(self, widget, parent):
         if App.get_running_app().is_desktop != 0:
@@ -405,11 +405,13 @@ class MainWindow(BoxLayout):
             self.app.mpos = d['MPos']
 
         if 'F' in d:
-            self.app.fr = d['F'][0]
             if len(d['F']) == 2:
-                self.app.fro = d['F'][1]
+                self.app.fr = d['F'][0]
                 self.app.frr = d['F'][0]
+                self.app.fro = d['F'][1]
             elif len(d['F']) == 3:
+                # NOTE fr is current actual feedrate and frr is requested feed rate (from the Fxxx)
+                self.app.fr = d['F'][0]
                 self.app.frr = d['F'][1]
                 self.app.fro = d['F'][2]
 
