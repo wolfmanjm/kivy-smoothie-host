@@ -94,6 +94,9 @@ Look at the file ```sample-notify.ini``` and modify accordingly.
 
 Note for gmail users, it is best to setup an application password and use that instead of your gmail login.
 
+### Unexpected HALTs
+If smoothie halts and goes into the alarm state for any reason (like limit hit or temperature overrun), it may be possible to restart from where ir left off. After correcting the issue that caused the HALT, turn the heaters back on (and power) and then click the resume button, if you are lucky it will continue from where it left off. It is probably best to abort the print though.
+
 ## Install on RPI
 
 **NOTE** on the current image and all installs on raspbian you need to add this...
