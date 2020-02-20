@@ -361,8 +361,7 @@ class Comms():
         done_cb(files)
 
     def _rcv_sdcard_line(self, ll, files, f):
-        # accumulate the file list, called with each line recieved
-
+        # accumulate the file list, called with each line received
         if ll.startswith('Begin file list') or ll == 'ok':
             # ignore these lines
             return

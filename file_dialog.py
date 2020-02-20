@@ -64,7 +64,7 @@ class FileSystemSDCard(FileSystemAbstract):
         if self._files is None:
             return False
 
-        if fn.startswith('../'):
+        if fn == '/' or fn == '../':
             return True
 
         return self._files[fn]['isdir']

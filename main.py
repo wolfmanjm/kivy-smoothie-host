@@ -644,9 +644,13 @@ class MainWindow(BoxLayout):
         fl = {}
         for f in l:
             f = '/sd/{}'.format(f)
-            if f.endswith('/'):
-                fl[f[:-1]] = {'size': 0, 'isdir': True}
-            else:
+            # if f.endswith('/'):
+            #     fl[f[:-1]] = {'size': 0, 'isdir': True}
+            # else:
+            #     fl[f] = {'size': 0, 'isdir': False}
+
+            # as we can't handle subdirectories yet we do not list them
+            if not f.endswith('/'):
                 fl[f] = {'size': 0, 'isdir': False}
 
         # get file to print
