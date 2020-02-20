@@ -157,7 +157,7 @@ class FileDialog(FloatLayout):
         self.cb = cb
 
         if file_list is not None:
-            print("{}: {}".format(title, file_list))
+            # print("{}: {}".format(title, file_list))
             fs = Factory.filesystemsd()
             fs.open(file_list)
             path = '/sd/'

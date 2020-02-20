@@ -338,7 +338,7 @@ class Comms():
     def _parse_sdcard_list(self, done_cb):
         self.log.debug('Comms: _parse_sdcard_list')
 
-        # setup callback to receieve and parse listing data
+        # setup callback to receive and parse listing data
         files = []
         f = asyncio.Future()
         self.redirect_incoming(lambda x: self._rcv_sdcard_line(x, files, f))
@@ -373,7 +373,7 @@ class Comms():
 
         else:
             # accumulate the incoming lines
-            files.append(l)
+            files.append(ll)
 
     def redirect_incoming(self, l):
         async_main_loop.call_soon_threadsafe(self._redirect_incoming, l)

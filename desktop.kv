@@ -42,12 +42,12 @@
                 text: 'Run' # also 'Pause'/'Resume'
                 #important: True
                 on_press: root.start_print()
-            # ActionButton:
-            #     id: sdprint_but
-            #     disabled: not app.is_connected
-            #     text: 'SD Print' # also 'Pause'/'Resume'
-            #     #important: True
-            #     on_press: root.list_sdcard()
+            ActionButton:
+                id: sdprint_but
+                disabled: not app.is_connected
+                text: 'SD Print' # also 'Pause'/'Resume'
+                #important: True
+                on_press: root.list_sdcard()
             ActionButton:
                 disabled: not root.is_printing
                 text: 'Abort'
