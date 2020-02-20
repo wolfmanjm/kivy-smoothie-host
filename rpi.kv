@@ -83,6 +83,10 @@
                     text: 'Find Center'
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.tool_scripts.find_center()
+                ActionButton:
+                    text: 'SD Print'
+                    disabled: not app.is_connected or root.is_printing
+                    on_press: app.main_window.list_sdcard()
 
             ActionGroup:
                 text: 'System'
