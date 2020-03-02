@@ -811,6 +811,7 @@ class SmoothieHost(App):
         self.last_probe = {'X': 0, 'Y': 0, 'Z': 0, 'status': False}
         self.tool_scripts = ToolScripts()
         self.desktop_changed = False
+        self.command_history =  None
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1188,10 +1189,10 @@ class SmoothieHost(App):
         # print("key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
         # control uses finer move, shift uses coarse move
         v = 0.1
-        if len(modifiers) == 1:
-            if modifiers[0] == 'ctrl':
+        if len(modifiers) >= 1:
+            if 'ctrl' in modifiers:
                 v = 0.01
-            elif modifiers[0] == 'shift':
+            elif 'shift' in modifiers:
                 v = 1
 
         choices = {
@@ -1213,16 +1214,23 @@ class SmoothieHost(App):
             if v == 0.01:  # it is a control key
                 if codepoint == 'p':
                     # get previous history by finding all the recently sent commands
-                    history = [x['text'] for x in self.main_window.ids.log_window.data if x['text'].startswith('<< ')]
-                    if history:
-                        last = history.pop()
+                    if not self.command_history:
+                        self.command_history = [x['text'] for x in self.main_window.ids.log_window.data if x['text'].startswith('<< ')]
+
+                    if self.command_history:
+                        last = self.command_history.pop()
                         self.main_window.ids.entry.text = last[3:]
+
                 elif codepoint == 'n':
-                    # get next history
+                    # TODO get next history
                     pass
                 elif codepoint == 'c':
                     # clear console
                     self.main_window.ids.log_window.data = []
+                    self.command_history = None
+
+            elif self.command_history:
+                self.command_history = None
 
         return False
 
