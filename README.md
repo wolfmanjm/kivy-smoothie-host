@@ -273,6 +273,16 @@ Also in Settings you can enable the video option which uses mjpg-streamer
 (which needs to be built and installed, See https://github.com/jacksonliam/mjpg-streamer.git for instructions on that). If enabled and running then the video will show up in the progress web page.
 There is also a camera option in the system menu which allows a preview of the camera view, the url for this is also in the settings, and should be the url which gets a snapshot single jpeg frame from the camera.
 
+If you are using the supplied image and want the streamer to auto start then..
+
+    1. from the home directory
+    2. '''> tar xvf smoopi/runit-setup-mjpegstreamer.tar'''
+    3. edit '''~/sv/streamer/run''' and make sure the path is correct to the mjpeg streamer directory
+    4. edit '''~/sv/streamer/env/LD_LIBRARY_PATH''' and make sure the path is correct there too
+    5. delete '''~/sv/streamer/down'''
+    
+It should auto start then.
+
 ## On linux Desktop (and maybe windows/macos)
 
 Install on recent Linux and python >= 3.5 and <= 3.6 using the fast wheels installation...
