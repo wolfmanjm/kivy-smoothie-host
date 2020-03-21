@@ -112,6 +112,7 @@ class MPG_rawhid():
         self.pid = pid
         self.hid = RawHID()
         self.macrobut = {}
+        self.app = App.get_running_app()
 
     def twos_comp(self, val, bits):
         """compute the 2's complement of int value val"""
@@ -129,7 +130,6 @@ class MPG_rawhid():
         self.t.join()
 
     def _run(self):
-        app = App.get_running_app()
         self.load_macros()
 
         try:
@@ -155,7 +155,7 @@ class MPG_rawhid():
                         step = self.twos_comp(data[4], 8)
                         s = data[5]
                         estop = data[6] & 1
-                        button = estop >> 1
+                        button = data[6] >> 1
 
                         Logger.info("MPG_rawhid: axis: {}, mult: {}, step: {}, speed: {}, estop: {}, button: {}".format(axis, mult, step, s, estop, button))
 
@@ -166,9 +166,9 @@ class MPG_rawhid():
                         # us= a<<24 | b<<16 | c << 8 | d
                         # print("us= {}".format(us))
 
-                        if app.is_connected:
-                            if estop == 1 and app.status != 'Alarm':
-                                app.comms.write('\x18')
+                        if True: # app.is_connected:
+                            if estop == 1 and self.app.status != 'Alarm':
+                                self.app.comms.write('\x18')
                                 continue
 
                             if button != 0:
@@ -178,7 +178,7 @@ class MPG_rawhid():
                         else:
                             continue
 
-                        if app.main_window.is_printing:
+                        if self.app.main_window.is_printing:
                             continue
 
                         if axis == 0:
@@ -188,7 +188,7 @@ class MPG_rawhid():
                         if s == 0:
                             s = 1
                         speed = s / 10.0
-                        app.comms.write("$J {}{} F{}\n".format(alut[axis], dist, speed))
+                        self.app.comms.write("$J {}{} F{}\n".format(alut[axis], dist, speed))
 
                 # Close the Teensy connection
                 self.hid.close()
@@ -204,7 +204,9 @@ class MPG_rawhid():
     def process_macro(self, btn, axis):
         if(btn in self.macrobut):
             # use defined macro
-            cmd = self.macrobut[name]
+            cmd = self.macrobut[btn]
+            print("cmd is: {}".format(cmd))
+
             if "{axis}" in cmd:
                 # replace axis with selected axis
                 if axis != 0:
@@ -220,7 +222,10 @@ class MPG_rawhid():
                 cmd = "M5" if self.app.is_spindle_on else "M3"
 
             elif "set-half" == cmd:
-                cmd = "G10 L20 P0 {}{}".format(alut[axis], self.app.wpos[axis] / 2.0)
+                if axis != 0:
+                    cmd = "G10 L20 P0 {}{}".format(alut[axis], self.app.wpos[axis] / 2.0)
+                else:
+                    return False
 
             elif "start" == cmd:
                 # TODO if running then pause
