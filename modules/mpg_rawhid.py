@@ -157,7 +157,7 @@ class MPG_rawhid():
                         estop = data[6] & 1
                         button = data[6] >> 1
 
-                        Logger.info("MPG_rawhid: axis: {}, mult: {}, step: {}, speed: {}, estop: {}, button: {}".format(axis, mult, step, s, estop, button))
+                        # Logger.debug("MPG_rawhid: axis: {}, mult: {}, step: {}, speed: {}, estop: {}, button: {}".format(axis, mult, step, s, estop, button))
 
                         # a= data[7]
                         # b= data[8]
@@ -166,7 +166,7 @@ class MPG_rawhid():
                         # us= a<<24 | b<<16 | c << 8 | d
                         # print("us= {}".format(us))
 
-                        if True: # app.is_connected:
+                        if app.is_connected:
                             if estop == 1 and self.app.status != 'Alarm':
                                 self.app.comms.write('\x18')
                                 continue
@@ -205,7 +205,7 @@ class MPG_rawhid():
         if(btn in self.macrobut):
             # use defined macro
             cmd = self.macrobut[btn]
-            print("cmd is: {}".format(cmd))
+            # print("cmd is: {}".format(cmd))
 
             if "{axis}" in cmd:
                 # replace axis with selected axis
