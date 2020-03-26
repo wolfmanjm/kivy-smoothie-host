@@ -223,7 +223,7 @@ class MPG_rawhid():
 
             elif "set-half" == cmd:
                 if axis != 0:
-                    cmd = "G10 L20 P0 {}{}".format(alut[axis], self.app.wpos[axis] / 2.0)
+                    cmd = "G10 L20 P0 {}{}".format(alut[axis], self.app.wpos[axis - 1] / 2.0)
                 else:
                     return False
 
