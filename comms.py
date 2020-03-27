@@ -448,11 +448,12 @@ class Comms():
                 # Handle PRB reply
                 self.handle_probe(s)
 
-            elif s.startswith('[') and ':' in s:
-                # Handle $# reply
+            elif s.startswith('[') and ':' in s and 'GC:' not in s:
+                # Handle $# and get wcs reply
                 self.app.main_window.async_display(s)
 
             elif s.startswith('['):
+                # TODO eventually only look for [GC:
                 self.handle_state(s)
 
             elif s.startswith("!!") or s.startswith("error:Alarm lock"):
@@ -505,7 +506,10 @@ class Comms():
 
     def handle_state(self, s):
         # [G0 G55 G17 G21 G90 G94 M0 M5 M9 T1 F4000.0000 S0.8000]
+        # [GC:G0 G55 G17 G21 G90 G94 M0 M5 M9 T1 F4000.0000 S0.8000]
         s = s[1:-1]  # strip off [ .. ]
+        if s.startswith("GC:"):
+            s = s[3:-1]
         # split fields
         ll = s.split(' ')
         self.log.debug("Comms: Got state: {}".format(ll))
