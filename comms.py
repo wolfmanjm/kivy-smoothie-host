@@ -509,7 +509,9 @@ class Comms():
         # [GC:G0 G55 G17 G21 G90 G94 M0 M5 M9 T1 F4000.0000 S0.8000]
         s = s[1:-1]  # strip off [ .. ]
         if s.startswith("GC:"):
-            s = s[3:-1]
+            # strip off the GC:
+            s = s[3:]
+
         # split fields
         ll = s.split(' ')
         self.log.debug("Comms: Got state: {}".format(ll))
