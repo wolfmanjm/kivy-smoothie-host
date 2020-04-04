@@ -92,6 +92,7 @@ M305 | Set parameters for the thermistor, B<beta> R<r0> X<t0> P<ID> of the therm
 M306 | Set homing offsets based on current position
 M370 | clears the ZGrid and the bed levelling is disabled
 M374 | save calibration grid
+M374.1 | delete calibration grid
 M375 | load calibration grid
 M375.1 | display the current grid
 M400 | Wait for the queue to be empty
