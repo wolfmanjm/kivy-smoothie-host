@@ -24,6 +24,8 @@ G31 | Depends on levelling strategy selected,
 G32 | Execute current levelling strategy or for delta do trim calibration
 G38.2 | Standard probe in direction XYZ, halt on error
 G38.3 | Standard probe in direction XYZ
+G43.1 | set tool offset increment
+G49 | clear tool offset
 G53 | next move is in MCS
 G54-G59 | select workspace coordinate system
 G90 | set Absolute mode
