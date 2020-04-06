@@ -811,7 +811,7 @@ class SmoothieHost(App):
         self.last_probe = {'X': 0, 'Y': 0, 'Z': 0, 'status': False}
         self.tool_scripts = ToolScripts()
         self.desktop_changed = False
-        self.command_history =  None
+        self.command_history = None
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1205,7 +1205,7 @@ class SmoothieHost(App):
         }
 
         s = choices.get(key, None)
-        if s is not None:
+        if s is not None and not (self.main_window.is_printing and not self.main_window.is_suspended):
             self.comms.write('$J {}\n'.format(s))
             return True
 
