@@ -1205,8 +1205,10 @@ class SmoothieHost(App):
         }
 
         s = choices.get(key, None)
-        if s is not None and not (self.main_window.is_printing and not self.main_window.is_suspended):
-            self.comms.write('$J {}\n'.format(s))
+        if s is not None:
+            if not (self.main_window.is_printing and not self.main_window.is_suspended):
+                self.comms.write('$J {}\n'.format(s))
+
             return True
 
         # handle command history if in desktop mode
