@@ -80,12 +80,13 @@ Builder.load_string('''
                 spacing: dp(2)
 ''')
 
+
 class ConfigEditor(Screen):
 
     @mainthread
     def _add_line(self, line):
         if not line.lstrip().startswith("#"):
-            t= line.split()
+            t = line.split()
             if len(t) >= 2:
                 self.rv.data.append({'k': t[0], 'v': t[1]})
             elif t[0] == 'ok':
@@ -96,13 +97,13 @@ class ConfigEditor(Screen):
                 self.app.comms.redirect_incoming(None)
 
     def populate(self):
-        self.rv.data= []
-        self.app= App.get_running_app()
+        self.rv.data = []
+        self.app = App.get_running_app()
         # get config, parse and populate
         self.app.comms.redirect_incoming(self._add_line)
         # issue command
         self.app.comms.write('cat /sd/config\n')
-        self.app.comms.write('\n') # get an ok to indicate end of cat
+        self.app.comms.write('\n')  # get an ok to indicate end of cat
 
     def insert(self, value):
         self.rv.data.insert(0, {'k': value, 'v': ''})
@@ -114,7 +115,7 @@ class ConfigEditor(Screen):
 
     def _new_switch(self, opts):
         if opts and opts['Name']:
-            sw= "switch.{}".format(opts['Name'])
+            sw = "switch.{}".format(opts['Name'])
             self.rv.data.insert(0, {'k': "{}.input_off_command".format(sw), 'v': opts['Off Command']})
             self.rv.data.insert(0, {'k': "{}.input_on_command".format(sw), 'v': opts['On Command']})
             self.rv.data.insert(0, {'k': "{}.output_pin".format(sw), 'v': opts['Pin']})
@@ -123,10 +124,11 @@ class ConfigEditor(Screen):
                 self.save_change(self.rv.data[i]['k'], self.rv.data[i]['v'])
 
     def save_change(self, k, v):
-        if k == '': return # ignore the dummy lines
+        if k == '':
+            return  # ignore the dummy lines
         self.app.comms.write("config-set sd {} {}\n".format(k, v))
 
     def close(self):
         self.app.comms.redirect_incoming(None)
-        self.rv.data= []
+        self.rv.data = []
         self.manager.current = 'main'

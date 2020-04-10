@@ -985,7 +985,10 @@ class SmoothieHost(App):
         settings.add_json_panel('SmooPie application', self.config, data=jsondata)
 
     def on_config_change(self, config, section, key, value):
-        # print("config changed: {} - {}: {}".format(section, key, value))
+        # print("config {} changed: {} - {}: {}".format(config, section, key, value))
+        if config is not self.config:
+            return
+
         token = (section, key)
         if token == ('UI', 'cnc'):
             self.is_cnc = value == "1"
