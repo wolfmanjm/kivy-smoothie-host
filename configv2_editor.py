@@ -45,7 +45,7 @@ class ConfigV2Editor(Screen):
     jsondata = []
     current_section = None
     config = None
-    configdata = ""
+    configdata = []
     msp = None
 
     def _add_line(self, line):
@@ -54,12 +54,19 @@ class ConfigV2Editor(Screen):
             if ll.startswith("ok"):
                 # finished
                 self.app.comms.redirect_incoming(None)
-                self.config.read_string(configdata)
-                self.configdata = ""
+                try:
+                    self.config.read_string('\n'.join(self.configdata))
+                except Exception as e:
+                    Logger.error("ConfigV2Editor: Error parsing the config file: {}".format(e))
+                    self.app.main_window.async_display("Error parsing config file, see log")
+                    self.close()
+                    return
+
+                self.configdata = []
                 self.build()
 
             else:
-                configdata.append(ll)
+                self.configdata.append(ll)
 
     def new_entry(self):
         o = MultiInputBox(title='Add new entry')
@@ -89,12 +96,10 @@ class ConfigV2Editor(Screen):
     @mainthread
     def build(self):
         for section in self.config.sections():
-            print(section)
             self.current_section = section
             self.jsondata.append({"type": "title", "title": self.current_section})
 
             for (key, v) in self.config.items(section):
-                print("   {} -> {}".format(key, v))
                 o = v.find('#')
                 if o > 0:
                     # convert comment into desc and strip from value
@@ -120,22 +125,22 @@ class ConfigV2Editor(Screen):
 
     def close(self):
         self.app.comms.redirect_incoming(None)
-        self.msp = None
+        if self.msp:
+            self.msp.on_close()
+            self.ids.placeholder.remove_widget(self.msp)
+            self.msp = None
         self.jsondata = []
         self.config = None
-        self.msp.on_close()
-        self.ids.placeholder.remove_widget(self.msp)
-        self.msp = None
         self.manager.current = 'main'
 
 
 class MySettingsPanel(SettingsWithNoMenu):
     def on_close(self):
-        print("MySettingsWithTabbedPanel.on_close")
+        pass
 
     def on_config_change(self, config, section, key, value):
         print(
             "main.py: MySettingsWithTabbedPanel.on_config_change: "
             "{0}, {1}, {2}, {3}".format(config, section, key, value))
         app = App.get_running_app()
-        app.comms.write("config-set \"{}\" {} {}\n".format(section, key, value))
+        app.comms.write('config-set "{}" {} {}\n'.format(section, key, value))
