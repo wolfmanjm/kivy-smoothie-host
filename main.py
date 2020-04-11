@@ -40,6 +40,7 @@ from web_server import ProgressServer
 from camera_screen import CameraScreen
 from spindle_camera import SpindleCamera
 from config_editor import ConfigEditor
+from configv2_editor import ConfigV2Editor
 from gcode_help import GcodeHelp
 from text_editor import TextEditor
 from tool_scripts import ToolScripts
@@ -749,9 +750,11 @@ class MainWindow(BoxLayout):
 
     def config_editor(self):
         if self.app.is_v2:
-            MessageBox(text='Implemented for V1 config only').open()
-            return
-        self.app.config_editor.populate()
+            self.app.config_editor.open()
+
+        else:
+            self.app.config_editor.populate()
+
         self.app.sm.current = 'config_editor'
 
     def text_editor(self):
@@ -985,10 +988,7 @@ class SmoothieHost(App):
         settings.add_json_panel('SmooPie application', self.config, data=jsondata)
 
     def on_config_change(self, config, section, key, value):
-        # print("config {} changed: {} - {}: {}".format(config, section, key, value))
-        if config is not self.config:
-            return
-
+        # print("config changed: {} - {}: {}".format(section, key, value))
         token = (section, key)
         if token == ('UI', 'cnc'):
             self.is_cnc = value == "1"
@@ -1102,7 +1102,10 @@ class SmoothieHost(App):
         self.main_window = ms.ids.main_window
         self.sm.add_widget(ms)
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms=self.comms))
-        self.config_editor = ConfigEditor(name='config_editor')
+        if self.is_v2:
+            self.config_editor = ConfigV2Editor(name='config_editor')
+        else:
+            self.config_editor = ConfigEditor(name='config_editor')
         self.sm.add_widget(self.config_editor)
         self.gcode_help = GcodeHelp(name='gcode_help')
         self.sm.add_widget(self.gcode_help)
