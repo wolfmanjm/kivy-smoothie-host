@@ -139,8 +139,5 @@ class MySettingsPanel(SettingsWithNoMenu):
         pass
 
     def on_config_change(self, config, section, key, value):
-        print(
-            "main.py: MySettingsWithTabbedPanel.on_config_change: "
-            "{0}, {1}, {2}, {3}".format(config, section, key, value))
         app = App.get_running_app()
         app.comms.write('config-set "{}" {} {}\n'.format(section, key, value))
