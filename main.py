@@ -3,7 +3,7 @@ import kivy
 from kivy.app import App
 from kivy.lang import Builder
 
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -749,13 +749,7 @@ class MainWindow(BoxLayout):
         return cmd
 
     def config_editor(self):
-        if self.app.is_v2:
-            self.app.config_editor.open()
-
-        else:
-            self.app.config_editor.populate()
-
-        self.app.sm.current = 'config_editor'
+        self.app.config_editor.open()
 
     def text_editor(self):
         # get file to view
@@ -1096,7 +1090,7 @@ class SmoothieHost(App):
 
         self.comms = Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file = self.config.get('General', 'last_print_file')
-        self.sm = ScreenManager()
+        self.sm = ScreenManager(transition=NoTransition())
         ms = MainScreen(name='main')
         self.main_window = ms.ids.main_window
         self.sm.add_widget(ms)

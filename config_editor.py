@@ -96,8 +96,9 @@ class ConfigEditor(Screen):
 
                 self.app.comms.redirect_incoming(None)
 
-    def populate(self):
+    def open(self):
         self.rv.data = []
+        self.manager.current = 'config_editor'
         self.app = App.get_running_app()
         # get config, parse and populate
         self.app.comms.redirect_incoming(self._add_line)

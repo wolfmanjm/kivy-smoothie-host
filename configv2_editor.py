@@ -1,8 +1,9 @@
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.clock import mainthread
+from kivy.clock import Clock, mainthread
 from kivy.config import ConfigParser
 from kivy.uix.settings import SettingsWithNoMenu
+from kivy.uix.label import Label
 from kivy.logger import Logger
 from kivy.uix.screenmanager import ScreenManager, Screen
 
@@ -10,6 +11,7 @@ from multi_input_box import MultiInputBox
 
 import json
 import configparser
+import threading
 
 Builder.load_string('''
 <ConfigV2Editor>:
@@ -51,9 +53,8 @@ class ConfigV2Editor(Screen):
     def _add_line(self, line):
         ll = line.lstrip().rstrip()
         if not ll.startswith("#") and ll != "":
-            if ll.startswith("ok"):
+            if ll == "ok":
                 # finished
-                self.app.comms.redirect_incoming(None)
                 try:
                     self.config.read_string('\n'.join(self.configdata))
                 except Exception as e:
@@ -62,8 +63,9 @@ class ConfigV2Editor(Screen):
                     self.close()
                     return
 
+                self.app.comms.redirect_incoming(None)
                 self.configdata = []
-                self.build()
+                self._build()
 
             else:
                 self.configdata.append(ll)
@@ -79,7 +81,8 @@ class ConfigV2Editor(Screen):
 
     def open(self):
         self.app = App.get_running_app()
-
+        self.ids.placeholder.add_widget(Label(text='Loading....'))
+        self.manager.current = 'config_editor'
         self.config = ConfigParser.get_configparser('Smoothie Config')
         if self.config is None:
             self.config = ConfigParser(name='Smoothie Config')
@@ -94,7 +97,14 @@ class ConfigV2Editor(Screen):
         self.app.comms.write('\n')  # get an ok to indicate end of cat
 
     @mainthread
-    def build(self):
+    def _show(self):
+        ss = self.ids.placeholder
+        ss.clear_widgets()
+
+        ss.add_widget(self.msp)
+        self.jsondata = []
+
+    def _build(self):
         for section in self.config.sections():
             self.current_section = section
             self.jsondata.append({"type": "title", "title": self.current_section})
@@ -115,20 +125,15 @@ class ConfigV2Editor(Screen):
                     tt = {"type": 'string', "title": key, "desc": comment, "section": self.current_section, "key": key}
                 self.jsondata.append(tt)
 
-        ss = self.ids.placeholder
-        if self.msp:
-            ss.remove_widget(self.msp)
-
         self.msp = MySettingsPanel()
         self.msp.add_json_panel('Smoothie Config', self.config, data=json.dumps(self.jsondata))
-        ss.add_widget(self.msp)
-        self.jsondata = []
+        self._show()
 
     def close(self):
         self.app.comms.redirect_incoming(None)
+        self.ids.placeholder.clear_widgets()
         if self.msp:
             self.msp.on_close()
-            self.ids.placeholder.remove_widget(self.msp)
             self.msp = None
         self.jsondata = []
         self.config = None
