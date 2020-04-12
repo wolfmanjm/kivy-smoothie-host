@@ -992,6 +992,7 @@ class SmoothieHost(App):
         token = (section, key)
         if token == ('UI', 'cnc'):
             self.is_cnc = value == "1"
+            self.main_window.display("NOTICE: Restart is needed")
         elif token == ('UI', 'display_type'):
             self.desktop_changed = True
             self.main_window.display("NOTICE: Restart is needed")
@@ -1007,8 +1008,6 @@ class SmoothieHost(App):
             self.manual_tool_change = value == '1'
         elif token == ('General', 'wait_on_m0'):
             self.wait_on_m0 = value == '1'
-        elif token == ('General', 'v2'):
-            self.is_v2 = value == '1'
         elif token == ('Web', 'camera_url'):
             self.camera_url = value
         else:

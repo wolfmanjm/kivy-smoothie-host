@@ -122,6 +122,7 @@ class ConfigV2Editor(Screen):
         self.msp = MySettingsPanel()
         self.msp.add_json_panel('Smoothie Config', self.config, data=json.dumps(self.jsondata))
         ss.add_widget(self.msp)
+        self.jsondata = []
 
     def close(self):
         self.app.comms.redirect_incoming(None)
