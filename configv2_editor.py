@@ -63,7 +63,6 @@ class ConfigV2Editor(Screen):
                     self.close()
                     return
 
-                self.app.comms.redirect_incoming(None)
                 self.configdata = []
                 self._build()
 
@@ -97,14 +96,8 @@ class ConfigV2Editor(Screen):
         self.app.comms.write('\n')  # get an ok to indicate end of cat
 
     @mainthread
-    def _show(self):
-        ss = self.ids.placeholder
-        ss.clear_widgets()
-
-        ss.add_widget(self.msp)
-        self.jsondata = []
-
     def _build(self):
+        self.app.comms.redirect_incoming(None)
         for section in self.config.sections():
             self.current_section = section
             self.jsondata.append({"type": "title", "title": self.current_section})
@@ -127,7 +120,11 @@ class ConfigV2Editor(Screen):
 
         self.msp = MySettingsPanel()
         self.msp.add_json_panel('Smoothie Config', self.config, data=json.dumps(self.jsondata))
-        self._show()
+        ss = self.ids.placeholder
+        ss.clear_widgets()
+
+        ss.add_widget(self.msp)
+        self.jsondata = []
 
     def close(self):
         self.app.comms.redirect_incoming(None)
