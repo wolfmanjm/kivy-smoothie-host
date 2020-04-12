@@ -338,7 +338,7 @@ class Comms():
     def _parse_sdcard_list(self, done_cb):
         self.log.debug('Comms: _parse_sdcard_list')
 
-        # setup callback to receieve and parse listing data
+        # setup callback to receive and parse listing data
         files = []
         f = asyncio.Future()
         self.redirect_incoming(lambda x: self._rcv_sdcard_line(x, files, f))
@@ -361,8 +361,7 @@ class Comms():
         done_cb(files)
 
     def _rcv_sdcard_line(self, ll, files, f):
-        # accumulate the file list, called with each line recieved
-
+        # accumulate the file list, called with each line received
         if ll.startswith('Begin file list') or ll == 'ok':
             # ignore these lines
             return
@@ -373,7 +372,7 @@ class Comms():
 
         else:
             # accumulate the incoming lines
-            files.append(l)
+            files.append(ll)
 
     def redirect_incoming(self, l):
         async_main_loop.call_soon_threadsafe(self._redirect_incoming, l)
@@ -449,11 +448,7 @@ class Comms():
                 # Handle PRB reply
                 self.handle_probe(s)
 
-            elif s.startswith('[') and ':' in s:
-                # Handle $# reply
-                self.app.main_window.async_display(s)
-
-            elif s.startswith('['):
+            elif s.startswith('[GC:'):
                 self.handle_state(s)
 
             elif s.startswith("!!") or s.startswith("error:Alarm lock"):
@@ -505,8 +500,9 @@ class Comms():
                 self.app.main_window.async_display('{}'.format(s))
 
     def handle_state(self, s):
-        # [G0 G55 G17 G21 G90 G94 M0 M5 M9 T1 F4000.0000 S0.8000]
-        s = s[1:-1]  # strip off [ .. ]
+        # [GC:G0 G55 G17 G21 G90 G94 M0 M5 M9 T1 F4000.0000 S0.8000]
+        s = s[4:-1]  # strip off [GC: .. ]
+
         # split fields
         ll = s.split(' ')
         self.log.debug("Comms: Got state: {}".format(ll))

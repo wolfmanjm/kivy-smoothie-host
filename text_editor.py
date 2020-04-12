@@ -87,47 +87,49 @@ Builder.load_string('''
                 #touch_multiselect: True
 ''')
 
+
 class Row(BoxLayout):
-    selected= BooleanProperty(False)
-    rv= ObjectProperty()
+    selected = BooleanProperty(False)
+    rv = ObjectProperty()
 
     def on_focus(self, i, v):
-        self.selected= v
+        self.selected = v
         if v:
-            self.rv.selected_idx= self.index
+            self.rv.selected_idx = self.index
         else:
-            self.rv.selected_idx= -1
+            self.rv.selected_idx = -1
 
     def save_change(self, k, v):
-        #print("line {} changed to {}\n".format(k, v))
-        self.rv.data[k]['value']= v
+        # print("line {} changed to {}\n".format(k, v))
+        self.rv.data[k]['value'] = v
         self.rv.refresh_from_data()
 
+
 class TextEditor(Screen):
-    editable= BooleanProperty(False)
+    editable = BooleanProperty(False)
 
     def open(self, fn):
-        self.fn= fn
-        cnt= 0
+        self.fn = fn
+        cnt = 0
         with open(fn) as f:
             for line in f:
                 self.rv.data.append({'value': line.rstrip(), 'index': cnt, 'ro': not self.editable})
                 cnt += 1
-        self.max_cnt= cnt
+        self.max_cnt = cnt
         # add dummy lines at end so we can edit the last few lines without keyboard covering them
         for i in range(10):
             self.rv.data.append({'value': '', 'index': -1, 'ro': True})
 
-        Row.rv= self.rv
+        Row.rv = self.rv
 
     def close(self):
-        self.rv.data= []
+        self.rv.data = []
         self.manager.current = 'main'
 
     def save(self):
         if self.editable:
             # rename old file to .bak
-            os.rename(self.fn, self.fn+'.bak')
+            os.rename(self.fn, self.fn + '.bak')
             with open(self.fn, 'w') as f:
                 for l in self.rv.data:
                     # writeout file
@@ -136,33 +138,33 @@ class TextEditor(Screen):
 
     def insert(self, before):
         # now see which line is selected and insert before or after that
-        i= self.rv.selected_idx
+        i = self.rv.selected_idx
         if i < 0:
-            #print("No line is selected")
+            # print("No line is selected")
             return
         if not before:
             # insert after selected line
-            i= i+1
+            i = i + 1
 
         self.rv.data.insert(i, {'value': "ENTER TEXT", 'index': i, 'ro': False})
-        self.max_cnt+=1
+        self.max_cnt += 1
         # we need to renumber all following lines
-        for j in range(i+1, self.max_cnt):
+        for j in range(i + 1, self.max_cnt):
             self.rv.data[j]['index'] = j
 
         self.rv.refresh_from_data()
         Clock.schedule_once(partial(self._refocus_it, i), 0.3)
 
     def _refocus_it(self, i, *largs):
-        self.rv.view_adapter.get_visible_view(i).ti.focus= True
+        self.rv.view_adapter.get_visible_view(i).ti.focus = True
         Clock.schedule_once(partial(self._select_it, i))
+
     def _select_it(self, i, *largs):
         self.rv.view_adapter.get_visible_view(i).ti.select_all()
 
     def set_edit(self):
-        self.editable= not self.editable
+        self.editable = not self.editable
         for l in self.rv.data:
             if l['index'] >= 0:
-                l['ro']= not self.editable
+                l['ro'] = not self.editable
         self.rv.refresh_from_data()
-

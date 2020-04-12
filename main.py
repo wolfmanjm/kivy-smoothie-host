@@ -3,7 +3,7 @@ import kivy
 from kivy.app import App
 from kivy.lang import Builder
 
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -40,6 +40,7 @@ from web_server import ProgressServer
 from camera_screen import CameraScreen
 from spindle_camera import SpindleCamera
 from config_editor import ConfigEditor
+from configv2_editor import ConfigV2Editor
 from gcode_help import GcodeHelp
 from text_editor import TextEditor
 from tool_scripts import ToolScripts
@@ -646,9 +647,13 @@ class MainWindow(BoxLayout):
         fl = {}
         for f in l:
             f = '/sd/{}'.format(f)
-            if f.endswith('/'):
-                fl[f[:-1]] = {'size': 0, 'isdir': True}
-            else:
+            # if f.endswith('/'):
+            #     fl[f[:-1]] = {'size': 0, 'isdir': True}
+            # else:
+            #     fl[f] = {'size': 0, 'isdir': False}
+
+            # as we can't handle subdirectories yet we do not list them
+            if not f.endswith('/'):
                 fl[f] = {'size': 0, 'isdir': False}
 
         # get file to print
@@ -746,11 +751,7 @@ class MainWindow(BoxLayout):
         return cmd
 
     def config_editor(self):
-        if self.app.is_v2:
-            MessageBox(text='Implemented for V1 config only').open()
-            return
-        self.app.config_editor.populate()
-        self.app.sm.current = 'config_editor'
+        self.app.config_editor.open()
 
     def text_editor(self):
         # get file to view
@@ -811,6 +812,7 @@ class SmoothieHost(App):
         self.last_probe = {'X': 0, 'Y': 0, 'Z': 0, 'status': False}
         self.tool_scripts = ToolScripts()
         self.desktop_changed = False
+        self.command_history = None
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -988,6 +990,7 @@ class SmoothieHost(App):
         token = (section, key)
         if token == ('UI', 'cnc'):
             self.is_cnc = value == "1"
+            self.main_window.display("NOTICE: Restart is needed")
         elif token == ('UI', 'display_type'):
             self.desktop_changed = True
             self.main_window.display("NOTICE: Restart is needed")
@@ -1003,8 +1006,6 @@ class SmoothieHost(App):
             self.manual_tool_change = value == '1'
         elif token == ('General', 'wait_on_m0'):
             self.wait_on_m0 = value == '1'
-        elif token == ('General', 'v2'):
-            self.is_v2 = value == '1'
         elif token == ('Web', 'camera_url'):
             self.camera_url = value
         else:
@@ -1093,12 +1094,15 @@ class SmoothieHost(App):
 
         self.comms = Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file = self.config.get('General', 'last_print_file')
-        self.sm = ScreenManager()
+        self.sm = ScreenManager(transition=NoTransition())
         ms = MainScreen(name='main')
         self.main_window = ms.ids.main_window
         self.sm.add_widget(ms)
         self.sm.add_widget(GcodeViewerScreen(name='viewer', comms=self.comms))
-        self.config_editor = ConfigEditor(name='config_editor')
+        if self.is_v2:
+            self.config_editor = ConfigV2Editor(name='config_editor')
+        else:
+            self.config_editor = ConfigEditor(name='config_editor')
         self.sm.add_widget(self.config_editor)
         self.gcode_help = GcodeHelp(name='gcode_help')
         self.sm.add_widget(self.gcode_help)
@@ -1188,10 +1192,10 @@ class SmoothieHost(App):
         # print("key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
         # control uses finer move, shift uses coarse move
         v = 0.1
-        if len(modifiers) == 1:
-            if modifiers[0] == 'ctrl':
+        if len(modifiers) >= 1:
+            if 'ctrl' in modifiers:
                 v = 0.01
-            elif modifiers[0] == 'shift':
+            elif 'shift' in modifiers:
                 v = 1
 
         choices = {
@@ -1205,7 +1209,9 @@ class SmoothieHost(App):
 
         s = choices.get(key, None)
         if s is not None:
-            self.comms.write('$J {}\n'.format(s))
+            if not (self.main_window.is_printing and not self.main_window.is_suspended):
+                self.comms.write('$J {}\n'.format(s))
+
             return True
 
         # handle command history if in desktop mode
@@ -1213,16 +1219,23 @@ class SmoothieHost(App):
             if v == 0.01:  # it is a control key
                 if codepoint == 'p':
                     # get previous history by finding all the recently sent commands
-                    history = [x['text'] for x in self.main_window.ids.log_window.data if x['text'].startswith('<< ')]
-                    if history:
-                        last = history.pop()
+                    if not self.command_history:
+                        self.command_history = [x['text'] for x in self.main_window.ids.log_window.data if x['text'].startswith('<< ')]
+
+                    if self.command_history:
+                        last = self.command_history.pop()
                         self.main_window.ids.entry.text = last[3:]
+
                 elif codepoint == 'n':
-                    # get next history
+                    # TODO get next history
                     pass
                 elif codepoint == 'c':
                     # clear console
                     self.main_window.ids.log_window.data = []
+                    self.command_history = None
+
+            elif self.command_history:
+                self.command_history = None
 
         return False
 

@@ -29,7 +29,7 @@ Builder.load_string('''
     BoxLayout:
         orientation: 'vertical'
         Label:
-            text: app.gcode_file
+            text: "{} size: {}x{}".format(app.gcode_file, root.bounds[0], root.bounds[1])
             size_hint_y: None
             height: self.texture_size[1]
 
@@ -125,6 +125,7 @@ class GcodeViewerScreen(Screen):
     twod_mode = BooleanProperty(False)
     laser_mode = BooleanProperty(False)
     valid = BooleanProperty(False)
+    bounds = ListProperty([0, 0])
 
     def __init__(self, comms=None, **kwargs):
         super(GcodeViewerScreen, self).__init__(**kwargs)
@@ -591,6 +592,8 @@ class GcodeViewerScreen(Screen):
         if dx == 0 or dy == 0:
             Logger.warning("GcodeViewerScreen: size is bad, maybe need 2D mode")
             return
+
+        self.bounds = [dx, dy]
 
         dx += 4
         dy += 4

@@ -250,6 +250,7 @@ class HB04():
         elif btn == BUT_START:
             # TODO if running then pause
             self.app.main_window.start_last_file()
+            return True
 
         if cmd:
             self.app.comms.write("{}\n".format(cmd))
