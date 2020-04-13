@@ -144,6 +144,7 @@ class MySettingsPanel(SettingsWithNoMenu):
         if App.get_running_app().is_desktop == 0:
             # For RPI gets the instance of the ContentPanel which is a ScrollView
             # and sets the friction attr in the effects
+            # This may only work with an panel of type SettingsWithNoMenu
             self.interface.effect_y.friction = 1.0
 
     def on_close(self):

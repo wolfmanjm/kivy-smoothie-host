@@ -979,7 +979,7 @@ class SmoothieHost(App):
 
 
         """
-        settings.add_json_panel('SmooPie application', self.config, data=jsondata)
+        settings.add_json_panel('Smoopi application', self.config, data=jsondata)
 
     def on_config_change(self, config, section, key, value):
         # print("config changed: {} - {}: {}".format(section, key, value))
@@ -1105,6 +1105,7 @@ class SmoothieHost(App):
         if self.is_desktop == 0:
             self.text_editor = TextEditor(name='text_editor')
             self.sm.add_widget(self.text_editor)
+            self.main_window.ids.log_window.effect_y.friction = 1.0
 
         self.blank_timeout = self.config.getint('General', 'blank_timeout')
         Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
