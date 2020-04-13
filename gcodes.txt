@@ -52,6 +52,7 @@ M28 | Begin write to SD card
 M29 | End write to SD card
 M30 | Delete a file on the SD card
 M32 | Select a file, and start playing it
+M48 | Test zprobe repeatability [P<iterations> Z<feedrate>]
 M82 | Set absolute mode for extruder only
 M83 | Set relative mode for extruder only
 M84 | Disable steppers
