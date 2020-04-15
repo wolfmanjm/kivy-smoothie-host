@@ -1102,16 +1102,18 @@ class SmoothieHost(App):
         self.sm.add_widget(self.config_editor)
         self.gcode_help = GcodeHelp(name='gcode_help')
         self.sm.add_widget(self.gcode_help)
+
         if self.is_desktop == 0:
+            # RPI touch screen
             self.text_editor = TextEditor(name='text_editor')
             self.sm.add_widget(self.text_editor)
             self.main_window.ids.log_window.effect_y.friction = 1.0
 
-        self.blank_timeout = self.config.getint('General', 'blank_timeout')
-        Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
+            self.blank_timeout = self.config.getint('General', 'blank_timeout')
+            Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
 
-        self.sm.bind(on_touch_down=self._on_touch)
-        Clock.schedule_interval(self._every_second, 1)
+            self.sm.bind(on_touch_down=self._on_touch)
+            Clock.schedule_interval(self._every_second, 1)
 
         # select the file chooser to use
         # select which one we want from config
