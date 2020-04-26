@@ -152,9 +152,9 @@ class Comms():
         ''' called from UI to connect to given port, runs the asyncio mainloop in a separate thread '''
         self.port = port
         self.log.info('Comms: creating comms thread')
-        t = threading.Thread(target=self.run_async_loop)
-        t.start()
-        return t
+        self.comms_thread = threading.Thread(target=self.run_async_loop)
+        self.comms_thread.start()
+        return self.comms_thread
 
     def disconnect(self):
         ''' called by ui thread to disconnect '''
@@ -200,6 +200,7 @@ class Comms():
 
             # we need to close the transport, this will cause mainloop to stop and thread to exit as well
             async_main_loop.call_soon_threadsafe(self.proto.transport.close)
+            self.comms_thread.join()
 
         # else:
         #     if async_main_loop and async_main_loop.is_running():

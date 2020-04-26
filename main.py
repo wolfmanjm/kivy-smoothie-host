@@ -1090,7 +1090,11 @@ class SmoothieHost(App):
 
         self.comms = Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file = self.config.get('General', 'last_print_file')
-        self.sm = ScreenManager(transition=NoTransition())
+        if self.is_desktop == 0:
+            self.sm = ScreenManager(transition=NoTransition())
+        else:
+            self.sm = ScreenManager()
+
         ms = MainScreen(name='main')
         self.main_window = ms.ids.main_window
         self.sm.add_widget(ms)
@@ -1346,4 +1350,5 @@ signal.signal(signal.SIGTERM, handleSigTERM)
 
 # install handler for exceptions
 sys.excepthook = handle_exception
+
 SmoothieHost().run()
