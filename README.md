@@ -3,14 +3,14 @@ A Smoothie host designed to run on an rpi with multitouch screen or on a desktop
 
 This is stable and ready for everyday use.
 
-This uses python >= 3.4.3 and <= 3.6
+This uses python >= 3.5 and <= 3.8
 
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
 
 It will run on Windows if you install Python 3.5.2, and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
 
-NOTE it currently does not run on python versions > 3.6 due to async changes.
+NOTE it currently is untested on python versions > 3.8.2
 
 The minimum usable resolution is 800x480.
 
