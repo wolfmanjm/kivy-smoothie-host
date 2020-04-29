@@ -5,6 +5,7 @@ from kivy.app import App
 
 Builder.load_string('''
 <-MessageBox>:
+    auto_dismiss: False
     GridLayout:
         cols: 1
         padding: '12dp'
@@ -45,6 +46,7 @@ Builder.load_string('''
                 text: root.ok_text
                 on_press: root.ok()
 ''')
+
 
 class MessageBox(Popup):
     text = StringProperty('')

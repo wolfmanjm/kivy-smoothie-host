@@ -13,6 +13,8 @@ Builder.load_string('''
     height: dp(content.height) + dp(80)
     title: "Option Title"
     pos_hint: {'top': 1} if app.is_desktop == 0 else {'center_y': 0.5}
+    auto_dismiss: False
+
     BoxLayout:
         id: content
         size_hint : (1,None)
@@ -39,22 +41,23 @@ Builder.load_string('''
                 on_press: root._ok()
 ''')
 
+
 class MultiInputBox(Popup):
     ok_text = StringProperty('OK')
     cancel_text = StringProperty('Cancel')
 
-    def __init__(self,**kwargs):
-        self.window= Window
-        super(MultiInputBox,self).__init__(**kwargs)
+    def __init__(self, **kwargs):
+        self.window = Window
+        super(MultiInputBox, self).__init__(**kwargs)
         self.content = self.ids["content"]
         self.contentButtons = self.ids["contentButtons"]
-        self.wl= []
+        self.wl = []
 
     def _dismiss(self):
         self.dismiss()
 
     def open(self):
-        super(MultiInputBox,self).open()
+        super(MultiInputBox, self).open()
 
     def _ok(self):
         if self.optionCallBack is not None:

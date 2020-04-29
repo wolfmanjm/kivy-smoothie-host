@@ -57,18 +57,18 @@ Builder.load_string('''
                 spacing: dp(2)
 ''')
 
+
 class GcodeHelp(Screen):
     def populate(self):
         with open('gcodes.txt') as f:
             for line in f:
-                c= line.split(' | ')
+                c = line.split(' | ')
                 if len(c) < 2:
                     continue
-                g= c[0].strip()
-                d= c[1].strip()
+                g = c[0].strip()
+                d = c[1].strip()
                 self.rv.data.append({'gcode': g, 'desc': d})
 
     def close(self):
-        self.rv.data= []
+        self.rv.data = []
         self.manager.current = 'main'
-
