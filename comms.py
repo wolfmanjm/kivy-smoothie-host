@@ -6,6 +6,7 @@ import logging
 import functools
 import sys
 import re
+import os
 import traceback
 import serial.tools.list_ports
 import subprocess
@@ -789,6 +790,121 @@ class Comms():
             self.app.main_window.stream_finished(success)
 
             self.log.info('Comms: Streaming complete: {}'.format(success))
+
+        return success
+
+    def upload_gcode(self, fn, progress=None, done=None):
+        ''' called from external thread to start uploading a file '''
+        self.progress = progress
+        if self.proto and async_main_loop:
+            async_main_loop.call_soon_threadsafe(self._upload_gcode, fn, done)
+            return True
+        else:
+            self.log.warning('Comms: Cannot upload to a closed connection')
+            return False
+
+    def _upload_gcode(self, fn, donecb):
+        asyncio.ensure_future(self._stream_upload_gcode(fn, donecb))
+
+    def _rcv_upload_gcode_line(self, ll, ev):
+        if ll == 'ok':
+            ev.set()
+
+        elif ll.startswith('open failed,') or ll.startswith('Error:'):
+            self.upload_error = True
+            ev.set()
+
+        elif ll.startswith('Writing to file:') or ll.startswith('Done saving file.'):
+            # ignore these lines
+            return
+
+        else:
+            self.log.info('Comms: unknown response: {}'.format(ll))
+
+    async def _stream_upload_gcode(self, fn, donecb):
+        self.log.info('Comms: Upload gcode file {}'.format(fn))
+        okev = asyncio.Event()
+        self.upload_error = False
+        self.abort_stream = False
+        f = None
+        success = False
+        linecnt = 0
+        # use the simple ping pong one line per ok
+        self._redirect_incoming(lambda x: self._rcv_upload_gcode_line(x, okev))
+
+        try:
+            okev.clear()
+            self._write("M28 {}\n".format(os.path.basename(fn)))
+            await okev.wait()
+
+            if self.upload_error:
+                self.log.error('Comms: M28 failed for file /sd/{}'.format(os.path.basename(fn)))
+                self.app.main_window.async_display("error: M28 failed to open file")
+                return
+
+            f = await aiofiles.open(fn, mode='r')
+
+            while True:
+                # read next line
+                line = await f.readline()
+
+                if not line:
+                    # EOF
+                    break
+
+                ln = line.strip()
+                if len(ln) == 0 or ln.startswith(';') or ln.startswith('('):
+                    continue
+
+                # clear the event, which will be set by an incoming ok
+                okev.clear()
+                self._write(line)
+                # wait for ok from that line
+                await okev.wait()
+
+                if self.upload_error:
+                    self.log.error('Comms: Upload failed for file /sd/{}'.format(os.path.basename(fn)))
+                    self.app.main_window.async_display("error: upload failed during transfer")
+                    break
+
+                # when streaming we need to yield until the flow control is dealt with
+                if self.proto._connection_lost:
+                    await asyncio.sleep(0)
+
+                if self.abort_stream:
+                    break
+
+                # if the buffers are full then wait until we can send some more
+                await self.proto._drain_helper()
+
+                if self.abort_stream:
+                    break
+
+                # we only count lines that start with GMXY
+                if ln[0] in "GMXY":
+                    linecnt += 1
+
+                if self.progress and linecnt % 100 == 0:  # update every 100 lines
+                    # number of lines sent
+                    self.progress(linecnt)
+
+            success = not self.abort_stream
+
+        except Exception as err:
+            self.log.error("Comms: Upload GCode file exception: {}".format(err))
+
+        finally:
+            okev.clear()
+            self._write("M29\n")
+            await okev.wait()
+
+            self._redirect_incoming(None)
+            if f:
+                await f.close()
+            self.progress = None
+
+            donecb(success)
+            self.log.info('Comms: Upload GCode complete: {}'.format(success))
 
         return success
 

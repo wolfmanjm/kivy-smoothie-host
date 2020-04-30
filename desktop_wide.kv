@@ -85,6 +85,10 @@
                     text: 'Find Center'
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.tool_scripts.find_center()
+                ActionButton:
+                    text: 'Upload GCode'
+                    disabled: not app.is_connected or root.is_printing
+                    on_press: app.main_window.upload_gcode()
 
             ActionGroup:
                 text: 'System'

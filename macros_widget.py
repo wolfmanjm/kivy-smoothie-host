@@ -172,6 +172,7 @@ class MacrosWidget(StackLayout):
         try:
             with open(fn) as f:
                 for line in f:
+                    # FIXME on V2 this may well go too fast
                     self.app.comms.write('{}'.format(line))
 
         except Exception:
