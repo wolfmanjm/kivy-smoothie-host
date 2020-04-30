@@ -629,6 +629,7 @@ class MainWindow(BoxLayout):
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
         self.display(">>> Elapsed time: {}".format(et))
         self.eta = '--:--:--'
+        self.is_printing = False
 
     def _upload_gcode(self, file_path, dir_path):
         if not file_path:
@@ -647,6 +648,8 @@ class MainWindow(BoxLayout):
         if not self.app.comms.upload_gcode(file_path, progress=lambda x: self.display_progress(x), done=self._upload_gcode_done):
             self.display('WARNING Unable to upload file')
             return
+        else:
+            self.is_printing = True
 
     @mainthread
     def display_progress(self, n):

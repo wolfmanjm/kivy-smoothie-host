@@ -810,7 +810,7 @@ class Comms():
         if ll == 'ok':
             ev.set()
 
-        elif ll.startswith('open failed,') or ll.startswith('Error:'):
+        elif ll.startswith('open failed,') or ll.startswith('Error:') or ll.startswith('ALARM:') or ll.startswith('!!') or ll.startswith('error:'):
             self.upload_error = True
             ev.set()
 
@@ -819,7 +819,7 @@ class Comms():
             return
 
         else:
-            self.log.info('Comms: unknown response: {}'.format(ll))
+            self.log.warning('Comms: unknown response: {}'.format(ll))
 
     async def _stream_upload_gcode(self, fn, donecb):
         self.log.info('Comms: Upload gcode file {}'.format(fn))
@@ -865,7 +865,7 @@ class Comms():
                 if self.upload_error:
                     self.log.error('Comms: Upload failed for file /sd/{}'.format(os.path.basename(fn)))
                     self.app.main_window.async_display("error: upload failed during transfer")
-                    break
+                    return
 
                 # when streaming we need to yield until the flow control is dealt with
                 if self.proto._connection_lost:
