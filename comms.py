@@ -834,7 +834,7 @@ class Comms():
 
         try:
             okev.clear()
-            self._write("M28 {}\n".format(os.path.basename(fn)))
+            self._write("M28 {}\n".format(os.path.basename(fn).lower()))
             await okev.wait()
 
             if self.upload_error:
