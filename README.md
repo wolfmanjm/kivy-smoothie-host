@@ -114,8 +114,8 @@ The last line is quite important otherwise you get a whole lot of ok's echoed ba
 ### Image
 For RPI  and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else.
 
-Download from http://smoothieware.org/_media/bin/smoopi.img
-And image it to an sdcard using for instance https://www.balena.io/etcher/
+Download from http://smoothieware.org/_media/bin/smoopi_img.zip
+unzip and image the resulting .img to an sdcard using for instance https://www.balena.io/etcher/
 
 Once loaded boot into the sdcard, and then update raspbian stretch...
 
