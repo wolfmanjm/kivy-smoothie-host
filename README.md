@@ -117,12 +117,19 @@ For RPI  and touch screen you can just download the image which has a fully runn
 Download from http://smoothieware.org/_media/bin/smoopi_img.zip
 unzip and image the resulting .img to an sdcard using for instance https://www.balena.io/etcher/
 
-Once loaded boot into the sdcard, and then update raspbian stretch...
+Once loaded boot into the sdcard, login with username pi and password raspberry then
+
+      sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+
+and add your wifi credentials to the ssid= and the psk=  lines.
+
+Reboot, and wifi should be working.
+
+Then update raspbian stretch...
 
 * login in with username pi and password raspberry
 * sudo apt-get update
 * sudo apt-get upgrade
-* setup wifi using  ```sudo raspi-config```
 
 smoopi is normally run on bootup, but in order to allow you to login and do the initial setup it is initially down. You will need to hook up a keyboard temporarily so you can access the login and run raspi-config etc.
 
