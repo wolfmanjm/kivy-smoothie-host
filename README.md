@@ -131,7 +131,7 @@ Then update raspbian stretch...
 * sudo apt-get update
 * sudo apt-get upgrade
 
-smoopi is normally run on bootup, but in order to allow you to login and do the initial setup it is initially down. You will need to hook up a keyboard temporarily so you can access the login and run raspi-config etc.
+smoopi is normally run on bootup, but in order to allow you to login and do the initial setup it is initially down. You will need to hook up a keyboard temporarily so you can access the login and run raspi-config etc.(NOTE Do not setup wifi using raspi-config).
 
 Once that is done setup smoopi to run on boot by doing...
     
@@ -146,7 +146,7 @@ Once running use the System menu upgrade to fetch the latest smoopi. If that is 
 (Tested on genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
 Install the latest raspbian stretch lite... (No XWindows)
-https://downloads.raspberrypi.org/raspbian_lite_latest
+http://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
 
 Follow these instructions if using an rpi 3 B+ and rasbian stretch...
 https://kivy.org/doc/stable/installation/installation-rpi.html
