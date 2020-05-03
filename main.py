@@ -619,40 +619,6 @@ class MainWindow(BoxLayout):
         self.display(">>> Elapsed time: {}".format(et))
         self.eta = '--:--:--'
 
-    def upload_gcode(self):
-        # get file to upload
-        f = Factory.filechooser()
-        f.open(self.last_path, cb=self._upload_gcode)
-
-    @mainthread
-    def _upload_gcode_done(self, ok):
-        now = datetime.datetime.now()
-        self.display('>>> Upload finished {}'.format('ok' if ok else 'abnormally'))
-        et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
-        self.display(">>> Elapsed time: {}".format(et))
-        self.eta = '--:--:--'
-        self.is_printing = False
-
-    def _upload_gcode(self, file_path, dir_path):
-        if not file_path:
-            return
-
-        try:
-            self.nlines = Comms.file_len(file_path)  # get number of lines so we can do progress and ETA
-            Logger.debug('MainWindow: number of lines: {}'.format(self.nlines))
-        except Exception:
-            Logger.warning('MainWindow: exception in file_len: {}'.format(traceback.format_exc()))
-            self.nlines = None
-
-        self.start_print_time = datetime.datetime.now()
-        self.display('>>> Uploading file: {}, {} lines'.format(file_path, self.nlines))
-
-        if not self.app.comms.upload_gcode(file_path, progress=lambda x: self.display_progress(x), done=self._upload_gcode_done):
-            self.display('WARNING Unable to upload file')
-            return
-        else:
-            self.is_printing = True
-
     @mainthread
     def display_progress(self, n):
         if self.nlines and n <= self.nlines:

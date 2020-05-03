@@ -200,7 +200,7 @@ class WHB04B():
     steplut = {0x0d: 0.001, 0x0e: 0.01, 0x0f: 0.1, 0x10: 1, 0x1a: 1, 0x1b: 1, 0x1c: 0}        # combined button for set step   #or 0x1c = lead = move locked
     mpglut = {0x0d: 2, 0x0e: 5, 0x0f: 10, 0x10: 30, 0x1a: 60, 0x1b: 100, 0x1c: 0}             # combined button for set mpg %  #or 0x1c = lead = move locked
     conlut = {0x0d: 1, 0x0e: 2, 0x0f: 3, 0x10: 4, 0x1a: 5, 0x1b: 6, 0x1c: 0}                  # con mode look up table this appears after set lead mode and go back the rotary button
-    status = 0x40                                                                             # start with lead mode
+    status = 0x40                                                                             # start with RESET 
     macrobut = {}
     fovermax = 1
     fovermin = 1
@@ -282,7 +282,7 @@ class WHB04B():
               self.update_lcd()
               return True
         elif btn == BUT_SPINDLEM:
-              self.s_ovr -= self.soverrange                      # adjust S override, (TODO  this is tool speed or laser power)
+              self.s_ovr -= self.soverrange                     # adjust S override, (TODO  this is tool speed or laser power)
               if self.s_ovr < self.sovermin:
                   self.s_ovr = self.sovermin
               self.setovr(self.f_ovr, self.s_ovr)
@@ -290,7 +290,7 @@ class WHB04B():
               self.update_lcd()
               return True
         elif btn == BUT_STEP:
-              self.status = 0x01
+              self.status = 0x01                                # 2020 TODO Je pense qu'il faut un masque pour tenir compte du mode absolue / relative
               self.setovr(self.f_ovr, self.s_ovr)
               self.setstatus(self.status)
               self.update_lcd()
@@ -299,7 +299,7 @@ class WHB04B():
               self.app.main_window.async_display("WHB04B - STEP MODE")
               return True
         elif btn == BUT_MPG:
-              self.status = 0x02
+              self.status = 0x02                                # 2020 TODO Je pense qu'il faut un masque pour tenir compte du mode absolue / relative
               self.setovr(self.f_ovr, self.s_ovr)
               self.setstatus(self.status)
               self.update_lcd()
@@ -311,7 +311,7 @@ class WHB04B():
               if self.status <= 0x02:
                  self.status = self.status + 0x80                           # set mode absolue for DRO if mode is relative and con or step or mpg
               elif self.status <= 0x42:
-                 self.status = self.status + 0x40                           # set mode absolue for DRO if mode is RESET
+                 self.status = self.status + 0x40                           # set mode absolue for DRO if mode is RESET    # 2020 TODO voir si ce ne serait pas plutot +0x80 pour RESET + ABSOLUE
               elif self.status >= 0x80:
                  self.status = self.status - 0x80                           # set mode relative for DRO if mode is absolue and con or step or mpg
               self.setstatus(self.status)
@@ -481,7 +481,7 @@ class WHB04B():
                                 elif axis_mode == 0x06:
                                       self.clear_lcd()                                           # when AXIS OFF all other buttons ignored 0x40 display RESET : not work because device does not read input data
                                 elif axis_mode == 0x00:
-                                      self.status = 0x00                                         # init mode for startup or after disconnecting host from smoothie : display CON
+                                      self.status = 0x00                                         # init mode for startup or after disconnecting host from smoothie : display CON  # 2020 Je pense qu'il faut tenir un masque pour tenir compte du mode absolue / relative
                                       self.setstatus(self.status)
                                       self.update_lcd()
 
@@ -514,7 +514,7 @@ class WHB04B():
                             continue
 
                         elif speed_mode == 0x1c:
-                            self.status = 0x00                    # mode lead = move locked and after keep out from lead this mode are CON
+                            self.status = 0x00                    # mode lead = move locked and after keep out from lead this mode are CON    # 2020 Je pense qu'il faut tenir un masque pour tenir compte du mode absolue / relative
                             self.setovr(self.f_ovr, self.s_ovr)   # or mode CON because we are out of lead and not in mpg or step or reset
                             self.setstatus(self.status)
                             self.update_lcd()
