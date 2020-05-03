@@ -165,13 +165,11 @@ For instance...
        xclip xsel
     sudo apt-get install python3-pip
     sudo pip3 install -U Cython==0.28.2 pillow
-    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable-1.10.1
+    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable
 
-This installs a known working version of kivy, albeit an older one. Newer versions seem to be somewhat unstable on RPI. 
+This installs a known working version of kivy. Note that dev versions tend to be less stable and may not work.
 
-*NOTE* if you want to run on an HDMI screen instead of the touch screen, then you need to install  ```sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable``` (remember to make sure pillow is installed though). This version allows the mouse to work properly.
-
-On an rpi3b+ it seems the double tap time needs to be increased to be usable..
+On an rpi3b+ (and better) it seems the double tap time needs to be increased to be usable..
 
     # in file ~/.kivy/config.ini
     [postproc]
@@ -293,7 +291,7 @@ It should auto start then.
 
 ## On linux Desktop (and maybe windows/macos)
 
-Install on recent Linux and python >= 3.5 and <= 3.6 using the fast wheels installation...
+Install on recent Linux and python >= 3.5 and <= 3.7 using the fast wheels installation...
   
   python3 -m pip install --user --upgrade kivy
 
@@ -313,7 +311,7 @@ If that does not work then install from source...
     sudo pip3 install -U Cython==0.28.2
     sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable
 
-stable seems to work ok so long as it is v1.10.1.
+stable seems to work ok so long as it is > v1.10.1
 
 Install some dependencies we need...
 
@@ -324,7 +322,7 @@ Run as
     > cd kivy-smoothie-host
     > python3 main.py
 
-In settings set the desktop layout to Small Desktop or Large Desktop and restart.  The large desktop layout can also have a size specified by editing the smoothiehost.ini file and changing eg ```screen_size = 1024x900``` under the [UI] section.
+In settings set the desktop layout to Wide Desktop (or Small Desktop or Large Desktop) and restart.  The larger desktop layouts can also have a size specified by editing the smoothiehost.ini file and changing eg ```screen_size = 1024x900``` under the [UI] section.
 
 __NOTE__ all the files are coded UTF-8 so make sure your locale (LANG=en_US.utf8 or even LANG=C.UTF-8) is set to a UTF-8 variety otherwise you will get weird errors from deep within python/kivy.
 
