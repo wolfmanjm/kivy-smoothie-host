@@ -619,7 +619,7 @@ class MainWindow(BoxLayout):
         self.display(">>> Elapsed time: {}".format(et))
         self.eta = '--:--:--'
 
-     def upload_gcode(self):
+    def upload_gcode(self):
         # get file to upload
         f = Factory.filechooser()
         f.open(self.last_path, cb=self._upload_gcode)
