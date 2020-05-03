@@ -976,6 +976,9 @@ if __name__ == "__main__":
         def manual_tool_change(self, l):
             print("tool change: {}\n".format(l))
 
+        def wait_on_m0(self, l):
+            print("wait on m0: {}\n".format(l))
+
     if len(sys.argv) < 3:
         print("Usage: {} port file".format(sys.argv[0]))
         exit(0)
