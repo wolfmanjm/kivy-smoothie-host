@@ -1,4 +1,6 @@
-import threading
+from kivy.clock import Clock
+from kivy.app import App
+
 import asyncio
 import serial_asyncio
 import aiofiles
@@ -12,18 +14,18 @@ import serial.tools.list_ports
 import subprocess
 import socket
 import time
-from notify import Notify
 
-async_main_loop = None
+from notify import Notify
 
 
 class SerialConnection(asyncio.Protocol):
-    def __init__(self, cb, f, is_net=False):
+    def __init__(self, cb, fcon, fclo, is_net=False):
         super().__init__()
         self.log = logging.getLogger()  # getChild('SerialConnection')
         self.log.debug('SerialConnection: creating SerialConnection')
         self.cb = cb
-        self.f = f
+        self.fcon = fcon
+        self.fclo = fclo
         self.cnt = 0
         self.is_net = is_net
         self._paused = False
@@ -46,6 +48,8 @@ class SerialConnection(asyncio.Protocol):
             # transport.serial.rts = False  # You can manipulate Serial object via transport
             transport.serial.reset_input_buffer()
             transport.serial.reset_output_buffer()
+
+        self.fcon.set_result("Connected")
 
     def flush_queue(self):
         # if self.transport:
@@ -90,7 +94,7 @@ class SerialConnection(asyncio.Protocol):
         #     self.transport.serial.reset_output_buffer()
 
         self.transport.close()
-        self.f.set_result('Disconnected')
+        self.fclo.set_result('Disconnected')
 
     async def _drain_helper(self):
         if self._connection_lost:
@@ -146,35 +150,30 @@ class Comms():
         self.m0 = None
         self.net_connection = False
         self.log = logging.getLogger()  # .getChild('Comms')
-        # logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
 
     def connect(self, port):
-        ''' called from UI to connect to given port, runs the asyncio mainloop in a separate thread '''
+        ''' called to connect to given port '''
+        if self.proto:
+            self.log.error("Comms: Already connected")
+            self.app.main_window.async_display('>>> Already connected')
+            return
+
         self.port = port
-        self.log.info('Comms: creating comms thread')
-        self.comms_thread = threading.Thread(target=self.run_async_loop)
-        self.comms_thread.start()
-        return self.comms_thread
+        asyncio.ensure_future(self.run_comms())
 
     def disconnect(self):
-        ''' called by ui thread to disconnect '''
+        ''' called to disconnect '''
         if self.proto:
-            async_main_loop.call_soon_threadsafe(self.proto.transport.close)
+            self.proto.transport.close()
 
     def write(self, data):
-        ''' Write to serial port, called from UI thread '''
-        if self.proto and async_main_loop:
-            async_main_loop.call_soon_threadsafe(self._write, data)
-            # asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
+        ''' Write to serial port '''
+        if self.proto:
+            self.proto.send_message(data)
         else:
             self.log.warning('Comms: Cannot write to closed connection: ' + data)
             # self.app.main_window.async_display("<<< {}".format(data))
-
-    def _write(self, data):
-        # calls the send_message in Serial Connection proto
-        # print('Comms: _write {}'.format(data))
-        if self.proto:
-            self.proto.send_message(data)
 
     def _get_reports(self):
         if self._restart_timer:
@@ -182,52 +181,40 @@ class Comms():
 
         queries = self.app.main_window.get_queries()
         if queries:
-            self._write(queries)
+            self.write(queries)
 
         if self.net_connection:
             if not self.is_streaming:
-                self._write('?\n')
+                self.write('?\n')
         else:
-            self._write('?')
+            self.write('?')
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
         if self.proto:
             # abort any streaming immediately
-            self._stream_pause(False, True)
+            self.stream_pause(False, True)
             if self.file_streamer:
                 self.file_streamer.cancel()
 
-            # we need to close the transport, this will cause mainloop to stop and thread to exit as well
-            async_main_loop.call_soon_threadsafe(self.proto.transport.close)
-            self.comms_thread.join()
-
-        # else:
-        #     if async_main_loop and async_main_loop.is_running():
-        #         async_main_loop.call_soon_threadsafe(async_main_loop.stop)
+            # we need to close the transport, this will cause comms task to exit
+            self.proto.transport.close()
 
     def get_ports(self):
         return [port for port in serial.tools.list_ports.comports() if port[2] != 'n/a']
 
-    def run_async_loop(self):
-        ''' called by connect in a new thread to setup and start the asyncio loop '''
-        global async_main_loop
+    async def run_comms(self):
+        ''' called by connect() '''
+        self.log.info('Comms: starting...')
 
-        if async_main_loop:
-            self.log.error("Comms: Already running cannot connect again")
-            self.app.main_window.async_display('>>> Already running cannot connect again')
-            return
-
-        newloop = asyncio.new_event_loop()
-        asyncio.set_event_loop(newloop)
         loop = asyncio.get_event_loop()
-        async_main_loop = loop
-        f = asyncio.Future()
+        fconnected = loop.create_future()
+        fclosed = loop.create_future()
 
         # if tcp connection port will be net://ipaddress[:port]
         # otherwise it will be serial:///dev/ttyACM0 or serial://COM2:
         if self.port.startswith('net://'):
-            sc_factory = functools.partial(SerialConnection, cb=self, f=f, is_net=True)  # uses partial so we can pass a parameter
+            sc_factory = functools.partial(SerialConnection, cb=self, fcon=fconnected, fclo=fclosed, is_net=True)  # uses partial so we can pass a parameter
             self.net_connection = True
             ip = self.port[6:]
             ip = ip.split(':')
@@ -243,67 +230,59 @@ class Comms():
                 self.ping_pong = False
 
         elif self.port.startswith('serial://'):
-            sc_factory = functools.partial(SerialConnection, cb=self, f=f)  # uses partial so we can pass a parameter
+            sc_factory = functools.partial(SerialConnection, cb=self, fcon=fconnected, fclo=fclosed)  # uses partial so we can pass a parameter
             self.net_connection = False
             self.port = self.port[9:]
             serial_conn = serial_asyncio.create_serial_connection(loop, sc_factory, self.port, baudrate=115200)
 
         else:
-            loop.close()
             self.log.error('Comms: Not a valid connection port: {}'.format(self.port))
             self.app.main_window.async_display('>>> Connect failed: unknown connection type, use "serial://" or "net://"'.format(self.port))
             self.app.main_window.disconnected()
-            loop.close()
-            async_main_loop = None
             return
 
         try:
-            transport, self.proto = loop.run_until_complete(serial_conn)  # sets up connection returning transport and protocol handler
-            self.log.debug('Comms: serial connection task completed')
+            transport, self.proto = await serial_conn  # sets up connection returning transport and protocol handler
+            # wait for successful connection
+            await fconnected
+
+            self.log.debug('Comms: serial connection connected')
 
             # this is when we are really setup and ready to go, notify upstream
             self.app.main_window.connected()
 
             # issue a M115 command to get things started
-            self._write('\n')
-            self._write('M115\n')
+            self.write('\n')
+            self.write('M115\n')
 
             if self.report_rate > 0:
                 # start a timer to get the reports
-                self.timer = loop.call_later(self.report_rate, self._get_reports)
+                self.timer = Clock.schedule_once(self._get_reports, self.report_rate)
 
             # wait until we are disconnected
             self.log.debug('Comms: waiting until disconnection')
-            loop.run_until_complete(f)
+            await fclosed
 
             # clean up and notify upstream we have been disconnected
             self.proto = None  # no proto now
-            self._stream_pause(False, True)  # abort the stream if one is running
+            self.stream_pause(False, True)  # abort the stream if one is running
             if self.timer:  # stop the timer if we have one
                 self.timer.cancel()
                 self.timer = None
 
             self.app.main_window.disconnected()  # tell upstream we disconnected
 
-            # we wait until all tasks are complete
-            pending = asyncio.Task.all_tasks()
-            self.log.debug('Comms: waiting for all tasks to complete: {}'.format(pending))
-            loop.run_until_complete(asyncio.gather(*pending))
-            # loop.run_forever()
-
         except asyncio.CancelledError:
             pass
 
         except Exception as err:
-            # self.log.error('Comms: {}'.format(traceback.format_exc()))
+            self.log.error('Comms: {}'.format(traceback.format_exc()))
             self.log.error("Comms: Got serial error opening port: {0}".format(err))
             self.app.main_window.async_display(">>> Connect failed: {0}".format(err))
             self.app.main_window.disconnected()
 
         finally:
-            loop.close()
-            async_main_loop = None
-            self.log.info('Comms: comms thread Exiting...')
+            self.log.info('Comms: run_comms Exiting...')
 
     def _parse_m115(self, s):
         # split fields
@@ -324,16 +303,13 @@ class Comms():
     def list_sdcard(self, done_cb):
         ''' Issue a ls /sd and send results back to done_cb '''
         self.log.debug('Comms: list_sdcard')
-        if self.proto and async_main_loop:
-            async_main_loop.call_soon_threadsafe(self._list_sdcard, done_cb)
+        if self.proto:
+            asyncio.ensure_future(self._parse_sdcard_list(done_cb))
         else:
             self.log.warning('Comms: Cannot list sd on a closed connection')
             return False
 
         return True
-
-    def _list_sdcard(self, done_cb):
-        asyncio.ensure_future(self._parse_sdcard_list(done_cb))
 
     async def _parse_sdcard_list(self, done_cb):
         self.log.debug('Comms: _parse_sdcard_list')
@@ -344,7 +320,7 @@ class Comms():
         self.redirect_incoming(lambda x: self._rcv_sdcard_line(x, files, f))
 
         # issue command
-        self._write('M20\n')
+        self.write('M20\n')
 
         # wait for it to complete and get all the lines
         # add a long timeout in case it fails and we don't want to wait for ever
@@ -375,9 +351,6 @@ class Comms():
             files.append(ll)
 
     def redirect_incoming(self, l):
-        async_main_loop.call_soon_threadsafe(self._redirect_incoming, l)
-
-    def _redirect_incoming(self, l):
         if l:
             if self.timer:
                 # temporarily turn off status timer so we don't get unexpected lines
@@ -394,7 +367,7 @@ class Comms():
             self._reroute_incoming_data_to = None
 
             if self._restart_timer:
-                self.timer = async_main_loop.call_later(0.1, self._get_reports)
+                self.timer = Clock.schedule_once(self._get_reports, 0.1)
                 self._restart_timer = False
 
     # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
@@ -470,10 +443,10 @@ class Comms():
                     if act in 'pause':
                         self.app.main_window.async_display('>>> Smoothie requested Pause')
                         self.is_suspend = True  # this currently only happens if we suspend (M600)
-                        self._stream_pause(True, False)
+                        self.stream_pause(True, False)
                     elif act in 'resume':
                         self.app.main_window.async_display('>>> Smoothie requested Resume')
-                        self._stream_pause(False, False)
+                        self.stream_pause(False, False)
                     elif act in 'disconnect':
                         self.app.main_window.async_display('>>> Smoothie requested Disconnect')
                         self.disconnect()
@@ -537,7 +510,7 @@ class Comms():
         self.app.main_window.update_status(status, d)
 
         # schedule next report
-        self.timer = async_main_loop.call_later(self.report_rate, self._get_reports)
+        self.timer = Clock.schedule_once(self._get_reports, self.report_rate)
 
     def handle_probe(self, s):
         # [PRB:1.000,80.137,10.000:0]
@@ -551,34 +524,18 @@ class Comms():
         ''' handle case where smoothie sends us !! or an error of some sort '''
         self.log.warning('Comms: alarm message: {}'.format(s))
         # pause any streaming immediately, (let operator decide to abort or not)
-        self._stream_pause(True, False)
+        self.stream_pause(True, False)
 
         # NOTE old way was to abort, but we could resume if we can fix the error
-        # self._stream_pause(False, True)
+        # self.stream_pause(False, True)
         # if self.proto:
         #    self.proto.flush_queue()
 
-        # call upstream after we have allowed stream to stop
-        async_main_loop.call_soon(self.app.main_window.alarm_state, s)
-
-    def stream_gcode(self, fn, progress=None):
-        ''' called from external thread to start streaming a file '''
-        self.progress = progress
-        if self.proto and async_main_loop:
-            async_main_loop.call_soon_threadsafe(self._stream_file, fn)
-            return True
-        else:
-            self.log.warning('Comms: Cannot print to a closed connection')
-            return False
-
-    def _stream_file(self, fn):
-        self.file_streamer = asyncio.ensure_future(self.stream_file(fn))
+        # call upstream
+        self.app.main_window.alarm_state(s)
 
     def stream_pause(self, pause, do_abort=False):
-        ''' called from external thread to pause or kill in process streaming '''
-        async_main_loop.call_soon_threadsafe(self._stream_pause, pause, do_abort)
-
-    def _stream_pause(self, pause, do_abort):
+        ''' called to pause or kill in process streaming '''
         if self.file_streamer:
             if do_abort:
                 self.pause_stream = False
@@ -598,6 +555,16 @@ class Comms():
                 self.pause_stream = False  # .set() # releases pause on stream
                 self.app.main_window.action_paused(False)
                 self.log.info('Comms: Resuming Stream')
+
+    def stream_gcode(self, fn, progress=None):
+        ''' called to start streaming a file '''
+        self.progress = progress
+        if self.proto:
+            self.file_streamer = asyncio.ensure_future(self.stream_file(fn))
+            return True
+        else:
+            self.log.warning('Comms: Cannot print to a closed connection')
+            return False
 
     async def stream_file(self, fn):
         self.log.info('Comms: Streaming file {} to port'.format(fn))
@@ -652,32 +619,32 @@ class Comms():
                     if self.abort_stream:
                         break
 
-                    l = line.strip()
-                    if len(l) == 0 or l.startswith(';'):
+                    ln = line.strip()
+                    if len(ln) == 0 or ln.startswith(';'):
                         continue
 
-                    if l.startswith('(MSG'):
-                        self.app.main_window.async_display(l)
+                    if ln.startswith('(MSG'):
+                        self.app.main_window.async_display(ln)
                         continue
 
-                    if l.startswith('(NOTIFY'):
-                        Notify.send(l)
+                    if ln.startswith('(NOTIFY'):
+                        Notify.send(ln)
                         continue
 
-                    if l.startswith('('):
+                    if ln.startswith('('):
                         continue
 
-                    if l.startswith('T'):
-                        self.last_tool = l
+                    if ln.startswith('T'):
+                        self.last_tool = ln
 
                     if self.app.manual_tool_change:
                         # handle tool change M6 or M06
-                        if l == "M6" or l == "M06" or "M6 " in l or "M06 " in l or l.endswith("M6"):
+                        if ln == "M6" or ln == "M06" or "M6 " in ln or "M06 " in ln or ln.endswith("M6"):
                             tool_change_state = 1
 
                     if self.app.wait_on_m0:
                         # handle M0 if required
-                        if l == "M0" or l == "M00":
+                        if ln == "M0" or ln == "M00":
                             # we basically wait for the continue dialog to be dismissed
                             self.app.main_window.m0_dlg()
                             self.m0 = asyncio.Event()
@@ -698,9 +665,9 @@ class Comms():
                     elif tool_change_state == 2:
                         # we got the M400 so queue is empty so we send a suspend and tell upstream
                         line = "M600\n"
-                        # we need to pause the stream here immediately, but the real _stream_pause will be called by suspend
+                        # we need to pause the stream here immediately, but the real stream_pause will be called by suspend
                         self.pause_stream = True  # we don't normally set this directly
-                        self.app.main_window.tool_change_prompt("{} - {}".format(l, self.last_tool))
+                        self.app.main_window.tool_change_prompt("{} - {}".format(ln, self.last_tool))
                         tool_change_state = 0
 
                 # s= time.time()
@@ -710,7 +677,7 @@ class Comms():
                     # clear the event, which will be set by an incoming ok
                     self.okcnt.clear()
 
-                self._write(line)
+                self.write(line)
 
                 # wait for ok from that command (I'd prefer to interleave with the file read but it is too complex)
                 if self.ping_pong and self.okcnt is not None:
@@ -742,7 +709,7 @@ class Comms():
                     break
 
                 # we only count lines that start with GMXY
-                if l[0] in "GMXY":
+                if ln[0] in "GMXY":
                     linecnt += 1
 
                 if self.progress and linecnt % 10 == 0:  # update every 10 lines
@@ -757,6 +724,7 @@ class Comms():
 
         except Exception as err:
             self.log.error("Comms: Stream file exception: {}".format(err))
+            print('Exception: {}'.format(traceback.format_exc()))
 
         finally:
             if f:
@@ -766,7 +734,7 @@ class Comms():
                 if self.proto:
                     self.proto.flush_queue()
 
-                self._write('\x18')
+                self.write('\x18')
 
             if success and not self.ping_pong:
                 self.log.debug('Comms: Waiting for okcnt to catch up: {} vs {}'.format(self.okcnt, linecnt))
@@ -793,18 +761,15 @@ class Comms():
 
         return success
 
-    def upload_gcode(self, fn, progress=None, done=None):
-        ''' called from external thread to start uploading a file '''
+    def upload_gcode(self, fn, progress=None, donecb=None):
+        ''' called to start uploading a file '''
         self.progress = progress
-        if self.proto and async_main_loop:
-            async_main_loop.call_soon_threadsafe(self._upload_gcode, fn, done)
+        if self.proto:
+            asyncio.ensure_future(self._stream_upload_gcode(fn, donecb))
             return True
         else:
             self.log.warning('Comms: Cannot upload to a closed connection')
             return False
-
-    def _upload_gcode(self, fn, donecb):
-        asyncio.ensure_future(self._stream_upload_gcode(fn, donecb))
 
     def _rcv_upload_gcode_line(self, ll, ev):
         if ll == 'ok':
@@ -834,7 +799,7 @@ class Comms():
 
         try:
             okev.clear()
-            self._write("M28 {}\n".format(os.path.basename(fn).lower()))
+            self.write("M28 {}\n".format(os.path.basename(fn).lower()))
             await okev.wait()
 
             if self.upload_error:
@@ -858,7 +823,7 @@ class Comms():
 
                 # clear the event, which will be set by an incoming ok
                 okev.clear()
-                self._write(line)
+                self.write(line)
                 # wait for ok from that line
                 await okev.wait()
 
@@ -895,7 +860,7 @@ class Comms():
 
         finally:
             okev.clear()
-            self._write("M29\n")
+            self.write("M29\n")
             await okev.wait()
 
             self._redirect_incoming(None)
@@ -926,7 +891,7 @@ class Comms():
 
 
 if __name__ == "__main__":
-
+    import signal
     import datetime
     from time import sleep
 
@@ -939,13 +904,14 @@ if __name__ == "__main__":
             super(CommsApp, self).__init__()
             self.root = self
             self.log = logging.getLogger()
-            self.start_event = threading.Event()
-            self.end_event = threading.Event()
+            self.start_event = asyncio.Event()
+            self.end_event = asyncio.Event()
             self.is_connected = False
             self.ok = False
             self.main_window = self
             self.timer = None
             self.is_cnc = True
+            self.wait_on_m0 = False
 
         def connected(self):
             self.log.debug("CommsApp: Connected...")
@@ -968,7 +934,7 @@ if __name__ == "__main__":
         def alarm_state(self, s):
             self.ok = False
             # in this case we do want to disconnect
-            comms.proto.transport.close()
+            # comms.proto.transport.close()
 
         def update_status(self, stat, d):
             pass
@@ -976,72 +942,95 @@ if __name__ == "__main__":
         def manual_tool_change(self, l):
             print("tool change: {}\n".format(l))
 
-    if len(sys.argv) < 3:
-        print("Usage: {} port file".format(sys.argv[0]))
-        exit(0)
+        def action_paused(self, flag, suspend=False):
+            print("paused: {}, suspended: {}", flag, suspend)
 
-    app = CommsApp()
-    comms = Comms(app, 10)
-    if len(sys.argv) > 3:
-        comms.ping_pong = False
-        print('Fast Stream')
-
-    try:
-        nlines = Comms.file_len(sys.argv[2])  # get number of lines so we can do progress and ETA
-        print('number of lines: {}'.format(nlines))
-    except Exception:
-        print('Exception: {}'.format(traceback.format_exc()))
+    class CommsMain(App):
+        start = None
         nlines = None
 
-    start = None
+        def display_progress(self, n):
 
-    def display_progress(n):
-        global start, nlines
-        if not start:
-            start = datetime.datetime.now()
-            print("Print started at: {}".format(start.strftime('%x %X')))
+            if not self.start:
+                self.start = datetime.datetime.now()
+                print("Print started at: {}".format(self.start.strftime('%x %X')))
 
-        if nlines:
-            now = datetime.datetime.now()
-            d = (now - start).seconds
-            if n > 10 and d > 10:
-                # we have to wait a bit to get reasonable estimates
-                lps = n / d
-                eta = (nlines - n) / lps
-            else:
-                eta = 0
-            et = datetime.timedelta(seconds=int(eta))
-            print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n / nlines, et))
+            if self.nlines:
+                now = datetime.datetime.now()
+                d = (now - self.start).seconds
+                if n > 10 and d > 10:
+                    # we have to wait a bit to get reasonable estimates
+                    lps = n / d
+                    eta = (self.nlines - n) / lps
+                else:
+                    eta = 0
+                et = datetime.timedelta(seconds=int(eta))
+                print("progress: {}/{} {:.1%} ETA {}".format(n, self.nlines, n / self.nlines, et))
+
+        async def main(self):
+            if len(sys.argv) < 3:
+                print("Usage: {} port file".format(sys.argv[0]))
+                exit(0)
+
+            app = CommsApp()
+            comms = Comms(app, 10)
+            if len(sys.argv) > 3:
+                comms.ping_pong = False
+                print('Fast Stream')
+
+            try:
+                self.nlines = Comms.file_len(sys.argv[2])  # get number of lines so we can do progress and ETA
+                print('number of lines: {}'.format(self.nlines))
+            except Exception:
+                print('Exception: {}'.format(traceback.format_exc()))
+                self.nlines = None
+
+            try:
+                app.start_event.clear()
+                app.end_event.clear()
+
+                t = comms.connect(sys.argv[1])
+                await app.start_event.wait()  # wait for connected
+                if app.is_connected:
+                    # wait for startup to clear up any incoming oks
+                    await asyncio.sleep(5)
+
+                    comms.stream_gcode(sys.argv[2], progress=lambda x: self.display_progress(x))
+                    await app.end_event.wait()  # wait for streaming to complete
+
+                    print("File sent: {}".format('Ok' if app.ok else 'Failed'))
+                    now = datetime.datetime.now()
+                    print("Print ended at : {}".format(now.strftime('%x %X')))
+                    if self.start:
+                        et = datetime.timedelta(seconds=int((now - self.start).seconds))
+                        print("Elapsed time: {}".format(et))
+
+                else:
+                    print("Error: Failed to connect")
+
+            except KeyboardInterrupt:
+                print("Interrupted- aborting")
+                comms.stream_pause(False, True)
+                await app.end_event.wait()  # wait for streaming to complete
+
+            finally:
+                # now stop the comms if it is connected or running
+                comms.stop()
+                asyncio.get_event_loop().stop()
+
+    def ask_exit(signame):
+        print("got signal %s: exit" % signame)
+        loop.stop()
+
+    loop = asyncio.get_event_loop()
+    loop.set_debug(True)
+
+    for signame in ('SIGINT', 'SIGTERM'):
+        loop.add_signal_handler(getattr(signal, signame),
+                                functools.partial(ask_exit, signame))
 
     try:
-        t = comms.connect(sys.argv[1])
-        if app.start_event.wait(5):  # wait for connected as it is in a separate thread
-            if app.is_connected:
-                # wait for startup to clear up any incoming oks
-                sleep(5)  # Time in seconds.
-
-                comms.stream_gcode(sys.argv[2], progress=lambda x: display_progress(x))
-                app.end_event.wait()  # wait for streaming to complete
-
-                print("File sent: {}".format('Ok' if app.ok else 'Failed'))
-                now = datetime.datetime.now()
-                print("Print ended at : {}".format(now.strftime('%x %X')))
-                if start:
-                    et = datetime.timedelta(seconds=int((now - start).seconds))
-                    print("Elapsed time: {}".format(et))
-
-            else:
-                print("Error: Failed to connect")
-
-        else:
-            print("Error: Connection timed out")
-
-    except KeyboardInterrupt:
-        print("Interrupted- aborting")
-        comms._stream_pause(False, True)
-        app.end_event.wait()  # wait for streaming to complete
-
+        loop.run_until_complete(CommsMain().main())
+        loop.run_forever()
     finally:
-        # now stop the comms if it is connected or running
-        comms.stop()
-        t.join()
+        loop.close()

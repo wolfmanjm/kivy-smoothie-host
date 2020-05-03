@@ -20,7 +20,7 @@ from kivy.uix.actionbar import ActionButton
 
 from kivy.properties import NumericProperty, StringProperty, ObjectProperty, ListProperty, BooleanProperty
 from kivy.vector import Vector
-from kivy.clock import Clock, mainthread
+from kivy.clock import Clock
 from kivy.factory import Factory
 from kivy.logger import Logger
 from kivy.core.window import Window
@@ -57,6 +57,7 @@ from functools import partial
 import collections
 import importlib
 import signal
+import asyncio
 
 Window.softinput_mode = 'below_target'
 
@@ -303,8 +304,6 @@ class MainWindow(BoxLayout):
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self._trigger = Clock.create_trigger(self.async_get_display_data)
-        self._q = queue.Queue()
         self.config = self.app.config
         self.last_path = self.config.get('General', 'last_gcode_path')
         self.paused = False
@@ -347,7 +346,7 @@ class MainWindow(BoxLayout):
         else:
             port = self.config.get('General', 'serial_port') if not self.app.use_com_port else self.app.use_com_port
             self.add_line_to_log("Connecting to {}...".format(port))
-            self.app.comms.connect(port)
+            asyncio.ensure_future(self.app.comms.connect(port))
 
     def _disconnect(self, b=True):
         if b:
@@ -357,24 +356,13 @@ class MainWindow(BoxLayout):
     def display(self, data):
         self.add_line_to_log(data)
 
-    # we have to do this as @mainthread was getting stuff out of order
+    # basically the same as display now everything is in the same thread
     def async_display(self, data):
-        ''' called from external thread to display incoming data '''
-        # puts the data onto queue and triggers an event to read it in the Kivy thread
-        self._q.put(data)
-        self._trigger()
+        if data.endswith('\r'):
+            self.add_line_to_log(data[0:-1], True)
+        else:
+            self.add_line_to_log(data)
 
-    def async_get_display_data(self, *largs):
-        ''' fetches data from the Queue and displays it, triggered by incoming data '''
-        while not self._q.empty():
-            # we need this loop until q is empty as trigger only triggers once per frame
-            data = self._q.get(False)
-            if data.endswith('\r'):
-                self.add_line_to_log(data[0:-1], True)
-            else:
-                self.add_line_to_log(data)
-
-    @mainthread
     def connected(self):
         Logger.debug("MainWindow: Connected...")
         self.add_line_to_log("...Connected")
@@ -385,7 +373,6 @@ class MainWindow(BoxLayout):
         self.paused = False
         self.is_printing = False
 
-    @mainthread
     def disconnected(self):
         Logger.debug("MainWindow: Disconnected...")
         self.app.is_connected = False
@@ -394,7 +381,6 @@ class MainWindow(BoxLayout):
         self.ids.connect_button.text = "Connect"
         self.add_line_to_log("...Disconnected")
 
-    @mainthread
     def update_status(self, stat, d):
         self.status = stat
         self.app.status = stat
@@ -436,7 +422,6 @@ class MainWindow(BoxLayout):
             if t:
                 self.ids.extruder.update_temp(t)
 
-    @mainthread
     def update_state(self, a):
         if not self.app.is_cnc:
             self.ids.extruder.curtool = int(a[9][1])
@@ -445,7 +430,6 @@ class MainWindow(BoxLayout):
         self.app.is_abs = a[4] == 'G90'
         self.app.is_spindle_on = a[7] == 'M3'
 
-    @mainthread
     def alarm_state(self, s):
         ''' called when smoothie is in Alarm state and it is sent a gcode '''
         self.add_line_to_log("! Alarm state: {}".format(s))
@@ -514,7 +498,6 @@ class MainWindow(BoxLayout):
         if ok:
             self.app.comms.stream_pause(False, True)
 
-    @mainthread
     def action_paused(self, paused, suspended=False):
         # comms layer is telling us we paused or unpaused
         self.ids.print_but.text = 'Resume' if paused else 'Pause'
@@ -597,7 +580,6 @@ class MainWindow(BoxLayout):
         if ok:
             self._start_print()
 
-    @mainthread
     def start_last_file(self):
         if self.app.gcode_file:
             self._start_print()
@@ -605,7 +587,6 @@ class MainWindow(BoxLayout):
     def review(self):
         self._show_viewer(self.app.gcode_file, self.last_path)
 
-    @mainthread
     def stream_finished(self, ok):
         ''' called when streaming gcode has finished, ok is True if it completed '''
         self.ids.print_but.text = 'Run'
@@ -622,7 +603,6 @@ class MainWindow(BoxLayout):
         f = Factory.filechooser()
         f.open(self.last_path, cb=self._upload_gcode)
 
-    @mainthread
     def _upload_gcode_done(self, ok):
         now = datetime.datetime.now()
         self.display('>>> Upload finished {}'.format('ok' if ok else 'abnormally'))
@@ -651,7 +631,6 @@ class MainWindow(BoxLayout):
         else:
             self.is_printing = True
 
-    @mainthread
     def display_progress(self, n):
         if self.nlines and n <= self.nlines:
             now = datetime.datetime.now()
@@ -673,7 +652,6 @@ class MainWindow(BoxLayout):
             # TODO open waiting dialog
             pass
 
-    @mainthread
     def _list_sdcard_results(self, l):
         # dismiss waiting dialog
         fl = {}
@@ -744,12 +722,10 @@ class MainWindow(BoxLayout):
     def show_camera_screen(self):
         self.app.sm.current = 'camera'
 
-    @mainthread
     def tool_change_prompt(self, l):
         # Print is paused by gcode command M6, prompt for tool change
         self.display("ACTION NEEDED: Manual Tool Change:\n Tool: {}\nWait for machine to stop, then you can jog around to change the tool.\n tap resume to continue".format(l))
 
-    @mainthread
     def m0_dlg(self):
         MessageBox(text='M0 Pause, click OK to continue', cb=self._m0_dlg).open()
 
@@ -1042,8 +1018,8 @@ class SmoothieHost(App):
             self.main_window.display("NOTICE: Restart is needed")
 
     def on_stop(self):
-        # The Kivy event loop is about to stop, stop the async main loop
-        self.comms.stop()   # stop the aysnc loop
+        # The Kivy event loop is about to stop, stop the comms task
+        self.comms.stop()   # stop the comms task
         if self.is_webserver:
             self.webserver.stop()
         if self.blank_timeout > 0:
@@ -1358,6 +1334,16 @@ class SmoothieHost(App):
 
         return False
 
+    def app_func(self):
+        async def run_wrapper():
+            # we don't actually need to set asyncio as the lib because it is
+            # the default, but it doesn't hurt to be explicit
+            Logger.info('App task starting')
+            await self.async_run(async_lib='asyncio')
+            Logger.info('App task ended')
+
+        return run_wrapper()
+
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     """ handle all exceptions """
@@ -1385,4 +1371,6 @@ signal.signal(signal.SIGTERM, handleSigTERM)
 # install handler for exceptions
 sys.excepthook = handle_exception
 
-SmoothieHost().run()
+loop = asyncio.get_event_loop()
+loop.run_until_complete(SmoothieHost().app_func())
+loop.close()
