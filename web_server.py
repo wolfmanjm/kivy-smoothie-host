@@ -60,8 +60,8 @@ class ProgressServer(object):
         self.port = port
         self.app = app
         self.myServer = None
-        t = threading.Thread(target=self._start)
-        t.start()
+        self.t = threading.Thread(target=self._start)
+        self.t.start()
 
     def _start(self):
         ip = get_ip()
@@ -82,6 +82,7 @@ class ProgressServer(object):
     def stop(self):
         if self.myServer:
             self.myServer.shutdown()
+            self.t.join()
 
 
 if __name__ == "__main__":

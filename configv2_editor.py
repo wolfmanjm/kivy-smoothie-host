@@ -7,6 +7,8 @@ from kivy.uix.label import Label
 from kivy.logger import Logger
 from kivy.uix.screenmanager import ScreenManager, Screen
 
+from kivy.effects.dampedscroll import DampedScrollEffect
+
 from multi_input_box import MultiInputBox
 
 import json
@@ -122,7 +124,6 @@ class ConfigV2Editor(Screen):
         self.msp.add_json_panel('Smoothie Config', self.config, data=json.dumps(self.jsondata))
         ss = self.ids.placeholder
         ss.clear_widgets()
-
         ss.add_widget(self.msp)
         self.jsondata = []
 
@@ -138,6 +139,14 @@ class ConfigV2Editor(Screen):
 
 
 class MySettingsPanel(SettingsWithNoMenu):
+    def __init__(self, *args, **kwargs):
+        super(MySettingsPanel, self).__init__(*args, **kwargs)
+        if App.get_running_app().is_desktop == 0:
+            # For RPI gets the instance of the ContentPanel which is a ScrollView
+            # and sets the friction attr in the effects
+            # This may only work with an panel of type SettingsWithNoMenu
+            self.interface.effect_y.friction = 1.0
+
     def on_close(self):
         pass
 

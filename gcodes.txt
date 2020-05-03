@@ -52,6 +52,7 @@ M28 | Begin write to SD card
 M29 | End write to SD card
 M30 | Delete a file on the SD card
 M32 | Select a file, and start playing it
+M48 | Test zprobe repeatability [P<iterations> Z<feedrate>]
 M82 | Set absolute mode for extruder only
 M83 | Set relative mode for extruder only
 M84 | Disable steppers
@@ -116,7 +117,7 @@ M670 | ZProbe feedrates S<slow> K<fast> R<return> Z<maxz> H<probe ht> I<invert> 
 M906 | Set Current in milliamp X<n> Y<n> Z<n>
 M907 | Set Current control via digipot X<n> Y<n> Z<n>
 M909 | Set microsteps X<n> Y<n> Z<n> (1/n)
-M910.x | Setup advanced driver chips that support SPI setup
+M911.x | Setup advanced driver chips that support SPI setup
 M957 | Report the current spindle speed and PWM value
 M958 | Report the current spindle PID parameters
 M999 | Reset from a halted state caused by limit switch

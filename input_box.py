@@ -10,6 +10,7 @@ Builder.load_string('''
     height: dp(content.height) + dp(80)
     title: "Option Title"
     pos_hint: {'top': 1} if app.is_desktop == 0 else {'center_y': 0.5}
+    auto_dismiss: False
 
     BoxLayout:
         id: content

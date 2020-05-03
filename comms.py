@@ -6,6 +6,7 @@ import logging
 import functools
 import sys
 import re
+import os
 import traceback
 import serial.tools.list_ports
 import subprocess
@@ -91,8 +92,7 @@ class SerialConnection(asyncio.Protocol):
         self.transport.close()
         self.f.set_result('Disconnected')
 
-    @asyncio.coroutine
-    def _drain_helper(self):
+    async def _drain_helper(self):
         if self._connection_lost:
             raise ConnectionResetError('Connection lost')
         if not self._paused:
@@ -101,7 +101,7 @@ class SerialConnection(asyncio.Protocol):
         assert waiter is None or waiter.cancelled()
         waiter = asyncio.Future()
         self._drain_waiter = waiter
-        yield from waiter
+        await waiter
 
     def pause_writing(self):
         self.log.info('SerialConnection: pause writing: {}'.format(self.transport.get_write_buffer_size()))
@@ -152,9 +152,9 @@ class Comms():
         ''' called from UI to connect to given port, runs the asyncio mainloop in a separate thread '''
         self.port = port
         self.log.info('Comms: creating comms thread')
-        t = threading.Thread(target=self.run_async_loop)
-        t.start()
-        return t
+        self.comms_thread = threading.Thread(target=self.run_async_loop)
+        self.comms_thread.start()
+        return self.comms_thread
 
     def disconnect(self):
         ''' called by ui thread to disconnect '''
@@ -200,6 +200,7 @@ class Comms():
 
             # we need to close the transport, this will cause mainloop to stop and thread to exit as well
             async_main_loop.call_soon_threadsafe(self.proto.transport.close)
+            self.comms_thread.join()
 
         # else:
         #     if async_main_loop and async_main_loop.is_running():
@@ -332,10 +333,9 @@ class Comms():
         return True
 
     def _list_sdcard(self, done_cb):
-        asyncio.async(self._parse_sdcard_list(done_cb))
+        asyncio.ensure_future(self._parse_sdcard_list(done_cb))
 
-    @asyncio.coroutine
-    def _parse_sdcard_list(self, done_cb):
+    async def _parse_sdcard_list(self, done_cb):
         self.log.debug('Comms: _parse_sdcard_list')
 
         # setup callback to receive and parse listing data
@@ -349,7 +349,7 @@ class Comms():
         # wait for it to complete and get all the lines
         # add a long timeout in case it fails and we don't want to wait for ever
         try:
-            yield from asyncio.wait_for(f, 10)
+            await asyncio.wait_for(f, 10)
 
         except asyncio.TimeoutError:
             self.log.warning("Comms: Timeout waiting for sd card list")
@@ -572,7 +572,7 @@ class Comms():
             return False
 
     def _stream_file(self, fn):
-        self.file_streamer = asyncio.async(self.stream_file(fn))
+        self.file_streamer = asyncio.ensure_future(self.stream_file(fn))
 
     def stream_pause(self, pause, do_abort=False):
         ''' called from external thread to pause or kill in process streaming '''
@@ -599,8 +599,7 @@ class Comms():
                 self.app.main_window.action_paused(False)
                 self.log.info('Comms: Resuming Stream')
 
-    @asyncio.coroutine
-    def stream_file(self, fn):
+    async def stream_file(self, fn):
         self.log.info('Comms: Streaming file {} to port'.format(fn))
         self.is_streaming = True
         self.abort_stream = False
@@ -618,14 +617,14 @@ class Comms():
         tool_change_state = 0
 
         try:
-            f = yield from aiofiles.open(fn, mode='r')
+            f = await aiofiles.open(fn, mode='r')
             while True:
 
                 if tool_change_state == 0:
-                    # yield from self.pause_stream.wait() # wait for pause to be released
+                    # await self.pause_stream.wait() # wait for pause to be released
                     # needed to do it this way as the Event did not seem to work it would pause but not unpause
                     # TODO maybe use Future here to wait for unpause
-                    # create future when pause then yield from it here then delete it
+                    # create future when pause then await it here then delete it
                     if self.pause_stream:
                         if self.ping_pong:
                             # we need to ignore any ok from command while we are paused
@@ -633,7 +632,7 @@ class Comms():
 
                         # wait until pause is released
                         while self.pause_stream:
-                            yield from asyncio.sleep(1)
+                            await asyncio.sleep(1)
                             if self.progress:
                                 self.progress(linecnt)
                             if self.abort_stream:
@@ -644,7 +643,7 @@ class Comms():
                             self.okcnt = asyncio.Event()
 
                     # read next line
-                    line = yield from f.readline()
+                    line = await f.readline()
 
                     if not line:
                         # EOF
@@ -682,7 +681,7 @@ class Comms():
                             # we basically wait for the continue dialog to be dismissed
                             self.app.main_window.m0_dlg()
                             self.m0 = asyncio.Event()
-                            yield from self.m0.wait()
+                            await self.m0.wait()
                             self.m0 = None
                             continue
 
@@ -716,7 +715,7 @@ class Comms():
                 # wait for ok from that command (I'd prefer to interleave with the file read but it is too complex)
                 if self.ping_pong and self.okcnt is not None:
                     try:
-                        yield from self.okcnt.wait()
+                        await self.okcnt.wait()
                         # e= time.time()
                         # print("{} ({}) ok".format(e, (e-s)*1000, ))
                     except Exception:
@@ -728,16 +727,16 @@ class Comms():
                     # Yield to the event loop so connection_lost() may be
                     # called.  Without this, _drain_helper() would return
                     # immediately, and code that calls
-                    #     write(...); yield from drain()
+                    #     write(...); await drain()
                     # in a loop would never call connection_lost(), so it
                     # would not see an error when the socket is closed.
-                    yield
+                    await asyncio.sleep(0)
 
                 if self.abort_stream:
                     break
 
                 # if the buffers are full then wait until we can send some more
-                yield from self.proto._drain_helper()
+                await self.proto._drain_helper()
 
                 if self.abort_stream:
                     break
@@ -761,7 +760,7 @@ class Comms():
 
         finally:
             if f:
-                yield from f.close()
+                await f.close()
 
             if self.abort_stream:
                 if self.proto:
@@ -779,7 +778,7 @@ class Comms():
                         success = False
                         break
 
-                    yield from asyncio.sleep(1)
+                    await asyncio.sleep(1)
 
             self.file_streamer = None
             self.progress = None
@@ -791,6 +790,121 @@ class Comms():
             self.app.main_window.stream_finished(success)
 
             self.log.info('Comms: Streaming complete: {}'.format(success))
+
+        return success
+
+    def upload_gcode(self, fn, progress=None, done=None):
+        ''' called from external thread to start uploading a file '''
+        self.progress = progress
+        if self.proto and async_main_loop:
+            async_main_loop.call_soon_threadsafe(self._upload_gcode, fn, done)
+            return True
+        else:
+            self.log.warning('Comms: Cannot upload to a closed connection')
+            return False
+
+    def _upload_gcode(self, fn, donecb):
+        asyncio.ensure_future(self._stream_upload_gcode(fn, donecb))
+
+    def _rcv_upload_gcode_line(self, ll, ev):
+        if ll == 'ok':
+            ev.set()
+
+        elif ll.startswith('open failed,') or ll.startswith('Error:') or ll.startswith('ALARM:') or ll.startswith('!!') or ll.startswith('error:'):
+            self.upload_error = True
+            ev.set()
+
+        elif ll.startswith('Writing to file:') or ll.startswith('Done saving file.'):
+            # ignore these lines
+            return
+
+        else:
+            self.log.warning('Comms: unknown response: {}'.format(ll))
+
+    async def _stream_upload_gcode(self, fn, donecb):
+        self.log.info('Comms: Upload gcode file {}'.format(fn))
+        okev = asyncio.Event()
+        self.upload_error = False
+        self.abort_stream = False
+        f = None
+        success = False
+        linecnt = 0
+        # use the simple ping pong one line per ok
+        self._redirect_incoming(lambda x: self._rcv_upload_gcode_line(x, okev))
+
+        try:
+            okev.clear()
+            self._write("M28 {}\n".format(os.path.basename(fn).lower()))
+            await okev.wait()
+
+            if self.upload_error:
+                self.log.error('Comms: M28 failed for file /sd/{}'.format(os.path.basename(fn)))
+                self.app.main_window.async_display("error: M28 failed to open file")
+                return
+
+            f = await aiofiles.open(fn, mode='r')
+
+            while True:
+                # read next line
+                line = await f.readline()
+
+                if not line:
+                    # EOF
+                    break
+
+                ln = line.strip()
+                if len(ln) == 0 or ln.startswith(';') or ln.startswith('('):
+                    continue
+
+                # clear the event, which will be set by an incoming ok
+                okev.clear()
+                self._write(line)
+                # wait for ok from that line
+                await okev.wait()
+
+                if self.upload_error:
+                    self.log.error('Comms: Upload failed for file /sd/{}'.format(os.path.basename(fn)))
+                    self.app.main_window.async_display("error: upload failed during transfer")
+                    return
+
+                # when streaming we need to yield until the flow control is dealt with
+                if self.proto._connection_lost:
+                    await asyncio.sleep(0)
+
+                if self.abort_stream:
+                    break
+
+                # if the buffers are full then wait until we can send some more
+                await self.proto._drain_helper()
+
+                if self.abort_stream:
+                    break
+
+                # we only count lines that start with GMXY
+                if ln[0] in "GMXY":
+                    linecnt += 1
+
+                if self.progress and linecnt % 100 == 0:  # update every 100 lines
+                    # number of lines sent
+                    self.progress(linecnt)
+
+            success = not self.abort_stream
+
+        except Exception as err:
+            self.log.error("Comms: Upload GCode file exception: {}".format(err))
+
+        finally:
+            okev.clear()
+            self._write("M29\n")
+            await okev.wait()
+
+            self._redirect_incoming(None)
+            if f:
+                await f.close()
+            self.progress = None
+
+            donecb(success)
+            self.log.info('Comms: Upload GCode complete: {}'.format(success))
 
         return success
 

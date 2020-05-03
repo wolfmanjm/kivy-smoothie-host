@@ -3,14 +3,14 @@ A Smoothie host designed to run on an rpi with multitouch screen or on a desktop
 
 This is stable and ready for everyday use.
 
-This uses python >= 3.4.3 and <= 3.6
+This uses python >= 3.5 and <= 3.8
 
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
 
 It will run on Windows if you install Python 3.5.2, and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
 
-NOTE it currently does not run on python versions > 3.6 due to async changes.
+NOTE it currently is untested on python versions > 3.8.2
 
 The minimum usable resolution is 800x480.
 
@@ -43,6 +43,7 @@ You can select 3d printer mode or CNC mode from the Settings menu, this can affe
 - The DRO Panel shows current MCS and WCS, and allows easy selection of the WCS to use, and allows setting of WCS. If WCS entered is ```/2``` it will halve the current position. (Usefull for moving to the center of things)
 - The MPG Panel is a simulation of an MPG pendant, it allows control of movement and feedrate override via a simulated rotary knob. (There is an optional module to take controls from a real MPG USB pendant).
 - The config editor displays the current smoothie config in a scrollable window, values can be updated click the return key and then will update the config on sd accordingly. (reset is of course required to take effect).
+- Under the Tools menu there is an entry to upload GCode files to the sdcard, and to start an sdcard based print. (don't try to upload non gcode files)
 
 There is a gcode visualizer window that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
 Click the Viewer menu item, select the file to view, then the layers can be moved up or down.
@@ -113,17 +114,24 @@ The last line is quite important otherwise you get a whole lot of ok's echoed ba
 ### Image
 For RPI  and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else.
 
-Download from http://smoothieware.org/_media/bin/smoopi.img
-And image it to an sdcard using for instance https://www.balena.io/etcher/
+Download from http://smoothieware.org/_media/bin/smoopi_img.zip
+unzip and image the resulting .img to an sdcard using for instance https://www.balena.io/etcher/
 
-Once loaded boot into the sdcard, and then update raspbian stretch...
+Once loaded boot into the sdcard, login with username pi and password raspberry then
+
+      sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+
+and add your wifi credentials to the ssid= and the psk=  lines.
+
+Reboot, and wifi should be working.
+
+Then update raspbian stretch...
 
 * login in with username pi and password raspberry
 * sudo apt-get update
 * sudo apt-get upgrade
-* setup wifi using  ```sudo raspi-config```
 
-smoopi is normally run on bootup, but in order to allow you to login and do the initial setup it is initially down. You will need to hook up a keyboard temporarily so you can access the login and run raspi-config etc.
+smoopi is normally run on bootup, but in order to allow you to login and do the initial setup it is initially down. You will need to hook up a keyboard temporarily so you can access the login and run raspi-config etc.(NOTE Do not setup wifi using raspi-config).
 
 Once that is done setup smoopi to run on boot by doing...
     
@@ -138,7 +146,7 @@ Once running use the System menu upgrade to fetch the latest smoopi. If that is 
 (Tested on genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
 Install the latest raspbian stretch lite... (No XWindows)
-https://downloads.raspberrypi.org/raspbian_lite_latest
+http://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
 
 Follow these instructions if using an rpi 3 B+ and rasbian stretch...
 https://kivy.org/doc/stable/installation/installation-rpi.html

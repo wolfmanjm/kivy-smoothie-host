@@ -10,6 +10,7 @@ Builder.load_string('''
     height: dp(content.height) + dp(80)
     title: "Option Title"
     pos_hint: {'top': 1} if app.is_desktop == 0 else {'center_y': 0.5}
+    auto_dismiss: False
 
     BoxLayout:
         id: content
@@ -46,6 +47,7 @@ Builder.load_string('''
                 on_press: root.ok()
 ''')
 
+
 class SelectionBox(Popup):
     text = StringProperty('')
     values = ListProperty([])
@@ -56,9 +58,9 @@ class SelectionBox(Popup):
 
     __events__ = ('on_ok', 'on_cancel')
 
-    def __init__(self,**kwargs):
-        self.window= Window
-        super(SelectionBox,self).__init__(**kwargs)
+    def __init__(self, **kwargs):
+        self.window = Window
+        super(SelectionBox, self).__init__(**kwargs)
         self.content = self.ids["content"]
 
     def ok(self):
@@ -71,7 +73,7 @@ class SelectionBox(Popup):
 
     def on_ok(self):
         if self.cb:
-            s= self.ids.selection.text
+            s = self.ids.selection.text
             self.cb(s)
 
     def on_cancel(self):

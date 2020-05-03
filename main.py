@@ -619,6 +619,40 @@ class MainWindow(BoxLayout):
         self.display(">>> Elapsed time: {}".format(et))
         self.eta = '--:--:--'
 
+    def upload_gcode(self):
+        # get file to upload
+        f = Factory.filechooser()
+        f.open(self.last_path, cb=self._upload_gcode)
+
+    @mainthread
+    def _upload_gcode_done(self, ok):
+        now = datetime.datetime.now()
+        self.display('>>> Upload finished {}'.format('ok' if ok else 'abnormally'))
+        et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
+        self.display(">>> Elapsed time: {}".format(et))
+        self.eta = '--:--:--'
+        self.is_printing = False
+
+    def _upload_gcode(self, file_path, dir_path):
+        if not file_path:
+            return
+
+        try:
+            self.nlines = Comms.file_len(file_path)  # get number of lines so we can do progress and ETA
+            Logger.debug('MainWindow: number of lines: {}'.format(self.nlines))
+        except Exception:
+            Logger.warning('MainWindow: exception in file_len: {}'.format(traceback.format_exc()))
+            self.nlines = None
+
+        self.start_print_time = datetime.datetime.now()
+        self.display('>>> Uploading file: {}, {} lines'.format(file_path, self.nlines))
+
+        if not self.app.comms.upload_gcode(file_path, progress=lambda x: self.display_progress(x), done=self._upload_gcode_done):
+            self.display('WARNING Unable to upload file')
+            return
+        else:
+            self.is_printing = True
+
     @mainthread
     def display_progress(self, n):
         if self.nlines and n <= self.nlines:
@@ -983,7 +1017,7 @@ class SmoothieHost(App):
 
 
         """
-        settings.add_json_panel('SmooPie application', self.config, data=jsondata)
+        settings.add_json_panel('Smoopi application', self.config, data=jsondata)
 
     def on_config_change(self, config, section, key, value):
         # print("config changed: {} - {}: {}".format(section, key, value))
@@ -1094,7 +1128,11 @@ class SmoothieHost(App):
 
         self.comms = Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file = self.config.get('General', 'last_print_file')
-        self.sm = ScreenManager(transition=NoTransition())
+        if self.is_desktop == 0:
+            self.sm = ScreenManager(transition=NoTransition())
+        else:
+            self.sm = ScreenManager()
+
         ms = MainScreen(name='main')
         self.main_window = ms.ids.main_window
         self.sm.add_widget(ms)
@@ -1106,15 +1144,18 @@ class SmoothieHost(App):
         self.sm.add_widget(self.config_editor)
         self.gcode_help = GcodeHelp(name='gcode_help')
         self.sm.add_widget(self.gcode_help)
+
         if self.is_desktop == 0:
+            # RPI touch screen
             self.text_editor = TextEditor(name='text_editor')
             self.sm.add_widget(self.text_editor)
+            self.main_window.ids.log_window.effect_y.friction = 1.0
 
-        self.blank_timeout = self.config.getint('General', 'blank_timeout')
-        Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
+            self.blank_timeout = self.config.getint('General', 'blank_timeout')
+            Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
 
-        self.sm.bind(on_touch_down=self._on_touch)
-        Clock.schedule_interval(self._every_second, 1)
+            self.sm.bind(on_touch_down=self._on_touch)
+            Clock.schedule_interval(self._every_second, 1)
 
         # select the file chooser to use
         # select which one we want from config
@@ -1347,4 +1388,5 @@ signal.signal(signal.SIGTERM, handleSigTERM)
 
 # install handler for exceptions
 sys.excepthook = handle_exception
+
 SmoothieHost().run()
