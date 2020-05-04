@@ -804,7 +804,7 @@ class Comms():
             return False
 
     def _upload_gcode(self, fn, donecb):
-        asyncio.ensure_future(self._stream_upload_gcode(fn, donecb))
+        self.file_streamer = asyncio.ensure_future(self._stream_upload_gcode(fn, donecb))
 
     def _rcv_upload_gcode_line(self, ll, ev):
         if ll == 'ok':
@@ -902,7 +902,7 @@ class Comms():
             if f:
                 await f.close()
             self.progress = None
-
+            self.file_streamer = None
             donecb(success)
             self.log.info('Comms: Upload GCode complete: {}'.format(success))
 
