@@ -763,7 +763,7 @@ class Comms():
         ''' called to start uploading a file '''
         self.progress = progress
         if self.proto:
-            asyncio.ensure_future(self._stream_upload_gcode(fn, donecb))
+            self.file_streamer = asyncio.ensure_future(self._stream_upload_gcode(fn, donecb))
             return True
         else:
             self.log.warning('Comms: Cannot upload to a closed connection')
@@ -793,7 +793,7 @@ class Comms():
         success = False
         linecnt = 0
         # use the simple ping pong one line per ok
-        self._redirect_incoming(lambda x: self._rcv_upload_gcode_line(x, okev))
+        self.redirect_incoming(lambda x: self._rcv_upload_gcode_line(x, okev))
 
         try:
             okev.clear()
@@ -861,10 +861,11 @@ class Comms():
             self.write("M29\n")
             await okev.wait()
 
-            self._redirect_incoming(None)
+            self.redirect_incoming(None)
             if f:
                 await f.close()
             self.progress = None
+            self.file_streamer = None
 
             donecb(success)
             self.log.info('Comms: Upload GCode complete: {}'.format(success))
@@ -903,6 +904,7 @@ if __name__ == "__main__":
             self.log = logging.getLogger()
             self.start_event = asyncio.Event()
             self.end_event = asyncio.Event()
+            self.stop_event = asyncio.Event()
             self.is_connected = False
             self.ok = False
             self.main_window = self
@@ -918,7 +920,7 @@ if __name__ == "__main__":
         def disconnected(self):
             self.log.debug("CommsApp: Disconnected...")
             self.is_connected = False
-            self.start_event.set()
+            self.stop_event.set()
 
         def async_display(self, data):
             print(data)
@@ -951,11 +953,6 @@ if __name__ == "__main__":
         comms = None
 
         def display_progress(self, n):
-
-            if not self.start:
-                self.start = datetime.datetime.now()
-                print("Print started at: {}".format(self.start.strftime('%x %X')))
-
             if self.nlines:
                 now = datetime.datetime.now()
                 d = (now - self.start).seconds
@@ -968,39 +965,61 @@ if __name__ == "__main__":
                 et = datetime.timedelta(seconds=int(eta))
                 print("progress: {}/{} {:.1%} ETA {}".format(n, self.nlines, n / self.nlines, et))
 
+        def upload_done(self, x):
+            self.app.ok = x
+            self.app.end_event.set()
+
         async def main(self):
             if len(sys.argv) < 3:
-                print("Usage: {} port file".format(sys.argv[0]))
+                print("Usage: {} port file [-u] [-f]".format(sys.argv[0]))
                 exit(0)
 
-            app = CommsApp()
-            self.comms = Comms(app, 10)
-            if len(sys.argv) > 3:
-                self.comms.ping_pong = False
-                print('Fast Stream')
+            self.app = CommsApp()
+            self.comms = Comms(self.app, 10)
+
+            upload = False
+
+            while len(sys.argv) > 3:
+                a = sys.argv.pop()
+                if a == '-u':
+                    upload = True
+                    print('Upload only')
+                elif a == '-f':
+                    self.comms.ping_pong = False
+                    print('Fast Stream')
+                else:
+                    print("Unknown option: {}".format(a))
 
             try:
-                self.nlines = self.Comms.file_len(sys.argv[2])  # get number of lines so we can do progress and ETA
+                self.nlines = Comms.file_len(sys.argv[2])  # get number of lines so we can do progress and ETA
                 print('number of lines: {}'.format(self.nlines))
             except Exception:
                 print('Exception: {}'.format(traceback.format_exc()))
                 self.nlines = None
 
             try:
-                app.start_event.clear()
-                app.end_event.clear()
+                self.app.start_event.clear()
+                self.app.end_event.clear()
+                self.app.stop_event.clear()
 
                 t = self.comms.connect(sys.argv[1])
-                await app.start_event.wait()  # wait for connected
-                if app.is_connected:
+                await self.app.start_event.wait()  # wait for connected
+                if self.app.is_connected:
                     # wait for startup to clear up any incoming oks
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(2)
 
-                    self.comms.stream_gcode(sys.argv[2], progress=lambda x: self.display_progress(x))
-                    await app.end_event.wait()  # wait for streaming to complete
+                    self.start = datetime.datetime.now()
+                    print("Print started at: {}".format(self.start.strftime('%x %X')))
 
-                    print("File sent: {}".format('Ok' if app.ok else 'Failed'))
+                    if upload:
+                        self.comms.upload_gcode(sys.argv[2], progress=lambda x: self.display_progress(x), donecb=self.upload_done)
+                    else:
+                        self.comms.stream_gcode(sys.argv[2], progress=lambda x: self.display_progress(x))
+
+                    await self.app.end_event.wait()  # wait for streaming to complete
+
                     now = datetime.datetime.now()
+                    print("File sent: {}".format('Ok' if self.app.ok else 'Failed'))
                     print("Print ended at : {}".format(now.strftime('%x %X')))
                     if self.start:
                         et = datetime.timedelta(seconds=int((now - self.start).seconds))
@@ -1012,27 +1031,25 @@ if __name__ == "__main__":
             except KeyboardInterrupt:
                 print("Interrupted- aborting")
                 self.comms.stream_pause(False, True)
-                await app.end_event.wait()  # wait for streaming to complete
+                await self.app.end_event.wait()  # wait for streaming to complete
 
             finally:
                 # now stop the comms if it is connected or running
                 self.comms.stop()
-                asyncio.get_event_loop().stop()
-
-        def stop(self):
-            if self.comms:
-                self.comms.stop()
+                await self.app.stop_event.wait()  # wait for disconnect
 
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
     loop = asyncio.get_event_loop()
-    loop.set_debug(True)
+    loop.set_debug(False)
 
     commsmain = CommsMain()
 
     def ask_exit(signame):
         print("got signal %s: exit" % signame)
-        commsmain.stop()
+        if commsmain.comms:
+            # abort stream
+            commsmain.comms.stream_pause(False, True)
 
     for signame in ('SIGINT', 'SIGTERM'):
         loop.add_signal_handler(getattr(signal, signame),
@@ -1040,6 +1057,5 @@ if __name__ == "__main__":
 
     try:
         loop.run_until_complete(commsmain.main())
-        loop.run_forever()
     finally:
         loop.close()
