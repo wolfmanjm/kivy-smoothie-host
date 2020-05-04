@@ -1037,7 +1037,7 @@ if __name__ == "__main__":
             finally:
                 # now stop the comms if it is connected or running
                 self.comms.stop()
-                await self.app.stop_event.wait()  # wait for disconnect
+                await self.comms.fcomms  # wait for end
 
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
