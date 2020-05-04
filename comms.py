@@ -130,6 +130,7 @@ class Comms():
     def __init__(self, app, reportrate=1):
         self.app = app
         self.proto = None
+        self.fcomms = None
         self.timer = None
         self._fragment = None
         self.abort_stream = False
@@ -158,7 +159,7 @@ class Comms():
             return
 
         self.port = port
-        asyncio.ensure_future(self.run_comms())
+        self.fcomms = asyncio.ensure_future(self.run_comms())
 
     def disconnect(self):
         ''' called to disconnect '''
@@ -280,7 +281,7 @@ class Comms():
             self.app.main_window.disconnected()
 
         finally:
-            self.log.info('Comms: run_comms Exiting...')
+            self.log.info('Comms: ended')
 
     def _parse_m115(self, s):
         # split fields

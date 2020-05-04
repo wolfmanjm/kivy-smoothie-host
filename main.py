@@ -346,7 +346,7 @@ class MainWindow(BoxLayout):
         else:
             port = self.config.get('General', 'serial_port') if not self.app.use_com_port else self.app.use_com_port
             self.add_line_to_log("Connecting to {}...".format(port))
-            asyncio.ensure_future(self.app.comms.connect(port))
+            self.app.comms.connect(port)
 
     def _disconnect(self, b=True):
         if b:
@@ -375,11 +375,12 @@ class MainWindow(BoxLayout):
 
     def disconnected(self):
         Logger.debug("MainWindow: Disconnected...")
-        self.app.is_connected = False
-        self.is_printing = False
-        self.ids.connect_button.state = 'normal'
-        self.ids.connect_button.text = "Connect"
-        self.add_line_to_log("...Disconnected")
+        if not self.app.closing_down:
+            self.app.is_connected = False
+            self.is_printing = False
+            self.ids.connect_button.state = 'normal'
+            self.ids.connect_button.text = "Connect"
+            self.add_line_to_log("...Disconnected")
 
     def update_status(self, stat, d):
         self.status = stat
@@ -625,7 +626,7 @@ class MainWindow(BoxLayout):
         self.start_print_time = datetime.datetime.now()
         self.display('>>> Uploading file: {}, {} lines'.format(file_path, self.nlines))
 
-        if not self.app.comms.upload_gcode(file_path, progress=lambda x: self.display_progress(x), done=self._upload_gcode_done):
+        if not self.app.comms.upload_gcode(file_path, progress=lambda x: self.display_progress(x), donecb=self._upload_gcode_done):
             self.display('WARNING Unable to upload file')
             return
         else:
@@ -776,6 +777,7 @@ class MainScreen(Screen):
 
 
 class SmoothieHost(App):
+    closing_down = False
     is_connected = BooleanProperty(False)
     status = StringProperty("Not Connected")
     wpos = ListProperty([0, 0, 0])
@@ -1018,8 +1020,10 @@ class SmoothieHost(App):
             self.main_window.display("NOTICE: Restart is needed")
 
     def on_stop(self):
-        # The Kivy event loop is about to stop, stop the comms task
-        self.comms.stop()   # stop the comms task
+        self.closing_down = True
+        # stop the comms task if connected
+        self.comms.stop()  # stop the comms task if running
+
         if self.is_webserver:
             self.webserver.stop()
         if self.blank_timeout > 0:
@@ -1340,6 +1344,10 @@ class SmoothieHost(App):
             # the default, but it doesn't hurt to be explicit
             Logger.info('App task starting')
             await self.async_run(async_lib='asyncio')
+            if self.comms and self.comms.fcomms:
+                Logger.info('Waiting for comms task to end')
+                await self.comms.fcomms
+
             Logger.info('App task ended')
 
         return run_wrapper()
