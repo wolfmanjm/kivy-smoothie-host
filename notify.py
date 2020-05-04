@@ -1,6 +1,6 @@
 import smtplib
 import configparser
-from kivy.logger import Logger
+import logging
 
 
 class Notify():
@@ -8,6 +8,8 @@ class Notify():
 
     @staticmethod
     def send(msg):
+        self.logger = logging.getLogger()
+
         try:
             config = configparser.ConfigParser()
             config.read('notify.ini')
@@ -20,20 +22,20 @@ class Notify():
             subject = config.get('header', 'subject', fallback='Smoopi notification')
 
         except Exception as err:
-            Logger.error('Notify: notify.ini file errors: {}'.format(err))
+            self.logger.error('Notify: notify.ini file errors: {}'.format(err))
             return False
 
         if user is None:
-            Logger.error('Notify: no user specified')
+            self.logger.error('Notify: no user specified')
             return False
         if password is None:
-            Logger.error('Notify: no password specified')
+            self.logger.error('Notify: no password specified')
             return False
         if server is None:
-            Logger.error('Notify: no server specified')
+            self.logger.error('Notify: no server specified')
             return False
         if to_addr is None:
-            Logger.error('Notify: no to address specified')
+            self.logger.error('Notify: no to address specified')
             return False
 
         body = '{}\n'.format(msg)
@@ -55,5 +57,5 @@ Subject: %s
             return True
 
         except Exception as ex:
-            Logger.error('Notify: Failed to send email: {}'.format(ex))
+            self.logger.error('Notify: Failed to send email: {}'.format(ex))
             return False

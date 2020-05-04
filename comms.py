@@ -1,6 +1,3 @@
-from kivy.clock import Clock
-from kivy.app import App
-
 import asyncio
 import serial_asyncio
 import aiofiles
@@ -149,8 +146,9 @@ class Comms():
         self.is_suspend = False
         self.m0 = None
         self.net_connection = False
+        self.loop = asyncio.get_event_loop()
         self.log = logging.getLogger()  # .getChild('Comms')
-        logging.getLogger().setLevel(logging.DEBUG)
+        # logging.getLogger().setLevel(logging.DEBUG)
 
     def connect(self, port):
         ''' called to connect to given port '''
@@ -190,7 +188,7 @@ class Comms():
             self.write('?')
 
     def stop(self):
-        ''' called by ui thread when it is exiting '''
+        ''' called when app is exiting '''
         if self.proto:
             # abort any streaming immediately
             self.stream_pause(False, True)
@@ -207,7 +205,7 @@ class Comms():
         ''' called by connect() '''
         self.log.info('Comms: starting...')
 
-        loop = asyncio.get_event_loop()
+        loop = self.loop
         fconnected = loop.create_future()
         fclosed = loop.create_future()
 
@@ -257,7 +255,7 @@ class Comms():
 
             if self.report_rate > 0:
                 # start a timer to get the reports
-                self.timer = Clock.schedule_once(self._get_reports, self.report_rate)
+                self.timer = self.loop.call_later(self.report_rate, self._get_reports)
 
             # wait until we are disconnected
             self.log.debug('Comms: waiting until disconnection')
@@ -367,7 +365,7 @@ class Comms():
             self._reroute_incoming_data_to = None
 
             if self._restart_timer:
-                self.timer = Clock.schedule_once(self._get_reports, 0.1)
+                self.timer = self.loop.call_later(0.1, self._get_reports)
                 self._restart_timer = False
 
     # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
@@ -510,7 +508,7 @@ class Comms():
         self.app.main_window.update_status(status, d)
 
         # schedule next report
-        self.timer = Clock.schedule_once(self._get_reports, self.report_rate)
+        self.timer = self.loop.call_later(self.report_rate, self._get_reports)
 
     def handle_probe(self, s):
         # [PRB:1.000,80.137,10.000:0]
@@ -896,9 +894,8 @@ if __name__ == "__main__":
     from time import sleep
 
     ''' a standalone streamer to test it with '''
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
-    class CommsApp(object):
+    class CommsApp():
         """ Standalone app callbacks """
         def __init__(self):
             super(CommsApp, self).__init__()
@@ -945,9 +942,13 @@ if __name__ == "__main__":
         def action_paused(self, flag, suspend=False):
             print("paused: {}, suspended: {}", flag, suspend)
 
-    class CommsMain(App):
+        def get_queries(self):
+            return ""
+
+    class CommsMain():
         start = None
         nlines = None
+        comms = None
 
         def display_progress(self, n):
 
@@ -973,13 +974,13 @@ if __name__ == "__main__":
                 exit(0)
 
             app = CommsApp()
-            comms = Comms(app, 10)
+            self.comms = Comms(app, 10)
             if len(sys.argv) > 3:
-                comms.ping_pong = False
+                self.comms.ping_pong = False
                 print('Fast Stream')
 
             try:
-                self.nlines = Comms.file_len(sys.argv[2])  # get number of lines so we can do progress and ETA
+                self.nlines = self.Comms.file_len(sys.argv[2])  # get number of lines so we can do progress and ETA
                 print('number of lines: {}'.format(self.nlines))
             except Exception:
                 print('Exception: {}'.format(traceback.format_exc()))
@@ -989,13 +990,13 @@ if __name__ == "__main__":
                 app.start_event.clear()
                 app.end_event.clear()
 
-                t = comms.connect(sys.argv[1])
+                t = self.comms.connect(sys.argv[1])
                 await app.start_event.wait()  # wait for connected
                 if app.is_connected:
                     # wait for startup to clear up any incoming oks
                     await asyncio.sleep(5)
 
-                    comms.stream_gcode(sys.argv[2], progress=lambda x: self.display_progress(x))
+                    self.comms.stream_gcode(sys.argv[2], progress=lambda x: self.display_progress(x))
                     await app.end_event.wait()  # wait for streaming to complete
 
                     print("File sent: {}".format('Ok' if app.ok else 'Failed'))
@@ -1010,27 +1011,35 @@ if __name__ == "__main__":
 
             except KeyboardInterrupt:
                 print("Interrupted- aborting")
-                comms.stream_pause(False, True)
+                self.comms.stream_pause(False, True)
                 await app.end_event.wait()  # wait for streaming to complete
 
             finally:
                 # now stop the comms if it is connected or running
-                comms.stop()
+                self.comms.stop()
                 asyncio.get_event_loop().stop()
 
-    def ask_exit(signame):
-        print("got signal %s: exit" % signame)
-        loop.stop()
+        def stop(self):
+            if self.comms:
+                self.comms.stop()
+
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
     loop = asyncio.get_event_loop()
     loop.set_debug(True)
+
+    commsmain = CommsMain()
+
+    def ask_exit(signame):
+        print("got signal %s: exit" % signame)
+        commsmain.stop()
 
     for signame in ('SIGINT', 'SIGTERM'):
         loop.add_signal_handler(getattr(signal, signame),
                                 functools.partial(ask_exit, signame))
 
     try:
-        loop.run_until_complete(CommsMain().main())
+        loop.run_until_complete(commsmain.main())
         loop.run_forever()
     finally:
         loop.close()
