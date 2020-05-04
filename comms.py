@@ -1042,8 +1042,8 @@ if __name__ == "__main__":
 
                 app.end_event.wait()  # wait for streaming to complete
 
-                print("File sent: {}".format('Ok' if app.ok else 'Failed'))
                 now = datetime.datetime.now()
+                print("File sent: {}".format('Ok' if app.ok else 'Failed'))
                 print("Print ended at : {}".format(now.strftime('%x %X')))
                 if start:
                     et = datetime.timedelta(seconds=int((now - start).seconds))
