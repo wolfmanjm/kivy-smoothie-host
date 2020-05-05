@@ -10,7 +10,6 @@ from collections import deque
 from kivy.logger import Logger, LOG_LEVELS
 import io
 import urllib.request
-import threading
 
 Builder.load_string('''
 <MjpegViewer>:

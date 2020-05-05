@@ -2,8 +2,9 @@ import kivy
 
 from kivy.logger import Logger
 from kivy.app import App
-import threading
+
 import traceback
+import asyncio
 
 
 class ToolScripts():
@@ -17,8 +18,7 @@ class ToolScripts():
     def find_center(self):
         """ Finds the center of a circle """
         # needs to be run in a thread
-        t = threading.Thread(target=self._find_center_thread, daemon=True)
-        t.start()
+        asyncio.ensure_future(self._find_center)
 
     # private methods
     def _probe(self, x=None, y=None, z=None):
@@ -38,9 +38,8 @@ class ToolScripts():
         self.app.comms.write("G38.3 {}\n".format(cmd))
 
         # wait for it to complete
-        if not self.app.comms.okcnt.wait(120):
-            raise Exception("probe timed out")
-
+        # TODO may need a timeout
+        self.app.comms.okcnt.wait()
         self.app.comms.okcnt.clear()
 
         r = self.app.last_probe
@@ -64,9 +63,7 @@ class ToolScripts():
         if cmd:
             self.app.comms.write("G91 G0 {} G90\n".format(cmd))
             # wait for it to complete
-            if not self.app.comms.okcnt.wait(120):
-                raise Exception("moveby timed out")
-
+            self.app.comms.okcnt.wait()
             self.app.comms.okcnt.clear()
             if self.app.main_window.status == 'Alarm':
                 raise Exception("ALARM detected")
@@ -85,19 +82,18 @@ class ToolScripts():
         if cmd:
             self.app.comms.write("G90 G0 {}\n".format(cmd))
             # wait for it to complete
-            if not self.app.comms.okcnt.wait(120):
-                raise Exception("moveto timed out")
-
+            self.app.comms.okcnt.wait()
             self.app.comms.okcnt.clear()
             if self.app.main_window.status == 'Alarm':
                 raise Exception("ALARM detected")
 
-    def _find_center_thread(self):
+    async def _find_center(self):
         self.app.main_window.async_display("Starting find center....")
 
-        self.app.comms.okcnt = threading.Event()
-        try:
+        self.app.comms.okcnt = asyncio.Event()
+        self.app.comms.okcnt.clear()
 
+        try:
             # get current position
             wpx = self.app.wpos[0]
             wpy = self.app.wpos[1]
@@ -143,4 +139,4 @@ class ToolScripts():
             self.app.main_window.async_display("find center completed")
 
         finally:
-            self.app.okcnt = None
+            self.app.comms.okcnt = None

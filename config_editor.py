@@ -1,7 +1,6 @@
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.clock import mainthread
 
 from multi_input_box import MultiInputBox
 
@@ -82,8 +81,6 @@ Builder.load_string('''
 
 
 class ConfigEditor(Screen):
-
-    @mainthread
     def _add_line(self, line):
         if not line.lstrip().startswith("#"):
             t = line.split()

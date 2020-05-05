@@ -1,6 +1,6 @@
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.clock import Clock, mainthread
+from kivy.clock import Clock
 from kivy.config import ConfigParser
 from kivy.uix.settings import SettingsWithNoMenu
 from kivy.uix.label import Label
@@ -13,7 +13,6 @@ from multi_input_box import MultiInputBox
 
 import json
 import configparser
-import threading
 
 Builder.load_string('''
 <ConfigV2Editor>:
@@ -97,7 +96,6 @@ class ConfigV2Editor(Screen):
         self.app.comms.write('cat /sd/config.ini\n')
         self.app.comms.write('\n')  # get an ok to indicate end of cat
 
-    @mainthread
     def _build(self):
         self.app.comms.redirect_incoming(None)
         for section in self.config.sections():
