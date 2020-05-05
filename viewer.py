@@ -10,16 +10,17 @@ from kivy.graphics.transformation import Matrix
 from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
-from kivy.clock import Clock, mainthread
+from kivy.clock import Clock
 from kivy.core.text import Label as CoreLabel
 from message_box import MessageBox
 
+import asyncio
+import aiofiles
 import logging
 import sys
 import re
 import math
 import time
-import threading
 import traceback
 
 Builder.load_string('''
@@ -146,31 +147,29 @@ class GcodeViewerScreen(Screen):
         self.li = Image(source='img/image-loading.gif')
         self.add_widget(self.li)
         self.ids.surface.canvas.remove(self.canv)
-        threading.Thread(target=self._load_file, args=(ll,)).start()
+        self._loaded_ok = False
+        f = asyncio.ensure_future(self.parse_gcode_file(self.app.gcode_file, ll, True))
+        f.add_done_callback(self._loaded)
 
-    @mainthread
-    def _loaded(self):
+    def _loaded(self, f):
         Logger.debug("GcodeViewerScreen: in _loaded. ok: {}".format(self._loaded_ok))
+
         self.remove_widget(self.li)
         self.li = None
         self.ids.surface.canvas.add(self.canv)
         self.valid = self._loaded_ok
-        if self._loaded_ok:
+        # see if we got an exception, usually file not found
+        ex = f.exception()
+        if(ex):
+            Logger.error("GcodeViewerScreen: load exception: {}".format(ex))
+            mb = MessageBox(text='File not found: {}'.format(self.app.gcode_file))
+            mb.open()
+
+        elif self._loaded_ok:
             # not sure why we need to do this
             self.ids.surface.top = Window.height
             if self.app.is_connected:
                 self.app.bind(wpos=self.update_tool)
-
-    def _load_file(self, ll):
-        self._loaded_ok = False
-        try:
-            self.parse_gcode_file(self.app.gcode_file, ll, True)
-        except Exception:
-            print(traceback.format_exc())
-            mb = MessageBox(text='File not found: {}'.format(self.app.gcode_file))
-            mb.open()
-
-        self._loaded()
 
     def _redraw(self, instance, value):
         self.ids.surface.canvas.remove(self.canv)
@@ -267,7 +266,7 @@ class GcodeViewerScreen(Screen):
 
     extract_gcode = re.compile(r"(G|X|Y|Z|I|J|K|E|S)(-?\d*\.?\d*\.?)")
 
-    def parse_gcode_file(self, fn, target_layer=0, one_layer=False):
+    async def parse_gcode_file(self, fn, target_layer=0, one_layer=False):
         # open file parse gcode and draw
         Logger.debug("GcodeViewerScreen: parsing file {}". format(fn))
         lastpos = [self.app.wpos[0], self.app.wpos[1], -1]  # XYZ, set to initial tool position
@@ -307,27 +306,32 @@ class GcodeViewerScreen(Screen):
         y = lastpos[1]
         z = lastpos[2]
 
-        with open(fn) as f:
+        async with aiofiles.open(fn, mode='r') as f:
+            Logger.debug("GcodeViewerScreen: file opened")
             # if self.last_file_pos:
             #     # jump to last read position
             #     f.seek(self.last_file_pos)
             #     self.last_file_pos= None
             #     print('Jumped to Saved position: {}'.format(self.last_file_pos))
-            for ln in f:
+            async for ln in f:
                 cnt += 1
                 ln = ln.strip()
-                if not ln: continue
-                if ln.startswith(';'): continue
-                if ln.startswith('('): continue
+                if not ln:
+                    continue
+                if ln.startswith(';'):
+                    continue
+                if ln.startswith('('):
+                    continue
                 p = ln.find(';')
-                if p >= 0: ln = ln[:p]
+                if p >= 0:
+                    ln = ln[:p]
                 matches = self.extract_gcode.findall(ln)
 
                 # this handles multiple G codes on one line
                 gcodes = []
                 d = {}
                 for m in matches:
-                    #print(m)
+                    # print(m)
                     if m[0] == 'G' and 'G' in d:
                         # we have another G code on the same line
                         gcodes.append(d)
@@ -337,7 +341,8 @@ class GcodeViewerScreen(Screen):
                 gcodes.append(d)
 
                 for d in gcodes:
-                    if not d: continue
+                    if not d:
+                        continue
 
                     Logger.debug("GcodeViewerScreen: d={}".format(d))
 
@@ -356,12 +361,14 @@ class GcodeViewerScreen(Screen):
                         rel_move = gcode == 91
 
                     # only deal with G0/1/2/3
-                    if gcode > 3: continue
+                    if gcode > 3:
+                        continue
 
                     modal_g = gcode
 
                     # see if it is 3d printing (ie has an E axis on a G1)
-                    if not has_e and ('E' in d and 'G' in d and gcode == 1): has_e = True
+                    if not has_e and ('E' in d and 'G' in d and gcode == 1):
+                        has_e = True
 
                     if rel_move:
                         x += 0 if 'X' not in d else float(d['X'])
@@ -380,7 +387,7 @@ class GcodeViewerScreen(Screen):
                     e = laste if 'E' not in d else float(d['E'])
                     s = lasts if 'S' not in d else float(d['S'])
 
-                    if not self.twod_mode :
+                    if not self.twod_mode:
                         # handle layers (when Z changes)
                         if z == -1:
                             # no z seen yet
@@ -391,7 +398,6 @@ class GcodeViewerScreen(Screen):
                             # first layer
                             lastz = z
                             layer = 1
-
 
                         if z != lastz:
                             # count layers
@@ -405,8 +411,8 @@ class GcodeViewerScreen(Screen):
 
                         if layer > target_layer and one_layer:
                             # FIXME for some reason this does not work, -- not counting layers
-                            #self.last_file_pos= f.tell()
-                            #print('Saved position: {}'.format(self.last_file_pos))
+                            # self.last_file_pos= f.tell()
+                            # print('Saved position: {}'.format(self.last_file_pos))
                             break
 
                         self.current_z = z
@@ -416,10 +422,14 @@ class GcodeViewerScreen(Screen):
                     Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}, s= {}".format(x, y, z, s))
 
                     # find bounding box
-                    if math.isnan(min_x) or x < min_x: min_x = x
-                    if math.isnan(min_y) or y < min_y: min_y = y
-                    if math.isnan(max_x) or x > max_x: max_x = x
-                    if math.isnan(max_y) or y > max_y: max_y = y
+                    if math.isnan(min_x) or x < min_x:
+                        min_x = x
+                    if math.isnan(min_y) or y < min_y:
+                        min_y = y
+                    if math.isnan(max_x) or x > max_x:
+                        max_x = x
+                    if math.isnan(max_y) or y > max_y:
+                        max_y = y
 
                     # accumulating vertices is more efficient but we need to flush them at some point
                     # Here we flush them if we encounter a new G code like G3 following G1
@@ -434,7 +444,7 @@ class GcodeViewerScreen(Screen):
 
                     # in slicer generated files there is no G0 so we need a way to know when to draw, so if there is an E then draw else don't
                     if gcode == 0:
-                        #print("move to: {}, {}, {}".format(x, y, z))
+                        # print("move to: {}, {}, {}".format(x, y, z))
                         # draw moves in dashed red
                         self.canv.add(Color(1, 0, 0))
                         self.canv.add(Line(points=[lastpos[0], lastpos[1], x, y], width=1, dash_offset=1, cap='none', joint='none'))
@@ -452,7 +462,7 @@ class GcodeViewerScreen(Screen):
                             # for 3d printers (has_e) only draw if there is an E
                             elif not has_e or 'E' in d:
                                 # if a CNC gcode file or there is an E in the G1 (3d printing)
-                                #print("draw to: {}, {}, {}".format(x, y, z))
+                                # print("draw to: {}, {}, {}".format(x, y, z))
                                 # collect points but don't draw them yet
                                 if len(points) < 2:
                                     points.append(lastpos[0])
@@ -463,7 +473,7 @@ class GcodeViewerScreen(Screen):
 
                             else:
                                 # a G1 with no E, treat as G0 and draw moves in red
-                                #print("move to: {}, {}, {}".format(x, y, z))
+                                # print("move to: {}, {}, {}".format(x, y, z))
                                 if points:
                                     # draw accumulated points upto this point
                                     self.canv.add(Color(0, 0, 0))
@@ -509,48 +519,50 @@ class GcodeViewerScreen(Screen):
                             u1 = y
                             v1 = z
                             w1 = x
-                        phi0 = math.atan2(v0-vc, u0-uc)
-                        phi1 = math.atan2(v1-vc, u1-uc)
+                        phi0 = math.atan2(v0 - vc, u0 - uc)
+                        phi1 = math.atan2(v1 - vc, u1 - uc)
                         try:
-                            sagitta = 1.0-CNC_accuracy/self.rval
+                            sagitta = 1.0 - CNC_accuracy / self.rval
                         except ZeroDivisionError:
                             sagitta = 0.0
                         if sagitta > 0.0:
-                            df = 2.0*math.acos(sagitta)
-                            df = min(df, math.pi/4.0)
+                            df = 2.0 * math.acos(sagitta)
+                            df = min(df, math.pi / 4.0)
                         else:
-                            df = math.pi/4.0
+                            df = math.pi / 4.0
 
                         if gcode == 2:
-                            if phi1 >= phi0-1e-10: phi1 -= 2.0*math.pi
-                            ws  = (w1-w0)/(phi1-phi0)
+                            if phi1 >= phi0 - 1e-10:
+                                phi1 -= 2.0 * math.pi
+                            ws = (w1 - w0) / (phi1 - phi0)
                             phi = phi0 - df
                             while phi > phi1:
-                                u = uc + self.rval*math.cos(phi)
-                                v = vc + self.rval*math.sin(phi)
-                                w = w0 + (phi-phi0)*ws
+                                u = uc + self.rval * math.cos(phi)
+                                v = vc + self.rval * math.sin(phi)
+                                w = w0 + (phi - phi0) * ws
                                 phi -= df
                                 if plane == XY:
-                                    xyz.append((u,v,w))
+                                    xyz.append((u, v, w))
                                 elif plane == XZ:
-                                    xyz.append((u,w,v))
+                                    xyz.append((u, w, v))
                                 else:
-                                    xyz.append((w,u,v))
+                                    xyz.append((w, u, v))
                         else:
-                            if phi1 <= phi0+1e-10: phi1 += 2.0*math.pi
-                            ws  = (w1-w0)/(phi1-phi0)
+                            if phi1 <= phi0 + 1e-10:
+                                phi1 += 2.0 * math.pi
+                            ws = (w1 - w0) / (phi1 - phi0)
                             phi = phi0 + df
                             while phi < phi1:
-                                u = uc + self.rval*math.cos(phi)
-                                v = vc + self.rval*math.sin(phi)
-                                w = w0 + (phi-phi0)*ws
+                                u = uc + self.rval * math.cos(phi)
+                                v = vc + self.rval * math.sin(phi)
+                                w = w0 + (phi - phi0) * ws
                                 phi += df
                                 if plane == XY:
-                                    xyz.append((u,v,w))
+                                    xyz.append((u, v, w))
                                 elif plane == XZ:
-                                    xyz.append((u,w,v))
+                                    xyz.append((u, w, v))
                                 else:
-                                    xyz.append((w,u,v))
+                                    xyz.append((w, u, v))
 
                         xyz.append((x, y, z))
                         # plot the points
@@ -645,13 +657,14 @@ class GcodeViewerScreen(Screen):
         Logger.debug("GcodeViewerScreen: done loading")
 
     def update_tool(self, i, v):
-        if not self.is_visible or not self.app.is_connected: return
+        if not self.is_visible or not self.app.is_connected:
+            return
 
         # follow the tool path
-        #self.canv.remove_group("tool")
+        # self.canv.remove_group("tool")
         x = v[0]
         y = v[1]
-        r = (10.0/self.ids.surface.scale)/self.scale
+        r = (10.0 / self.ids.surface.scale) / self.scale
         g = self.canv.get_group("tool")
         if g:
             g[2].circle = (x, y, r)
@@ -669,7 +682,7 @@ class GcodeViewerScreen(Screen):
         ''' inverse transform of model coordinates to scatter coordinates '''
         pos = ((((posx + self.tx) * self.scale) + self.offs[0]), (((posy + self.ty) * self.scale) + self.offs[1]))
         spos = self.ids.surface.to_window(*pos)
-        #print("pos= {}, spos= {}".format(pos, spos))
+        # print("pos= {}, spos= {}".format(pos, spos))
         return spos
 
     def moved(self, w, touch):
@@ -717,7 +730,7 @@ class GcodeViewerScreen(Screen):
         self.crossx = None
 
     def on_touch_down(self, touch):
-        #print(self.ids.surface.bbox)
+        # print(self.ids.surface.bbox)
         if self.ids.view_window.collide_point(touch.x, touch.y):
             # if within the scatter window
             if self.select_mode:
@@ -846,6 +859,11 @@ if __name__ == '__main__':
 
         def __init__(self, **kwargs):
             super(GcodeViewerApp, self).__init__(**kwargs)
+
+            level = LOG_LEVELS.get('debug') if len(sys.argv) > 2 else LOG_LEVELS.get('info')
+            Logger.setLevel(level=level)
+            # logging.getLogger().setLevel(logging.DEBUG)
+
             if len(sys.argv) > 1:
                 self.gcode_file = sys.argv[1]
                 if not self.gcode_file.endswith('.gcode'):
@@ -861,9 +879,26 @@ if __name__ == '__main__':
             self.sm.add_widget(ExitScreen(name='main'))
             self.sm.current = 'gcode'
 
-            level = LOG_LEVELS.get('debug') if len(sys.argv) > 2 else LOG_LEVELS.get('info')
-            Logger.setLevel(level=level)
-            # logging.getLogger().setLevel(logging.DEBUG)
             return self.sm
 
-    GcodeViewerApp().run()
+        def app_func(self):
+            async def run_wrapper():
+                # we don't actually need to set asyncio as the lib because it is
+                # the default, but it doesn't hurt to be explicit
+                Logger.info('App task starting')
+                await self.async_run(async_lib='asyncio')
+                Logger.info('App task ended')
+
+            return run_wrapper()
+
+    def handle_exception(loop, context):
+        # context["message"] will always be there; but context["exception"] may not
+        msg = context.get("exception", context["message"])
+        Logger.error("Caught exception: {}".format(msg))
+        vapp.stop()
+
+    vapp = GcodeViewerApp()
+    loop = asyncio.get_event_loop()
+    loop.set_exception_handler(handle_exception)
+    loop.run_until_complete(vapp.app_func())
+    loop.close()

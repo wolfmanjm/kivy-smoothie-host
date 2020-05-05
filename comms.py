@@ -905,7 +905,6 @@ if __name__ == "__main__":
             self.log = logging.getLogger()
             self.start_event = asyncio.Event()
             self.end_event = asyncio.Event()
-            self.stop_event = asyncio.Event()
             self.is_connected = False
             self.ok = False
             self.main_window = self
@@ -921,7 +920,7 @@ if __name__ == "__main__":
         def disconnected(self):
             self.log.debug("CommsApp: Disconnected...")
             self.is_connected = False
-            self.stop_event.set()
+            self.start_event.set()
 
         def async_display(self, data):
             print(data)
@@ -1001,7 +1000,6 @@ if __name__ == "__main__":
             try:
                 self.app.start_event.clear()
                 self.app.end_event.clear()
-                self.app.stop_event.clear()
 
                 t = self.comms.connect(sys.argv[1])
                 await self.app.start_event.wait()  # wait for connected
@@ -1039,18 +1037,24 @@ if __name__ == "__main__":
                 self.comms.stop()
                 await self.comms.fcomms  # wait for end
 
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-
-    loop = asyncio.get_event_loop()
-    loop.set_debug(False)
-
-    commsmain = CommsMain()
+    def handle_exception(loop, context):
+        # context["message"] will always be there; but context["exception"] may not
+        msg = context.get("exception", context["message"])
+        print("Caught exception: {}".format(msg))
+        loop.stop()
 
     def ask_exit(signame):
         print("got signal %s: exit" % signame)
         if commsmain.comms:
             # abort stream
             commsmain.comms.stream_pause(False, True)
+
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+
+    loop = asyncio.get_event_loop()
+    loop.set_debug(False)
+    loop.set_exception_handler(handle_exception)
+    commsmain = CommsMain()
 
     for signame in ('SIGINT', 'SIGTERM'):
         loop.add_signal_handler(getattr(signal, signame),
