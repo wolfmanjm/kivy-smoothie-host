@@ -1,8 +1,9 @@
 try:
     import wx
-    wx_available= True
-except:
-    wx_available= False
+    wx_available = True
+except Exception:
+    wx_available = False
+
 import threading
 import os.path
 import subprocess as sp
@@ -11,21 +12,23 @@ import time
 from kivy.clock import mainthread
 from message_box import MessageBox
 
+
 class NativeFileChooser():
-    type_name= 'wx'
+    type_name = 'wx'
+
     def __init__(self, **kwargs):
         super(NativeFileChooser, self).__init__(**kwargs)
-        self.use_wx= False
-        self.use_zenity= False
-        self.use_kdialog= False
-        self.failed= False
+        self.use_wx = False
+        self.use_zenity = False
+        self.use_kdialog = False
+        self.failed = False
 
         if NativeFileChooser.type_name == 'wx' and wx_available:
-            self.use_wx= True
+            self.use_wx = True
         elif NativeFileChooser.type_name == 'zenity':
-            self.use_zenity= True
+            self.use_zenity = True
         elif NativeFileChooser.type_name == 'kdialog':
-            self.use_kdialog= True
+            self.use_kdialog = True
         else:
             raise "Unknown chooser"
 
@@ -45,7 +48,7 @@ class NativeFileChooser():
     def _wx_get_path(self):
         app = wx.App(None)
         style = wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
-        dialog = wx.FileDialog(None, self.title, defaultDir= self.start_dir, wildcard='GCode files|*.g;*.gcode;*.nc;*.gc;*.ngc|All Files|*', style=style)
+        dialog = wx.FileDialog(None, self.title, defaultDir=self.start_dir, wildcard='GCode files|*.g;*.gcode;*.nc;*.gc;*.ngc|All Files|*', style=style)
         if dialog.ShowModal() == wx.ID_OK:
             path = dialog.GetPath()
         else:
@@ -53,29 +56,29 @@ class NativeFileChooser():
         dialog.Destroy()
         return path
 
-    def open(self, start_dir= "", title= "", cb= None):
-        self.cb= cb
-        self.title= title
-        self.start_dir= start_dir
+    def open(self, start_dir="", title="", cb=None):
+        self.cb = cb
+        self.title = title
+        self.start_dir = start_dir
         threading.Thread(target=self._open_dialog).start()
 
     def _open_dialog(self):
-        path= None
+        path = None
         try:
             if self.use_wx:
-                path= self._wx_get_path()
+                path = self._wx_get_path()
 
             elif self.use_zenity:
-                os.unsetenv('WINDOWID') # needed so dialog pops up infront of my window
-                path= self._run_command(['zenity', '--title', self.title, '--file-selection', '--filename', self.start_dir+'/', '--file-filter', 'GCode files | *.g *.gcode *.nc *.gc *.ngc'])
+                os.unsetenv('WINDOWID')  # needed so dialog pops up infront of my window
+                path = self._run_command(['zenity', '--title', self.title, '--file-selection', '--filename', self.start_dir + '/', '--file-filter', 'GCode files | *.g *.gcode *.nc *.gc *.ngc'])
 
             elif self.use_kdialog:
-                path= self._run_command(['kdialog', '--title', self.title, '--getopenfilename', self.start_dir, '*.g *.gcode *.nc *.gc *.ngc'])
+                path = self._run_command(['kdialog', '--title', self.title, '--getopenfilename', self.start_dir, '*.g *.gcode *.nc *.gc *.ngc'])
             else:
-                self.failed= True
+                self.failed = True
 
-        except:
-            self.failed= True
+        except Exception:
+            self.failed = True
 
         self._loaded(path)
 
@@ -87,6 +90,6 @@ class NativeFileChooser():
             return
 
         if path:
-            dr= os.path.dirname(path)
+            dr = os.path.dirname(path)
             if self.cb:
                 self.cb(path, dr)
