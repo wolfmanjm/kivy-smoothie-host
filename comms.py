@@ -275,7 +275,7 @@ class Comms():
             pass
 
         except Exception as err:
-            self.log.error('Comms: {}'.format(traceback.format_exc()))
+            # self.log.error('Comms: {}'.format(traceback.format_exc()))
             self.log.error("Comms: Got serial error opening port: {0}".format(err))
             self.app.main_window.async_display(">>> Connect failed: {0}".format(err))
             self.app.main_window.disconnected()
@@ -723,7 +723,7 @@ class Comms():
 
         except Exception as err:
             self.log.error("Comms: Stream file exception: {}".format(err))
-            print('Exception: {}'.format(traceback.format_exc()))
+            # print('Exception: {}'.format(traceback.format_exc()))
 
         finally:
             if f:

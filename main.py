@@ -1369,6 +1369,16 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         pass
 
 
+def handle_asyncio_exception(loop, context):
+    # context["message"] will always be there; but context["exception"] may not
+    msg = context.get("exception", context["message"])
+    Logger.error("Unhandled asyncio exception: {}".format(msg))
+    try:
+        App.get_running_app().stop()
+    except Exception:
+        pass
+
+
 # we want to handle TERM signal cleanly (sent by sv down)
 def handleSigTERM(a, b):
     App.get_running_app().stop()
@@ -1380,5 +1390,6 @@ signal.signal(signal.SIGTERM, handleSigTERM)
 sys.excepthook = handle_exception
 
 loop = asyncio.get_event_loop()
+loop.set_exception_handler(handle_asyncio_exception)
 loop.run_until_complete(SmoothieHost().app_func())
 loop.close()
