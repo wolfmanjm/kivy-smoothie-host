@@ -164,6 +164,7 @@ class GcodeViewerScreen(Screen):
             Logger.error("GcodeViewerScreen: load exception: {}".format(ex))
             mb = MessageBox(text='File not found: {}'.format(self.app.gcode_file))
             mb.open()
+            self.manager.current = 'main'
 
         elif self._loaded_ok:
             # not sure why we need to do this
