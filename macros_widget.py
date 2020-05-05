@@ -132,7 +132,6 @@ class MacrosWidget(StackLayout):
 
         return cmd
 
-    @mainthread
     def switch_response(self, name, value):
         # check response and compare state with current state and toggle to match state if necessary
         t = self.toggle_buttons.get(name, None)
@@ -146,6 +145,14 @@ class MacrosWidget(StackLayout):
         elif value == '1' and t[4].state == 'normal':
             t[4].state = 'down'
             t[4].text = t[1]
+
+    @mainthread
+    def async_display(self, txt):
+        self.app.main_window.async_display(txt)
+
+    @mainthread
+    def async_write(self, txt):
+        self.app.comms.write(txt)
 
     def _substitute_args(self, m, arg):
         """ substitute {?prompt}) with prompted value """
@@ -163,7 +170,7 @@ class MacrosWidget(StackLayout):
             if v:
                 arg = arg.replace(i, v)
             else:
-                self.app.main_window.async_display("ERROR: argument missing for {}".format(i))
+                self.async_display("ERROR: argument missing for {}".format(i))
                 return
 
         self.app.comms.write('{}\n'.format(arg))
@@ -176,7 +183,7 @@ class MacrosWidget(StackLayout):
                     self.app.comms.write('{}'.format(line))
 
         except Exception:
-            self.app.main_window.async_display("ERROR: File not found: {}".format(fn))
+            self.async_display("ERROR: File not found: {}".format(fn))
 
     def send(self, cmd, *args):
         # if first character is @ then execute contents of the following file name
@@ -222,7 +229,7 @@ class MacrosWidget(StackLayout):
             if io:
                 if not self.app.is_connected:
                     Logger.error('MacrosWidget:  Not connected')
-                    self.app.main_window.async_display('> not connected')
+                    self.async_display('> not connected')
                     io = False
                     return
 
@@ -233,8 +240,10 @@ class MacrosWidget(StackLayout):
                     cmd = cmd[1:]
 
                 # I/O is piped to/from smoothie
-                self.app.main_window.async_display("> running script: {}".format(cmd))
+                self.async_display("> running script: {}".format(cmd))
                 p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
+
+                # TODO is this safe to do from a thread?
                 self.app.comms.redirect_incoming(lambda x: self._send_it(p, x))
 
                 # so we can see which has output
@@ -249,35 +258,35 @@ class MacrosWidget(StackLayout):
                             s = p.stdout.readline()
                             if s:
                                 if not repeating:
-                                    self.app.main_window.async_display("<<< script: {}".format(s.rstrip()))
-                                self.app.comms.write('{}'.format(s))
+                                    self.async_display("<<< script: {}".format(s.rstrip()))
+                                self.async_write(s)
 
                         elif pr[0] == p.stderr.name:
                             e = p.stderr.readline()
                             if e:
                                 if repeating:
-                                    self.app.main_window.async_display('{}\r'.format(e.rstrip()))
+                                    self.async_display('{}\r'.format(e.rstrip()))
                                 else:
-                                    self.app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
+                                    self.async_display('>>> script: {}'.format(e.rstrip()))
 
                     p.poll()
 
-                self.app.main_window.async_display('> script complete')
+                self.async_display('> script complete')
             else:
                 # just display results
-                self.app.main_window.async_display("> {}".format(cmd))
+                self.async_display("> {}".format(cmd))
                 p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 result, err = p.communicate()
                 for l in result.splitlines():
-                    self.app.main_window.async_display(l)
+                    self.async_display(l)
                 for l in err.splitlines():
-                    self.app.main_window.async_display(l)
+                    self.async_display(l)
                 if p.returncode != 0:
-                    self.app.main_window.async_display("return code: {}".format(p.returncode))
+                    self.async_display("return code: {}".format(p.returncode))
 
         except Exception as err:
             Logger.error('MacrosWidget: script exception: {}'.format(err))
-            self.app.main_window.async_display('>>> script exception, see log')
+            self.async_display('>>> script exception, see log')
 
         finally:
             if io and self.app.is_connected:
