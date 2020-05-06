@@ -1349,6 +1349,8 @@ class SmoothieHost(App):
                 await self.comms.fcomms
 
             Logger.info('App task ended')
+            for task in asyncio.Task.all_tasks():
+                Logger.info("tasks still running: {}".format(task))
 
         return run_wrapper()
 
