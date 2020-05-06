@@ -1040,15 +1040,21 @@ class SmoothieHost(App):
     def window_request_close(self, win):
         if self.desktop_changed:
             # if the desktop changed we reset the window size and pos
-            self.config.set('UI', 'screen_size', 'auto')
-            self.config.set('UI', 'screen_pos', 'auto')
+            if self.config.get('UI', 'screen_size') != 'none':
+                self.config.set('UI', 'screen_size', 'auto')
+            if self.config.get('UI', 'screen_pos') != 'none':
+                self.config.set('UI', 'screen_pos', 'auto')
+
             self.config.write()
 
         elif self.is_desktop == 2 or self.is_desktop == 3:
-            # Window.size is automatically adjusted for density, must divide by density when saving size
-            self.config.set('UI', 'screen_size', "{}x{}".format(int(Window.size[0] / Metrics.density), int(Window.size[1] / Metrics.density)))
-            self.config.set('UI', 'screen_pos', "{},{}".format(Window.top, Window.left))
-            Logger.info('close: Window.size: {}, Window.top: {}, Window.left: {}'.format(Window.size, Window.top, Window.left))
+            if self.config.get('UI', 'screen_size') != 'none':
+                # Window.size is automatically adjusted for density, must divide by density when saving size
+                self.config.set('UI', 'screen_size', "{}x{}".format(int(Window.size[0] / Metrics.density), int(Window.size[1] / Metrics.density)))
+
+            if self.config.get('UI', 'screen_pos') != 'none':
+                self.config.set('UI', 'screen_pos', "{},{}".format(Window.top, Window.left))
+                Logger.info('close: Window.size: {}, Window.top: {}, Window.left: {}'.format(Window.size, Window.top, Window.left))
 
             self.config.write()
 
@@ -1069,7 +1075,8 @@ class SmoothieHost(App):
         # load the layouts for the desktop screen
         if self.is_desktop == 1:
             Builder.load_file('desktop.kv')
-            Window.size = (1024, 768)
+            if self.config.get('UI', 'screen_size') == 'auto':
+                Window.size = (1024, 768)
 
         elif self.is_desktop == 2 or self.is_desktop == 3 or self.is_desktop == 4:
             Builder.load_file('desktop_large.kv' if self.is_desktop == 2 else 'desktop_wide.kv')
@@ -1081,8 +1088,9 @@ class SmoothieHost(App):
                 elif 'x' in s:
                     (w, h) = s.split('x')
                     Window.size = (int(w), int(h))
+
                 p = self.config.get('UI', 'screen_pos')
-                if p != 'auto' and ',' in p:
+                if p != 'none' and p != 'auto' and ',' in p:
                     (t, l) = p.split(',')
                     Window.top = int(t)
                     Window.left = int(l)
