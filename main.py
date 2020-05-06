@@ -612,7 +612,7 @@ class MainWindow(BoxLayout):
         self.is_printing = False
         now = datetime.datetime.now()
         self.display('>>> Run finished {}'.format('ok' if ok else 'abnormally'))
-        self.display(">>> Run ended at : {}, Last line: {}".format(now.strftime('%x %X'), self.last_line))
+        self.display(">>> Run ended at : {}, last Z: {}, last line: {}".format(now.strftime('%x %X'), self.wpos[2], self.last_line))
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
         self.display(">>> Elapsed time: {}".format(et))
         self.eta = '--:--:--'
