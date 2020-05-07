@@ -178,7 +178,12 @@ On an rpi3b+ (and better) it seems the double tap time needs to be increased to 
     triple_tap_distance = 20
     triple_tap_time = 600 # <- and this to be > than double_tap_time
 
-#### Keyboard and Mouse support
+#### Running under XWindows on RPI
+Make sure that you run ```raspi-config``` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
+Make sure that under ```~/.kivy/config.ini``` in the ```[input]``` section that only ```mouse = mouse``` is set otherwise you will get multiple cursors and click events will go to unexpected places. 
+When running under XWindows the cursor module is not required nor are the hidinput input drivers.
+
+#### Keyboard and Mouse support when running from console (egl-rpi)
 Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. This HIDInput is broken in all the releases of Kivy older than 1.11.0. If using an older version of kivy you will need to replace the ```KIVYINSTALLDIR/kivy/input/providers/hidinput.py``` (on the image this would be ```/usr/local/lib/python3.5/dist-packages/kivy/input/providers/hidinput.py```)
 with this version: https://github.com/wolfmanjm/kivy/blob/master/kivy/input/providers/hidinput.py
 
@@ -216,7 +221,7 @@ Run with...
 
     > python3 main.py
 
-NOTE make sure the ```~/.kivy/config.ini``` has the following set so the virtual keyboard works in a usable fashion on an RRI touch screen...
+NOTE when using the touch panel make sure the ```~/.kivy/config.ini``` has the following set so the virtual keyboard works in a usable fashion on an RPI touch screen...
 
     [kivy]
     keyboard_mode = systemanddock
@@ -291,7 +296,7 @@ It should auto start then.
 
 ## On linux Desktop (and maybe windows/macos)
 
-Install on recent Linux and python >= 3.5 and <= 3.7 using the fast wheels installation...
+Install on recent Linux and python >= 3.5.x and <= 3.7.x using the fast wheels installation...
   
   python3 -m pip install --user --upgrade kivy
 
@@ -308,7 +313,7 @@ If that does not work then install from source...
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel
     sudo apt-get install python3-pip
-    sudo pip3 install -U Cython==0.28.2
+    sudo pip3 install -U Cython==0.28.2 pillow
     sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable
 
 stable seems to work ok so long as it is > v1.10.1
@@ -322,7 +327,10 @@ Run as
     > cd kivy-smoothie-host
     > python3 main.py
 
-In settings set the desktop layout to Wide Desktop (or Small Desktop or Large Desktop) and restart.  The larger desktop layouts can also have a size specified by editing the smoothiehost.ini file and changing eg ```screen_size = 1024x900``` under the [UI] section.
+In settings set the desktop layout to Wide Desktop (or Small Desktop or Large Desktop) and restart.  The larger desktop layouts can also have a size specified by editing the smoothiehost.ini file and changing eg ```screen_size = 1024x900``` under the [UI] section. Set ```screen_size``` and 
+```screen_pos``` to ```none``` if you do not want the screen size and position to be saved and restored.
+
+Make sure that under ```~/.kivy/config.ini``` in the ```[input]``` section that only ```mouse = mouse``` is set otherwise you will get multiple cursors and click events will go to unexpected places. The hidinput input driver is also not required (or wanted).
 
 __NOTE__ all the files are coded UTF-8 so make sure your locale (LANG=en_US.utf8 or even LANG=C.UTF-8) is set to a UTF-8 variety otherwise you will get weird errors from deep within python/kivy.
 
