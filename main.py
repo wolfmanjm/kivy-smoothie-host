@@ -58,7 +58,7 @@ import collections
 import importlib
 import signal
 
-# we must be version between 3.5 and 3.7 inclusive
+# we must have Python version between 3.5 and 3.7 inclusive
 assert (3, 7) >= sys.version_info >= (3, 5)
 
 Window.softinput_mode = 'below_target'
