@@ -59,6 +59,8 @@ import importlib
 import signal
 import asyncio
 
+kivy.require('2.0.0')
+
 # we must have Python version between 3.5 and 3.7 inclusive
 assert (3, 7) >= sys.version_info >= (3, 5)
 
