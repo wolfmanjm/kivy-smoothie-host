@@ -8,7 +8,7 @@ Builder.load_string('''
     size_hint : (None,None)
     width : min(0.95 * self.window.width, dp(500))
     height: dp(content.height) + dp(80)
-    title: "Option Title"
+    title: root.text
     pos_hint: {'top': 1} if app.is_desktop == 0 else {'center_y': 0.5}
     auto_dismiss: False
 
@@ -19,13 +19,6 @@ Builder.load_string('''
         size_hint: (1, None)
         height: dp(content.minimum_height)
         spacing: '5dp'
-
-        Label:
-            text: root.text
-            size_hint_y: None
-            height: self.texture_size[1] + dp(16)
-            text_size: self.width - dp(16), None
-            halign: 'center'
 
         TextInput:
             id: input
@@ -56,7 +49,6 @@ class InputBox(Popup):
 
     ok_text = StringProperty('OK')
     cancel_text = StringProperty('Cancel')
-    __events__ = ('on_ok', 'on_cancel')
 
     def __init__(self, **kwargs):
         self.window = Window
@@ -67,18 +59,12 @@ class InputBox(Popup):
         self.ids.input.focus = True
 
     def ok(self):
-        self.dispatch('on_ok')
-        self.dismiss()
-
-    def cancel(self):
-        self.dispatch('on_cancel')
-        self.dismiss()
-
-    def on_ok(self):
         if self.cb:
             s = self.ids.input.text
             self.cb(s)
+        self.dismiss()
 
-    def on_cancel(self):
+    def cancel(self):
         if self.cb:
             self.cb(None)
+        self.dismiss()

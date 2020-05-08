@@ -61,22 +61,22 @@ class MultiInputBox(Popup):
 
     def _ok(self):
         if self.optionCallBack is not None:
-            opts= {}
+            opts = {}
             for x in self.wl:
-                opts[x[0]]= x[1].text
+                opts[x[0]] = x[1].text
             self.optionCallBack(opts)
         self.dismiss()
 
     def on_open(self):
         if self.wl:
-            self.wl[0][1].focus= True
+            self.wl[0][1].focus = True
 
     def setOptions(self, options, callBack):
         self.optionCallBack = callBack
         self.contentButtons.clear_widgets()
-        self.wl= []
+        self.wl = []
         for name in options:
-            self.contentButtons.add_widget(Label(text= name, size_hint_y=None, height='30dp', halign= 'right'))
-            tw= TextInput(multiline= False, use_bubble= False, use_handles= False)
+            self.contentButtons.add_widget(Label(text=name, size_hint_y=None, height='30dp', halign='right'))
+            tw = TextInput(multiline=False, use_bubble=False, use_handles=False)
             self.contentButtons.add_widget(tw)
             self.wl.append((name, tw))
