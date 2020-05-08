@@ -18,7 +18,7 @@ class ToolScripts():
     def find_center(self):
         """ Finds the center of a circle """
         # needs to be run asyncronously
-        asyncio.ensure_future(self._find_center)
+        asyncio.ensure_future(self._find_center())
 
     # private methods
     def _probe(self, x=None, y=None, z=None):
