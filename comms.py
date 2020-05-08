@@ -947,6 +947,9 @@ if __name__ == "__main__":
         def get_queries(self):
             return ""
 
+        def wait_on_m0(self, l):
+            print("wait on m0: {}\n".format(l))
+
     class CommsMain():
         start = None
         nlines = None
