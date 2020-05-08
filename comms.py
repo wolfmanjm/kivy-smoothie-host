@@ -976,6 +976,12 @@ if __name__ == "__main__":
         def manual_tool_change(self, l):
             print("tool change: {}\n".format(l))
 
+        def action_paused(self, flag, suspend=False):
+            print("paused: {}, suspended: {}", flag, suspend)
+
+        def get_queries(self):
+            return ""
+
         def wait_on_m0(self, l):
             print("wait on m0: {}\n".format(l))
 
