@@ -254,7 +254,7 @@ To autostart smoopi on boot but run as the pi user follow these directions. (Ass
 
 To allow Smoopi to connect to the smoothie when auto start by runit you need to do this...
     
-    sudo jove /etc/udev/rules.d/90-smoothie.rules
+    sudo nano /etc/udev/rules.d/90-smoothie.rules
     and add this...
 
     SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6015", MODE="0666"
