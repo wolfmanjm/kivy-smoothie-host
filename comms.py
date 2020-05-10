@@ -184,11 +184,7 @@ class Comms():
         if queries:
             self._write(queries)
 
-        if self.net_connection:
-            if not self.is_streaming:
-                self._write('?\n')
-        else:
-            self._write('?')
+        self._write('?')
 
     def stop(self):
         ''' called by ui thread when it is exiting '''

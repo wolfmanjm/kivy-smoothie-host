@@ -100,6 +100,9 @@ If smoothie halts and goes into the alarm state for any reason (like limit hit o
 
 ## Install on RPI
 
+**NOTE** Get a good sdcard for the rpi as it makes a significant difference in performance, an A1 rating is best like sandisk ultra 16gb A1 or the 32gb version.
+Samsung Evo+ are also supposed to be very fast in an RPI.
+
 **NOTE** on the current image and all installs on raspbian you need to add this...
 
     > sudo jove /etc/udev/rules.d/90-smoothie.rules
