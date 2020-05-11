@@ -434,7 +434,7 @@ The button functions can be defined in the hb04.ini file (see the sample-hb04.in
 
 Python Easyhid needs to be installed...
 
-* sudo apt-get install libffi-dev
+* sudo apt-get install libffi-dev libhidapi-dev
 * sudo apt-get install libhidapi-libusb0
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
