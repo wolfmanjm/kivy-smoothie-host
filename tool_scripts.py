@@ -35,7 +35,7 @@ class ToolScripts():
         if not cmd:
             raise Exception("need to specify an axis to probe")
 
-        self.app.comms.write("G38.3 {}\n".format(cmd))
+        self.app.comms.write("G38.2 {}\n".format(cmd))
 
         # wait for it to complete
         if not self.app.comms.okcnt.wait(120):
@@ -103,13 +103,13 @@ class ToolScripts():
             wpy = self.app.wpos[1]
 
             # probe right
-            r1 = self._probe(x=100)
+            r1 = self._probe(x=30)
 
             # move back to starting x
             self._moveto(x=wpx)
 
             # probe left
-            r2 = self._probe(x=-100)
+            r2 = self._probe(x=-30)
 
             diam = r1['X'] - r2['X']
 
@@ -117,13 +117,13 @@ class ToolScripts():
             self._moveby(x=diam / 2.0)
 
             # probe back
-            r1 = self._probe(y=100)
+            r1 = self._probe(y=30)
 
             # move back to starting y
             self._moveto(y=wpy)
 
             # probe front
-            r2 = self._probe(y=-100)
+            r2 = self._probe(y=-30)
 
             diam = r1['Y'] - r2['Y']
 

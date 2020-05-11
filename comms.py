@@ -184,11 +184,7 @@ class Comms():
         if queries:
             self._write(queries)
 
-        if self.net_connection:
-            if not self.is_streaming:
-                self._write('?\n')
-        else:
-            self._write('?')
+        self._write('?')
 
     def stop(self):
         ''' called by ui thread when it is exiting '''
@@ -804,7 +800,7 @@ class Comms():
             return False
 
     def _upload_gcode(self, fn, donecb):
-        asyncio.ensure_future(self._stream_upload_gcode(fn, donecb))
+        self.file_streamer = asyncio.ensure_future(self._stream_upload_gcode(fn, donecb))
 
     def _rcv_upload_gcode_line(self, ll, ev):
         if ll == 'ok':
@@ -902,7 +898,7 @@ class Comms():
             if f:
                 await f.close()
             self.progress = None
-
+            self.file_streamer = None
             donecb(success)
             self.log.info('Comms: Upload GCode complete: {}'.format(success))
 
@@ -976,15 +972,33 @@ if __name__ == "__main__":
         def manual_tool_change(self, l):
             print("tool change: {}\n".format(l))
 
+        def action_paused(self, flag, suspend=False):
+            print("paused: {}, suspended: {}", flag, suspend)
+
+        def get_queries(self):
+            return ""
+
+        def wait_on_m0(self, l):
+            print("wait on m0: {}\n".format(l))
+
     if len(sys.argv) < 3:
-        print("Usage: {} port file".format(sys.argv[0]))
+        print("Usage: {} port file [-u] [-f]".format(sys.argv[0]))
         exit(0)
+
+    upload = False
 
     app = CommsApp()
     comms = Comms(app, 10)
-    if len(sys.argv) > 3:
-        comms.ping_pong = False
-        print('Fast Stream')
+    while len(sys.argv) > 3:
+        a = sys.argv.pop()
+        if a == '-u':
+            upload = True
+            print('Upload only')
+        elif a == '-f':
+            comms.ping_pong = False
+            print('Fast Stream')
+        else:
+            print("Unknown option: {}".format(a))
 
     try:
         nlines = Comms.file_len(sys.argv[2])  # get number of lines so we can do progress and ETA
@@ -997,9 +1011,6 @@ if __name__ == "__main__":
 
     def display_progress(n):
         global start, nlines
-        if not start:
-            start = datetime.datetime.now()
-            print("Print started at: {}".format(start.strftime('%x %X')))
 
         if nlines:
             now = datetime.datetime.now()
@@ -1013,18 +1024,28 @@ if __name__ == "__main__":
             et = datetime.timedelta(seconds=int(eta))
             print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n / nlines, et))
 
+    def upload_done(x):
+        app.ok = x
+        app.end_event.set()
+
     try:
         t = comms.connect(sys.argv[1])
         if app.start_event.wait(5):  # wait for connected as it is in a separate thread
             if app.is_connected:
                 # wait for startup to clear up any incoming oks
-                sleep(5)  # Time in seconds.
+                sleep(2)  # Time in seconds.
+                start = datetime.datetime.now()
+                print("Print started at: {}".format(start.strftime('%x %X')))
 
-                comms.stream_gcode(sys.argv[2], progress=lambda x: display_progress(x))
+                if upload:
+                    comms.upload_gcode(sys.argv[2], progress=lambda x: display_progress(x), done=upload_done)
+                else:
+                    comms.stream_gcode(sys.argv[2], progress=lambda x: display_progress(x))
+
                 app.end_event.wait()  # wait for streaming to complete
 
-                print("File sent: {}".format('Ok' if app.ok else 'Failed'))
                 now = datetime.datetime.now()
+                print("File sent: {}".format('Ok' if app.ok else 'Failed'))
                 print("Print ended at : {}".format(now.strftime('%x %X')))
                 if start:
                     et = datetime.timedelta(seconds=int((now - start).seconds))
