@@ -384,14 +384,14 @@ Project here...
 Then you need to do the following on the rpi...
 
 * sudo apt-get install libffi-dev
-* sudo apt-get install libhidapi-libusb0
+* sudo apt-get install libhidapi-libusb0 libhidapi-hidraw0
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
 * sudo python3 setup.py install
 * add to the smoothiehost.ini file...
 
-     [modules]
-     mpg_rawhid = 0x16C0:0x0486
+        [modules]
+        mpg_rawhid = 0x16C0:0x0486
 
 * create a file /etc/udev/rules.d/49-teensy.rules and add the following...
 
@@ -435,7 +435,7 @@ The button functions can be defined in the hb04.ini file (see the sample-hb04.in
 Python Easyhid needs to be installed...
 
 * sudo apt-get install libffi-dev
-* sudo apt-get install libhidapi-libusb0
+* sudo apt-get install libhidapi-libusb0 libhidapi-hidraw0
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
 * sudo python3 setup.py install
