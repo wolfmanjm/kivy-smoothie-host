@@ -182,7 +182,7 @@ class Comms():
         if queries:
             self.write(queries)
 
-        self._write('?')
+        self.write('?')
 
     def stop(self):
         ''' called when app is exiting '''
