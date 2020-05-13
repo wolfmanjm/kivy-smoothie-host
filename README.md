@@ -100,6 +100,9 @@ If smoothie halts and goes into the alarm state for any reason (like limit hit o
 
 ## Install on RPI
 
+**NOTE** Get a good sdcard for the rpi as it makes a significant difference in performance, an A1 rating is best like sandisk ultra 16gb A1 or the 32gb version.
+Samsung Evo+ are also supposed to be very fast in an RPI.
+
 **NOTE** on the current image and all installs on raspbian you need to add this...
 
     > sudo jove /etc/udev/rules.d/90-smoothie.rules
@@ -114,8 +117,8 @@ The last line is quite important otherwise you get a whole lot of ok's echoed ba
 ### Image
 For RPI  and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else.
 
-Download from http://smoothieware.org/_media/bin/smoopi_img.zip
-unzip and image the resulting .img to an sdcard using for instance https://www.balena.io/etcher/
+Download from http://smoothieware.org/_media/bin/smoopi_img2.zip
+unzip and image the resulting .img to an sdcard using for instance https://www.balena.io/etcher/ which can image direct from the .zip file.
 
 Once loaded boot into the sdcard, login with username pi and password raspberry then
 
@@ -381,14 +384,14 @@ Project here...
 Then you need to do the following on the rpi...
 
 * sudo apt-get install libffi-dev
-* sudo apt-get install libhidapi-libusb0
+* sudo apt-get install libhidapi-libusb0 libhidapi-hidraw0
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
 * sudo python3 setup.py install
 * add to the smoothiehost.ini file...
 
-     [modules]
-     mpg_rawhid = 0x16C0:0x0486
+        [modules]
+        mpg_rawhid = 0x16C0:0x0486
 
 * create a file /etc/udev/rules.d/49-teensy.rules and add the following...
 
@@ -432,7 +435,7 @@ The button functions can be defined in the hb04.ini file (see the sample-hb04.in
 Python Easyhid needs to be installed...
 
 * sudo apt-get install libffi-dev
-* sudo apt-get install libhidapi-libusb0
+* sudo apt-get install libhidapi-libusb0 libhidapi-hidraw0
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
 * sudo python3 setup.py install

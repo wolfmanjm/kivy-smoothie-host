@@ -182,11 +182,7 @@ class Comms():
         if queries:
             self.write(queries)
 
-        if self.net_connection:
-            if not self.is_streaming:
-                self.write('?\n')
-        else:
-            self.write('?')
+
 
     def stop(self):
         ''' called when app is exiting '''
@@ -947,11 +943,6 @@ if __name__ == "__main__":
         def get_queries(self):
             return ""
 
-        def wait_on_m0(self, l):
-            print("wait on m0: {}\n".format(l))
-
-    class CommsMain():
-        start = None
         nlines = None
         comms = None
 

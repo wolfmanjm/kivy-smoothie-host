@@ -64,6 +64,11 @@ kivy.require('2.0.0')
 # we must have Python version between 3.5 and 3.7 inclusive
 assert (3, 8) > sys.version_info >= (3, 5), "Python version needs to be >= 3.5 and < 3.8, you have {}".format(sys.version)
 
+# we must have Python version between 3.5 and 3.7 inclusive
+assert (3, 8) > sys.version_info >= (3, 5), "Python version needs to be >= 3.5 and < 3.8, you have {}".format(sys.version)
+
+kivy.require('1.11.0')
+
 Window.softinput_mode = 'below_target'
 
 
