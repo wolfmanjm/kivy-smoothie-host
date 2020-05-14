@@ -301,8 +301,8 @@ It should auto start then.
 
 Install on recent Linux and python >= 3.5.x and <= 3.7.x using the fast wheels installation...
 
-  python3 -m pip install --upgrade --user pip setuptools virtualenv
-  python3 -m pip install --user --upgrade kivy
+    python3 -m pip install --upgrade --user pip setuptools virtualenv
+    python3 -m pip install --user --upgrade kivy
 
 See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
 
