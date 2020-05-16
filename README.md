@@ -167,8 +167,8 @@ For instance...
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel
     sudo apt-get install python3-pip
-    sudo pip3 install -U Cython==0.28.2 pillow
-    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable
+    python3 -m pip install --user --upgrade Cython==0.28.2 pillow
+    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@stable
 
 This installs a known working version of kivy. Note that dev versions tend to be less stable and may not work.
 
@@ -300,8 +300,9 @@ It should auto start then.
 ## On linux Desktop (and maybe windows/macos)
 
 Install on recent Linux and python >= 3.5.x and <= 3.7.x using the fast wheels installation...
-  
-  python3 -m pip install --user --upgrade kivy
+
+    python3 -m pip install --upgrade --user pip setuptools virtualenv
+    python3 -m pip install --user --upgrade kivy
 
 See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
 
@@ -315,15 +316,14 @@ If that does not work then install from source...
        gstreamer1.0-plugins-{bad,base,good,ugly} \
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel
-    sudo apt-get install python3-pip
-    sudo pip3 install -U Cython==0.28.2 pillow
-    sudo pip3 install --upgrade git+https://github.com/kivy/kivy.git@stable
+    python3 -m pip install --user --upgrade Cython==0.28.2 pillow
+    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@stable
 
-stable seems to work ok so long as it is > v1.10.1
+stable seems to work ok so long as it is > v1.11.0
 
 Install some dependencies we need...
 
-    sudo pip3 install pyserial pyserial-asyncio aiofiles
+    python3 -m pip install --user --upgrade pyserial pyserial-asyncio aiofiles
 
 Run as
 

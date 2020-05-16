@@ -185,9 +185,10 @@ if __name__ == '__main__':
 
 ''')
 
+
 class DialGauge(Widget):
-    dial_diameter= NumericProperty(180)
-    dial_size= ReferenceListProperty(dial_diameter, dial_diameter)
+    dial_diameter = NumericProperty(180)
+    dial_size = ReferenceListProperty(dial_diameter, dial_diameter)
     scale_max = NumericProperty(100.0)
     scale_min = NumericProperty(0.0)
     scale_increment = NumericProperty(10.0)
@@ -198,18 +199,18 @@ class DialGauge(Widget):
     tic_length = NumericProperty(8)
     tic_width = NumericProperty(2)
     tic_radius = NumericProperty(100)
-    tic_color = ListProperty([0,0,1])
-    dial_color = ListProperty([1,1,1])
-    needle_color = ListProperty([1,0,0])
-    hub_color = ListProperty([1,0,0])
+    tic_color = ListProperty([0, 0, 1])
+    dial_color = ListProperty([1, 1, 1])
+    needle_color = ListProperty([1, 0, 0])
+    hub_color = ListProperty([1, 0, 0])
     needle_length = NumericProperty(100)
     needle_width = NumericProperty(4)
     hub_radius = NumericProperty(20)
     semi_circle = BooleanProperty(False)
     value = NumericProperty(0.0)
-    value_offset_pos = ListProperty([0,0])
+    value_offset_pos = ListProperty([0, 0])
     show_value = BooleanProperty(True)
-    value_color = ListProperty([0,0,1,1])
+    value_color = ListProperty([0, 0, 1, 1])
     value_font_size = NumericProperty(20)
     scale_font_size = NumericProperty(10)
     annulars = ListProperty()
@@ -218,12 +219,12 @@ class DialGauge(Widget):
     setpoint_thickness = NumericProperty(2)
     setpoint_length = NumericProperty(None)
     setpoint_value = NumericProperty(float('nan'))
-    setpoint_color = ListProperty([0,0,0,1])
+    setpoint_color = ListProperty([0, 0, 0, 1])
 
     def __init__(self, **kwargs):
         super(DialGauge, self).__init__(**kwargs)
-        self.annular_canvas= None
-        self.setpoint_canvas= None
+        self.annular_canvas = None
+        self.setpoint_canvas = None
 
         self.draw_annulars()
         self.draw_ticks()
@@ -233,10 +234,10 @@ class DialGauge(Widget):
         self.bind(setpoint_value=self.draw_setpoint)
 
     def get_dial_center(self):
-        x= self.pos[0] + self.dial_diameter / 2.
-        y= self.pos[1] + self.dial_diameter / 2.
+        x = self.pos[0] + self.dial_diameter / 2.
+        y = self.pos[1] + self.dial_diameter / 2.
         if self.semi_circle:
-            y += (-self.dial_diameter/2+self.hub_radius)
+            y += (-self.dial_diameter / 2 + self.hub_radius)
 
         return [x, y]
 
@@ -247,8 +248,9 @@ class DialGauge(Widget):
 
     def value_to_angle(self, v):
         ''' convert the given value to the angle required for the scale '''
-        if math.isnan(v) or math.isinf(v) or v < self.scale_min : v= self.scale_min
-        return -180.0+self.angle_start+self.angle_offset + ((self.angle_stop-self.angle_start) * ((float(v)-self.scale_min) / (self.scale_max-self.scale_min)))
+        if math.isnan(v) or math.isinf(v) or v < self.scale_min:
+            v = self.scale_min
+        return -180.0 + self.angle_start + self.angle_offset + ((self.angle_stop - self.angle_start) * ((float(v) - self.scale_min) / (self.scale_max - self.scale_min)))
 
     def _redraw(self, instance, value):
         if self.annular_canvas:
@@ -266,18 +268,18 @@ class DialGauge(Widget):
         if len(self.annulars) == 0:
             return
 
-        awidth= self.annular_thickness
+        awidth = self.annular_thickness
         self.annular_canvas = InstructionGroup()
 
         if self.semi_circle:
             self.annular_canvas.add(PushMatrix())
-            self.annular_canvas.add(Translate(0, -self.dial_diameter/2+self.hub_radius))
+            self.annular_canvas.add(Translate(0, -self.dial_diameter / 2 + self.hub_radius))
 
         for a in self.annulars:
-            self.annular_canvas.add(Color(*a.get('color', [0,1,0,1])))
-            st= self.value_to_angle(a.get('start', self.scale_min))
-            en= self.value_to_angle(a.get('stop', self.scale_max))
-            self.annular_canvas.add(Line(ellipse=(self.pos[0]+awidth, self.pos[1]+awidth, self.dial_diameter-awidth*2, self.dial_diameter-awidth*2, st+awidth/2.0-self.tic_width, en+awidth/2.0), width=awidth, cap= 'none', joint='round'))
+            self.annular_canvas.add(Color(*a.get('color', [0, 1, 0, 1])))
+            st = self.value_to_angle(a.get('start', self.scale_min))
+            en = self.value_to_angle(a.get('stop', self.scale_max))
+            self.annular_canvas.add(Line(ellipse=(self.pos[0] + awidth, self.pos[1] + awidth, self.dial_diameter - awidth * 2, self.dial_diameter - awidth * 2, st + awidth / 2.0 - self.tic_width, en + awidth / 2.0), width=awidth, cap='none', joint='round'))
 
         if self.semi_circle:
             self.annular_canvas.add(PopMatrix())
@@ -285,10 +287,10 @@ class DialGauge(Widget):
         self.canvas.before.add(self.annular_canvas)
 
     def draw_ticks(self):
-        scangle= self.angle_stop-self.angle_start
-        inc= scangle / ((self.scale_max-self.scale_min)/self.scale_increment)
+        scangle = self.angle_stop - self.angle_start
+        inc = scangle / ((self.scale_max - self.scale_min) / self.scale_increment)
         inc /= self.tic_frequency
-        cnt= 0
+        cnt = 0
 
         # create an instruction group so we can remove it and recall draw_ticks to update when pos or size changes
         self.ticks = InstructionGroup()
@@ -296,31 +298,31 @@ class DialGauge(Widget):
         self.ticks.add(Color(*self.tic_color))
 
         labi = self.scale_min
-        x= -180.0+self.angle_start+self.angle_offset # start
-        while x <= self.angle_stop-180+self.angle_offset :
-            a= x if(x < 0.0) else x+360.0
+        x = -180.0 + self.angle_start + self.angle_offset  # start
+        while x <= self.angle_stop - 180 + self.angle_offset:
+            a = x if(x < 0.0) else x + 360.0
 
-            need_label= True
-            ticlen= self.tic_length
+            need_label = True
+            ticlen = self.tic_length
 
             if(cnt % self.tic_frequency != 0):
-                ticlen= self.tic_length/2
-                need_label= False
+                ticlen = self.tic_length / 2
+                need_label = False
 
             cnt += 1
 
             self.ticks.add(PushMatrix())
-            self.ticks.add(Rotate(angle=a, axis=(0,0,-1), origin=(self.dial_center[0], self.dial_center[1])))
-            self.ticks.add(Translate(0, self.tic_radius-ticlen))
-            self.ticks.add(Line(points=[self.dial_center[0], self.dial_center[1], self.dial_center[0], self.dial_center[1]+ticlen], width=self.tic_width, cap='none', joint='none'))
+            self.ticks.add(Rotate(angle=a, axis=(0, 0, -1), origin=(self.dial_center[0], self.dial_center[1])))
+            self.ticks.add(Translate(0, self.tic_radius - ticlen))
+            self.ticks.add(Line(points=[self.dial_center[0], self.dial_center[1], self.dial_center[0], self.dial_center[1] + ticlen], width=self.tic_width, cap='none', joint='none'))
 
             if need_label:
-                #print("label: " + str(labi))
-                #kw['font_size'] = self.tic_length * 2
+                # print("label: " + str(labi))
+                # kw['font_size'] = self.tic_length * 2
                 label = CoreLabel(text=str(int(round(labi))), font_size=self.scale_font_size)
                 label.refresh()
-                texture= label.texture
-                self.ticks.add(Translate(-texture.size[0]/2, -texture.size[1]-2))
+                texture = label.texture
+                self.ticks.add(Translate(-texture.size[0] / 2, -texture.size[1] - 2))
                 self.ticks.add(Rectangle(texture=texture, pos=self.dial_center, size=texture.size))
                 labi += self.scale_increment
 
@@ -333,25 +335,24 @@ class DialGauge(Widget):
         # draw a setpoint
         if self.setpoint_canvas:
             self.canvas.after.remove(self.setpoint_canvas)
-            self.setpoint_canvas= None
+            self.setpoint_canvas = None
 
         if math.isnan(self.setpoint_value) or math.isinf(self.setpoint_value):
             return
 
-        v= self.value_to_angle(self.setpoint_value)
-        length= self.dial_diameter/2.0-self.tic_length if not self.setpoint_length else self.setpoint_length
+        v = self.value_to_angle(self.setpoint_value)
+        length = self.dial_diameter / 2.0 - self.tic_length if not self.setpoint_length else self.setpoint_length
         self.setpoint_canvas = InstructionGroup()
 
         self.setpoint_canvas.add(PushMatrix())
         self.setpoint_canvas.add(Color(*self.setpoint_color))
-        self.setpoint_canvas.add(Rotate(angle=v, axis=(0,0,-1), origin= self.dial_center))
+        self.setpoint_canvas.add(Rotate(angle=v, axis=(0, 0, -1), origin=self.dial_center))
         self.setpoint_canvas.add(Translate(self.dial_center[0], self.dial_center[1]))
-        self.setpoint_canvas.add(Line(points=[0, 0, 0, length], width=self.setpoint_thickness, cap= 'none'))
-        #self.setpoint_canvas.add(SmoothLine(points=[0, 0, 0, length], width=self.setpoint_thickness))
+        self.setpoint_canvas.add(Line(points=[0, 0, 0, length], width=self.setpoint_thickness, cap='none'))
+        # self.setpoint_canvas.add(SmoothLine(points=[0, 0, 0, length], width=self.setpoint_thickness))
         self.setpoint_canvas.add(PopMatrix())
 
         self.canvas.after.add(self.setpoint_canvas)
-
 
 
 if __name__ == '__main__':
@@ -360,4 +361,3 @@ if __name__ == '__main__':
 
     from kivy.base import runTouchApp
     runTouchApp(MainView(width=400))
-
