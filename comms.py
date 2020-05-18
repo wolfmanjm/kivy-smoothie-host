@@ -648,32 +648,32 @@ class Comms():
                     if self.abort_stream:
                         break
 
-                    l = line.strip()
-                    if len(l) == 0 or l.startswith(';'):
+                    line = line.strip()
+                    if len(line) == 0 or line.startswith(';'):
                         continue
 
-                    if l.startswith('(MSG'):
-                        self.app.main_window.async_display(l)
+                    if line.startswith('(MSG'):
+                        self.app.main_window.async_display(line)
                         continue
 
-                    if l.startswith('(NOTIFY'):
-                        Notify.send(l)
+                    if line.startswith('(NOTIFY'):
+                        Notify.send(line)
                         continue
 
-                    if l.startswith('('):
+                    if line.startswith('('):
                         continue
 
-                    if l.startswith('T'):
-                        self.last_tool = l
+                    if line.startswith('T'):
+                        self.last_tool = line
 
                     if self.app.manual_tool_change:
                         # handle tool change M6 or M06
-                        if l == "M6" or l == "M06" or "M6 " in l or "M06 " in l or l.endswith("M6"):
+                        if line == "M6" or line == "M06" or "M6 " in line or "M06 " in line or line.endswith("M6"):
                             tool_change_state = 1
 
                     if self.app.wait_on_m0:
                         # handle M0 if required
-                        if l == "M0" or l == "M00":
+                        if line == "M0" or line == "M00":
                             # we basically wait for the continue dialog to be dismissed
                             self.app.main_window.m0_dlg()
                             self.m0 = asyncio.Event()
@@ -688,15 +688,15 @@ class Comms():
                 if self.app.manual_tool_change and tool_change_state > 0:
                     if tool_change_state == 1:
                         # we insert an M400 so we can wait for last command to actually execute and complete
-                        line = "M400\n"
+                        line = "M400"
                         tool_change_state = 2
 
                     elif tool_change_state == 2:
                         # we got the M400 so queue is empty so we send a suspend and tell upstream
-                        line = "M600\n"
+                        line = "M600"
                         # we need to pause the stream here immediately, but the real _stream_pause will be called by suspend
                         self.pause_stream = True  # we don't normally set this directly
-                        self.app.main_window.tool_change_prompt("{} - {}".format(l, self.last_tool))
+                        self.app.main_window.tool_change_prompt("{} - {}".format(line, self.last_tool))
                         tool_change_state = 0
 
                 # s= time.time()
@@ -706,7 +706,9 @@ class Comms():
                     # clear the event, which will be set by an incoming ok
                     self.okcnt.clear()
 
-                self._write(line)
+                # if this line ended with \r\n we will get two oks not good
+                # so need to strip this line and add \n
+                self._write("{}\n".format(line))
 
                 # wait for ok from that command (I'd prefer to interleave with the file read but it is too complex)
                 if self.ping_pong and self.okcnt is not None:
@@ -738,7 +740,7 @@ class Comms():
                     break
 
                 # we only count lines that start with GMXY
-                if l[0] in "GMXY":
+                if line[0] in "GMXY":
                     linecnt += 1
 
                 if self.progress and linecnt % 10 == 0:  # update every 10 lines
@@ -854,7 +856,8 @@ class Comms():
 
                 # clear the event, which will be set by an incoming ok
                 okev.clear()
-                self._write(line)
+                self._write("{}\n".format(ln))
+
                 # wait for ok from that line
                 await okev.wait()
 

@@ -3,7 +3,7 @@ A Smoothie host designed to run on an rpi with multitouch screen or on a desktop
 
 This is stable and ready for everyday use.
 
-This uses python >= 3.5 and < 3.8
+This uses python >= 3.5 and < 3.8 and kivy >= 1.11.0
 
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
@@ -170,7 +170,7 @@ For instance...
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
     python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@stable
 
-This installs a known working version of kivy. Note that dev versions tend to be less stable and may not work.
+This installs a known working version of kivy.
 
 On an rpi3b+ (and better) it seems the double tap time needs to be increased to be usable..
 
