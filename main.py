@@ -344,7 +344,7 @@ class MainWindow(BoxLayout):
     def connect(self):
         if self.app.is_connected:
             if self.is_printing:
-                mb = MessageBox(text='Cannot Disconnect while printing - Abort first, then wait')
+                mb = MessageBox(text='Cannot Disconnect while printing - Abort first, then wait', cancel_text='OK')
                 mb.open()
             else:
                 self._disconnect()
@@ -756,7 +756,7 @@ class MainWindow(BoxLayout):
 
     @mainthread
     def m0_dlg(self):
-        MessageBox(text='M0 Pause, click OK to continue', cb=self._m0_dlg).open()
+        MessageBox(text='M0 Pause, click OK to continue', cancel_text='OK', cb=self._m0_dlg).open()
 
     def _m0_dlg(self, ok):
         self.app.comms.release_m0()
