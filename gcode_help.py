@@ -1,43 +1,65 @@
+
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.scrollview import ScrollView
-from kivy.properties import StringProperty
 
 Builder.load_string('''
-<ScrollableLabel>:
-    scroll_type: ['bars', 'content']
-    scroll_wheel_distance: dp(114)
-    bar_width: dp(10)
+<GCHRow@BoxLayout>:
+    canvas.before:
+        Color:
+            rgba: 0.5, 0.5, 0.5, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    gcode: ''
+    desc: ''
     Label:
-        size_hint_y: None
-        height: self.texture_size[1]
-        text_size: self.width, None
-        text: root.text
-        font_name: "data/fonts/RobotoMono-Regular.ttf"
+        text: root.gcode
+        size_hint_x: None
+        width: self.texture_size[0] + dp(16)
+    Label:
+        text: root.desc
+        text_size: self.size
 
 <GcodeHelp>:
-    sl: sl
+    rv: rv
     BoxLayout:
+        canvas:
+            Color:
+                rgba: 0.3, 0.3, 0.3, 1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        rv: rv
         orientation: 'vertical'
-        Button:
-            size_hint: None, None
-            size: 100, 40
-            text: 'Back'
-            on_press: root.close()
-        ScrollableLabel:
-            id: sl
+        BoxLayout:
+            size_hint_y: None
+            height: dp(40)
+            padding: dp(8)
+            spacing: dp(16)
+            Button:
+                text: 'Back'
+                on_press: root.close()
+
+        RecycleView:
+            id: rv
+            scroll_type: ['bars', 'content']
+            scroll_wheel_distance: dp(114)
+            bar_width: dp(10)
+            viewclass: 'GCHRow'
+            RecycleBoxLayout:
+                default_size: None, dp(20)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+                spacing: dp(2)
 ''')
-
-
-class ScrollableLabel(ScrollView):
-    text = StringProperty('')
 
 
 class GcodeHelp(Screen):
     def populate(self):
-        a = []
         with open('gcodes.txt') as f:
             for line in f:
                 c = line.split(' | ')
@@ -45,11 +67,8 @@ class GcodeHelp(Screen):
                     continue
                 g = c[0].strip()
                 d = c[1].strip()
-                n = 8 - len(g)
-                s = ' ' * n
-                a.append("{}{}{}".format(g, s, d))
-        self.ids.sl.text = "\n".join(a)
+                self.rv.data.append({'gcode': g, 'desc': d})
 
     def close(self):
-        self.ids.sl.text = ''
+        self.rv.data = []
         self.manager.current = 'main'
