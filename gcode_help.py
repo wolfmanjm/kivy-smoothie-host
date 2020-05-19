@@ -18,6 +18,7 @@ Builder.load_string('''
         text: root.gcode
         size_hint_x: None
         width: self.texture_size[0] + dp(16)
+        font_name: "data/fonts/RobotoMono-Regular.ttf"
     Label:
         text: root.desc
         text_size: self.size
