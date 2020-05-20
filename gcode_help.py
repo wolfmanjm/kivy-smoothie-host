@@ -49,6 +49,9 @@ Builder.load_string('''
             Button:
                 text: 'Commands'
                 on_press: root.populate(' ')
+            Button:
+                text: '$Codes'
+                on_press: root.populate('$')
 
         RecycleView:
             id: rv
