@@ -121,3 +121,35 @@ M911.x | Setup advanced driver chips that support SPI setup
 M957 | Report the current spindle speed and PWM value
 M958 | Report the current spindle PID parameters
 M999 | Reset from a halted state caused by limit switch
+version | prints current firmware version
+mem | [-v] shows current memory usage
+ls | [-s] <dir> lists directory contents (with size)
+cd | <dir> change directory to dir
+pwd | print current directory
+cat | <file> [limit] [-d 10] print contents of file with optional line limit and delay
+rm | <file> delete file
+mv | <file> <newfile> rename file to newfile
+remount | remount sdcard
+play | <file> [-v] run file form sdcard. optionally print every line
+progress | shows progress of current running sd file
+abort | abort currently running sd file
+reset | reset smoothie
+dfu | enter dfu boot loader
+break | break into debugger
+config-set | <configuration_source> <configuration_setting> <value> set config as specified source is usually sd
+get pos | print all postion data
+get wcs | print WCS settings
+get state | print gcode state
+get status | print query information
+get fk | [x,y,z] do forward kinematics on given coordinates using current arm solution
+get ik | [x,y,z] do inverse kinematics on given coordinates using current arm solution
+get temp | <bed|hotend> show temperature of hotend or bed
+set_temp | <bed|hotend> <temp> set temperature of hotend or bed
+switch | <name> [value] return state of names switch, or set its state
+net | show network state
+load | <file> loads a configuration override file from specified name or config-override
+save | <file> saves a configuration override file as specified filename or as config-override
+upload | <filename> saves a stream of text to the named file
+calc_thermistor | [-s0] T1,R1,T2,R2,T3,R3 calculate the Steinhart Hart coefficients for a thermistor
+thermistors | print out the predefined thermistors
+md5sum | <file> prints md5 sum of the given file

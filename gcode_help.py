@@ -36,12 +36,19 @@ Builder.load_string('''
         orientation: 'vertical'
         BoxLayout:
             size_hint_y: None
-            height: dp(40)
-            padding: dp(8)
-            spacing: dp(16)
+            height: 40
             Button:
                 text: 'Back'
                 on_press: root.close()
+            Button:
+                text: 'GCodes'
+                on_press: root.populate('G')
+            Button:
+                text: 'MCodes'
+                on_press: root.populate('M')
+            Button:
+                text: 'Commands'
+                on_press: root.populate(' ')
 
         RecycleView:
             id: rv
@@ -60,15 +67,17 @@ Builder.load_string('''
 
 
 class GcodeHelp(Screen):
-    def populate(self):
+    def populate(self, type):
+        self.rv.data = []
         with open('gcodes.txt') as f:
             for line in f:
-                c = line.split(' | ')
-                if len(c) < 2:
-                    continue
-                g = c[0].strip()
-                d = c[1].strip()
-                self.rv.data.append({'gcode': g, 'desc': d})
+                if line[0] == type or (type == ' ' and line[0].islower()):
+                    c = line.split(' | ')
+                    if len(c) < 2:
+                        continue
+                    g = c[0].strip()
+                    d = c[1].strip()
+                    self.rv.data.append({'gcode': g, 'desc': d})
 
     def close(self):
         self.rv.data = []

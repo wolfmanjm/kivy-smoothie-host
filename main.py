@@ -1306,7 +1306,6 @@ class SmoothieHost(App):
                 self.main_window.display('> command exception: {}'.format(err))
 
         elif s == '?':
-            self.gcode_help.populate()
             self.sm.current = 'gcode_help'
 
         else:
