@@ -112,7 +112,7 @@ M565 | Defines the probe offsets from the nozzle or tool head
 M600 | Suspend print in progress
 M600.1 | Suspend print in progress leave heaters on
 M601 | Resume suspended print
-M665 | Set arm solution specific settings: Delta - L<arm length> R<arm radius> Z<max height>
+M665 | Set arm solution specific settings: Delta - L<arm length> R<arm radius> Z<max height> S<delta segs/sec> U<mm/line segment>
 M666 | sets trim values for the endstops
 M670 | ZProbe feedrates S<slow> K<fast> R<return> Z<maxz> H<probe ht> I<invert> D<dwell>
 M906 | Set Current in milliamp X<n> Y<n> Z<n>
