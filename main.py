@@ -26,6 +26,8 @@ from kivy.logger import Logger
 from kivy.core.window import Window
 from kivy.config import ConfigParser
 from kivy.metrics import dp, Metrics
+# needed to fix sys.excepthook errors, fixed in 2.x.x
+from kivy.uix.recycleview.views import _cached_views, _view_base_cache
 
 from native_file_chooser import NativeFileChooser
 from mpg_knob import Knob

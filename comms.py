@@ -57,14 +57,13 @@ class SerialConnection(asyncio.Protocol):
     def send_message(self, data, hipri=False):
         """ Feed a message to the sender coroutine. """
         self.log.debug('SerialConnection: send_message: {}'.format(data))
-        self.transport.write(data.encode('utf-8'))
+        self.transport.write(data.encode('latin1'))
 
     def data_received(self, data):
         # print('data received', repr(data))
         str = ''
         try:
-            # FIXME this is a problem when it splits utf-8, may need to get whole lines here anyway
-            str = data.decode(encoding='utf-8', errors='ignore')
+            str = data.decode(encoding='latin1', errors='ignore')
         except Exception as err:
             self.log.error("SerialConnection: Got decode error on data {}: {}".format(repr(data), err))
             # send it upstream anyway
