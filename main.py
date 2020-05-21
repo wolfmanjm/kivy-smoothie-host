@@ -573,6 +573,8 @@ class MainWindow(BoxLayout):
 
         self.start_print_time = datetime.datetime.now()
         self.display('>>> Running file: {}, {} lines'.format(file_path, self.nlines))
+        if self.app.fast_stream:
+            self.display('>>> Using fast stream')
 
         if self.app.comms.stream_gcode(file_path, progress=lambda x: self.display_progress(x)):
             self.display('>>> Run started at: {}'.format(self.start_print_time.strftime('%x %X')))
