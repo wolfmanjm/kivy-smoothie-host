@@ -829,6 +829,7 @@ class SmoothieHost(App):
     manual_tool_change = BooleanProperty(False)
     is_v2 = BooleanProperty(True)
     wait_on_m0 = BooleanProperty(False)
+    fast_stream = BooleanProperty(False)
 
     # Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
@@ -845,7 +846,6 @@ class SmoothieHost(App):
         self.camera_url = None
         self.loaded_modules = []
         self.secs = 0
-        self.fast_stream = False
         self.last_probe = {'X': 0, 'Y': 0, 'Z': 0, 'status': False}
         self.tool_scripts = ToolScripts()
         self.desktop_changed = False
@@ -971,7 +971,7 @@ class SmoothieHost(App):
 
                 { "type": "bool",
                   "title": "Fast Stream",
-                  "desc": "Allow fast stream for laser over network",
+                  "desc": "Allow fast stream",
                   "section": "General",
                   "key": "fast_stream"
                 },
@@ -1045,6 +1045,8 @@ class SmoothieHost(App):
             self.wait_on_m0 = value == '1'
         elif token == ('Web', 'camera_url'):
             self.camera_url = value
+        elif token == ('General', 'fast_stream'):
+            self.fast_stream = value == '1'
         else:
             self.main_window.display("NOTICE: Restart is needed")
 

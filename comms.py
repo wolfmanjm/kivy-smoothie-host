@@ -236,8 +236,6 @@ class Comms():
             self.ipaddress = ip[0]
             self.log.info('Comms: Connecting to Network at {} port {}'.format(self.ipaddress, self.port))
             serial_conn = loop.create_connection(sc_factory, self.ipaddress, self.port)
-            if self.app.fast_stream:  # optional do not use ping pong for network connections
-                self.ping_pong = False
 
         elif self.port.startswith('serial://'):
             sc_factory = functools.partial(SerialConnection, cb=self, f=f)  # uses partial so we can pass a parameter
@@ -607,6 +605,13 @@ class Comms():
         self.pause_stream = False  # .set() # start out not paused
         self.last_tool = None
 
+        # optional do not use ping pong
+        if self.app.fast_stream:
+            self.ping_pong = False
+            self.log.info("Comms: using fast stream")
+        else:
+            self.ping_pong = True
+
         if self.ping_pong:
             self.okcnt = asyncio.Event()
         else:
@@ -950,6 +955,7 @@ if __name__ == "__main__":
             self.main_window = self
             self.timer = None
             self.is_cnc = True
+            self.fast_stream = False
 
         def connected(self):
             self.log.debug("CommsApp: Connected...")
@@ -1003,7 +1009,7 @@ if __name__ == "__main__":
             upload = True
             print('Upload only')
         elif a == '-f':
-            comms.ping_pong = False
+            app.fast_stream = True
             print('Fast Stream')
         else:
             print("Unknown option: {}".format(a))
