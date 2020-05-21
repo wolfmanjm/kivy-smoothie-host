@@ -64,10 +64,12 @@ class SerialConnection(asyncio.Protocol):
         str = ''
         try:
             # FIXME this is a problem when it splits utf-8, may need to get whole lines here anyway
-            str = data.decode('utf-8')
+            str = data.decode(encoding='utf-8', errors='ignore')
         except Exception as err:
             self.log.error("SerialConnection: Got decode error on data {}: {}".format(repr(data), err))
-            str = repr(data)  # send it upstream anyway
+            # send it upstream anyway
+            self.cb.incoming_data(repr(data), True)
+            return
 
         self.cb.incoming_data(str)
 
@@ -395,9 +397,13 @@ class Comms():
 
     # Handle incoming data, see if it is a report and parse it otherwise just display it on the console log
     # Note the data could be a line fragment and we need to only process complete lines terminated with \n
-    def incoming_data(self, data):
+    def incoming_data(self, data, error=False):
         ''' called by Serial connection when incoming data is received '''
+        if error:
+            self.app.main_window.async_display("WARNING: got bad incoming data: {}".format(data))
+
         ll = data.splitlines(1)
+
         self.log.debug('Comms: incoming_data: {}'.format(ll))
 
         # process incoming data
