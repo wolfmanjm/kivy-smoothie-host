@@ -106,16 +106,16 @@ class SerialConnection(asyncio.Protocol):
 
     def pause_writing(self):
         self.log.info('SerialConnection: pause writing: {}'.format(self.transport.get_write_buffer_size()))
-        if not self.is_net:
-            return
+        # if not self.is_net:
+        #     return
         # we only do this pause stream stuff for net
         assert not self._paused
         self._paused = True
 
     def resume_writing(self):
         self.log.info('SerialConnection: resume writing: {}'.format(self.transport.get_write_buffer_size()))
-        if not self.is_net:
-            return
+        # if not self.is_net:
+        #     return
         # we only do this pause stream stuff for net
         assert self._paused
         self._paused = False
@@ -749,8 +749,11 @@ class Comms():
                 if self.abort_stream:
                     break
 
-                # we only count lines that start with GMXY
-                if line[0] in "GMXY":
+                if self.ping_pong:
+                    # we only count lines that start with GMXY
+                    if line[0] in "GMXY":
+                        linecnt += 1
+                else:
                     linecnt += 1
 
                 if self.progress and linecnt % 10 == 0:  # update every 10 lines
@@ -922,16 +925,24 @@ class Comms():
             self.m0.set()
 
     @staticmethod
-    def file_len(fname):
-        ''' use external process to quickly find total number of G/M lines in file '''
-        # NOTE some laser raster formats have lines that start with X and no G/M
-        # and some CAM programs just output X or Y lines
+    def file_len(fname, all=False):
         # TODO if windows use a slow python method
-        p = subprocess.Popen(['grep', '-c', "^[GMXY]", fname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        result, err = p.communicate()
-        if p.returncode != 0:
-            raise IOError(err)
-        return int(result.strip().split()[0])
+        if not all:
+            # use external process to quickly find total number of G/M lines in file
+            # NOTE some laser raster formats have lines that start with X and no G/M
+            # and some CAM programs just output X or Y lines
+            p = subprocess.Popen(['grep', '-c', "^[GMXY]", fname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result, err = p.communicate()
+            if p.returncode != 0:
+                raise IOError(err)
+            return int(result.strip().split()[0])
+        else:
+            # count all lines
+            p = subprocess.Popen(['wc', fname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result, err = p.communicate()
+            if p.returncode != 0:
+                raise IOError(err)
+            return int(result.strip().split()[0])
 
 
 if __name__ == "__main__":
@@ -940,7 +951,6 @@ if __name__ == "__main__":
     from time import sleep
 
     ''' a standalone streamer to test it with '''
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
     class CommsApp(object):
         """ Standalone app callbacks """
@@ -1000,7 +1010,7 @@ if __name__ == "__main__":
         exit(0)
 
     upload = False
-
+    loglevel = logging.INFO
     app = CommsApp()
     comms = Comms(app, 10)
     while len(sys.argv) > 3:
@@ -1011,11 +1021,15 @@ if __name__ == "__main__":
         elif a == '-f':
             app.fast_stream = True
             print('Fast Stream')
+        elif a == '-d':
+            loglevel = logging.DEBUG
         else:
             print("Unknown option: {}".format(a))
 
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=loglevel)
+
     try:
-        nlines = Comms.file_len(sys.argv[2])  # get number of lines so we can do progress and ETA
+        nlines = Comms.file_len(sys.argv[2], app.fast_stream)  # get number of lines so we can do progress and ETA
         print('number of lines: {}'.format(nlines))
     except Exception:
         print('Exception: {}'.format(traceback.format_exc()))
