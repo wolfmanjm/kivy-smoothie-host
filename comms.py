@@ -1,6 +1,5 @@
 import threading
 import asyncio
-import serial_asyncio
 import aiofiles
 import logging
 import functools
@@ -13,6 +12,9 @@ import subprocess
 import socket
 import time
 from notify import Notify
+
+# my version
+import libs.serial_asyncio.serial_asyncio
 
 async_main_loop = None
 
@@ -41,12 +43,15 @@ class SerialConnection(asyncio.Protocol):
             # for net we want to limit how much we queue up otherwise the whole file gets queued
             # this also gives us more progress more often
             transport.set_write_buffer_limits(high=1024, low=256)
-            self.log.info('Buffer limits: {} - {}'.format(transport._high_water, transport._low_water))
+            self.log.info('SerialConnection: Buffer limits: {} - {}'.format(transport._high_water, transport._low_water))
         else:
+            transport.set_write_buffer_limits(high=256, low=64)
+            self.log.info('SerialConnection: Buffer limits: {} - {}'.format(transport._high_water, transport._low_water))
             # transport.serial.rts = False  # You can manipulate Serial object via transport
             transport.serial.reset_input_buffer()
             transport.serial.reset_output_buffer()
             # transport.serial.set_low_latency_mode(True)
+            # print(transport.serial)
 
     def flush_queue(self):
         # if self.transport:
@@ -57,8 +62,9 @@ class SerialConnection(asyncio.Protocol):
 
     def send_message(self, data, hipri=False):
         """ Feed a message to the sender coroutine. """
-        self.log.debug('SerialConnection: send_message: {}'.format(data))
+        self.log.debug('SerialConnection: send_message: {}'.format(data.strip()))
         self.transport.write(data.encode('latin1'))
+        # print(self.transport.get_write_buffer_size())
 
     def data_received(self, data):
         # print('data received', repr(data))
@@ -106,7 +112,7 @@ class SerialConnection(asyncio.Protocol):
         await waiter
 
     def pause_writing(self):
-        self.log.info('SerialConnection: pause writing: {}'.format(self.transport.get_write_buffer_size()))
+        self.log.debug('SerialConnection: pause writing: {}'.format(self.transport.get_write_buffer_size()))
         # if not self.is_net:
         #     return
         # we only do this pause stream stuff for net
@@ -114,7 +120,7 @@ class SerialConnection(asyncio.Protocol):
         self._paused = True
 
     def resume_writing(self):
-        self.log.info('SerialConnection: resume writing: {}'.format(self.transport.get_write_buffer_size()))
+        self.log.debug('SerialConnection: resume writing: {}'.format(self.transport.get_write_buffer_size()))
         # if not self.is_net:
         #     return
         # we only do this pause stream stuff for net
@@ -242,7 +248,7 @@ class Comms():
             sc_factory = functools.partial(SerialConnection, cb=self, f=f)  # uses partial so we can pass a parameter
             self.net_connection = False
             self.port = self.port[9:]
-            serial_conn = serial_asyncio.create_serial_connection(loop, sc_factory, self.port, baudrate=115200)
+            serial_conn = libs.serial_asyncio.serial_asyncio.create_serial_connection(loop, sc_factory, self.port, baudrate=115200)
 
         else:
             loop.close()
@@ -710,23 +716,22 @@ class Comms():
                         self.app.main_window.tool_change_prompt("{} - {}".format(line, self.last_tool))
                         tool_change_state = 0
 
-                # s= time.time()
+                # s = time.time()
                 # print("{} - {}".format(s, line))
                 # send the line
                 if self.ping_pong and self.okcnt is not None:
                     # clear the event, which will be set by an incoming ok
                     self.okcnt.clear()
 
-                # if this line ended with \r\n we will get two oks not good
-                # so need to strip this line and add \n
+                # sending stripped line so add \n
                 self._write("{}\n".format(line))
 
                 # wait for ok from that command (I'd prefer to interleave with the file read but it is too complex)
                 if self.ping_pong and self.okcnt is not None:
                     try:
                         await self.okcnt.wait()
-                        # e= time.time()
-                        # print("{} ({}) ok".format(e, (e-s)*1000, ))
+                        # e = time.time()
+                        # print("{} ({}ms) ok".format(e, (e - s) * 1000))
                     except Exception:
                         self.log.debug('Comms: okcnt wait cancelled')
                         break
@@ -746,7 +751,6 @@ class Comms():
 
                 # if the buffers are full then wait until we can send some more
                 await self.proto._drain_helper()
-
                 if self.abort_stream:
                     break
 
@@ -1013,7 +1017,7 @@ if __name__ == "__main__":
     upload = False
     loglevel = logging.INFO
     app = CommsApp()
-    comms = Comms(app, 10)
+    comms = Comms(app, 0)
     while len(sys.argv) > 3:
         a = sys.argv.pop()
         if a == '-u':
