@@ -7,6 +7,8 @@
 # (C) 2015-2017 pySerial-team
 #
 # SPDX-License-Identifier:    BSD-3-Clause
+#
+# wolfmanjm: added workaround to pyserial bug where serial.write() is blocked in a tight loop
 """\
 Support asyncio with serial ports. EXPERIMENTAL
 
