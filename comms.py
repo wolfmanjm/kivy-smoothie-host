@@ -45,7 +45,7 @@ class SerialConnection(asyncio.Protocol):
             transport.set_write_buffer_limits(high=1024, low=256)
             self.log.info('SerialConnection: Buffer limits: {} - {}'.format(transport._high_water, transport._low_water))
         else:
-            transport.set_write_buffer_limits(high=256, low=64)
+            transport.set_write_buffer_limits(high=1024, low=64)
             self.log.info('SerialConnection: Buffer limits: {} - {}'.format(transport._high_water, transport._low_water))
             # transport.serial.rts = False  # You can manipulate Serial object via transport
             transport.serial.reset_input_buffer()
