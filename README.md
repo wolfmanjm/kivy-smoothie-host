@@ -212,7 +212,7 @@ It is recommended to do this:-
 
 Install some smoopi dependencies...
 
-    > pip3 install pyserial pyserial-asyncio aiofiles
+    > python3 -m pip install --user --upgrade pyserial aiofiles
 
 Install Smoopi itself
 
@@ -323,7 +323,7 @@ stable seems to work ok so long as it is > v1.11.0
 
 Install some dependencies we need...
 
-    python3 -m pip install --user --upgrade pyserial pyserial-asyncio aiofiles
+    python3 -m pip install --user --upgrade pyserial aiofiles
 
 Run as
 
