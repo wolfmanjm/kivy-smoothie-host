@@ -188,7 +188,7 @@ class MPG_rawhid():
                         if s == 0:
                             s = 1
                         speed = s / 10.0
-                        self.app.comms.write("$J {}{} F{}\n".format(alut[axis], dist, speed))
+                        self.app.comms.write("$J {}{} S{}\n".format(alut[axis], dist, speed))
 
                 # Close the Teensy connection
                 self.hid.close()

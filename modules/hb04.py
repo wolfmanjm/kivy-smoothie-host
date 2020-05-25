@@ -379,8 +379,8 @@ class HB04():
                             step = wheel  # speed of wheel will move more increments rather than increase feed rate
                             dist = 0.001 * step * self.mullut[self.mul]
                             speed = 1.0
-                            self.app.comms.write("$J {}{} F{}\n".format(axis, dist, speed))
-                            # print("$J {}{} F{}\n".format(axis, dist, speed))
+                            self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
+                            # print("$J {}{} S{}\n".format(axis, dist, speed))
 
                     # Close the HB04 connection
                     self.hid.close()
