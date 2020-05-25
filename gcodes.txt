@@ -166,7 +166,7 @@ version | prints current firmware version
 $G | same as get state
 $H | Home
 $I | same as get state (no ok)
-$J | [Xnnn] [Ynnn] [Znnn] [Fnnn] issue jog command axis can be XYZABC optional F is scale of max_rate
+$J | [Xnnn] [Ynnn] [Znnn] [Snnn] issue jog command axis can be XYZABC optional S is scale of max_rate
 $S | <switch names> get switch state(s)
 $X | release ALARM state
 $# | same as get wcs

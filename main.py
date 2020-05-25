@@ -250,6 +250,7 @@ class JogRoseWidget(BoxLayout):
         if x10:
             v *= 10
 
+        # NOTE currently used only for O
         fr = self.xy_feedrate
 
         if axis == 'O':
@@ -257,7 +258,7 @@ class JogRoseWidget(BoxLayout):
         elif axis == 'H':
             self.app.comms.write('$H\n')
         else:
-            self.app.comms.write('M120 G21 G91 G0 {}{} F{} M121\n'.format(axis, v, fr))
+            self.app.comms.write('$J {}{}\n'.format(axis, v))
 
     def update_xy_feedrate(self):
         fr = self.ids.xy_feedrate.text
