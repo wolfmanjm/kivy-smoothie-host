@@ -239,7 +239,7 @@ class JogRoseWidget(BoxLayout):
     def __init__(self, **kwargs):
         super(JogRoseWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.xy_feedrate = self.app.config.get('Jog', 'xy_feedrate')
+        self.xy_feedrate = '3000'
 
     def handle_action(self, axis, v):
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
@@ -250,11 +250,11 @@ class JogRoseWidget(BoxLayout):
         if x10:
             v *= 10
 
-        # NOTE currently used only for O
+        # NOTE currently shows and sets the modal G0 seek rate
         fr = self.xy_feedrate
 
         if axis == 'O':
-            self.app.comms.write('M120 G21 G90 G0 X0 Y0 F{} M121\n'.format(fr))
+            self.app.comms.write('M120 G21 G90 G0 X0 Y0 M121\n')
         elif axis == 'H':
             self.app.comms.write('$H\n')
         else:
@@ -262,8 +262,6 @@ class JogRoseWidget(BoxLayout):
 
     def update_xy_feedrate(self):
         fr = self.ids.xy_feedrate.text
-        self.app.config.set('Jog', 'xy_feedrate', fr)
-        self.app.config.write()
         self.xy_feedrate = fr
         # set the G0 seek feedrate
         self.app.comms.write('G0 F{}\n'.format(fr))
@@ -454,6 +452,8 @@ class MainWindow(BoxLayout):
         self.app.is_inch = a[3] == 'G20'
         self.app.is_abs = a[4] == 'G90'
         self.app.is_spindle_on = a[7] == 'M3'
+        if a[0] == 'G0':
+            self.ids.tabs.jog_rose.xy_feedrate = a[10][1:]
 
     @mainthread
     def alarm_state(self, s):
@@ -885,9 +885,6 @@ class SmoothieHost(App):
             'speed': '300',
             'hotend_presets': '185 (PLA), 230 (ABS)',
             'bed_presets': '60 (PLA), 110 (ABS)'
-        })
-        config.setdefaults('Jog', {
-            'xy_feedrate': '3000'
         })
         config.setdefaults('Web', {
             'webserver': 'false',
