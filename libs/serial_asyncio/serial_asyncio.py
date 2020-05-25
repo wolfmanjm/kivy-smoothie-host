@@ -28,7 +28,7 @@ try:
 except ImportError:
     termios = None
 
-__version__ = '0.4'
+__version__ = '0.4a'
 
 
 class SerialTransport(asyncio.Transport):
@@ -118,28 +118,11 @@ class SerialTransport(asyncio.Transport):
         if self._closing:
             return
         if self.get_write_buffer_size() == 0:
-            # Attempt to send it right away first if ready
-            # FIXME this is really not totally async as it waits for the write
-            try:
-                # as serial.write will block in a loop if it is not ready we make sure it is ready
-                _, ready, _ = select.select([], [self._serial.fd], [], 0)
-                if ready:
-                    n = self._serial.write(data)
-                else:
-                    n = 0
-            except (BlockingIOError, InterruptedError) as exc:
-                print("BlockingIOError error: {}".format(exc))
-                n = 0
-            except serial.SerialException as exc:
-                self._fatal_error(exc, 'Fatal write error on serial transport')
-                return
-            if n == len(data):
-                return  # Whole request satisfied
-            assert 0 <= n < len(data)
-            data = data[n:]
+            self._write_buffer.append(data)
             self._ensure_writer()
+        else:
+            self._write_buffer.append(data)
 
-        self._write_buffer.append(data)
         self._maybe_pause_protocol()
 
     def can_write_eof(self):

@@ -513,7 +513,7 @@ class Comms():
         ll = s.split(' ')
         self.log.debug("Comms: Got state: {}".format(ll))
         # we want the current WCS and the current Tool
-        if len(ll) < 10:
+        if len(ll) < 11:
             self.log.warning('Comms: Bad state report: {}'.format(s))
             return
 
