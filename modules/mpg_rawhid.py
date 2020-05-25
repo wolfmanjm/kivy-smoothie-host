@@ -166,7 +166,7 @@ class MPG_rawhid():
                         # us= a<<24 | b<<16 | c << 8 | d
                         # print("us= {}".format(us))
 
-                        if app.is_connected:
+                        if self.app.is_connected:
                             if estop == 1 and self.app.status != 'Alarm':
                                 self.app.comms.write('\x18')
                                 continue
