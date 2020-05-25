@@ -265,6 +265,8 @@ class JogRoseWidget(BoxLayout):
         self.app.config.set('Jog', 'xy_feedrate', fr)
         self.app.config.write()
         self.xy_feedrate = fr
+        # set the G0 seek feedrate
+        self.app.comms.write('G0 F{}\n'.format(fr))
 
     def motors_off(self):
         self.app.comms.write('M18\n')
