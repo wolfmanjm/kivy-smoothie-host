@@ -54,11 +54,8 @@ class SerialConnection(asyncio.Protocol):
             # print(transport.serial)
 
     def flush_queue(self):
-        # if self.transport:
-        #     self.transport.abort()
-        # TODO does not do anything at the moment possible is to do transport.abort() but that closes the connection
         if not self.is_net and self.transport:
-            self.transport.serial.reset_output_buffer()
+            self.transport.flush()
 
     def send_message(self, data, hipri=False):
         """ Feed a message to the sender coroutine. """
@@ -795,6 +792,9 @@ class Comms():
                         break
 
                     await asyncio.sleep(1)
+                # update final progress display
+                if self.progress:
+                    self.progress(self.okcnt)
 
             self.file_streamer = None
             self.progress = None

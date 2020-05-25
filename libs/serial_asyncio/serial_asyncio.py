@@ -8,7 +8,8 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 #
-# wolfmanjm: added workaround to pyserial bug where serial.write() is blocked in a tight loop
+# wolfmanjm: Made the write() trukly asynchronus. Write data is always buffered, and not written unt
+# write is ready. This also avoids the bug in posix serial.write().
 """\
 Support asyncio with serial ports. EXPERIMENTAL
 
@@ -179,6 +180,13 @@ class SerialTransport(asyncio.Transport):
         connection_lost() method will eventually be called.
         """
         self._abort(None)
+
+    def flush(self):
+        """ clears output buffer and stops any more data being written
+        """
+        self._remove_writer()
+        self._write_buffer.clear()
+        self._maybe_resume_protocol()
 
     def _maybe_pause_protocol(self):
         """To be called whenever the write-buffer size increases.
