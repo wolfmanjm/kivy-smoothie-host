@@ -73,7 +73,7 @@ class NativeFileChooser():
                 path = self._run_command(['zenity', '--title', self.title, '--file-selection', '--filename', self.start_dir + '/', '--file-filter', 'GCode files | *.g *.gcode *.nc *.gc *.ngc'])
 
             elif self.use_kdialog:
-                path = self._run_command(['kdialog', '--title', self.title, '--getopenfilename', self.start_dir, '*.g *.gcode *.nc *.gc *.ngc'])
+                path = self._run_command(['kdialog', '--title', self.title, '--getopenfilename', self.start_dir, 'GCode Files (*.g *.gcode *.nc *.gc *.ngc)'])
             else:
                 self.failed = True
 

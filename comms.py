@@ -965,6 +965,7 @@ class Comms():
                 await f.close()
             self.progress = None
             self.file_streamer = None
+            self.okcnt = None
             donecb(success)
             self.log.info('Comms: Upload GCode complete: {}'.format(success))
 
@@ -1056,7 +1057,7 @@ if __name__ == "__main__":
             print("wait on m0: {}\n".format(l))
 
     if len(sys.argv) < 3:
-        print("Usage: {} port file [-u] [-f]".format(sys.argv[0]))
+        print("Usage: {} port file [-u] [-f] [-d]".format(sys.argv[0]))
         exit(0)
 
     upload = False
