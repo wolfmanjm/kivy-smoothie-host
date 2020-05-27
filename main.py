@@ -1132,6 +1132,7 @@ class SmoothieHost(App):
             # load the layouts for rpi 7" touch screen
             Builder.load_file('rpi.kv')
 
+        self.fast_stream = self.config.getboolean('General', 'fast_stream')
         self.is_cnc = self.config.getboolean('UI', 'cnc')
         self.tab_top = self.config.getboolean('UI', 'tab_top')
         self.is_webserver = self.config.getboolean('Web', 'webserver')

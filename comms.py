@@ -857,6 +857,7 @@ class Comms():
         self._redirect_incoming(lambda x: self._rcv_upload_gcode_line(x, okev))
 
         try:
+            self.okcnt = 0
             okev.clear()
             self._write("M28 {}\n".format(os.path.basename(fn).lower()))
             await okev.wait()
@@ -936,7 +937,7 @@ class Comms():
             self.log.error("Comms: Upload GCode file exception: {}".format(err))
 
         finally:
-            if success and not self.ping_pong:
+            if not self.ping_pong:
                 # wait for oks to catch up
                 self.log.debug('Comms: Waiting for okcnt to catch up: {} vs {}'.format(self.okcnt, linecnt))
                 # we have to wait for all lines to be ack'd
@@ -944,9 +945,6 @@ class Comms():
                 while self.okcnt < linecnt:
                     if self.progress:
                         self.progress(self.okcnt)
-                    if self.abort_stream:
-                        success = False
-                        break
 
                     await asyncio.sleep(1)
                     tmo += 1
