@@ -648,7 +648,7 @@ class MainWindow(BoxLayout):
             return
 
         try:
-            self.nlines = Comms.file_len(file_path)  # get number of lines so we can do progress and ETA
+            self.nlines = Comms.file_len(file_path, self.app.fast_stream)  # get number of lines so we can do progress and ETA
             Logger.debug('MainWindow: number of lines: {}'.format(self.nlines))
         except Exception:
             Logger.warning('MainWindow: exception in file_len: {}'.format(traceback.format_exc()))

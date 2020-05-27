@@ -830,6 +830,7 @@ class Comms():
     def _rcv_upload_gcode_line(self, ll, ev):
         if ll == 'ok':
             ev.set()
+            self.okcnt += 1
 
         elif ll.startswith('open failed,') or ll.startswith('Error:') or ll.startswith('ALARM:') or ll.startswith('!!') or ll.startswith('error:'):
             self.upload_error = True
@@ -844,13 +845,15 @@ class Comms():
 
     async def _stream_upload_gcode(self, fn, donecb):
         self.log.info('Comms: Upload gcode file {}'.format(fn))
-        okev = asyncio.Event()
+
         self.upload_error = False
         self.abort_stream = False
         f = None
         success = False
         linecnt = 0
-        # use the simple ping pong one line per ok
+        okev = asyncio.Event()
+
+        # use the simple ping pong one line per ok or fast stream
         self._redirect_incoming(lambda x: self._rcv_upload_gcode_line(x, okev))
 
         try:
@@ -862,6 +865,13 @@ class Comms():
                 self.log.error('Comms: M28 failed for file /sd/{}'.format(os.path.basename(fn)))
                 self.app.main_window.async_display("error: M28 failed to open file")
                 return
+
+            self.okcnt = 0
+            if self.app.fast_stream:
+                self.ping_pong = False
+                self.log.info("Comms: using fast stream")
+            else:
+                self.ping_pong = True
 
             f = await aiofiles.open(fn, mode='r')
 
@@ -878,11 +888,13 @@ class Comms():
                     continue
 
                 # clear the event, which will be set by an incoming ok
-                okev.clear()
+                if self.ping_pong:
+                    okev.clear()
                 self._write("{}\n".format(ln))
 
-                # wait for ok from that line
-                await okev.wait()
+                if self.ping_pong:
+                    # wait for ok from that line
+                    await okev.wait()
 
                 if self.upload_error:
                     self.log.error('Comms: Upload failed for file /sd/{}'.format(os.path.basename(fn)))
@@ -902,13 +914,21 @@ class Comms():
                 if self.abort_stream:
                     break
 
-                # we only count lines that start with GMXY
-                if ln[0] in "GMXY":
+                if self.ping_pong:
+                    if ln[0] in "GMXY":
+                        # we only count lines that start with GMXY
+                        linecnt += 1
+                else:
+                    # we count all lines sent
                     linecnt += 1
 
                 if self.progress and linecnt % 100 == 0:  # update every 100 lines
-                    # number of lines sent
-                    self.progress(linecnt)
+                    if self.ping_pong:
+                        # number of lines sent
+                        self.progress(linecnt)
+                    else:
+                        # number of lines ok'd
+                        self.progress(self.okcnt)
 
             success = not self.abort_stream
 
@@ -916,6 +936,28 @@ class Comms():
             self.log.error("Comms: Upload GCode file exception: {}".format(err))
 
         finally:
+            if success and not self.ping_pong:
+                # wait for oks to catch up
+                self.log.debug('Comms: Waiting for okcnt to catch up: {} vs {}'.format(self.okcnt, linecnt))
+                # we have to wait for all lines to be ack'd
+                tmo = 0
+                while self.okcnt < linecnt:
+                    if self.progress:
+                        self.progress(self.okcnt)
+                    if self.abort_stream:
+                        success = False
+                        break
+
+                    await asyncio.sleep(1)
+                    tmo += 1
+                    if tmo >= 30:  # waited 30 seconds we need to give up
+                        self.log.warning("Comms: timed out waiting for backed up oks")
+                        break
+
+                # update final progress display
+                if self.progress:
+                    self.progress(self.okcnt)
+
             okev.clear()
             self._write("M29\n")
             await okev.wait()
