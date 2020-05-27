@@ -784,6 +784,7 @@ class Comms():
             if success and not self.ping_pong:
                 self.log.debug('Comms: Waiting for okcnt to catch up: {} vs {}'.format(self.okcnt, linecnt))
                 # we have to wait for all lines to be ack'd
+                tmo = 0
                 while self.okcnt < linecnt:
                     if self.progress:
                         self.progress(self.okcnt)
@@ -792,6 +793,10 @@ class Comms():
                         break
 
                     await asyncio.sleep(1)
+                    tmo += 1
+                    if tmo >= 30:  # waited 30 seconds we need to give up
+                        self.log.warning("Comms: timed out waitng for backed up oks")
+                        break
                 # update final progress display
                 if self.progress:
                     self.progress(self.okcnt)
