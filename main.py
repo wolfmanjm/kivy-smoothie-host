@@ -890,7 +890,7 @@ class SmoothieHost(App):
         config.setdefaults('Web', {
             'webserver': 'false',
             'show_video': 'false',
-            'camera_url': 'http://localhost:8080/?action=snapshot'
+            'camera_url': 'http://localhost:8080/?action=stream'
         })
 
     def build_settings(self, settings):
