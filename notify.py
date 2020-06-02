@@ -6,8 +6,7 @@ import logging
 class Notify():
     """Send an Email to notify user"""
 
-    @staticmethod
-    def send(msg):
+    def send(self, msg):
         self.logger = logging.getLogger()
 
         try:

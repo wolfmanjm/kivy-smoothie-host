@@ -628,6 +628,7 @@ class MainWindow(BoxLayout):
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
         self.display(">>> Elapsed time: {}".format(et))
         self.eta = '--:--:--'
+        Logger.info('MainWindow: Run finished {}, last Z: {}, last line: {}'.format('ok' if ok else 'abnormally', self.wpos[2], self.last_line))
 
     def upload_gcode(self):
         # get file to upload

@@ -671,7 +671,8 @@ class Comms():
                         continue
 
                     if line.startswith('(NOTIFY'):
-                        Notify.send(line)
+                        notify = Notify()
+                        notify.send(line)
                         continue
 
                     if line.startswith('('):
@@ -770,6 +771,7 @@ class Comms():
 
         except Exception as err:
             self.log.error("Comms: Stream file exception: {}".format(err))
+            # print('Exception: {}'.format(traceback.format_exc()))
 
         finally:
             if f:
@@ -1056,6 +1058,25 @@ if __name__ == "__main__":
         def wait_on_m0(self, l):
             print("wait on m0: {}\n".format(l))
 
+    def display_progress(n):
+        global start, nlines
+
+        if nlines:
+            now = datetime.datetime.now()
+            d = (now - start).seconds
+            if n > 10 and d > 10:
+                # we have to wait a bit to get reasonable estimates
+                lps = n / d
+                eta = (nlines - n) / lps
+            else:
+                eta = 0
+            et = datetime.timedelta(seconds=int(eta))
+            print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n / nlines, et))
+
+    def upload_done(x):
+        app.ok = x
+        app.end_event.set()
+
     if len(sys.argv) < 3:
         print("Usage: {} port file [-u] [-f] [-d]".format(sys.argv[0]))
         exit(0)
@@ -1087,25 +1108,6 @@ if __name__ == "__main__":
         nlines = None
 
     start = None
-
-    def display_progress(n):
-        global start, nlines
-
-        if nlines:
-            now = datetime.datetime.now()
-            d = (now - start).seconds
-            if n > 10 and d > 10:
-                # we have to wait a bit to get reasonable estimates
-                lps = n / d
-                eta = (nlines - n) / lps
-            else:
-                eta = 0
-            et = datetime.timedelta(seconds=int(eta))
-            print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n / nlines, et))
-
-    def upload_done(x):
-        app.ok = x
-        app.end_event.set()
 
     try:
         t = comms.connect(sys.argv[1])
