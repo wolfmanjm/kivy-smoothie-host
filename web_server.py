@@ -2,10 +2,30 @@ import socket
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import time
 import logging
-from kivy.logger import Logger
 import traceback
 import threading
 import socket
+
+logger = logging.getLogger()
+
+main_page = '''
+<html>
+<body>
+<h1>Smoopi status page</h1>
+
+<div id="statusDiv">
+<iframe src="status" height="64" width="800">
+</iframe>
+</div>
+
+<br/>
+
+<iframe src="camera" height="500" width="800">
+</iframe>
+
+</body>
+</html>
+'''
 
 
 def get_ip():
@@ -15,7 +35,7 @@ def get_ip():
         s.connect(('10.255.255.255', 1))
         IP = s.getsockname()[0]
     except Exception:
-        Logger.warn('ProgressServer: get_ip failed with: {}'.format(traceback.format_exc()))
+        logger.warn('ProgressServer: get_ip failed with: {}'.format(traceback.format_exc()))
         IP = '127.0.0.1'
     finally:
         s.close()
@@ -34,23 +54,42 @@ def make_request_handler_class(app, ip):
 
         def do_GET(self):
             self._set_headers()
-            status = MyRequestHandler.m_app.status
-            if MyRequestHandler.m_app.main_window.is_printing:
-                eta = MyRequestHandler.m_app.main_window.eta
-                file = MyRequestHandler.m_app.gcode_file
-                wpos = MyRequestHandler.m_app.wpos
-                self.wfile.write('<head><meta http-equiv="refresh" content="5"></head>\r\n'.encode("utf-8"))
-                self.wfile.write("{} - Z: {}, ETA: {}, File: {}".format(status, wpos[2], eta, file).encode("utf-8"))
-            else:
-                self.wfile.write("{} - Not Running".format(status).encode("utf-8"))
+            if self.path == '/status':
+                status = MyRequestHandler.m_app.status
+                if MyRequestHandler.m_app.main_window.is_printing:
+                    eta = MyRequestHandler.m_app.main_window.eta
+                    file = MyRequestHandler.m_app.gcode_file
+                    wpos = MyRequestHandler.m_app.wpos
+                    self.wfile.write("<html>\r\n".encode("utf-8"))
+                    self.wfile.write('<head><meta http-equiv="refresh" content="5"></head><body>\r\n'.encode("utf-8"))
 
-            if MyRequestHandler.m_app.is_show_camera:
-                self.wfile.write('\r\n<hr><center><img src="http://{}:8080/?action=stream" /></center>\r\n'.format(MyRequestHandler.m_ip).encode("utf-8"))
+                    self.wfile.write("{} - Z: {}, ETA: {}, File: {}".format(status, wpos[2], eta, file).encode("utf-8"))
+                    self.wfile.write("</body></html>\r\n".encode("utf-8"))
+                else:
+                    self.wfile.write("{} - Not Running".format(status).encode("utf-8"))
+
+            elif self.path == '/camera':
+                self.wfile.write("<html><body>\r\n".encode("utf-8"))
+                if MyRequestHandler.m_app.is_show_camera:
+                    camurl = MyRequestHandler.m_app.camera_url
+                    if "localhost" in camurl:
+                        # we need to replace localhost with actual ip so remote browsers can get it
+                        camurl = camurl.replace("localhost", MyRequestHandler.m_ip)
+                    self.wfile.write('\r\n<center><img src="{}" /></center>\r\n'.format(camurl).encode("utf-8"))
+                else:
+                    self.wfile.write('camera not enabled'.encode("utf-8"))
+                self.wfile.write("</body></html>\r\n".encode("utf-8"))
+
+            else:
+                self.wfile.write(main_page.encode("utf-8"))
 
         def do_POST(self):
             # Doesn't do anything with posted data
             self._set_headers()
             self.wfile.write("not handled".encode("utf-8"))
+
+        # def log_message(self, format, *args):
+        #     return
 
     return MyRequestHandler
 
@@ -65,18 +104,18 @@ class ProgressServer(object):
 
     def _start(self):
         ip = get_ip()
-        Logger.info("ProgressServer: IP address is: {}".format(ip))
+        logger.info("ProgressServer: IP address is: {}".format(ip))
         RequestHandlerClass = make_request_handler_class(self.app, ip)
         self.myServer = HTTPServer(("", self.port), RequestHandlerClass)
-        Logger.info("ProgressServer: Web Server Starting - %s:%s" % ("", self.port))
+        logger.info("ProgressServer: Web Server Starting - %s:%s" % ("", self.port))
 
         try:
             self.myServer.serve_forever()
         except Exception:
-            Logger.warn('ProgressServer: Exception: {}'.format(traceback.format_exc()))
+            logger.warn('ProgressServer: Exception: {}'.format(traceback.format_exc()))
         finally:
             self.myServer.server_close()
-            Logger.info("ProgressServer: Web Server Stopping - %s:%s" % ("", self.port))
+            logger.info("ProgressServer: Web Server Stopping - %s:%s" % ("", self.port))
             self.myServer = None
 
     def stop(self):
