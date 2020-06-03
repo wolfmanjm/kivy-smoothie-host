@@ -169,7 +169,7 @@ class Comms():
     def write(self, data):
         ''' Write to serial port, called from UI thread '''
         if self.proto and async_main_loop:
-            async_main_loop.call_soon_threadsafe(self._write, data)
+            async_main_loop.cabll_soon_threadsafe(self._write, data)
             # asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
         else:
             self.log.warning('Comms: Cannot write to closed connection: ' + data)

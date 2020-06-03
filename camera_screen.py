@@ -2,11 +2,10 @@ from kivy.app import App
 from kivy.uix.image import AsyncImage
 from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen
-from kivy.clock import Clock
+from kivy.clock import Clock, mainthread
 from kivy.properties import StringProperty
 from kivy.uix.image import Image
 from kivy.core.image import Image as CoreImage
-from collections import deque
 from kivy.logger import Logger, LOG_LEVELS
 import io
 import urllib.request
@@ -35,11 +34,12 @@ class MjpegViewer(Image):
     def start(self, url):
         self.url = url
         self.quit = False
-        self.update_image()
-        self.read_queue = Clock.schedule_interval(self.update_image, 0.2)
+        self.t = threading.Thread(target=self._read_stream)
+        self.t.start()
 
     def stop(self):
-        self.read_queue.cancel()
+        self.quit = True
+        self.t.join()
 
     def _read_stream(self):
         try:
@@ -49,10 +49,11 @@ class MjpegViewer(Image):
             Logger.error("MjpegViewer: Failed to open url: {} - error: {}".format(self.url, err))
             return None
 
+        Logger.info("MjpegViewer: started thread")
         bytes = b''
         while not self.quit:
             try:
-                # read in stream until we get the entire snapshot
+                # read in stream until we get the entire frame
                 bytes += stream.read(1024)
                 a = bytes.find(b'\xff\xd8')
                 b = bytes.find(b'\xff\xd9')
@@ -62,17 +63,18 @@ class MjpegViewer(Image):
 
                     data = io.BytesIO(jpg)
                     im = CoreImage(data, ext="jpeg", nocache=True)
-                    return im
+                    self.update_image(im)
 
             except Exception as err:
                 Logger.error("MjpegViewer: Failed to read_queue url: {} - error: {}".format(self.url, err))
                 return None
+        Logger.info("MjpegViewer: ending thread")
 
-    def update_image(self, *args):
+    @mainthread
+    def update_image(self, im):
         if self.quit:
             return
 
-        im = self._read_stream()
         if im is not None:
             self.texture = im.texture
             self.texture_size = im.texture.size

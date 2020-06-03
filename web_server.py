@@ -88,8 +88,8 @@ def make_request_handler_class(app, ip):
             self._set_headers()
             self.wfile.write("not handled".encode("utf-8"))
 
-        # def log_message(self, format, *args):
-        #     return
+        def log_message(self, format, *args):
+            return
 
     return MyRequestHandler
 
