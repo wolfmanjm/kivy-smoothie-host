@@ -285,7 +285,7 @@ NOTE the default is for no blanking, there is a setting under the settings menu 
 In Settings you can turn on the webserver which will simply allow you to get current progress from any web browser, nothing fancy.
 Also in Settings you can enable the video option which uses mjpg-streamer 
 (which needs to be built and installed, See https://github.com/jacksonliam/mjpg-streamer.git for instructions on that). If enabled and running then the video will show up in the progress web page.
-There is also a camera option in the system menu which allows a preview of the camera view. The url for the camera is in the settings, and should be the url which gets a videa stream from the camera. If the camera is local it should be set to localhost which will get replaced with the actual IP when a remote browser requests it. (The default '''http://localhost:8080/?action=stream''' is to get the frame from the locally running mjpg-streamer, but can actually be any URL of any webcam that can stream mjpg video).
+There is also a camera option in the system menu which allows a preview of the camera view. The url for the camera is in the settings, and should be the url which gets a video stream from the camera. If the camera is local it should be set to '''localhost''' which will get replaced with the actual IP when a remote browser requests it. (The default '''http://localhost:8080/?action=stream''' is to get the frame from the locally running mjpg-streamer, but can actually be any URL of any webcam that can stream mjpg video).
 
 If you are using the supplied image and want the streamer to auto start then..
 
@@ -305,6 +305,8 @@ Install on recent Linux and python >= 3.5.x and <= 3.7.x using the fast wheels i
     python3 -m pip install --user --upgrade kivy
 
 See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
+
+However if you want to see video from cameras (the spindle cam for instance) you need to build it yourself as below and make sure gstreamer is installed.
 
 If that does not work then install from source...
 
