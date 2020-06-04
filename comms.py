@@ -771,7 +771,7 @@ class Comms():
 
         except Exception as err:
             self.log.error("Comms: Stream file exception: {}".format(err))
-            print('Exception: {}'.format(traceback.format_exc()))
+            # print('Exception: {}'.format(traceback.format_exc()))
 
         finally:
             if f:
