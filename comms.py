@@ -771,7 +771,7 @@ class Comms():
 
         except Exception as err:
             self.log.error("Comms: Stream file exception: {}".format(err))
-            # print('Exception: {}'.format(traceback.format_exc()))
+            print('Exception: {}'.format(traceback.format_exc()))
 
         finally:
             if f:
@@ -1058,6 +1058,9 @@ if __name__ == "__main__":
         def wait_on_m0(self, l):
             print("wait on m0: {}\n".format(l))
 
+    start = None
+    nlines = None
+
     def display_progress(n):
         global start, nlines
 
@@ -1077,73 +1080,82 @@ if __name__ == "__main__":
         app.ok = x
         app.end_event.set()
 
-    if len(sys.argv) < 3:
-        print("Usage: {} port file [-u] [-f] [-d]".format(sys.argv[0]))
-        exit(0)
+    def main():
+        global start, nlines
+        if len(sys.argv) < 3:
+            print("Usage: {} port file [-u] [-f] [-d]".format(sys.argv[0]))
+            exit(0)
 
-    upload = False
-    loglevel = logging.INFO
-    app = CommsApp()
-    comms = Comms(app, 0)
-    while len(sys.argv) > 3:
-        a = sys.argv.pop()
-        if a == '-u':
-            upload = True
-            print('Upload only')
-        elif a == '-f':
-            app.fast_stream = True
-            print('Fast Stream')
-        elif a == '-d':
-            loglevel = logging.DEBUG
-        else:
-            print("Unknown option: {}".format(a))
+        upload = False
+        loglevel = logging.INFO
+        app = CommsApp()
+        comms = Comms(app, 0)
+        while len(sys.argv) > 3:
+            a = sys.argv.pop()
+            if a == '-u':
+                upload = True
+                print('Upload only')
+            elif a == '-f':
+                app.fast_stream = True
+                print('Fast Stream')
+            elif a == '-d':
+                loglevel = logging.DEBUG
+            else:
+                print("Unknown option: {}".format(a))
 
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=loglevel)
+        logging.basicConfig(format='%(levelname)s:%(message)s', level=loglevel)
 
-    try:
-        nlines = Comms.file_len(sys.argv[2], app.fast_stream)  # get number of lines so we can do progress and ETA
-        print('number of lines: {}'.format(nlines))
-    except Exception:
-        print('Exception: {}'.format(traceback.format_exc()))
-        nlines = None
+        try:
+            nlines = Comms.file_len(sys.argv[2], app.fast_stream)  # get number of lines so we can do progress and ETA
+            print('number of lines: {}'.format(nlines))
+        except Exception:
+            print('Exception: {}'.format(traceback.format_exc()))
+            nlines = None
 
-    start = None
+        start = None
 
-    try:
-        t = comms.connect(sys.argv[1])
-        if app.start_event.wait(5):  # wait for connected as it is in a separate thread
-            if app.is_connected:
-                # wait for startup to clear up any incoming oks
-                sleep(2)  # Time in seconds.
-                start = datetime.datetime.now()
-                print("Print started at: {}".format(start.strftime('%x %X')))
+        try:
+            t = comms.connect(sys.argv[1])
+            if app.start_event.wait(5):  # wait for connected as it is in a separate thread
+                if app.is_connected:
+                    # wait for startup to clear up any incoming oks
+                    sleep(2)  # Time in seconds.
+                    start = datetime.datetime.now()
+                    print("Print started at: {}".format(start.strftime('%x %X')))
 
-                if upload:
-                    comms.upload_gcode(sys.argv[2], progress=lambda x: display_progress(x), done=upload_done)
+                    if upload:
+                        comms.upload_gcode(sys.argv[2], progress=lambda x: display_progress(x), done=upload_done)
+                    else:
+                        comms.stream_gcode(sys.argv[2], progress=lambda x: display_progress(x))
+
+                    app.end_event.wait()  # wait for streaming to complete
+
+                    now = datetime.datetime.now()
+                    print("File sent: {}".format('Ok' if app.ok else 'Failed'))
+                    print("Print ended at : {}".format(now.strftime('%x %X')))
+                    if start:
+                        et = datetime.timedelta(seconds=int((now - start).seconds))
+                        print("Elapsed time: {}".format(et))
+
                 else:
-                    comms.stream_gcode(sys.argv[2], progress=lambda x: display_progress(x))
-
-                app.end_event.wait()  # wait for streaming to complete
-
-                now = datetime.datetime.now()
-                print("File sent: {}".format('Ok' if app.ok else 'Failed'))
-                print("Print ended at : {}".format(now.strftime('%x %X')))
-                if start:
-                    et = datetime.timedelta(seconds=int((now - start).seconds))
-                    print("Elapsed time: {}".format(et))
+                    print("Error: Failed to connect")
 
             else:
-                print("Error: Failed to connect")
+                print("Error: Connection timed out")
 
-        else:
-            print("Error: Connection timed out")
+        except KeyboardInterrupt:
+            print("Interrupted- aborting")
+            if upload:
+                comms.do_abort = True
+            else:
+                comms.stream_pause(False, True)
 
-    except KeyboardInterrupt:
-        print("Interrupted- aborting")
-        comms._stream_pause(False, True)
-        app.end_event.wait()  # wait for streaming to complete
+            app.end_event.wait()  # wait for streaming to complete
 
-    finally:
-        # now stop the comms if it is connected or running
-        comms.stop()
-        t.join()
+        finally:
+            # now stop the comms if it is connected or running
+            comms.okcnt = None
+            comms.stop()
+            t.join()
+
+    main()
