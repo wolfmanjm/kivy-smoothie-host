@@ -1029,8 +1029,10 @@ class SmoothieHost(App):
         # print("config changed: {} - {}: {}".format(section, key, value))
         token = (section, key)
         if token == ('UI', 'cnc'):
+            was_cnc = self.is_cnc
             self.is_cnc = value == "1"
-            self.main_window.display("NOTICE: Restart is needed")
+            self.main_window.ids.macros.reload()
+            self.main_window.display("NOTICE: May need to Restart")
         elif token == ('UI', 'display_type'):
             self.desktop_changed = True
             self.main_window.display("NOTICE: Restart is needed")

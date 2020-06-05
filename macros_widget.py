@@ -14,9 +14,11 @@ import subprocess
 import threading
 import select
 import re
+import os
 
 '''
-user defined macros are configurable and stored in a configuration file called macros.ini
+user defined macros are configurable and stored in a configuration file called macros.ini or
+macros-cnc.ini if in cnc mode
 format is:-
 button name = command to send
 '''
@@ -44,11 +46,33 @@ class MacrosWidget(StackLayout):
             t[4].text = t[1]
             self.send(t[2])
 
+    def reload(self):
+        self.toggle_buttons = {}
+        for mb in self.walk(restrict=True):
+            if hasattr(mb, 'ud') and mb.ud:
+                self.remove_widget(mb)
+
+        self._load_user_buttons()
+
     def _load_user_buttons(self, *args):
         # load user defined macros
+        fn = None
+        if self.app.is_cnc:
+            # check to see if we have a macros-cnc.ini if so use it
+            if os.path.isfile('macros-cnc.ini') and os.access('macros-cnc.ini', os.R_OK):
+                fn = 'macros-cnc.ini'
+        if fn is None:
+            fn = 'macros.ini'
+
+        if not (os.path.isfile(fn) and os.access(fn, os.R_OK)):
+            Logger.info("MacrosWidget: no user defined macros file to load")
+            return
+
+        self.macro_file = fn
+
         try:
             config = configparser.ConfigParser()
-            config.read('macros.ini')
+            config.read(fn)
 
             # add toggle button handling switch states
             for section in config.sections():
@@ -67,6 +91,7 @@ class MacrosWidget(StackLayout):
                     tbtn.text = lon
                     self.toggle_buttons[name] = (lon, loff, cmd_on, cmd_off, tbtn, poll)
                     tbtn.bind(on_press=partial(self._handle_toggle, name))
+                    tbtn.ud = True
                     self.add_widget(tbtn)
 
                 elif section.startswith('script '):
@@ -78,6 +103,7 @@ class MacrosWidget(StackLayout):
                     btn.text = name
                     btn.background_color = (1, 1, 0, 1)
                     btn.bind(on_press=partial(self.exec_script, script, io, args))
+                    btn.ud = True
                     self.add_widget(btn)
 
             # add simple macro buttons (with optional prompts)
@@ -85,6 +111,7 @@ class MacrosWidget(StackLayout):
                 btn = Factory.MacroButton()
                 btn.text = key
                 btn.bind(on_press=partial(self.send, v))
+                btn.ud = True
                 self.add_widget(btn)
 
         except Exception as err:
@@ -100,15 +127,16 @@ class MacrosWidget(StackLayout):
             btn = Factory.MacroButton()
             btn.text = opts['Name']
             btn.bind(on_press=partial(self.send, opts['Command']))
+            btn.ud = True
             self.add_widget(btn)
             # write it to macros.ini
             try:
                 config = configparser.ConfigParser()
-                config.read('macros.ini')
+                config.read(self.macro_file)
                 if not config.has_section("macro buttons"):
                     config.add_section("macro buttons")
                 config.set("macro buttons", opts['Name'], opts['Command'])
-                with open('macros.ini', 'w') as configfile:
+                with open(self.macro_file, 'w') as configfile:
                     config.write(configfile)
 
                 Logger.info('MacrosWidget: added macro button {}'.format(opts['Name']))
