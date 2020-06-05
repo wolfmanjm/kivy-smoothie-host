@@ -1032,7 +1032,8 @@ class SmoothieHost(App):
             was_cnc = self.is_cnc
             self.is_cnc = value == "1"
             self.main_window.ids.macros.reload()
-            self.main_window.display("NOTICE: May need to Restart")
+            if was_cnc and not self.is_cnc and self.is_desktop < 3:
+                self.main_window.display("NOTICE: May need to Restart to get Extruder panel")
         elif token == ('UI', 'display_type'):
             self.desktop_changed = True
             self.main_window.display("NOTICE: Restart is needed")
