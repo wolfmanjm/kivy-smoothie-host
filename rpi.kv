@@ -107,6 +107,9 @@
                     text: 'Blank Screen'
                     on_press: app.blank_screen()
                 ActionButton:
+                    text: 'Reload Macros'
+                    on_press: app.main_window.ids.macros.reload()
+                ActionButton:
                     text: 'Update'
                     on_press: root.do_update()
 

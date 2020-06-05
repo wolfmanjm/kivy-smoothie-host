@@ -102,6 +102,9 @@
                     text: 'Update'
                     on_press: root.do_update()
                 ActionButton:
+                    text: 'Reload Macros'
+                    on_press: app.main_window.ids.macros.reload()
+                ActionButton:
                     text: 'Quit'
                     on_press: root.ask_exit()
 
