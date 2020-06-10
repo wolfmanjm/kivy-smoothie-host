@@ -1070,7 +1070,7 @@ class SmoothieHost(App):
 
     def on_start(self):
         # in case we added something to the defaults, make sure they are written to the ini file
-        self.config.update_config('smoothiehost.ini')
+        self.config.update_config(self.config_file)
 
     def window_request_close(self, win):
         if self.desktop_changed:
@@ -1089,7 +1089,7 @@ class SmoothieHost(App):
 
             if self.config.get('UI', 'screen_pos') != 'none':
                 self.config.set('UI', 'screen_pos', "{},{}".format(Window.top, Window.left))
-                Logger.info('close: Window.size: {}, Window.top: {}, Window.left: {}'.format(Window.size, Window.top, Window.left))
+                Logger.info('SmoothieHost: close Window.size: {}, Window.top: {}, Window.left: {}'.format(Window.size, Window.top, Window.left))
 
             self.config.write()
 
@@ -1380,6 +1380,17 @@ class SmoothieHost(App):
             return True
 
         return False
+
+    def get_application_config(self):
+        # allow a command line argument to select a different config file to use
+        if(len(sys.argv) > 1):
+            ext = sys.argv[1]
+            self.config_file = '%(appdir)s/%(appname)s-%(ext)s.ini' % {'appname': self.name, 'appdir': self.directory, 'ext': ext}
+        else:
+            self.config_file = '%(appdir)s/%(appname)s.ini' % {'appname': self.name, 'appdir': self.directory}
+
+        Logger.info("SmoothieHost: config file is: {}".format(self.config_file))
+        return super(SmoothieHost, self).get_application_config(defaultpath=self.config_file)
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):
