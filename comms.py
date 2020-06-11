@@ -1060,6 +1060,7 @@ if __name__ == "__main__":
 
     start = None
     nlines = None
+    app = CommsApp()
 
     def display_progress(n):
         global start, nlines
@@ -1088,7 +1089,6 @@ if __name__ == "__main__":
 
         upload = False
         loglevel = logging.INFO
-        app = CommsApp()
         comms = Comms(app, 0)
         while len(sys.argv) > 3:
             a = sys.argv.pop()
