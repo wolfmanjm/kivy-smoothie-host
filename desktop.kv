@@ -137,6 +137,7 @@
                 multiline: False
                 size_hint_y: None
                 height: self.minimum_height
+                font_size: dp(20)
                 on_text_validate: app.command_input(self.text); self.text= ''; app._refocus_text_input()
 
             BoxLayout:
@@ -172,11 +173,11 @@
 
         Splitter:
             # Right panel
-            max_size: 525
+            max_size: 600
             min_size: 400
             size_hint_x: None
-            width: 520
-            #on_release: print('{}'.format(self.size))
+            width: 580
+            on_release: print('{}'.format(self.size))
 
             BoxLayout:
                 orientation: 'vertical'
