@@ -1206,6 +1206,9 @@ class SmoothieHost(App):
             if self.is_desktop < 3:
                 # remove Extruder panel from tabpanel and tab
                 self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.extruder_tab)
+            elif self.is_desktop == 3:
+                # remove from panel
+                self.main_window.ids.blright.remove_widget(self.main_window.ids.extruder_tab)
 
         # if not CNC mode then do not show the ZABC buttons in jogrose
         if not self.is_cnc:

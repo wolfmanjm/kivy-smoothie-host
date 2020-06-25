@@ -174,14 +174,15 @@
                     color: 0,0,0,1
 
         BoxLayout:
-            orientation: 'horizontal'
+            orientation: 'vertical'
             extruder_tab: extruder_tab
+            blright: blright
 
             BoxLayout:
-                orientation: 'vertical'
+                orientation: 'horizontal'
+                size_hint_y: 0.65
                 TabbedPanel:
                     id: tabs
-                    size_hint_y: 0.7
                     do_default_tab: False
                     tab_pos: 'top_mid' if app.tab_top else 'bottom_mid'
                     jog_rose: jog_rose
@@ -198,23 +199,25 @@
                         text: 'MPG'
                         MPGWidget:
                             id: mpg_widget
-                MacrosWidget:
-                    size_hint_y: 0.5
-                    id: macros
+                BoxLayout:
+                    id: dro
+                    text: 'DRO'
+                    DROWidget:
+                        id: dro_widget
 
             BoxLayout:
-                orientation: 'vertical'
+                size_hint_y: 0.5
+                id: blright
+                orientation: 'horizontal'
+                MacrosWidget:
+                    id: macros
+
                 BoxLayout:
                     id: extruder_tab
                     text: 'extruder'
                     ExtruderWidget:
                         id: extruder
 
-                BoxLayout:
-                    id: dro
-                    text: 'DRO'
-                    DROWidget:
-                        id: dro_widget
 
 
 
