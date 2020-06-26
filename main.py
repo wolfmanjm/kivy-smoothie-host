@@ -353,7 +353,7 @@ class MainWindow(BoxLayout):
                 self._disconnect()
 
         else:
-            port = self.config.get('General', 'serial_port') if not self.app.use_com_port else self.app.use_com_port
+            port = self.config.get('General', 'serial_port')
             self.add_line_to_log("Connecting to {}...".format(port))
             self.app.comms.connect(port)
 
@@ -840,11 +840,6 @@ class SmoothieHost(App):
     # Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
         super(SmoothieHost, self).__init__(**kwargs)
-        if len(sys.argv) > 1:
-            # override com port
-            self.use_com_port = sys.argv[1]
-        else:
-            self.use_com_port = None
         self.webserver = False
         self._blanked = False
         self.blank_timeout = 0
