@@ -20,7 +20,6 @@ implementation. It should be possible to get that working though.
 """
 import asyncio
 import os
-import select
 
 import serial
 
