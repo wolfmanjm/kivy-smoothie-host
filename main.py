@@ -162,7 +162,7 @@ class MPGWidget(RelativeLayout):
         # Run button pressed
         if self.selected_index == -1:
             # change feed override
-            self.app.comms.write('M220 S{}'.format(round(self.last_pos, 1)))
+            self.app.comms.write('M220 S{}\n'.format(round(self.last_pos, 1)))
             return
 
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
