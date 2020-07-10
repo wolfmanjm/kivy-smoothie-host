@@ -58,3 +58,8 @@ Subject: %s
         except Exception as ex:
             self.logger.error('Notify: Failed to send email: {}'.format(ex))
             return False
+
+
+if __name__ == '__main__':
+    notify = Notify()
+    notify.send("test message")
