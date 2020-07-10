@@ -602,7 +602,7 @@ class MainWindow(BoxLayout):
 
     def reprint(self):
         # are you sure?
-        mb = MessageBox(text='ReRun {}?'.format(self.app.gcode_file), cb=self._reprint)
+        mb = MessageBox(text='ReRun\n{}?'.format(os.path.basename(self.app.gcode_file)), cb=self._reprint)
         mb.open()
 
     def _reprint(self, ok):

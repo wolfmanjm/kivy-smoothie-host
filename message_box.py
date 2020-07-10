@@ -6,7 +6,7 @@ from kivy.app import App
 Builder.load_string('''
 <MessageBox>:
     size_hint: .5, None
-    height: dp(content.height) + dp(80)
+    height: sp(content.height) + sp(140)
     auto_dismiss: False
     title: root.text
     title_align: 'center'
