@@ -399,17 +399,25 @@ class GcodeViewerScreen(Screen):
                             last_layer_z = z
 
                         elif z != last_layer_z:
-                            # probable new layer (need to check for z retract)
-                            last_layer_z = z
-                            # remember the start of this line
-                            self.layers.append(last_file_pos)
-                            # print('Saved position: {} for layer: {}'.format(self.layers[-1], len(self.layers)))
+                            # possible new layer
+                            if z < last_layer_z:
+                                # this may have been preceded by a z lift or an initial setting of Z
+                                # replace last one with this one as it is probably the start of the layer
+                                self.layers[-1] = last_file_pos
+                                Logger.debug('Replaced position: {} for layer: {}'.format(self.layers[-1], len(self.layers)))
+                                last_layer_z = z
 
-                            # we are done with the layer, process it
-                            got_layer = True
-                            break
+                            else:
+                                last_layer_z = z
+                                # remember the start of this line
+                                self.layers.append(last_file_pos)
+                                Logger.debug('Saved position: {} for layer: {}'.format(self.layers[-1], len(self.layers)))
+                                # we are done with the layer, process it
+                                got_layer = True
+                                break
 
-                        self.current_z = z
+                        if z:
+                            self.current_z = z
 
                     Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}, s= {}".format(x, y, z, s))
 
