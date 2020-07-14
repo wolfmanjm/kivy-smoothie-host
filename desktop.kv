@@ -196,6 +196,12 @@
                             disabled: root.is_printing and not root.is_suspended
 
                     TabbedPanelItem:
+                        id: dro
+                        text: 'DRO'
+                        DROWidget:
+                            id: dro_widget
+
+                    TabbedPanelItem:
                         id: mpg
                         text: 'MPG'
                         MPGWidget:
@@ -207,11 +213,6 @@
                         ExtruderWidget:
                             id: extruder
 
-                    TabbedPanelItem:
-                        id: dro
-                        text: 'DRO'
-                        DROWidget:
-                            id: dro_widget
                 MacrosWidget:
                     size_hint_y: 0.45
                     id: macros
