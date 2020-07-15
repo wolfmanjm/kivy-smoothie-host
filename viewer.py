@@ -416,7 +416,7 @@ class GcodeViewerScreen(Screen):
                                 got_layer = True
                                 break
 
-                        if z:
+                        if z is not None:
                             self.current_z = z
 
                     Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}, s= {}".format(x, y, z, s))
@@ -584,6 +584,10 @@ class GcodeViewerScreen(Screen):
                     lastpos = [x, y, z]
                     laste = e
                     lasts = s
+
+                if max_x == min_x and max_y == min_y:
+                    got_layer = False
+                    Logger.warning("GcodeViewerScreen: no geometry found try next line")
 
         if not self.twod_mode and last_layer_z is None:
             # we hit the end of file before finding the layer we want
