@@ -587,7 +587,7 @@ class GcodeViewerScreen(Screen):
 
                 if max_x == min_x and max_y == min_y:
                     got_layer = False
-                    Logger.warning("GcodeViewerScreen: no geometry found try next line")
+                    Logger.debug("GcodeViewerScreen: no geometry found try next line")
 
         if not self.twod_mode and last_layer_z is None:
             # we hit the end of file before finding the layer we want
