@@ -1,0 +1,34 @@
+<JoyStick>:
+    canvas:
+
+        ###  Outer Background  ###
+        Color:
+            rgba: self.outer_background_color
+        Ellipse:
+            pos: (self.center_x - self._outer_radius), (self.center_y - self._outer_radius)
+            size: (self._outer_diameter, self._outer_diameter)
+
+        ###  Outer Border  ###
+        Color:
+            rgba: self.outer_line_color
+        Line:
+            circle: (self.center_x, self.center_y, (self._outer_radius - (self._outer_line_width / 2)))
+            width: self._outer_line_width
+
+        ###  Inner Background  ###
+        Color:
+            rgba: self.inner_background_color
+        Ellipse:
+            pos: (self.center_x - self._inner_radius), (self.center_y - self._inner_radius)
+            size: (self._inner_diameter, self._inner_diameter)
+
+        ###  Inner Border  ###
+        Color:
+            rgba: self.inner_line_color
+        Line:
+            circle: (self.center_x, self.center_y, self._inner_radius)
+            width: self._inner_line_width
+
+    ###  Pad  ###
+    JoystickPad:
+        id: pad

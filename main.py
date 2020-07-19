@@ -241,6 +241,18 @@ class JogRoseWidget(BoxLayout):
         self.app = App.get_running_app()
         self.xy_feedrate = '3000'
 
+    def on_kv_post(self, arg):
+        self.joystick.bind(pad=self._joystick_changed)
+
+    def _joystick_changed(self, joystick, pad):
+        x, y = pad
+        if x < 0.1:
+            x = 0
+        if y < 0.1:
+            y = 0
+        if x > 0 or y > 0:
+            self.app.comms.write('$J X{} Y{}\n'.format(x, y))
+
     def handle_action(self, axis, v):
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
             self.app.main_window.display("NOTE: Cannot jog while printing")
