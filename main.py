@@ -246,6 +246,10 @@ class JogRoseWidget(BoxLayout):
         self.joystick.bind(pad=self._joystick_changed)
 
     def _joystick_changed(self, joystick, pad):
+        if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
+            self.app.main_window.display("NOTE: Cannot jog while printing")
+            return
+
         self.joy_pos = pad
         if self.joy_pos[0] == 0 and self.joy_pos[1] == 0:
             if self.joy_timer is not None:
@@ -254,7 +258,9 @@ class JogRoseWidget(BoxLayout):
         else:
             if self.joy_timer is None:
                 # TODO calculate repeat rate based on actual feed rate of previous jogs
-                self.joy_timer = Clock.schedule_interval(self._joy_run, 0.1)
+                # repeat rate secs = 1 / (float(self.app.fr)/60)
+                rate_s = 1.0 / (float(self.xy_feedrate) / 60.0)
+                self.joy_timer = Clock.schedule_interval(self._joy_run, rate_s)
 
     def _joy_run(self, arg):
             x, y = self.joy_pos
