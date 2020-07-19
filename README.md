@@ -37,7 +37,7 @@ You can select 3d printer mode or CNC mode from the Settings menu, this can affe
 
 - The Console panel has a keyboard for entering gcodes and if you touch the edit field a keyboard will pop up for typing commands (non gcodes). If you precede the command with ! it will be sent to the linux shell instead of smoothie. Sending ? will pop up a GCode reference screen.
 - The Extruder Panel is used to control temperatures and extuder. You can switch between gauge view and graph view by swiping left or right (or double click)
-- The Jog Panel has the usual jog controls.
+- The Jog Panel has the usual jog controls. Plus the center circle is a joystick control, and will jog in the direction it is moved. It returns to zero when released, it will continue to move until released.
 - The Macro Panel is a user configurable buttons panel to control whatever you want. (Edit the `macros.ini` file)
   There is a `sample-macros.ini` just copy that to `macros.ini` and edit as appropriate to define your own macro buttons.
 - The DRO Panel shows current MCS and WCS, and allows easy selection of the WCS to use, and allows setting of WCS. If WCS entered is ```/2``` it will halve the current position. (Usefull for moving to the center of things)
