@@ -257,14 +257,22 @@ class JogRoseWidget(BoxLayout):
                 self.joy_timer = None
         else:
             if self.joy_timer is None:
-                # TODO calculate repeat rate based on actual feed rate of previous jogs
                 # repeat rate secs = 1 / (float(self.app.fr)/60)
-                rate_s = 1.0 / (float(self.xy_feedrate) / 60.0)
-                self.joy_timer = Clock.schedule_interval(self._joy_run, rate_s)
+                delay_s = 1.0 / (float(self.xy_feedrate) / 60.0)
+                self.joy_timer = Clock.schedule_once(self._joy_run, delay_s)
 
     def _joy_run(self, arg):
             x, y = self.joy_pos
-            self.app.comms.write('$J X{} Y{}\n'.format(x, y))
+            self.app.comms.write('$J X{} Y{}\n'.format(round(x, 2), round(y, 2)))
+            # calculate repeat rate based on actual feed rate of previous jogs
+            d = math.sqrt(x**2 + y**2)
+            r = float(self.app.fr)
+            if r != 0:
+                delay_s = d / (r / 60)
+            else:
+                delay_s = d / (float(self.xy_feedrate) / 60.0)
+
+            self.joy_timer = Clock.schedule_once(self._joy_run, delay_s / 2)
 
     def handle_action(self, axis, v):
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
