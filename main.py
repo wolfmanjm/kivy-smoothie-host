@@ -240,17 +240,24 @@ class JogRoseWidget(BoxLayout):
         super(JogRoseWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.xy_feedrate = '3000'
+        self.joy_timer = None
 
     def on_kv_post(self, arg):
         self.joystick.bind(pad=self._joystick_changed)
 
     def _joystick_changed(self, joystick, pad):
-        x, y = pad
-        if x < 0.1:
-            x = 0
-        if y < 0.1:
-            y = 0
-        if x > 0 or y > 0:
+        self.joy_pos = pad
+        if self.joy_pos[0] == 0 and self.joy_pos[1] == 0:
+            if self.joy_timer is not None:
+                self.joy_timer.cancel()
+                self.joy_timer = None
+        else:
+            if self.joy_timer is None:
+                # TODO calculate repeat rate based on actual feed rate of previous jogs
+                self.joy_timer = Clock.schedule_interval(self._joy_run, 0.1)
+
+    def _joy_run(self, arg):
+            x, y = self.joy_pos
             self.app.comms.write('$J X{} Y{}\n'.format(x, y))
 
     def handle_action(self, axis, v):
