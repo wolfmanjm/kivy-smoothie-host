@@ -257,7 +257,6 @@ class JogRoseWidget(BoxLayout):
                 self.joy_timer = None
         else:
             if self.joy_timer is None:
-                # repeat rate secs = 1 / (float(self.app.fr)/60)
                 delay_s = 1.0 / (float(self.xy_feedrate) / 60.0)
                 self.joy_timer = Clock.schedule_once(self._joy_run, delay_s)
 
@@ -272,6 +271,7 @@ class JogRoseWidget(BoxLayout):
             else:
                 delay_s = d / (float(self.xy_feedrate) / 60.0)
 
+            # we try to send the next one before this one has finished
             self.joy_timer = Clock.schedule_once(self._joy_run, delay_s / 2)
 
     def handle_action(self, axis, v):
