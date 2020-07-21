@@ -251,18 +251,22 @@ class JogRoseWidget(BoxLayout):
             return
 
         self.joy_pos = pad
-        if self.joy_pos[0] == 0 and self.joy_pos[1] == 0:
+        self.joy_mag = joystick.magnitude
+        if self.joy_mag == 0:
             if self.joy_timer is not None:
                 self.joy_timer.cancel()
                 self.joy_timer = None
         else:
             if self.joy_timer is None:
-                delay_s = 1.0 / (float(self.xy_feedrate) / 60.0)
-                self.joy_timer = Clock.schedule_once(self._joy_run, delay_s)
+                self._joy_run(None)
 
     def _joy_run(self, arg):
+            if self.joy_mag == 0:
+                self.joy_timer = None
+                return
+
             x, y = self.joy_pos
-            self.app.comms.write('$J X{} Y{}\n'.format(round(x, 2), round(y, 2)))
+            self.app.comms.write('$J X{} Y{} S{}\n'.format(round(x, 2), round(y, 2), self.joy_mag))
             # calculate repeat rate based on actual feed rate of previous jogs
             d = math.sqrt(x**2 + y**2)
             r = float(self.app.fr)
@@ -272,7 +276,7 @@ class JogRoseWidget(BoxLayout):
                 delay_s = d / (float(self.xy_feedrate) / 60.0)
 
             # we try to send the next one before this one has finished
-            self.joy_timer = Clock.schedule_once(self._joy_run, delay_s / 2)
+            self.joy_timer = Clock.schedule_once(self._joy_run, delay_s / 1.5)
 
     def handle_action(self, axis, v):
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
