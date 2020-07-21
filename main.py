@@ -262,12 +262,13 @@ class JogRoseWidget(BoxLayout):
 
     def _joy_run(self, arg):
             mag = round(self.joy_mag, 4)
-            if mag == 0:
+            x = round(self.joy_pos[0], 2)
+            y = round(self.joy_pos[1], 2)
+            if mag == 0 or (x == 0 and y == 0):
                 self.joy_timer = None
                 return
 
-            x, y = self.joy_pos
-            self.app.comms.write('$J X{} Y{} S{}\n'.format(round(x, 2), round(y, 2), mag))
+            self.app.comms.write('$J X{} Y{} S{}\n'.format(x, y, mag))
             # calculate repeat rate based on actual feed rate of previous jogs
             d = math.sqrt(x**2 + y**2)
             r = float(self.app.fr)
