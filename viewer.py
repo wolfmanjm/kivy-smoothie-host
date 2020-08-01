@@ -384,8 +384,7 @@ class GcodeViewerScreen(Screen):
                     else:
                         x = lastpos[0] if 'X' not in d else float(d['X'])
                         y = lastpos[1] if 'Y' not in d else float(d['Y'])
-                        if z is not None:
-                            z = lastpos[2] if 'Z' not in d else float(d['Z'])
+                        z = lastpos[2] if 'Z' not in d else float(d['Z'])
 
                     i = 0.0 if 'I' not in d else float(d['I'])
                     j = 0.0 if 'J' not in d else float(d['J'])
