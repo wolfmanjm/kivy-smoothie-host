@@ -46,7 +46,7 @@
                 on_press: root.start_print()
             ActionButton:
                 id: sdprint_but
-                disabled: not app.is_connected
+                disabled: not app.is_connected or root.is_printing
                 text: 'SD Print'
                 #important: True
                 on_press: root.list_sdcard()
@@ -192,7 +192,7 @@
                         text: 'jog'
                         JogRoseWidget:
                             id: jog_rose
-                            disabled: root.is_printing and not root.is_suspended
+                            #disabled: root.is_printing and not root.is_suspended
 
                     TabbedPanelItem:
                         id: mpg

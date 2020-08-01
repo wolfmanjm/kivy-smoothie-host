@@ -77,7 +77,7 @@ class SerialConnection(asyncio.Protocol):
         self.cb.incoming_data(str)
 
     def connection_lost(self, exc):
-        self.log.debug('SerialConnection: port closed')
+        self.log.info('SerialConnection: port closed')
         self._connection_lost = True
 
         # Wake up the writer if currently paused.
@@ -735,7 +735,7 @@ class Comms():
                         break
 
                 # when streaming we need to yield until the flow control is dealt with
-                if self.proto._connection_lost:
+                if self.proto and self.proto._connection_lost:
                     # Yield to the event loop so connection_lost() may be
                     # called.  Without this, _drain_helper() would return
                     # immediately, and code that calls
@@ -905,7 +905,7 @@ class Comms():
                     return
 
                 # when streaming we need to yield until the flow control is dealt with
-                if self.proto._connection_lost:
+                if self.proto and self.proto._connection_lost:
                     await asyncio.sleep(0)
 
                 if self.abort_stream:
