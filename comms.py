@@ -797,7 +797,7 @@ class Comms():
                     await asyncio.sleep(1)
                     tmo += 1
                     if tmo >= 30:  # waited 30 seconds we need to give up
-                        self.log.warning("Comms: timed out waitng for backed up oks")
+                        self.log.warning("Comms: timed out waiting for backed up oks")
                         break
                 # update final progress display
                 if self.progress:

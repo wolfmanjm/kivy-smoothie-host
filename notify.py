@@ -1,14 +1,17 @@
 import smtplib
 import configparser
 import logging
+import threading
 
 
 class Notify():
     """Send an Email to notify user"""
-
     def send(self, msg):
         self.logger = logging.getLogger()
+        self.msg = msg
+        threading.Thread(target=self._send).start()
 
+    def _send(self):
         try:
             config = configparser.ConfigParser()
             config.read('notify.ini')
@@ -37,7 +40,7 @@ class Notify():
             self.logger.error('Notify: no to address specified')
             return False
 
-        body = '{}\n'.format(msg)
+        body = '{}\n'.format(self.msg)
 
         email_text = """\
 From: %s
@@ -62,4 +65,6 @@ Subject: %s
 
 if __name__ == '__main__':
     notify = Notify()
+    print("Sending...")
     notify.send("test message")
+    print("...Sent")

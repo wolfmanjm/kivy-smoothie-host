@@ -46,6 +46,7 @@ from configv2_editor import ConfigV2Editor
 from gcode_help import GcodeHelp
 from text_editor import TextEditor
 from tool_scripts import ToolScripts
+from notify import Notify
 
 import subprocess
 import traceback
@@ -628,6 +629,9 @@ class MainWindow(BoxLayout):
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
         self.display(">>> Elapsed time: {}".format(et))
         self.eta = '--:--:--'
+        if self.app.notify_email:
+            notify = Notify()
+            notify.send('Run finished {}, last Z: {}, last line: {}'.format('ok' if ok else 'abnormally', self.wpos[2], self.last_line))
         Logger.info('MainWindow: Run finished {}, last Z: {}, last line: {}'.format('ok' if ok else 'abnormally', self.wpos[2], self.last_line))
 
     def upload_gcode(self):
@@ -851,6 +855,7 @@ class SmoothieHost(App):
         self.tool_scripts = ToolScripts()
         self.desktop_changed = False
         self.command_history = None
+        self.notify_email = False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -863,7 +868,8 @@ class SmoothieHost(App):
             'wait_on_m0': 'false',
             'fast_stream': 'false',
             'v2': 'false',
-            'is_spindle_camera': 'false'
+            'is_spindle_camera': 'false',
+            'notify_email': 'false'
         })
         config.setdefaults('UI', {
             'display_type': "RPI Touch",
@@ -974,6 +980,13 @@ class SmoothieHost(App):
                   "key": "fast_stream"
                 },
 
+                { "type": "bool",
+                  "title": "Notify via EMail",
+                  "desc": "send email when runs finish",
+                  "section": "General",
+                  "key": "notify_email"
+                },
+
                 { "type": "title",
                   "title": "Web Settings" },
 
@@ -1021,7 +1034,7 @@ class SmoothieHost(App):
         settings.add_json_panel('Smoopi application', self.config, data=jsondata)
 
     def on_config_change(self, config, section, key, value):
-        # print("config changed: {} - {}: {}".format(section, key, value))
+        print("config changed: {} - {}: {}".format(section, key, value))
         token = (section, key)
         if token == ('UI', 'cnc'):
             was_cnc = self.is_cnc
@@ -1048,6 +1061,8 @@ class SmoothieHost(App):
             self.camera_url = value
         elif token == ('General', 'fast_stream'):
             self.fast_stream = value == '1'
+        elif token == ('General', 'notify_email'):
+            self.notify_email = value == '1'
         else:
             self.main_window.display("NOTICE: Restart is needed")
 
@@ -1132,6 +1147,7 @@ class SmoothieHost(App):
             Builder.load_file('rpi.kv')
 
         self.fast_stream = self.config.getboolean('General', 'fast_stream')
+        self.notify_email = self.config.getboolean('General', 'notify_email')
         self.is_cnc = self.config.getboolean('UI', 'cnc')
         self.tab_top = self.config.getboolean('UI', 'tab_top')
         self.is_webserver = self.config.getboolean('Web', 'webserver')
