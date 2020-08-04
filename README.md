@@ -93,6 +93,8 @@ When this is read in the gcode file an email is sent with the message.
 In order to send email a file ```notify.ini``` must be created with the SMTP authentication for your email server. (GMail works fine for instance).
 Look at the file ```sample-notify.ini``` and modify accordingly.
 
+Additionally an email can optionally be sent whenever a run finishes either ok or abnormally, set the notify email option is Settings.
+
 Note for gmail users, it is best to setup an application password and use that instead of your gmail login.
 
 ### Unexpected HALTs
