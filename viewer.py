@@ -659,6 +659,7 @@ class GcodeViewerScreen(Screen):
         self.canv.add(PopMatrix())
         self._loaded_ok = True
         Logger.debug("GcodeViewerScreen: done loading")
+        Logger.info("GcodeViewerScreen: bounds {}x{}".format(self.bounds[0], self.bounds[1]))
 
     def update_tool(self, i, v):
         if not self.is_visible or not self.app.is_connected:

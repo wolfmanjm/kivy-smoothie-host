@@ -93,12 +93,12 @@ When this is read in the gcode file an email is sent with the message.
 In order to send email a file ```notify.ini``` must be created with the SMTP authentication for your email server. (GMail works fine for instance).
 Look at the file ```sample-notify.ini``` and modify accordingly.
 
-Additionally an email can optionally be sent whenever a run finishes either ok or abnormally, set the notify email option is Settings.
+Additionally an email can optionally be sent whenever a run finishes either ok or abnormally, set the notify email option in Settings.
 
 Note for gmail users, it is best to setup an application password and use that instead of your gmail login.
 
 ### Unexpected HALTs
-If smoothie halts and goes into the alarm state for any reason (like limit hit or temperature overrun), it may be possible to restart from where ir left off. After correcting the issue that caused the HALT, turn the heaters back on (and power) and then click the resume button, if you are lucky it will continue from where it left off. It is probably best to abort the print though.
+If smoothie halts and goes into the alarm state for any reason (like limit hit or temperature overrun), it may be possible to restart from where it left off. After correcting the issue that caused the HALT, turn the heaters back on (and power) and then click the resume button, if you are lucky it will continue from where it left off. It is probably best to abort the print though.
 
 ## Install on RPI
 
