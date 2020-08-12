@@ -193,9 +193,14 @@ if __name__ == '__main__':
             on_press: app.stop()
             size_hint_y: None
             height: 40
+<ExitScreen>:
+    on_enter: app.stop()
 ''')
 
     class StartScreen(Screen):
+        pass
+
+    class ExitScreen(Screen):
         pass
 
     class TestCamera(App):
@@ -205,6 +210,7 @@ if __name__ == '__main__':
         def __init__(self, **kwargs):
             super(TestCamera, self).__init__(**kwargs)
             self.test = False
+            self.running = False
 
             if len(sys.argv) > 1:
                 if sys.argv[1] == 'd':
@@ -212,13 +218,19 @@ if __name__ == '__main__':
 
         def build(self):
             # Window.size = (800, 480)
-            self.sc = SpindleCamera(name='spindle camera')
-            self.scr = StartScreen(name='main')
             self.sm = ScreenManager()
-            self.sm.add_widget(self.scr)
+            self.sc = SpindleCamera(name='spindle camera')
             self.sm.add_widget(self.sc)
+
             if not self.test:
+                self.ecr = ExitScreen(name='main')
+                self.sm.add_widget(self.ecr)
                 self.sm.current = 'spindle camera'
+
+            else:
+                self.scr = StartScreen(name='main')
+                self.sm.add_widget(self.scr)
+                self.sm.current = 'main'
 
             return self.sm
 
