@@ -40,7 +40,7 @@ from file_dialog import FileDialog
 from viewer import GcodeViewerScreen
 from web_server import ProgressServer
 from camera_screen import CameraScreen
-from spindle_camera import SpindleCamera
+from spindle_camera import SpindleCamera, run_standalone
 from config_editor import ConfigEditor
 from configv2_editor import ConfigV2Editor
 from gcode_help import GcodeHelp
@@ -1106,6 +1106,7 @@ class SmoothieHost(App):
         return False
 
     def build(self):
+        self.title = 'Smoopi'
         lt = self.config.get('UI', 'display_type')
         dtlut = {
             "RPI Touch": 0,
@@ -1257,8 +1258,7 @@ class SmoothieHost(App):
         if self.is_desktop in [0, 4]:
             self.sm.current = "spindle camera"
         else:
-            # we run it as a separate program so it is in its own window
-            subprocess.Popen(['python3', 'spindle_camera.py'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            run_standalone(App.get_running_app())
 
     def _show_web_cam(self):
         self.sm.current = "web cam"

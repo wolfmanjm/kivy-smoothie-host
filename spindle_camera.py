@@ -5,7 +5,12 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.image import Image
 from kivy.uix.behaviors import ToggleButtonBehavior, ButtonBehavior
 from kivy.properties import ListProperty, BooleanProperty, NumericProperty
+from kivy.logger import Logger
+
 import time
+import subprocess
+import threading
+import select
 
 Builder.load_string('''
 <IButton@IconButton>:
@@ -177,6 +182,25 @@ class SpindleCamera(Screen):
         return super(SpindleCamera, self).on_touch_up(touch)
 
 
+def run_standalone(app):
+    t = threading.Thread(target=_standalone_thread, daemon=True, args=(app, ))
+    t.start()
+
+
+def _standalone_thread(app):
+    # we run it as a separate program so it is in its own window
+    # and we capture stdout to pass onto smoothie
+    # print("SpindleCamera: standalone thread started")
+    with subprocess.Popen(['python3', 'spindle_camera.py'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True, bufsize=1) as p:
+
+        s = p.stdout.readline()
+        # print("SpindleCamera: {}".format(s))
+        if s:
+            app.comms.write('{}'.format(s))
+
+    # print("SpindleCamera: standalone thread exited: {}".format(p.returncode))
+
+
 if __name__ == '__main__':
     import sys
     Builder.load_string('''
@@ -203,12 +227,17 @@ if __name__ == '__main__':
     class ExitScreen(Screen):
         pass
 
-    class TestCamera(App):
-        comms = sys.stdout
+    class CommsDummy:
+        def write(self, msg):
+            print(msg)
+            sys.stdout.flush()
+
+    class StandaloneSpindleCamera(App):
+        comms = CommsDummy()
         wpos = None
 
         def __init__(self, **kwargs):
-            super(TestCamera, self).__init__(**kwargs)
+            super(StandaloneSpindleCamera, self).__init__(**kwargs)
             self.test = False
             self.running = False
 
@@ -218,6 +247,7 @@ if __name__ == '__main__':
 
         def build(self):
             # Window.size = (800, 480)
+            self.title = 'Spindle Camera'
             self.sm = ScreenManager()
             self.sc = SpindleCamera(name='spindle camera')
             self.sm.add_widget(self.sc)
@@ -237,4 +267,4 @@ if __name__ == '__main__':
         def play(self):
             self.sm.current = 'spindle camera'
 
-    TestCamera().run()
+    StandaloneSpindleCamera().run()
