@@ -229,8 +229,11 @@ if __name__ == '__main__':
 
     class CommsDummy:
         def write(self, msg):
-            print(msg)
-            sys.stdout.flush()
+            try:
+                print(msg)
+                sys.stdout.flush()
+            except Exception as err:
+                sys.stderr.write("CommsDummy: write exception: {}\n".format(err))
 
     class StandaloneSpindleCamera(App):
         comms = CommsDummy()

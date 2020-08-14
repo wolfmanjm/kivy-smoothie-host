@@ -1258,6 +1258,7 @@ class SmoothieHost(App):
         if self.is_desktop in [0, 4]:
             self.sm.current = "spindle camera"
         else:
+            # In desktop mode we run it as a separate window
             run_standalone(App.get_running_app())
 
     def _show_web_cam(self):
