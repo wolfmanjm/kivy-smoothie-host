@@ -181,24 +181,24 @@ class SpindleCamera(Screen):
 
         return super(SpindleCamera, self).on_touch_up(touch)
 
+    @staticmethod
+    def run_standalone(app):
+        t = threading.Thread(target=SpindleCamera._standalone_thread, daemon=True, args=(app, ))
+        t.start()
 
-def run_standalone(app):
-    t = threading.Thread(target=_standalone_thread, daemon=True, args=(app, ))
-    t.start()
+    @staticmethod
+    def _standalone_thread(app):
+        # we run it as a separate program so it is in its own window
+        # and we capture stdout to pass onto smoothie
+        # print("SpindleCamera: standalone thread started")
+        with subprocess.Popen(['python3', 'spindle_camera.py'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True, bufsize=1) as p:
 
+            s = p.stdout.readline()
+            # print("SpindleCamera: {}".format(s))
+            if s:
+                app.comms.write('{}'.format(s))
 
-def _standalone_thread(app):
-    # we run it as a separate program so it is in its own window
-    # and we capture stdout to pass onto smoothie
-    # print("SpindleCamera: standalone thread started")
-    with subprocess.Popen(['python3', 'spindle_camera.py'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True, bufsize=1) as p:
-
-        s = p.stdout.readline()
-        # print("SpindleCamera: {}".format(s))
-        if s:
-            app.comms.write('{}'.format(s))
-
-    # print("SpindleCamera: standalone thread exited: {}".format(p.returncode))
+        # print("SpindleCamera: standalone thread exited: {}".format(p.returncode))
 
 
 if __name__ == '__main__':

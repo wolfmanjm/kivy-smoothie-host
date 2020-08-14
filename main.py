@@ -40,7 +40,7 @@ from file_dialog import FileDialog
 from viewer import GcodeViewerScreen
 from web_server import ProgressServer
 from camera_screen import CameraScreen
-from spindle_camera import SpindleCamera, run_standalone
+from spindle_camera import SpindleCamera
 from config_editor import ConfigEditor
 from configv2_editor import ConfigV2Editor
 from gcode_help import GcodeHelp
@@ -1259,7 +1259,7 @@ class SmoothieHost(App):
             self.sm.current = "spindle camera"
         else:
             # In desktop mode we run it as a separate window
-            run_standalone(App.get_running_app())
+            SpindleCamera.run_standalone(App.get_running_app())
 
     def _show_web_cam(self):
         self.sm.current = "web cam"

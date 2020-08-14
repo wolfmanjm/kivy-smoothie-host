@@ -172,7 +172,7 @@ class Comms():
             async_main_loop.call_soon_threadsafe(self._write, data)
             # asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
         else:
-            self.log.warning('Comms: Cannot write to closed connection: ' + data)
+            self.log.warning('Comms: Cannot write to closed connection: {}'.format(data))
             # self.app.main_window.async_display("<<< {}".format(data))
 
     def _write(self, data):
