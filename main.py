@@ -877,6 +877,7 @@ class SmoothieHost(App):
             'tab_top': 'false',
             'screen_size': 'auto',
             'screen_pos': 'auto',
+            'screen_offset': '0,0',
             'filechooser': 'default'
         })
 
@@ -1098,8 +1099,14 @@ class SmoothieHost(App):
                 self.config.set('UI', 'screen_size', "{}x{}".format(int(Window.size[0] / Metrics.density), int(Window.size[1] / Metrics.density)))
 
             if self.config.get('UI', 'screen_pos') != 'none':
-                self.config.set('UI', 'screen_pos', "{},{}".format(Window.top, Window.left))
-                Logger.info('SmoothieHost: close Window.size: {}, Window.top: {}, Window.left: {}'.format(Window.size, Window.top, Window.left))
+                # Kivy seems to offset the value given by window managers
+                # so this offset will correct for the top and left decorations
+                off = self.config.get('UI', 'screen_offset')
+                (t, l) = off.split(',')
+                top = Window.top - int(t)
+                left = Window.left - int(l)
+                self.config.set('UI', 'screen_pos', "{},{}".format(top, left))
+                Logger.info('SmoothieHost: close Window.size: {}, Window.top: {}, Window.left: {}'.format(Window.size, top, left))
 
             self.config.write()
 
