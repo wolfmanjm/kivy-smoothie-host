@@ -190,6 +190,9 @@ class WHB04B():
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
+    f_inc = 10
+    s_inc = 10
+    safe_z = 10
 
     def __init__(self, vid, pid):
         # WHB04B vendor ID and product ID
@@ -223,11 +226,10 @@ class WHB04B():
             # load any default settings
             self.f_inc = config.getint("defaults", "feed_inc", fallback=10)
             self.s_inc = config.getint("defaults", "speed_inc", fallback=10)
+            self.safe_z = config.getint("defaults", "safe_z", fallback=20)
 
         except Exception as err:
             Logger.warning('WHB04B: WARNING - exception parsing config file: {}'.format(err))
-            self.f_inc = 10
-            self.s_inc = 10
 
     def handle_button(self, btn1, btn2, axis):
         Logger.debug('WHB04B: handle_button: {}, {}, {}'.format(btn1, btn2, axis))
@@ -267,6 +269,8 @@ class WHB04B():
                     cmd = self.macrobut[name]
                     if "{axis}" in cmd:
                         cmd = cmd.replace("{axis}", axis)
+                    elif "set-axis-half" == cmd:
+                        cmd = "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis) - ord('X')] / 2.0)
                     elif "find-center" == cmd:
                         self.app.tool_scripts.find_center()
                         return True
@@ -276,7 +280,7 @@ class WHB04B():
 
         else:
             btn = btn2
-            # some buttons have default functions
+            # buttons that have hard coded functions
             cmd = None
             if btn == BUT_HOME:
                 cmd = "$H"
@@ -285,7 +289,7 @@ class WHB04B():
             elif btn == BUT_PROBEZ:
                 cmd = "G38.3 Z-25"
             elif btn == BUT_SAFEZ:
-                cmd = "G91 G0 Z20 G90"
+                cmd = "G91 G0 Z{} G90".format(self.safe_z)
             elif btn == BUT_SPINDLE:
                 cmd = "M5" if self.app.is_spindle_on else "M3"
             elif btn == BUT_START:
@@ -299,6 +303,7 @@ class WHB04B():
                     self.f_ovr = 10
                 self.setovr(self.f_ovr, self.s_ovr)
                 self.update_lcd()
+                return True
             elif btn == BUT_SPINP or btn == BUT_SPINM:
                 inc = self.s_inc if btn == BUT_SPINP else -self.s_inc
                 self.s_ovr += inc
@@ -306,12 +311,7 @@ class WHB04B():
                     self.s_ovr = 10
                 self.setovr(self.f_ovr, self.s_ovr)
                 self.update_lcd()
-
-            # TODO These need to be in the macros file
-            # elif btn == BUT_ZERO:
-            #     cmd = "G10 L20 P0 {}0".format(axis)
-            # elif btn == BUT_HALF:
-            #     cmd = "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis) - ord('X')] / 2.0)
+                return True
 
             if cmd:
                 self.app.comms.write("{}\n".format(cmd))
