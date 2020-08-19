@@ -280,7 +280,7 @@ class WHB04B():
 
         else:
             btn = btn2
-            # buttons that have hard coded functions
+            # buttons that have hard coded functions when Fn button is down
             cmd = None
             if btn == BUT_HOME:
                 cmd = "$H"
