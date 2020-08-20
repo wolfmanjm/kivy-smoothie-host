@@ -107,7 +107,7 @@ NOTE that if ```{axis}``` appears in the macro it will be replaced by the curren
 Python Easyhid needs to be installed...
 
 * sudo apt-get install libffi-dev
-* sudo apt-get install libhidapi-libusb0
+* sudo apt-get install libhidapi-libusb0 libhidapi-hidraw0
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
 * sudo python3 setup.py install
