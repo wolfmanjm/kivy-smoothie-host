@@ -223,22 +223,6 @@
                 size_hint: None, None
                 size: self.texture_size[0], 40
                 #active: True
-            NumericInput:
-                id: xy_feedrate
-                multiline: False
-                size_hint_y: None
-                height: self.minimum_height
-                input_type: 'number'
-                input_filter: 'float'
-                text: root.xy_feedrate
-                on_text_validate: root.update_xy_feedrate()
-                use_bubble: False
-                use_handles: False
-
-            Label:
-                text: 'Seek rate\r\nmm/min'
-                size_hint: None, None
-                size: self.texture_size[0], xy_feedrate.minimum_height
 
             Button:
                 text: 'Motors Off'

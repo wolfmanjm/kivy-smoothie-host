@@ -234,13 +234,11 @@ class ArrowButton(ButtonBehavior, Widget):
 
 
 class JogRoseWidget(BoxLayout):
-    xy_feedrate = StringProperty()
     abc_sel = StringProperty('Z')
 
     def __init__(self, **kwargs):
         super(JogRoseWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.xy_feedrate = '3000'
 
     def handle_action(self, axis, v):
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
@@ -251,21 +249,12 @@ class JogRoseWidget(BoxLayout):
         if x10:
             v *= 10
 
-        # NOTE currently shows and sets the modal G0 seek rate
-        fr = self.xy_feedrate
-
         if axis == 'O':
             self.app.comms.write('M120 G21 G90 G0 X0 Y0 M121\n')
         elif axis == 'H':
             self.app.comms.write('$H\n')
         else:
             self.app.comms.write('$J {}{}\n'.format(axis, v))
-
-    def update_xy_feedrate(self):
-        fr = self.ids.xy_feedrate.text
-        self.xy_feedrate = fr
-        # set the G0 seek feedrate
-        self.app.comms.write('G0 F{}\n'.format(fr))
 
     def motors_off(self):
         self.app.comms.write('M18\n')
@@ -453,8 +442,6 @@ class MainWindow(BoxLayout):
         self.app.is_inch = a[3] == 'G20'
         self.app.is_abs = a[4] == 'G90'
         self.app.is_spindle_on = a[7] == 'M3'
-        if a[0] == 'G0':
-            self.ids.tabs.jog_rose.xy_feedrate = a[10][1:]
 
     @mainthread
     def alarm_state(self, s):
