@@ -536,8 +536,10 @@ class MainWindow(BoxLayout):
                 self.add_line_to_log(">>> Streaming Suspended, Resume or KILL as needed")
             else:
                 self.add_line_to_log(">>> Streaming Paused, Abort or Continue as needed")
+        else:
+            self.add_line_to_log(">>> Streaming Resumed")
 
-    def start_print(self):
+    def start_print(self, no_prompt=False):
         if self.is_printing:
             if not self.paused:
                 # we clicked the pause button
@@ -553,10 +555,12 @@ class MainWindow(BoxLayout):
 
                 self.is_suspended = False
 
-        else:
+        elif not no_prompt:
             # get file to print
             f = Factory.filechooser()
             f.open(self.last_path, cb=self._start_print)
+        else:
+            self._start_print()
 
     def _start_print(self, file_path=None, directory=None):
         # start comms thread to stream the file
@@ -612,8 +616,9 @@ class MainWindow(BoxLayout):
 
     @mainthread
     def start_last_file(self):
+        # Will also pause if already printing
         if self.app.gcode_file:
-            self._start_print()
+            self.start_print(no_prompt=True)
 
     def review(self):
         self._show_viewer(self.app.gcode_file, self.last_path)

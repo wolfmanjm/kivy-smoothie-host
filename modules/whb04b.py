@@ -248,6 +248,10 @@ class WHB04B():
             self.mcs_mode = not self.mcs_mode
             self._setv(self.app.mpos[0:3] if self.mcs_mode else self.app.wpos)
             handled = True
+        elif btn1 == BUT_START:
+            # if already running then it will pause
+            self.app.main_window.start_last_file()
+            return True
         elif btn1 == BUT_STOP and self.app.status != 'Alarm':
             self.app.comms.write('\x18')
             handled = True
@@ -273,9 +277,10 @@ class WHB04B():
                         cmd = "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis) - ord('X')] / 2.0)
                     elif "find-center" == cmd:
                         self.app.tool_scripts.find_center()
-                        return True
+                        cmd = None
 
-                    self.app.comms.write("{}\n".format(cmd))
+                    if cmd:
+                        self.app.comms.write("{}\n".format(cmd))
                     return True
 
         else:
@@ -292,10 +297,6 @@ class WHB04B():
                 cmd = "G91 G0 Z{} G90".format(self.safe_z)
             elif btn == BUT_SPINDLE:
                 cmd = "M5" if self.app.is_spindle_on else "M3"
-            elif btn == BUT_START:
-                # TODO if running then pause
-                self.app.main_window.start_last_file()
-                return True
             elif btn == BUT_FEEDP or btn == BUT_FEEDM:
                 inc = self.f_inc if btn == BUT_FEEDP else -self.f_inc
                 self.f_ovr += inc
