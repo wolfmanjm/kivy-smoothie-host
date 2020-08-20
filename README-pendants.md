@@ -81,6 +81,8 @@ at x1 each encoder click moves 0.001mm, at x10 it moves 0.01mm, at x100 it moves
 
 The Stop button will send a kill/halt (control X) to smoothie and the reset will send ```$X``` to unkill.
 
+The Start/Pause button will run the last viewed/Run file or will pause if already running.
+
 The move to origin and home buttons do as you would expect.
 The ```=0``` button sets the WCS of the selected axis to 0.
 The spindle button will toggle the spindle switch on and off (if one is defined)
@@ -122,6 +124,6 @@ The other hard coded buttons are the ```step``` button which sets the mode to st
 
 The Stop button will send a kill/halt (control X) to smoothie and the Reset will send ```$X``` to unkill.
 
-The Start and Pause button will run the last viewed or Run file.
+The Start and Pause button will run the last viewed or Run file or will pause if already running.
 
 Fn and the Macro10 button will toggle the display from WCS to MCS display.
