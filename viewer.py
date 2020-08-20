@@ -97,6 +97,7 @@ Builder.load_string('''
                 id: select_mode_but
                 text: 'Select'
                 on_press: root.select(self.state == 'down')
+
             Button:
                 text: 'Set WPOS'
                 disabled: not root.select_mode
@@ -644,6 +645,15 @@ class GcodeViewerScreen(Screen):
         self.canv.add(Color(0, 1, 0, mode='rgb'))
         self.canv.add(Line(points=[0, -10, 0, self.ids.surface.height / scale], width=1, cap='none', joint='none'))
         self.canv.add(Line(points=[-10, 0, self.ids.surface.width / scale, 0], width=1, cap='none', joint='none'))
+
+        # center of extents marker
+        cex = (max_x + min_x) / 2
+        cey = (max_y + min_y) / 2
+        cer = (5.0 / self.ids.surface.scale) / scale
+        self.canv.add(Color(1, 0, 0, mode='rgb'))
+        self.canv.add(Line(circle=(cex, cey, cer)))
+        self.canv.add(Line(points=[cex - cer, cey, cex + cer, cey], width=1, cap='none', joint='none'))
+        self.canv.add(Line(points=[cex, cey - cer, cex, cey + cer], width=1, cap='none', joint='none'))
 
         # tool position marker
         if self.app.is_connected:
