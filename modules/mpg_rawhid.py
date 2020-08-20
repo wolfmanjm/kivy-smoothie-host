@@ -228,7 +228,7 @@ class MPG_rawhid():
                     return False
 
             elif "start" == cmd:
-                # TODO if running then pause
+                # if running then will pause
                 self.app.main_window.start_last_file()
                 return True
 

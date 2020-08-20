@@ -248,7 +248,7 @@ class HB04():
         elif btn == BUT_HALF:
             cmd = "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis) - ord('X')] / 2.0)
         elif btn == BUT_START:
-            # TODO if running then pause
+            # if running then will pause
             self.app.main_window.start_last_file()
             return True
 
