@@ -166,6 +166,7 @@ class Whb04b_struct(ctypes.Structure):
 
 class WHB04B():
     lcd_data = Whb04b_struct()
+
     lcd_flags = 0x01
     mcs_mode = False
     reset_mode = False
@@ -199,6 +200,8 @@ class WHB04B():
         self.vid = vid
         self.pid = pid
         self.hid = WHB04BHID()
+        self.lcd_data.header = 0xFDFE
+        self.lcd_data.seed = 0xFE
 
     def twos_comp(self, val, bits):
         """compute the 2's complement of int value val"""
@@ -300,16 +303,16 @@ class WHB04B():
             elif btn == BUT_FEEDP or btn == BUT_FEEDM:
                 inc = self.f_inc if btn == BUT_FEEDP else -self.f_inc
                 self.f_ovr += inc
-                if self.f_ovr < 10:
-                    self.f_ovr = 10
+                if self.f_ovr < 1:
+                    self.f_ovr = 1
                 self.setovr(self.f_ovr, self.s_ovr)
                 self.update_lcd()
                 return True
             elif btn == BUT_SPINP or btn == BUT_SPINM:
                 inc = self.s_inc if btn == BUT_SPINP else -self.s_inc
                 self.s_ovr += inc
-                if self.s_ovr < 10:
-                    self.s_ovr = 10
+                if self.s_ovr < 1:
+                    self.s_ovr = 1
                 self.setovr(self.f_ovr, self.s_ovr)
                 self.update_lcd()
                 return True
@@ -465,8 +468,6 @@ class WHB04B():
 
     def update_lcd(self):
         self.lock.acquire()
-        self.lcd_data.header = 0xFDFE
-        self.lcd_data.seed = 0xFE
         if self.reset_mode:
             flags = 64
         else:
