@@ -167,7 +167,6 @@ class Whb04b_struct(ctypes.Structure):
 class WHB04B():
     lcd_data = Whb04b_struct()
 
-    lcd_flags = 0x01
     mcs_mode = False
     reset_mode = False
 
@@ -196,6 +195,7 @@ class WHB04B():
     s_inc = 10
     safe_z = 10
     continuous_mode = False
+    mpg_mode = False
 
     def __init__(self, vid, pid):
         # WHB04B vendor ID and product ID
@@ -241,15 +241,15 @@ class WHB04B():
         handled = False
         # mode switching
         if btn1 == BUT_STEP:
-            self.lcd_flags = 1  # Step mode
             self.continuous_mode = False
+            self.mpg_mode = False
             handled = True
         elif btn1 == BUT_CONT:
-            self.lcd_flags = 0  # Cont mode
             self.continuous_mode = True
+            self.mpg_mode = False
             handled = True
         elif btn1 == BUT_FN and btn2 == BUT_CONT:
-            self.lcd_flags = 2  # MPG mode
+            self.mpg_mode = True
             self.continuous_mode = False
             handled = True
         elif btn1 == BUT_FN and btn2 == BUT_MACRO10:
@@ -413,7 +413,7 @@ class WHB04B():
 
                         if wheel != 0 and delta != 0:
                             if self.continuous_mode:
-                                # first move sets direction, it goes until wheel moves
+                                # first move sets dir ection, it goes until wheel moves
                                 # the other way then it stops.
                                 # $J -c {axis}1 S{delta/100}
                                 #
@@ -429,18 +429,22 @@ class WHB04B():
                                 # when wheel stops we send ^Y to stop it or if wheel reverses direction.
 
                             else:
-                                # must be one of XYZA so send jogging command
-                                # if velocity_mode:
-                                # step= -1 if wheel < 0 else 1
-                                # s = -wheel if wheel < 0 else wheel
-                                # if s > 5: s == 5 # seems the max realistic we get
-                                # speed= s/5.0 # scale where 5 is max speed
-                                # dist = delta
-                                # else:
-                                # speed of wheel will move more increments rather than increase feed rate
-                                # this seems to work best
-                                dist = delta * wheel
-                                speed = 1.0
+                                if self.mpg_mode:
+                                    # MPG mode
+                                    step = -1 if wheel < 0 else 1
+                                    s = -wheel if wheel < 0 else wheel
+                                    if s > 16:
+                                        s == 16  # seems the max realistic we get
+                                    speed = s / 16.0  # scale where 16 is max speed
+                                    dist = step * self.contlut[inc] / 100.0  # Max 1mm movement
+
+                                else:
+                                    # step mode
+                                    # speed of wheel will move more increments rather than increase
+                                    # feed rate this seems to work best
+                                    dist = delta * wheel
+                                    speed = 1.0
+
                                 self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
                                 # print("$J {}{} S{}\n".format(axis, dist, speed))
 
@@ -493,10 +497,17 @@ class WHB04B():
 
     def update_lcd(self):
         self.lock.acquire()
+        flags = 0
         if self.reset_mode:
             flags = 64
+        elif self.mpg_mode:
+            flags = 2  # MPG mode
+        elif self.continuous_mode:
+            flags = 0  # Cont mode
         else:
-            flags = self.lcd_flags | (0x80 if self.mcs_mode else 0x00)
+            flags = 1  # Step mode
+
+        flags = flags | (0x80 if self.mcs_mode else 0x00)
 
         self.lcd_data.flags = flags
 
