@@ -188,12 +188,14 @@ class WHB04B():
 
     axislut = {6: 'off', 17: 'X', 18: 'Y', 19: 'Z', 20: 'A', 21: 'B', 22: 'C'}
     steplut = {13: 0.001, 14: 0.01, 15: 0.1, 16: 1.0, 26: 1.0, 27: 1.0}
+    contlut = {13: 2, 14: 5, 15: 10, 16: 30, 26: 60, 27: 100}
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
     f_inc = 10
     s_inc = 10
     safe_z = 10
+    continuous_mode = False
 
     def __init__(self, vid, pid):
         # WHB04B vendor ID and product ID
@@ -240,12 +242,15 @@ class WHB04B():
         # mode switching
         if btn1 == BUT_STEP:
             self.lcd_flags = 1  # Step mode
+            self.continuous_mode = False
             handled = True
         elif btn1 == BUT_CONT:
             self.lcd_flags = 0  # Cont mode
+            self.continuous_mode = True
             handled = True
         elif btn1 == BUT_FN and btn2 == BUT_CONT:
             self.lcd_flags = 2  # MPG mode
+            self.continuous_mode = False
             handled = True
         elif btn1 == BUT_FN and btn2 == BUT_MACRO10:
             self.mcs_mode = not self.mcs_mode
@@ -326,6 +331,7 @@ class WHB04B():
     def _run(self):
         self.app = App.get_running_app()
         self.load_macros()
+        contdir = None
 
         while not self.quit:
             try:
@@ -384,6 +390,8 @@ class WHB04B():
                             delta = self.steplut[inc]
                         else:
                             delta = 0
+                            # Lead mode
+                            continue
 
                         axis = self.axislut[axis]
 
@@ -404,20 +412,37 @@ class WHB04B():
                             continue
 
                         if wheel != 0 and delta != 0:
-                            # must be one of XYZA so send jogging command
-                            # if velocity_mode:
-                            # step= -1 if wheel < 0 else 1
-                            # s = -wheel if wheel < 0 else wheel
-                            # if s > 5: s == 5 # seems the max realistic we get
-                            # speed= s/5.0 # scale where 5 is max speed
-                            # dist = delta
-                            # else:
-                            # speed of wheel will move more increments rather than increase feed rate
-                            # this seems to work best
-                            dist = delta * wheel
-                            speed = 1.0
-                            self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
-                            # print("$J {}{} S{}\n".format(axis, dist, speed))
+                            if self.continuous_mode:
+                                # first move sets direction, it goes until wheel moves
+                                # the other way then it stops.
+                                # $J -c {axis}1 S{delta/100}
+                                #
+                                if contdir is None:
+                                    contdir = wheel
+                                    self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.contlut[inc] / 100.0))
+                                elif (contdir < 0 and wheel > 0) or (contdir > 0 and wheel < 0):
+                                    # changed direction so stop jog
+                                    self.app.comms.write('\x19')  # control Y
+                                    contdir = None
+                                # alternatively first move sets direction and issues command
+                                # so long as wheel moves we do nothing and let it move
+                                # when wheel stops we send ^Y to stop it or if wheel reverses direction.
+
+                            else:
+                                # must be one of XYZA so send jogging command
+                                # if velocity_mode:
+                                # step= -1 if wheel < 0 else 1
+                                # s = -wheel if wheel < 0 else wheel
+                                # if s > 5: s == 5 # seems the max realistic we get
+                                # speed= s/5.0 # scale where 5 is max speed
+                                # dist = delta
+                                # else:
+                                # speed of wheel will move more increments rather than increase feed rate
+                                # this seems to work best
+                                dist = delta * wheel
+                                speed = 1.0
+                                self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
+                                # print("$J {}{} S{}\n".format(axis, dist, speed))
 
                         self.refresh_lcd()
 
