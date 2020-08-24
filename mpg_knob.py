@@ -18,12 +18,9 @@
     - add touch up event so we know when to execute function
 """
 import math
-
-from kivy.lang          import  Builder
-from kivy.uix.widget    import  Widget
-from kivy.properties    import  NumericProperty, ObjectProperty, StringProperty,\
-                                BooleanProperty, ReferenceListProperty, BoundedNumericProperty,\
-                                ListProperty
+from kivy.lang import Builder
+from kivy.uix.widget import Widget
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty, BooleanProperty, ReferenceListProperty, BoundedNumericProperty, ListProperty
 
 Builder.load_string('''
 #
@@ -99,6 +96,7 @@ Builder.load_string('''
         PopMatrix
 
 ''')
+
 
 class Knob(Widget):
     """Class for creating a Knob widget."""
@@ -217,20 +215,20 @@ class Knob(Widget):
     and defaults to 0.
     '''
 
-    ticks= NumericProperty(0)
+    ticks = NumericProperty(0)
 
-    _angle          = NumericProperty(0)            # Internal angle calculated from value.
-    _angle_step     = NumericProperty(0)            # Internal angle_step calculated from step.
+    _angle = NumericProperty(0)            # Internal angle calculated from value.
+    _angle_step = NumericProperty(0)            # Internal angle_step calculated from step.
 
     def __init__(self, *args, **kwargs):
         super(Knob, self).__init__(*args, **kwargs)
-        self.bind(show_marker   =   self._show_marker)
-        self.bind(value         =   self._value)
+        self.bind(show_marker=self._show_marker)
+        self.bind(value=self._value)
         self.register_event_type('on_release')
         self.register_event_type('on_tick')
 
     def _value(self, instance, value):
-        self._angle     =   pow( (value - self.min)/(self.max - self.min), 1./self.curve) * 360.
+        self._angle = pow((value - self.min) / (self.max - self.min), 1. / self.curve) * 360.
         self.on_knob(value)
 
     def _show_marker(self, instance, flag):
@@ -243,7 +241,6 @@ class Knob(Widget):
             self.knobimg_bgcolor[3] = 0
             self.marker_color[3] = 0
             self.markeroff_color[3] = 0
-
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -319,6 +316,6 @@ class Knob(Widget):
     def on_tick(self):
         pass
 
-    #TO OVERRIDE
+    # TO OVERRIDE
     def on_knob(self, value):
-        pass #Knob values listenerr
+        pass  # Knob values listenerr
