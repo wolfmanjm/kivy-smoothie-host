@@ -61,6 +61,7 @@
     id: jogrose
     jogrosemain: jogrosemain
     abc_panel: abc_panel
+    hat: hat
     padding: 5, 5
     canvas.before:
         Color:
@@ -180,8 +181,15 @@
                 angle: -90
                 on_press: root.handle_action('X', 10)
 
-        CircularButton:
+        Hat:
+            id: hat
             pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            size_hint: None, None
+            size: 64, 64
+            on_release: root.handle_hat_release()
+
+        CircularButton:
+            pos_hint: {'center_x': 0.1, 'center_y': 0.25}
             size_hint: None, None
             size: 50, 50
             text: 'Origin'

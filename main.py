@@ -31,6 +31,7 @@ from kivy.uix.recycleview.views import _cached_views, _view_base_cache
 
 from native_file_chooser import NativeFileChooser
 from mpg_knob import Knob
+from libs.hat import Hat
 
 from comms import Comms
 from message_box import MessageBox
@@ -239,6 +240,28 @@ class JogRoseWidget(BoxLayout):
     def __init__(self, **kwargs):
         super(JogRoseWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
+
+    def on_kv_post(self, args):
+        self.hat.bind(pad=self.on_hat)
+
+    def on_hat(self, w, value):
+        x, y = value
+        if x == 0 and y == 0:
+            self.app.comms.write('\x19')
+            return
+        if x != 0:
+            axis = 'X'
+            v = x
+        elif y != 0:
+            axis = 'Y'
+            v = y
+
+        # starts continuous jog
+        self.app.comms.write('$J -c {}{}\n'.format(axis, v))
+
+    def handle_hat_release(self):
+        # cancel continuous jog
+        self.app.comms.write('\x19')
 
     def handle_action(self, axis, v):
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
