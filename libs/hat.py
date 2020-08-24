@@ -38,6 +38,8 @@ class Hat(FloatLayout):
         if self.collide_point(touch.x, touch.y):
             touch.grab(self)
             self.dispatch('on_press')
+            self.first = True
+            self.last_px = self.last_py = 0
             return True
         return super(Hat, self).on_touch_down(touch)
 
@@ -65,30 +67,40 @@ class Hat(FloatLayout):
     def move_pad(self, touch):
         dx = touch.pos[0] - touch.opos[0]
         dy = touch.pos[1] - touch.opos[1]
+
         # print("move: {} - {}".format(dx, dy))
-        if dx == 0 and dy == 0:
-            xp = yp = 0.5
-
-        elif abs(dx) > abs(dy):
-            yp = 0.5
-            self.pad_y = 0
-            if dx < 0:
-                xp = 0.3
-                self.pad_x = -1
+        if abs(dx) >= 4 or abs(dy) >= 4:
+            if abs(dx) > abs(dy):
+                yp = 0.5
+                py = 0
+                if dx < 0:
+                    xp = 0.3
+                    px = -1
+                else:
+                    xp = 0.7
+                    px = 1
             else:
-                xp = 0.7
-                self.pad_x = 1
-        else:
-            self.pad_x = 0
-            xp = 0.5
-            if dy < 0:
-                self.pad_y = -1
-                yp = 0.3
-            else:
-                self.pad_y = 1
-                yp = 0.7
+                px = 0
+                xp = 0.5
+                if dy < 0:
+                    py = -1
+                    yp = 0.3
+                else:
+                    py = 1
+                    yp = 0.7
 
-        self.ids.pad.pos_hint = {'center_x': xp, 'center_y': yp}
+            if px != self.last_px or py != self.last_py:
+                if not self.first:
+                    self.pad = [0, 0]
+                else:
+                    self.first = False
+
+                self.pad = [px, py]
+                self.last_px = px
+                self.last_py = py
+
+            self.ids.pad.pos_hint = {'center_x': xp, 'center_y': yp}
+
         return True
 
     def on_release(self):

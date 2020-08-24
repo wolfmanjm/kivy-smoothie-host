@@ -259,10 +259,6 @@ class JogRoseWidget(BoxLayout):
         # starts continuous jog
         self.app.comms.write('$J -c {}{}\n'.format(axis, v))
 
-    def handle_hat_release(self):
-        # cancel continuous jog
-        self.app.comms.write('\x19')
-
     def handle_action(self, axis, v):
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
             self.app.main_window.display("NOTE: Cannot jog while printing")
