@@ -91,6 +91,7 @@ class Hat(FloatLayout):
 
             if px != self.last_px or py != self.last_py:
                 if not self.first:
+                    # tells upstream we have changed and it must stop previous jog
                     self.pad = [0, 0]
                 else:
                     self.first = False
