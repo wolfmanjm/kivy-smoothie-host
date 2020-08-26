@@ -14,7 +14,7 @@ from kivy.uix.stacklayout import StackLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
-from kivy.uix.behaviors.button import ButtonBehavior
+from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.actionbar import ActionButton
 
@@ -225,6 +225,13 @@ class CircularButton(ButtonBehavior, Widget):
         return Vector(x, y).distance(self.center) <= self.width / 2
 
 
+class CircularToggleButton(ToggleButtonBehavior, Widget):
+    text = StringProperty()
+
+    def collide_point(self, x, y):
+        return Vector(x, y).distance(self.center) <= self.width / 2
+
+
 class ArrowButton(ButtonBehavior, Widget):
     text = StringProperty()
     angle = NumericProperty()
@@ -244,6 +251,18 @@ class JogRoseWidget(BoxLayout):
     def on_kv_post(self, args):
         self.hat.bind(pad=self.on_hat)
 
+    def _get_speed(self):
+        if self.ids.js100.state == 'down':
+            return 1.0
+        elif self.ids.js50.state == 'down':
+            return 0.5
+        elif self.ids.js25.state == 'down':
+            return 0.25
+        elif self.ids.js10.state == 'down':
+            return 0.1
+        else:
+            return 1.0
+
     def on_hat(self, w, value):
         x, y = value
         if x == 0 and y == 0:
@@ -254,26 +273,24 @@ class JogRoseWidget(BoxLayout):
             v = x
         elif y != 0:
             axis = 'Y'
-            v = y
+            v = yv
 
+        s = self._get_speed()
         # starts continuous jog
-        self.app.comms.write('$J -c {}{}\n'.format(axis, v))
+        self.app.comms.write('$J -c {}{} S{}\n'.format(axis, v, s))
 
     def handle_action(self, axis, v):
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
             self.app.main_window.display("NOTE: Cannot jog while printing")
             return
 
-        x10 = self.ids.x10cb.active
-        if x10:
-            v *= 10
-
         if axis == 'O':
             self.app.comms.write('M120 G21 G90 G0 X0 Y0 M121\n')
         elif axis == 'H':
             self.app.comms.write('$H\n')
         else:
-            self.app.comms.write('$J {}{}\n'.format(axis, v))
+            s = self._get_speed()
+            self.app.comms.write('$J {}{} S{}\n'.format(axis, v, s))
 
     def motors_off(self):
         self.app.comms.write('M18\n')

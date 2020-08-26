@@ -11,6 +11,19 @@
         color: [1,0,0,1]
         text: root.text
 
+<CircularToggleButton>:
+    canvas:
+        Color:
+            rgba: [0.75,0.75,0.75,1] if root.state == 'normal' else [0,1,1,1]
+        Ellipse:
+            pos: self.pos
+            size: self.size
+    Label:
+        pos: root.pos
+        size: root.size
+        color: [1,0,0,1]
+        text: root.text
+
 <ArrowButton>:
     canvas:
         Color:
@@ -77,48 +90,58 @@
             ArrowButton:
                 size_hint: None, None
                 size: 50, 50
-                text: '{}+10'.format(root.abc_sel) if x10cb.active else '{}+1'.format(root.abc_sel)
+                text: '{}+10'.format(root.abc_sel)
                 angle: 0
+                on_press: root.handle_action(root.abc_sel, 10)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: '{}+1'.format(root.abc_sel)
                 on_press: root.handle_action(root.abc_sel, 1)
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: '{}+1'.format(root.abc_sel) if x10cb.active else '{}+0.1'.format(root.abc_sel)
+                text: '{}+0.1'.format(root.abc_sel)
                 on_press: root.handle_action(root.abc_sel, 0.1)
 
         MyGridV:
-            pos_hint: {'right': 1.0, 'y': 0}
+            pos_hint: {'right': 1.0, 'center_y': 0.27}
             size: 50, 100
 
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: '{}-1'.format(root.abc_sel) if x10cb.active else '{}-0.1'.format(root.abc_sel)
+                text: '{}-0.1'.format(root.abc_sel)
                 on_press: root.handle_action(root.abc_sel, -0.1)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: '{}-1'.format(root.abc_sel)
+                on_press: root.handle_action(root.abc_sel, -1)
             ArrowButton:
                 size_hint: None, None
                 size: 50, 50
-                text: '{}-10'.format(root.abc_sel) if x10cb.active else '{}-1'.format(root.abc_sel)
+                text: '{}-10'.format(root.abc_sel)
                 angle: 180
-                on_press: root.handle_action(root.abc_sel, -1)
+                on_press: root.handle_action(root.abc_sel, -10)
 
         MyGridV:
             pos_hint: {'center_x': 0.5, 'top': 1.0}
             ArrowButton:
                 size_hint: None, None
                 size: 50, 50
-                text: 'Y+100' if x10cb.active else 'Y+10'
+                text: 'Y+10'
                 angle: 0
                 on_press: root.handle_action('Y', 10)
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: 'Y+10' if x10cb.active else 'Y+1'
+                text: 'Y+1'
                 on_press: root.handle_action('Y', 1)
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: 'Y+1' if x10cb.active else 'Y+0.1'
+                text: 'Y+0.1'
                 on_press: root.handle_action('Y', 0.1)
 
         MyGridV:
@@ -127,17 +150,17 @@
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: 'Y-1' if x10cb.active else 'Y-0.1'
+                text: 'Y-0.1'
                 on_press: root.handle_action('Y', -0.1)
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: 'Y-10' if x10cb.active else 'Y-1'
+                text: 'Y-1'
                 on_press: root.handle_action('Y', -1)
             ArrowButton:
                 size_hint: None, None
                 size: 50, 50
-                text: 'Y-100' if x10cb.active else 'Y-10'
+                text: 'Y-10'
                 angle: 180
                 on_press: root.handle_action('Y', -10)
 
@@ -147,18 +170,18 @@
             ArrowButton:
                 size_hint: None, None
                 size: 50, 50
-                text: 'X-100' if x10cb.active else 'X-10'
+                text: 'X-10'
                 angle: 90
                 on_press: root.handle_action('X', -10)
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: 'X-10' if x10cb.active else 'X-1'
+                text: 'X-1'
                 on_press: root.handle_action('X', -1)
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: 'X-1' if x10cb.active else 'X-0.1'
+                text: 'X-0.1'
                 on_press: root.handle_action('X', -0.1)
 
         MyGridH:
@@ -167,17 +190,17 @@
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: 'X+1' if x10cb.active else 'X+0.1'
+                text: 'X+0.1'
                 on_press: root.handle_action('X', 0.1)
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: 'X+10' if x10cb.active else 'X+1'
+                text: 'X+1'
                 on_press: root.handle_action('X', 1)
             ArrowButton:
                 size_hint: None, None
                 size: 50, 50
-                text: 'X+100' if x10cb.active else 'X+10'
+                text: 'X+10'
                 angle: -90
                 on_press: root.handle_action('X', 10)
 
@@ -188,7 +211,7 @@
             size: 64, 64
 
         CircularButton:
-            pos_hint: {'center_x': 0.1, 'center_y': 0.25}
+            pos_hint: {'center_x': 0.1, 'center_y': 0.28}
             size_hint: None, None
             size: 50, 50
             text: 'Origin'
@@ -200,6 +223,13 @@
             size: 50, 50
             text: 'Home'
             on_press: root.handle_action('H', 0)
+
+        CircularButton:
+            pos_hint: {'center_x': 0.72, 'center_y': 0.1}
+            text: 'Motors Off'
+            size_hint: None, None
+            size: 80, 40
+            on_press: root.motors_off()
 
         BoxLayout:
             id: abc_panel
@@ -216,26 +246,46 @@
                 group: 'zabc_group'
                 on_press: root.abc_sel= 'A'
 
-        GridLayout:
-            pos_hint: {'x': 0.0, 'top': 1}
-            size_hint: 0.4, 0.5
-            cols: 2
-            spacing: 4,4
-            CheckBox:
-                id: x10cb
-                size_hint: None, None
-                size: 60, 40
-            Label:
-                text: "Jog x10"
-                size_hint: None, None
-                size: self.texture_size[0], 40
-                #active: True
+        BoxLayout:
+            orientation: 'vertical'
+            pos_hint: {'x': 0, 'top': 1}
+            size_hint: 0.4, 0.4
 
-            Button:
-                text: 'Motors Off'
+            Label:
+                text: 'Jog Speed'
                 size_hint: None, None
-                size: 80, 40
-                on_press: root.motors_off()
+                size: self.texture_size
+                pos_hint: {'center_x': 0.4}
+
+            GridLayout:
+                cols: 2
+                spacing: 10
+                padding: 8
+                CircularToggleButton:
+                    id: js100
+                    text: '100%'
+                    size_hint: None, None
+                    size: 50, 50
+                    group: 'speed_group'
+                CircularToggleButton:
+                    id: js50
+                    text: '50%'
+                    size_hint: None, None
+                    size: 50, 50
+                    group: 'speed_group'
+                    state: 'down'
+                CircularToggleButton:
+                    id: js25
+                    text: '25%'
+                    size_hint: None, None
+                    size: 50, 50
+                    group: 'speed_group'
+                CircularToggleButton:
+                    id: js10
+                    text: '10%'
+                    size_hint: None, None
+                    size: 50, 50
+                    group: 'speed_group'
 
         # Label:
         #     pos_hint: {'left': 1, 'y': 0}
