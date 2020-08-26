@@ -261,7 +261,7 @@ class JogRoseWidget(BoxLayout):
         elif self.ids.js10.state == 'down':
             return 0.1
         else:
-            return 1.0
+            return 0.5
 
     def on_hat(self, w, value):
         x, y = value
@@ -273,7 +273,7 @@ class JogRoseWidget(BoxLayout):
             v = x
         elif y != 0:
             axis = 'Y'
-            v = yv
+            v = y
 
         s = self._get_speed()
         # starts continuous jog
