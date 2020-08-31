@@ -208,7 +208,7 @@ class Comms():
         #         async_main_loop.call_soon_threadsafe(async_main_loop.stop)
 
     def get_ports(self):
-        return [port for port in serial.tools.list_ports.comports() if port[2] != 'n/a']
+        return [port for port in serial.tools.list_ports.comports()]
 
     def run_async_loop(self):
         ''' called by connect in a new thread to setup and start the asyncio loop '''
