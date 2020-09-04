@@ -180,6 +180,7 @@ class HB04():
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
+    cont_mode = False
 
     def __init__(self, vid, pid):
         # HB04 vendor ID and product ID
@@ -261,6 +262,7 @@ class HB04():
     def _run(self):
         self.app = App.get_running_app()
         self.load_macros()
+        contdir = None
 
         while not self.quit:
             try:
@@ -312,19 +314,19 @@ class HB04():
 
                         # handle move multiply buttons
                         if btn_1 == BUT_STEP:
-                            self.mul += 1
+                            self.mul += wheel
                             if self.mul > 10:
                                 self.mul = 1
-                            self.setmul(self.mul)
-                            self.update_lcd()
-                            continue
-
-                        if btn_1 == BUT_MPG:
-                            self.mul -= 1
                             if self.mul < 1:
                                 self.mul = 10
                             self.setmul(self.mul)
-                            self.update_lcd()
+                            self.refresh_lcd()
+                            continue
+
+                        if btn_1 == BUT_MPG:
+                            # toggle continuous jog mode
+                            self.cont_mode = not self.cont_mode
+                            self.refresh_lcd()
                             continue
 
                         if not self.app.is_connected:
@@ -371,16 +373,29 @@ class HB04():
                                 continue
 
                             # must be one of XYZA so send jogging command
-                            # velocity_mode:
-                            # step= -1 if wheel < 0 else 1
-                            # s = -wheel if wheel < 0 else wheel
-                            # if s > 5: s == 5 # seems the max realistic we get
-                            # speed= s/5.0 # scale where 5 is max speed
-                            step = wheel  # speed of wheel will move more increments rather than increase feed rate
-                            dist = 0.001 * step * self.mullut[self.mul]
-                            speed = 1.0
-                            self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
-                            # print("$J {}{} S{}\n".format(axis, dist, speed))
+                            if self.cont_mode:
+                                # first move sets direction, it goes until wheel moves
+                                # the other way then it stops.
+                                # $J -c {axis}1 S{mul/10}
+                                if contdir is None:
+                                    contdir = wheel
+                                    self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.mul / 10.0))
+                                elif (contdir < 0 and wheel > 0) or (contdir > 0 and wheel < 0):
+                                    # changed direction so stop jog
+                                    self.app.comms.write('\x19')  # control Y
+                                    contdir = None
+
+                            else:
+                                # velocity_mode:
+                                # step= -1 if wheel < 0 else 1
+                                # s = -wheel if wheel < 0 else wheel
+                                # if s > 5: s == 5 # seems the max realistic we get
+                                # speed= s/5.0 # scale where 5 is max speed
+                                step = wheel  # speed of wheel will move more increments rather than increase feed rate
+                                dist = 0.001 * step * self.mullut[self.mul]
+                                speed = 1.0
+                                self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
+                                # print("$J {}{} S{}\n".format(axis, dist, speed))
 
                     # Close the HB04 connection
                     self.hid.close()
@@ -468,7 +483,9 @@ class HB04():
 
     def refresh_lcd(self):
         self.setfs(self.app.frr, self.app.sr)
-        if self.app.status == "Run":
+        if self.cont_mode:
+            self.setmul(self.mul | 0x10)
+        elif self.app.status == "Run":
             self.setmul(self.mul | 0x60)
         elif self.app.status == "Home":
             self.setmul(self.mul | 0x50)

@@ -76,8 +76,11 @@ Plug in the HB04 and turn it on, then run smoopi.
 
 Many of the buttons have default actions, but can be redefined in the ```[macros]``` section of the hb04.ini file. NOTE that if ```{axis}``` appears in the macro it will be replaced by the currently selected axis.
 
-The hard coded buttons are the step button which increases the move multiplier, and the MPG button next to it which decreases the multiplier.
+#### Hard coded buttons
+Step button which when held down will increase or decrease the move multiplier based on the wheel moves (clockwise increases).
 at x1 each encoder click moves 0.001mm, at x10 it moves 0.01mm, at x100 it moves 0.1mm etc.
+
+The MPG button will toggle the continuous jog mode or step jog mode, an icon will show if in continuous mode. In continuous jog mode the gantry will move in the selected axis direction based on the direction the wheel is turned after entering cont mode, it will continue to move until the wheel is turned the opposite way. The speed it moves is selected by the move multiplier, where 1x is 0.1 of maximum actuator speed, and 1000x is full actuator speed.
 
 The Stop button will send a kill/halt (control X) to smoothie and the reset will send ```$X``` to unkill.
 
