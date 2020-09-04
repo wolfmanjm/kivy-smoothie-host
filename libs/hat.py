@@ -69,7 +69,7 @@ class Hat(FloatLayout):
         dy = touch.pos[1] - touch.opos[1]
 
         # print("move: {} - {}".format(dx, dy))
-        if abs(dx) >= 4 or abs(dy) >= 4:
+        if abs(dx) >= 8 or abs(dy) >= 8:
             if abs(dx) > abs(dy):
                 yp = 0.5
                 py = 0
