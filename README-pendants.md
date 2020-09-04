@@ -123,10 +123,16 @@ Plug in the WHB04B or the dongle and turn the unit on, then run smoopi.
 
 The Fn buttons (hold down Fn key) have hard coded actions to match the printed function.
 
-The other hard coded buttons are the ```step``` button which sets the mode to step mode. The Continuous button sets continuous mode (which currently does nothing), and Fn Continuous will set the MPG mode which also currently does nothing.
+The other hard coded buttons are the ```step``` button which sets the mode to step mode (described below). The ```Continuous``` button sets continuous jog mode, and ```Fn Continuous``` will set the MPG jog mode which sets velociy mode for the wheel.
 
 The Stop button will send a kill/halt (control X) to smoothie and the Reset will send ```$X``` to unkill.
 
 The Start and Pause button will run the last viewed or Run file or will pause if already running.
 
 Fn and the Macro10 button will toggle the display from WCS to MCS display.
+
+#### Jog modes
+
+* Step jog mode issues jog commands each time the wheel turns, it moves the distance set by the right knob (in mm so full counter clockwise it jogs 0.001mm). The jogs are issued at the full speed of the selected axis.
+* Continuous jog mode the gantry will move the selected axis in the direction based on the direction the wheel is turned after entering cont mode, it will continue to move until the wheel is turned the opposite way. The speed it moves is selected by the right knob (marked in % of the maximum axis speed).
+* MPG jog mode is similar to Step mode except for each turn of the wheel it moves a percentage of 1mm (based on the right knob, so full clockwise is 100% which is 1mm), and the velocity of the move is based on how fast the wheel is turned.
