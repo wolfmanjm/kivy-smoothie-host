@@ -434,7 +434,7 @@ class WHB04B():
                                     step = -1 if wheel < 0 else 1
                                     s = -wheel if wheel < 0 else wheel
                                     if s > 16:
-                                        s == 16  # seems the max realistic we get
+                                        s = 16  # seems the max realistic we get
                                     speed = s / 16.0  # scale where 16 is max speed
                                     dist = step * self.contlut[inc] / 100.0  # Max 1mm movement
 
