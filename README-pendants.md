@@ -134,5 +134,5 @@ Fn and the Macro10 button will toggle the display from WCS to MCS display.
 #### Jog modes
 
 * Step jog mode issues jog commands each time the wheel turns, it moves the distance set by the right knob (in mm so full counter clockwise it jogs 0.001mm). The jogs are issued at the full speed of the selected axis.
-* Continuous jog mode the gantry will move the selected axis in the direction based on the direction the wheel is turned after entering cont mode, it will continue to move until the wheel is turned the opposite way. The speed it moves is selected by the right knob (marked in % of the maximum axis speed).
+* Continuous jog mode the gantry will move the selected axis in the direction based on the direction the wheel is turned after entering cont mode, it will continue to move until the ```Continue``` button is released. The speed it moves is selected by the right knob (marked in % of the maximum axis speed).
 * MPG jog mode is similar to Step mode except for each turn of the wheel it moves a percentage of 1mm (based on the right knob, so full clockwise is 100% which is 1mm), and the velocity of the move is based on how fast the wheel is turned.

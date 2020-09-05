@@ -386,6 +386,18 @@ class WHB04B():
                         axis = data[5]
                         wheel = self.twos_comp(data[6], 8)
 
+                        # check if we are moving in continuous mode
+                        if self.continuous_mode and contdir is not None:
+                            if btn_1 == BUT_CONT:
+                                # still down so just update lcd
+                                self.refresh_lcd()
+                                continue
+                            else:
+                                # released so stop continuous mode
+                                self.app.comms.write('\x19')  # control Y
+                                self.continuous_mode = False
+                                contdir = None
+
                         if inc in self.steplut:
                             delta = self.steplut[inc]
                         else:
@@ -413,20 +425,11 @@ class WHB04B():
 
                         if wheel != 0 and delta != 0:
                             if self.continuous_mode:
-                                # first move sets dir ection, it goes until wheel moves
-                                # the other way then it stops.
+                                # first turn of wheel sets the direction,
+                                # it goes until Cont button is released
                                 # $J -c {axis}1 S{delta/100}
-                                #
-                                if contdir is None:
-                                    contdir = wheel
-                                    self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.contlut[inc] / 100.0))
-                                elif (contdir < 0 and wheel > 0) or (contdir > 0 and wheel < 0):
-                                    # changed direction so stop jog
-                                    self.app.comms.write('\x19')  # control Y
-                                    contdir = None
-                                # alternatively first move sets direction and issues command
-                                # so long as wheel moves we do nothing and let it move
-                                # when wheel stops we send ^Y to stop it or if wheel reverses direction.
+                                self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.contlut[inc] / 100.0))
+                                contdir = wheel
 
                             else:
                                 if self.mpg_mode:
