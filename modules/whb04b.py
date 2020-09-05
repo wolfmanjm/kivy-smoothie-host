@@ -386,17 +386,21 @@ class WHB04B():
                         axis = data[5]
                         wheel = self.twos_comp(data[6], 8)
 
-                        # check if we are moving in continuous mode
-                        if self.continuous_mode and contdir is not None:
-                            if btn_1 == BUT_CONT:
-                                # still down so just update lcd
-                                self.refresh_lcd()
-                                continue
-                            else:
-                                # released so stop continuous mode
-                                self.app.comms.write('\x19')  # control Y
+                        # check if we are in continuous mode
+                        if self.continuous_mode:
+                            if contdir is not None:
+                                # if we are moving
+                                if btn_1 == BUT_CONT:
+                                    # still down so just update lcd
+                                    self.refresh_lcd()
+                                    continue
+                                else:
+                                    # released so stop continuous mode
+                                    self.app.comms.write('\x19')  # control Y
+                                    self.continuous_mode = False
+                                    contdir = None
+                            elif btn_1 != BUT_CONT:
                                 self.continuous_mode = False
-                                contdir = None
 
                         if inc in self.steplut:
                             delta = self.steplut[inc]
@@ -423,7 +427,7 @@ class WHB04B():
                             self.refresh_lcd()
                             continue
 
-                        if wheel != 0 and delta != 0:
+                        if wheel != 0:
                             if self.continuous_mode:
                                 # first turn of wheel sets the direction,
                                 # it goes until Cont button is released
@@ -435,20 +439,20 @@ class WHB04B():
                                 if self.mpg_mode:
                                     # MPG mode
                                     step = -1 if wheel < 0 else 1
-                                    s = -wheel if wheel < 0 else wheel
+                                    s = abs(wheel)
                                     if s > 16:
                                         s = 16  # seems the max realistic we get
                                     speed = s / 16.0  # scale where 16 is max speed
                                     dist = step * self.contlut[inc] / 100.0  # Max 1mm movement
+                                    self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
 
-                                else:
+                                elif delta != 0:
                                     # step mode
                                     # speed of wheel will move more increments rather than increase
                                     # feed rate this seems to work best
                                     dist = delta * wheel
                                     speed = 1.0
-
-                                self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
+                                    self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
                                 # print("$J {}{} S{}\n".format(axis, dist, speed))
 
                         self.refresh_lcd()
