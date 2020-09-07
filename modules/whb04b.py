@@ -354,6 +354,7 @@ class WHB04B():
                     # Infinite loop to read data from the WHB04B
                     while not self.quit:
                         data = self.hid.recv(timeout=1000)
+
                         if data is None:
                             continue
 
@@ -378,6 +379,7 @@ class WHB04B():
                         else:
                             self.reset_mode = True
                             self.refresh_lcd()
+                            # print(time.monotonic())
                             continue
 
                         btn_1 = data[2]
