@@ -434,6 +434,7 @@ class WHB04B():
                                 # first turn of wheel sets the direction,
                                 # it goes until Cont button is released
                                 # $J -c {axis}1 S{delta/100}
+                                # TODO must not send another $J -c until ok is recieved from previous one
                                 self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.contlut[inc] / 100.0))
                                 contdir = wheel
 

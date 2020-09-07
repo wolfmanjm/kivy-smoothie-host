@@ -32,14 +32,13 @@ class Hat(FloatLayout):
     def __init__(self, *args, **kwargs):
         self.register_event_type('on_release')
         self.register_event_type('on_press')
+        self.locked = False
         super(Hat, self).__init__(*args, **kwargs)
 
     def on_touch_down(self, touch):
         if self.collide_point(touch.x, touch.y):
             touch.grab(self)
             self.dispatch('on_press')
-            self.first = True
-            self.last_px = self.last_py = 0
             return True
         return super(Hat, self).on_touch_down(touch)
 
@@ -53,6 +52,7 @@ class Hat(FloatLayout):
             touch.ungrab(self)
             self.center_pad()
             self.pad = [0, 0]
+            self.locked = False
             self.dispatch('on_release')
             return True
 
@@ -65,6 +65,9 @@ class Hat(FloatLayout):
         self.ids.pad.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
 
     def move_pad(self, touch):
+        if self.locked:
+            return True
+
         dx = touch.pos[0] - touch.opos[0]
         dy = touch.pos[1] - touch.opos[1]
 
@@ -89,16 +92,10 @@ class Hat(FloatLayout):
                     py = 1
                     yp = 0.7
 
-            if px != self.last_px or py != self.last_py:
-                if not self.first:
-                    # tells upstream we have changed and it must stop previous jog
-                    self.pad = [0, 0]
-                else:
-                    self.first = False
-
-                self.pad = [px, py]
-                self.last_px = px
-                self.last_py = py
+            self.locked = True
+            self.pad = [px, py]
+            self.last_px = px
+            self.last_py = py
 
             self.ids.pad.pos_hint = {'center_x': xp, 'center_y': yp}
 

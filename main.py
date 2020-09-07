@@ -247,6 +247,7 @@ class JogRoseWidget(BoxLayout):
     def __init__(self, **kwargs):
         super(JogRoseWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.cont_moving = False
 
     def on_kv_post(self, args):
         self.hat.bind(pad=self.on_hat)
@@ -265,9 +266,7 @@ class JogRoseWidget(BoxLayout):
 
     def on_hat(self, w, value):
         x, y = value
-        if x == 0 and y == 0:
-            self.app.comms.write('\x19')
-            return
+        axis = None
         if x != 0:
             axis = 'X'
             v = x
@@ -275,9 +274,17 @@ class JogRoseWidget(BoxLayout):
             axis = 'Y'
             v = y
 
-        s = self._get_speed()
-        # starts continuous jog
-        self.app.comms.write('$J -c {}{} S{}\n'.format(axis, v, s))
+        if axis is not None:
+            s = self._get_speed()
+            # starts continuous jog
+            # TODO must not send another $J -c until ok is recieved from previous one
+            self.app.comms.write('$J -c {}{} S{}\n'.format(axis, v, s))
+            self.cont_moving = True
+
+    def hat_released(self):
+        if self.cont_moving:
+            self.app.comms.write('\x19')
+            self.cont_moving = False
 
     def handle_action(self, axis, v):
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:

@@ -377,8 +377,10 @@ class HB04():
                                 # first move sets direction, it goes until wheel moves
                                 # the other way then it stops.
                                 # $J -c {axis}1 S{mul/10}
+
                                 if contdir is None:
                                     contdir = wheel
+                                    # TODO must not send another $J -c until ok is recieved from previous one
                                     self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.mul / 10.0))
                                 elif (contdir < 0 and wheel > 0) or (contdir > 0 and wheel < 0):
                                     # changed direction so stop jog
