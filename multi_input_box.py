@@ -77,6 +77,6 @@ class MultiInputBox(Popup):
         self.wl = []
         for name in options:
             self.contentButtons.add_widget(Label(text=name, size_hint_y=None, height='30dp', halign='right'))
-            tw = TextInput(multiline=False, use_bubble=False, use_handles=False)
+            tw = TextInput(multiline=False, write_tab=False, use_bubble=False, use_handles=False)
             self.contentButtons.add_widget(tw)
             self.wl.append((name, tw))
