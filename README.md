@@ -8,9 +8,11 @@ This uses python >= 3.5 and < 3.8 and kivy >= 1.11.0
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
 
-It will run on Windows if you install Python 3.5.2, and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
+Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDMI monitor running Buster. (Touch screen has not been tested on the RPI-4).
 
-NOTE it is untested on python versions >= 3.8 but may work.
+It will run on Windows if you install Python 3.5.2 (or newer), and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
+
+NOTE it has been briefly tested on python versions >= 3.8 with Kivy 2.0RC and appears to work under a Ubuntu desktop XWindows, it has not been tested on a touch screen though.
 
 The minimum usable resolution is 800x480.
 
@@ -127,6 +129,7 @@ Once loaded boot into the sdcard, login with username pi and password raspberry 
       sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
 
 and add your wifi credentials to the ssid= and the psk=  lines.
+(or run ```sudo raspi-config```)
 
 Reboot, and wifi should be working.
 
@@ -136,7 +139,7 @@ Then update raspbian stretch...
 * sudo apt-get update
 * sudo apt-get upgrade
 
-smoopi is normally run on bootup, but in order to allow you to login and do the initial setup it is initially down. You will need to hook up a keyboard temporarily so you can access the login and run raspi-config etc.(NOTE Do not setup wifi using raspi-config).
+smoopi is normally run on bootup, but in order to allow you to login and do the initial setup it is initially down. You will need to hook up a keyboard temporarily so you can access the login and run raspi-config etc.
 
 Once that is done setup smoopi to run on boot by doing...
     
