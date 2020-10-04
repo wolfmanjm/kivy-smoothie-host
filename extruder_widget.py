@@ -104,7 +104,9 @@ class ExtruderWidget(BoxLayout):
 
         for type in temperatures:
             temp, setpoint = temperatures[type]
-            self.ids.graph_view.update_temperature(type, temp, setpoint)
+            if self.ids.temps_screen.current == 'graph':
+                self.ids.graph_view.update_temperature(type, temp, setpoint)
+                return
 
             if type == 'bed':
                 if math.isinf(temp):
@@ -184,7 +186,8 @@ class ExtruderWidget(BoxLayout):
     def on_touch_down(self, touch):
         if self.ids.temps_screen.collide_point(touch.x, touch.y):
             if touch.is_double_tap:
-                self.ids.temps_screen.load_next()
+                n = self.ids.temps_screen.next()
+                self.ids.temps_screen.current = n
                 return True
 
         return super(ExtruderWidget, self).on_touch_down(touch)

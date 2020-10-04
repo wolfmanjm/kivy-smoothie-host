@@ -84,104 +84,108 @@
                 disabled: not app.is_connected
                 on_press: root.reverse()
 
-    Carousel:
+    ScreenManager:
         id: temps_screen
         size_hint_y: None
         height: sp(120)
-        loop: True
-        BoxLayout:
-            orientation: 'horizontal'
-
+        #loop: True
+        Screen:
+            name: 'dial'
             BoxLayout:
-                orientation: 'vertical'
-                DialGauge:
-                    pos_hint: {'center_x': 0.5}
-                    id: hotend_dg
-                    dial_diameter: 180
+                orientation: 'horizontal'
 
-                    # gauge properties
-                    scale_max: 230
-                    scale_min: 20
-                    value: self.scale_min
+                BoxLayout:
+                    orientation: 'vertical'
+                    DialGauge:
+                        pos_hint: {'center_x': 0.5}
+                        id: hotend_dg
+                        dial_diameter: 180
 
-                    # example for half temperature gauge
-                    semi_circle: True
-                    scale_increment: 20
-                    angle_start: 90
-                    angle_stop: 270
-                    tic_frequency: 1
-                    tic_radius: self.dial_diameter/2.0
-                    needle_length: self.dial_diameter/2 - self.tic_length -4 # ends just where tics start less a few pixels
-                    needle_width: 5
-                    hub_radius: 10
-                    dial_color: 1,1,0,1
-                    hub_color: 1,0,0
-                    needle_color: 1,0,0
+                        # gauge properties
+                        scale_max: 230
+                        scale_min: 20
+                        value: self.scale_min
 
-                    show_value: True
-                    value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
-                    value_color: [0,1,0,1]
+                        # example for half temperature gauge
+                        semi_circle: True
+                        scale_increment: 20
+                        angle_start: 90
+                        angle_stop: 270
+                        tic_frequency: 1
+                        tic_radius: self.dial_diameter/2.0
+                        needle_length: self.dial_diameter/2 - self.tic_length -4 # ends just where tics start less a few pixels
+                        needle_width: 5
+                        hub_radius: 10
+                        dial_color: 1,1,0,1
+                        hub_color: 1,0,0
+                        needle_color: 1,0,0
 
-                    # setup three annulars of different colors
-                    annulars: [{'color': [0,1,0,1], 'start': 20.0, 'stop': 60.0}, {'color': [1, 165.0/255, 0, 1], 'start': 60.0, 'stop': 80.0}, {'color': [1, 0, 0, 1], 'start': 80.0, 'stop': 230.0}]
-                    annular_thickness: 6
+                        show_value: True
+                        value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
+                        value_color: [0,1,0,1]
 
-                    setpoint_value: float('nan')
-                    setpoint_color: 0,0,0,1
-                    setpoint_length: self.dial_diameter/2
-                    setpoint_thickness: 1
+                        # setup three annulars of different colors
+                        annulars: [{'color': [0,1,0,1], 'start': 20.0, 'stop': 60.0}, {'color': [1, 165.0/255, 0, 1], 'start': 60.0, 'stop': 80.0}, {'color': [1, 0, 0, 1], 'start': 80.0, 'stop': 230.0}]
+                        annular_thickness: 6
 
-                Label:
-                    text: 'Hotend'
-                    size_hint_y: None
-                    size: self.texture_size
+                        setpoint_value: float('nan')
+                        setpoint_color: 0,0,0,1
+                        setpoint_length: self.dial_diameter/2
+                        setpoint_thickness: 1
 
-            BoxLayout:
-                orientation: 'vertical'
-                DialGauge:
-                    pos_hint: {'center_x': 0.5}
-                    id: bed_dg
-                    dial_diameter: 180
+                    Label:
+                        text: 'Hotend'
+                        size_hint_y: None
+                        size: self.texture_size
 
-                    # gauge properties
-                    scale_max: 120
-                    scale_min: 20
-                    value: self.scale_min
+                BoxLayout:
+                    orientation: 'vertical'
+                    DialGauge:
+                        pos_hint: {'center_x': 0.5}
+                        id: bed_dg
+                        dial_diameter: 180
 
-                    # example for half temperature gauge
-                    scale_increment: 10
-                    semi_circle: True
-                    angle_start: 90
-                    angle_stop: 270
-                    tic_frequency: 1
-                    tic_radius: self.dial_diameter/2.0
-                    needle_length: self.dial_diameter/2 - self.tic_length -4 # ends just where tics start less a few pixels
-                    needle_width: 5
-                    hub_radius: 10
-                    dial_color: 1,1,0,1
-                    hub_color: 1,0,0
-                    needle_color: 1,0,0
+                        # gauge properties
+                        scale_max: 120
+                        scale_min: 20
+                        value: self.scale_min
 
-                    show_value: True
-                    value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
-                    value_color: [0,1,0,1]
+                        # example for half temperature gauge
+                        scale_increment: 10
+                        semi_circle: True
+                        angle_start: 90
+                        angle_stop: 270
+                        tic_frequency: 1
+                        tic_radius: self.dial_diameter/2.0
+                        needle_length: self.dial_diameter/2 - self.tic_length -4 # ends just where tics start less a few pixels
+                        needle_width: 5
+                        hub_radius: 10
+                        dial_color: 1,1,0,1
+                        hub_color: 1,0,0
+                        needle_color: 1,0,0
 
-                    # setup two annulars of different colors
-                    annulars: [{'color': [0,1,0,1], 'start': 20.0, 'stop': 60.0},  {'color': [1, 0, 0, 1], 'start': 60.0, 'stop': 120.0}]
-                    annular_thickness: 6
+                        show_value: True
+                        value_offset_pos: 0, self.dial_diameter/4 # offset from center of dial
+                        value_color: [0,1,0,1]
 
-                    setpoint_value: float('nan')
-                    setpoint_color: 0,0,0,1
-                    setpoint_length: self.dial_diameter/2
-                    setpoint_thickness: 1
+                        # setup two annulars of different colors
+                        annulars: [{'color': [0,1,0,1], 'start': 20.0, 'stop': 60.0},  {'color': [1, 0, 0, 1], 'start': 60.0, 'stop': 120.0}]
+                        annular_thickness: 6
 
-                Label:
-                    text: 'Bed'
-                    size_hint_y: None
-                    size: self.texture_size
+                        setpoint_value: float('nan')
+                        setpoint_color: 0,0,0,1
+                        setpoint_length: self.dial_diameter/2
+                        setpoint_thickness: 1
 
-        GraphView:
-            id: graph_view
+                    Label:
+                        text: 'Bed'
+                        size_hint_y: None
+                        size: self.texture_size
+        Screen:
+            name: 'graph'
+            on_enter: graph_view.reset()
+            GraphView:
+                id: graph_view
 
     GridLayout:
         cols: 5

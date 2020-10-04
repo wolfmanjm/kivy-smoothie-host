@@ -200,7 +200,7 @@ class MacrosWidget(StackLayout):
         try:
             with open(fn) as f:
                 for line in f:
-                    # FIXME on V2 this may well go too fast
+                    # FIXME maybe need to do ping pong?
                     self.app.comms.write('{}'.format(line))
 
         except Exception:
@@ -237,6 +237,7 @@ class MacrosWidget(StackLayout):
         self._exec_script(cmd, io)
 
     def _exec_script(self, cmd, io):
+        # TODO should add substituted args as in macro buttons
         # needs to be run in a thread
         t = threading.Thread(target=self._script_thread, daemon=True, args=(cmd, io,))
         t.start()
