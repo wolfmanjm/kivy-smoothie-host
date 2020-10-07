@@ -84,6 +84,10 @@
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.main_window.upload_gcode()
                 ActionButton:
+                    text: 'Fast Stream'
+                    disabled: root.is_printing or not app.fast_stream_cmd
+                    on_press: app.main_window.fast_stream_gcode()
+                ActionButton:
                     text: 'Find Center'
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.tool_scripts.find_center()

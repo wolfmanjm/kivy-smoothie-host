@@ -140,6 +140,7 @@ class Comms():
         self.pause_stream = False  # asyncio.Event()
         self.okcnt = None
         self.ping_pong = True  # ping pong protocol for streaming
+        self.fast_stream = False
         self.file_streamer = None
         self.report_rate = reportrate
         self._reroute_incoming_data_to = None
@@ -610,7 +611,7 @@ class Comms():
         self.last_tool = None
 
         # optional do not use ping pong
-        if self.app.fast_stream:
+        if self.fast_stream:
             self.ping_pong = False
             self.log.info("Comms: using fast stream")
         else:
@@ -870,9 +871,9 @@ class Comms():
                 return
 
             self.okcnt = 0
-            if self.app.fast_stream:
+            if self.fast_stream:
                 self.ping_pong = False
-                self.log.info("Comms: using fast stream")
+                self.log.info("Comms: using fast stream upload")
             else:
                 self.ping_pong = True
 
@@ -1019,6 +1020,7 @@ if __name__ == "__main__":
             self.timer = None
             self.is_cnc = True
             self.fast_stream = False
+            self.comms = None
 
         def connected(self):
             self.log.debug("CommsApp: Connected...")
@@ -1041,7 +1043,7 @@ if __name__ == "__main__":
         def alarm_state(self, s):
             self.ok = False
             # in this case we do want to disconnect
-            comms.proto.transport.close()
+            self.comms.proto.transport.close()
 
         def update_status(self, stat, d):
             pass
@@ -1061,35 +1063,40 @@ if __name__ == "__main__":
     start = None
     nlines = None
     app = CommsApp()
+    quiet = False
 
     def display_progress(n):
-        global start, nlines
+        global start, nlines, quiet, app
 
         if nlines:
-            now = datetime.datetime.now()
-            d = (now - start).seconds
-            if n > 10 and d > 10:
-                # we have to wait a bit to get reasonable estimates
-                lps = n / d
-                eta = (nlines - n) / lps
+            if quiet:
+                print("progress: {},{}".format(n, nlines))
             else:
-                eta = 0
-            et = datetime.timedelta(seconds=int(eta))
-            print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n / nlines, et))
+                now = datetime.datetime.now()
+                d = (now - start).seconds
+                if n > 10 and d > 10:
+                    # we have to wait a bit to get reasonable estimates
+                    lps = n / d
+                    eta = (nlines - n) / lps
+                else:
+                    eta = 0
+                et = datetime.timedelta(seconds=int(eta))
+                print("ETA: {} {}/{} {:.1%}".format(et, n, nlines, n / nlines))
 
     def upload_done(x):
         app.ok = x
         app.end_event.set()
 
     def main():
-        global start, nlines
+        global start, nlines, app, quiet
         if len(sys.argv) < 3:
-            print("Usage: {} port file [-u] [-f] [-d]".format(sys.argv[0]))
-            exit(0)
+            print("Usage: {} port file [-u] [-f] [-q] [-d]".format(sys.argv[0]))
+            exit(1)
 
         upload = False
         loglevel = logging.INFO
         comms = Comms(app, 0)
+        app.comms = comms
         while len(sys.argv) > 3:
             a = sys.argv.pop()
             if a == '-u':
@@ -1097,9 +1104,12 @@ if __name__ == "__main__":
                 print('Upload only')
             elif a == '-f':
                 app.fast_stream = True
+                comms.fast_stream = True
                 print('Fast Stream')
             elif a == '-d':
                 loglevel = logging.DEBUG
+            elif a == '-q':
+                quiet = True
             else:
                 print("Unknown option: {}".format(a))
 
@@ -1157,5 +1167,9 @@ if __name__ == "__main__":
             comms.okcnt = None
             comms.stop()
             t.join()
+            if app.ok:
+                exit(0)
+            else:
+                exit(2)
 
     main()

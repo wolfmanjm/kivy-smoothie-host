@@ -46,6 +46,7 @@ You can select 3d printer mode or CNC mode from the Settings menu, this can affe
 - The MPG Panel is a simulation of an MPG pendant, it allows control of movement and feedrate override via a simulated rotary knob. (There is an optional module to take controls from a real MPG USB pendant).
 - The config editor displays the current smoothie config in a scrollable window, values can be updated click the return key and then will update the config on sd accordingly. (reset is of course required to take effect).
 - Under the Tools menu there is an entry to upload GCode files to the sdcard, and to start an sdcard based print. (don't try to upload non gcode files)
+- There is a Fast Stream Tool for streaming gcode that has very small segments and stutters under normal streaming (or for raster laser engraving)
 
 There is a gcode visualizer window that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
 Click the Viewer menu item, select the file to view, then the layers can be moved up or down.
@@ -101,6 +102,13 @@ Note for gmail users, it is best to setup an application password and use that i
 
 ### Unexpected HALTs
 If smoothie halts and goes into the alarm state for any reason (like limit hit or temperature overrun), it may be possible to restart from where it left off. After correcting the issue that caused the HALT, turn the heaters back on (and power) and then click the resume button, if you are lucky it will continue from where it left off. It is probably best to abort the print though.
+
+### Fast Streaming
+To use the fast streaming option, you must enable the second serial port on Smoothie V1 in the config. We run a separate process to fast stream to the second serial port, while the first serial port is still connected to Smoopi and can monitor the temperature etc, and Kill if needed. Progress will be displayed in the status bar as usual.
+To use it we would add the following to the smoothiehost.ini (or via Settings)
+(For rpi or Linux, windows it will be a COMn: port)
+
+```fast_stream_cmd = python3 -u comms.py serial:///dev/ttyACM1 {file} -f -q```
 
 ## Install on RPI
 

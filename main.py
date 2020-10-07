@@ -50,6 +50,7 @@ from tool_scripts import ToolScripts
 from notify import Notify
 
 import subprocess
+import threading
 import traceback
 import queue
 import math
@@ -603,7 +604,7 @@ class MainWindow(BoxLayout):
         Logger.info('MainWindow: printing file: {}'.format(file_path))
 
         try:
-            self.nlines = Comms.file_len(file_path, self.app.fast_stream)  # get number of lines so we can do progress and ETA
+            self.nlines = Comms.file_len(file_path, False)  # get number of lines so we can do progress and ETA
             Logger.debug('MainWindow: number of lines: {}'.format(self.nlines))
         except Exception:
             Logger.warning('MainWindow: exception in file_len: {}'.format(traceback.format_exc()))
@@ -611,8 +612,6 @@ class MainWindow(BoxLayout):
 
         self.start_print_time = datetime.datetime.now()
         self.display('>>> Running file: {}, {} lines'.format(file_path, self.nlines))
-        if self.app.fast_stream:
-            self.display('>>> Using fast stream')
 
         if self.app.comms.stream_gcode(file_path, progress=lambda x: self.display_progress(x)):
             self.display('>>> Run started at: {}'.format(self.start_print_time.strftime('%x %X')))
@@ -682,13 +681,16 @@ class MainWindow(BoxLayout):
         self.display(">>> Elapsed time: {}".format(et))
         self.eta = '--:--:--'
         self.is_printing = False
+        self.app.comms.fast_stream = False
 
     def _upload_gcode(self, file_path, dir_path):
         if not file_path:
             return
 
+        # use built-in fast stream for uploads
+        fast_stream = True
         try:
-            self.nlines = Comms.file_len(file_path, self.app.fast_stream)  # get number of lines so we can do progress and ETA
+            self.nlines = Comms.file_len(file_path, fast_stream)  # get number of lines so we can do progress and ETA
             Logger.debug('MainWindow: number of lines: {}'.format(self.nlines))
         except Exception:
             Logger.warning('MainWindow: exception in file_len: {}'.format(traceback.format_exc()))
@@ -697,14 +699,62 @@ class MainWindow(BoxLayout):
         self.start_print_time = datetime.datetime.now()
         self.display('>>> Uploading file: {}, {} lines'.format(file_path, self.nlines))
 
+        # set fast stream mode if requested
+        self.app.comms.fast_stream = fast_stream
+
         if not self.app.comms.upload_gcode(file_path, progress=lambda x: self.display_progress(x), done=self._upload_gcode_done):
             self.display('WARNING Unable to upload file')
             return
         else:
             self.is_printing = True
 
+    def fast_stream_gcode(self):
+        # get file to fast stream
+        f = Factory.filechooser()
+        f.open(self.last_path, cb=self._fast_stream_gcode)
+
+    def _fast_stream_gcode(self, file_path, dir_path):
+        if file_path and self.app.fast_stream_cmd:
+            cmd = self.app.fast_stream_cmd.replace("{file}", file_path)
+            t = threading.Thread(target=self._fast_stream_thread, daemon=True, args=(cmd,))
+            t.start()
+
+    def _fast_stream_thread(self, cmd):
+        # execute the command
+        self.async_display("External Fast stream > {}".format(cmd))
+        # p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # result, err = p.communicate()
+        # for l in result.splitlines():
+        #     self.async_display(l)
+        # for l in err.splitlines():
+        #     self.async_display(l)
+        # if p.returncode != 0:
+        #     self.async_display("error return code: {}".format(p.returncode))
+
+        self.start_print_time = datetime.datetime.now()
+        with subprocess.Popen(cmd, shell=True, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True) as p:
+            while True:
+                s = p.stdout.readline()
+                if not s:
+                    break
+                s = s.rstrip()
+                if s.startswith('progress: '):
+                    # progress: {},{}".format(n, nlines)
+                    s = s[10:]
+                    n, nlines = s.split(',')
+                    self.nlines = int(nlines)
+                    self.display_progress(int(n))
+                else:
+                    self.async_display(s)
+
+        self.display_progress(0)
+
     @mainthread
     def display_progress(self, n):
+        if n == 0:
+            self.eta = '--:--:--'
+            return
+
         if self.nlines and n <= self.nlines:
             now = datetime.datetime.now()
             d = (now - self.start_print_time).seconds
@@ -715,7 +765,6 @@ class MainWindow(BoxLayout):
             else:
                 eta = 0
 
-            # print("progress: {}/{} {:.1%} ETA {}".format(n, nlines, n/nlines, et))
             self.eta = '{} | {:.1%} | L{}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n / self.nlines, n)
 
         self.last_line = n
@@ -874,7 +923,7 @@ class SmoothieHost(App):
     manual_tool_change = BooleanProperty(False)
     is_v2 = BooleanProperty(True)
     wait_on_m0 = BooleanProperty(False)
-    fast_stream = BooleanProperty(False)
+    fast_stream_cmd = StringProperty("")
 
     # Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
@@ -901,7 +950,7 @@ class SmoothieHost(App):
             'blank_timeout': '0',
             'manual_tool_change': 'false',
             'wait_on_m0': 'false',
-            'fast_stream': 'false',
+            'fast_stream_cmd': 'python3 -u comms.py serial:///dev/ttyACM1 {file} -f -q',
             'v2': 'false',
             'is_spindle_camera': 'false',
             'notify_email': 'false'
@@ -1009,11 +1058,11 @@ class SmoothieHost(App):
                   "key": "v2"
                 },
 
-                { "type": "bool",
-                  "title": "Fast Stream",
-                  "desc": "Allow fast stream",
+                { "type": "string",
+                  "title": "Fast Stream Command",
+                  "desc": "Fast Stream command line",
                   "section": "General",
-                  "key": "fast_stream"
+                  "key": "fast_stream_cmd"
                 },
 
                 { "type": "bool",
@@ -1070,7 +1119,7 @@ class SmoothieHost(App):
         settings.add_json_panel('Smoopi application', self.config, data=jsondata)
 
     def on_config_change(self, config, section, key, value):
-        print("config changed: {} - {}: {}".format(section, key, value))
+        # print("config changed: {} - {}: {}".format(section, key, value))
         token = (section, key)
         if token == ('UI', 'cnc'):
             was_cnc = self.is_cnc
@@ -1095,8 +1144,9 @@ class SmoothieHost(App):
             self.wait_on_m0 = value == '1'
         elif token == ('Web', 'camera_url'):
             self.camera_url = value
-        elif token == ('General', 'fast_stream'):
-            self.fast_stream = value == '1'
+        elif token == ('General', 'fast_stream_cmd'):
+            self.fast_stream_cmd = value
+
         elif token == ('General', 'notify_email'):
             self.notify_email = value == '1'
         else:
@@ -1189,7 +1239,7 @@ class SmoothieHost(App):
             # load the layouts for rpi 7" touch screen
             Builder.load_file('rpi.kv')
 
-        self.fast_stream = self.config.getboolean('General', 'fast_stream')
+        self.fast_stream_cmd = self.config.get('General', 'fast_stream_cmd')
         self.notify_email = self.config.getboolean('General', 'notify_email')
         self.is_cnc = self.config.getboolean('UI', 'cnc')
         self.tab_top = self.config.getboolean('UI', 'tab_top')

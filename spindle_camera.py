@@ -191,7 +191,7 @@ class SpindleCamera(Screen):
         # we run it as a separate program so it is in its own window
         # and we capture stdout to pass onto smoothie
         # print("SpindleCamera: standalone thread started")
-        with subprocess.Popen(['python3', 'spindle_camera.py'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True) as p:
+        with subprocess.Popen(['python3', '-u', 'spindle_camera.py'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True) as p:
             while True:
                 s = p.stdout.readline()
                 if not s:
