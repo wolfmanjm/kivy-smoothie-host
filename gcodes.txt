@@ -46,7 +46,7 @@ M21 | Initialize the SD card
 M23 | Select a file
 M24 | Start or resume SD card print
 M25 | Pause SD card print
-M26 | Abort a SD card print
+M26 | Reset a SD card print
 M27 | Report print progress
 M28 | Begin write to SD card
 M29 | End write to SD card

@@ -338,7 +338,7 @@ class KbdWidget(GridLayout):
 class MainWindow(BoxLayout):
     status = StringProperty('Idle')
     wpos = ListProperty([0, 0, 0])
-    eta = StringProperty('--:--:--')
+    eta = StringProperty('Not Streaming')
     is_printing = BooleanProperty(False)
     is_suspended = BooleanProperty(False)
 
@@ -351,6 +351,7 @@ class MainWindow(BoxLayout):
         self.last_path = self.config.get('General', 'last_gcode_path')
         self.paused = False
         self.last_line = 0
+        self.is_sdprint = False
 
         # print('font size: {}'.format(self.ids.log_window.font_size))
         # Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
@@ -463,6 +464,22 @@ class MainWindow(BoxLayout):
 
         if 'L' in d:
             self.app.lp = d['L'][0]
+
+        if 'SD' in d:
+            rt = datetime.timedelta(seconds=int(d['SD'][0]))
+            self.eta = 'SD: {} {}%'.format(rt, d['SD'][1])
+            if not self.is_sdprint:
+                self.is_sdprint = True
+                self.is_printing = True
+                self.paused = False
+                self.ids.print_but.text = 'Pause'
+
+        else:
+            if self.is_sdprint:
+                self.eta = 'Not Streaming'
+                self.is_sdprint = False
+                self.is_printing = False
+                self.ids.print_but.text = 'Run'
 
         if not self.app.is_cnc:
             # extract temperature readings and update the extruder property
@@ -662,7 +679,7 @@ class MainWindow(BoxLayout):
         self.display(">>> Run ended at : {}, last Z: {}, last line: {}".format(now.strftime('%x %X'), self.wpos[2], self.last_line))
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
         self.display(">>> Elapsed time: {}".format(et))
-        self.eta = '--:--:--'
+        self.eta = 'Not Streaming'
         if self.app.notify_email:
             notify = Notify()
             notify.send('Run finished {}, last Z: {}, last line: {}'.format('ok' if ok else 'abnormally', self.wpos[2], self.last_line))
@@ -679,7 +696,7 @@ class MainWindow(BoxLayout):
         self.display('>>> Upload finished {}'.format('ok' if ok else 'abnormally'))
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
         self.display(">>> Elapsed time: {}".format(et))
-        self.eta = '--:--:--'
+        self.eta = 'Not Streaming'
         self.is_printing = False
         self.app.comms.fast_stream = False
 
@@ -752,7 +769,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def display_progress(self, n):
         if n == 0:
-            self.eta = '--:--:--'
+            self.eta = 'Not Streaming'
             return
 
         if self.nlines and n <= self.nlines:
@@ -765,7 +782,7 @@ class MainWindow(BoxLayout):
             else:
                 eta = 0
 
-            self.eta = '{} | {:.1%} | L{}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n / self.nlines, n)
+            self.eta = 'ETA: {} | {:.1%} | L{}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n / self.nlines, n)
 
         self.last_line = n
 

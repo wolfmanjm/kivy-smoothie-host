@@ -580,7 +580,18 @@ class Comms():
 
     def stream_pause(self, pause, do_abort=False):
         ''' called from external thread to pause or kill in process streaming '''
-        async_main_loop.call_soon_threadsafe(self._stream_pause, pause, do_abort)
+        if self.app.main_window.is_sdprint:
+            if do_abort:
+                self.write("abort\n")
+            elif pause:
+                self.write("M25\n")
+                self.app.main_window.action_paused(True)
+            else:
+                self.write("M24\n")
+                self.app.main_window.action_paused(False)
+
+        else:
+            async_main_loop.call_soon_threadsafe(self._stream_pause, pause, do_abort)
 
     def _stream_pause(self, pause, do_abort):
         if self.file_streamer:
