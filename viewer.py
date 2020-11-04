@@ -319,12 +319,13 @@ class GcodeViewerScreen(Screen):
                 ln = f.readline()
                 if not ln:
                     break
+                Logger.debug("GcodeViewerScreen: {}".format(ln))
 
                 cnt += 1
                 ln = ln.strip()
                 if not ln:
                     continue
-                if ln.startswith(';'):
+                if ln.startswith(';') or ln.startswith('#'):
                     continue
                 if ln.startswith('('):
                     continue
@@ -889,9 +890,9 @@ if __name__ == '__main__':
             self.sm.add_widget(ExitScreen(name='main'))
             self.sm.current = 'gcode'
 
-            # level = LOG_LEVELS.get('debug') if len(sys.argv) > 2 else LOG_LEVELS.get('info')
-            # Logger.setLevel(level=level)
-            # logging.getLogger().setLevel(logging.DEBUG)
+            level = LOG_LEVELS.get('debug') if len(sys.argv) > 2 else LOG_LEVELS.get('info')
+            Logger.setLevel(level=level)
+            logging.getLogger().setLevel(level)
             return self.sm
 
     GcodeViewerApp().run()
