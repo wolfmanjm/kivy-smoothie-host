@@ -238,9 +238,23 @@ class MacrosWidget(StackLayout):
 
     def _exec_script(self, cmd, io):
         # TODO should add substituted args as in macro buttons
-        # needs to be run in a thread
-        t = threading.Thread(target=self._script_thread, daemon=True, args=(cmd, io,))
-        t.start()
+
+        if '{file}' in cmd:
+            # replace {file} with a selected file name
+            f = Factory.filechooser()
+            f.open(self.app.main_window.last_path, cb=partial(self._exec_script_substitute_file_name, cmd, io))
+
+        else:
+            # needs to be run in a thread
+            t = threading.Thread(target=self._script_thread, daemon=True, args=(cmd, io,))
+            t.start()
+
+    def _exec_script_substitute_file_name(self, cmd, io, file_path, dir_path):
+        if file_path and cmd:
+            cmd = cmd.replace("{file}", file_path)
+            # needs to be run in a thread
+            t = threading.Thread(target=self._script_thread, daemon=True, args=(cmd, io,))
+            t.start()
 
     def _send_it(self, p, x):
         p.stdin.write("{}\n".format(x))

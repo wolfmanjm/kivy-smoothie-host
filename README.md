@@ -127,7 +127,7 @@ Samsung Evo+ are also supposed to be very fast in an RPI.
 The last line is quite important otherwise you get a whole lot of ok's echoed back to smoothie when it opens. This does not appear to be needed on a desktop probably due to the speed it is setup vs the rpi.
 
 ### Image
-For RPI  and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else.
+For RPI 3a and 3b and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else.
 
 Download from http://smoothieware.org/_media/bin/smoopi_img2.zip
 unzip and image the resulting .img to an sdcard using for instance https://www.balena.io/etcher/ which can image direct from the .zip file.
@@ -159,7 +159,9 @@ Once running use the System menu upgrade to fetch the latest smoopi. If that is 
 
 ### Rasbian/Debian Stretch on RPI
 
-(Tested on genuine RPI 7" multitouch screen and external HDMI LCD monitor).
+(Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
+
+(This may work on older RPI versions but is not tested, please read this https://www.raspberrypi.org/documentation/hardware/display/legacy.md).
 
 Install the latest raspbian stretch lite... (No XWindows)
 http://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
@@ -295,7 +297,7 @@ To allow Smoopi to turn on/off the backlight you need to do this...
 NOTE the default is for no blanking, there is a setting under the settings menu that allows you to set the timeout for blanking the screen, it is initially set to 0 which is no blanking. If it blanks then touching the screen will unblank it.
 
 ### Builtin webserver and optional camera
-In Settings you can turn on the webserver which will simply allow you to get current progress from any web browser, nothing fancy.
+In Settings you can turn on the webserver (at port 8000) which will simply allow you to get current progress from any web browser, nothing fancy.
 Also in Settings you can enable the video option which uses mjpg-streamer 
 (which needs to be built and installed, See https://github.com/jacksonliam/mjpg-streamer.git for instructions on that). If enabled and running then the video will show up in the progress web page.
 There is also a camera option in the system menu which allows a preview of the camera view. The url for the camera is in the settings, and should be the url which gets a video stream from the camera. If the camera is local it should be set to '''localhost''' which will get replaced with the actual IP when a remote browser requests it. (The default '''http://localhost:8080/?action=stream''' is to get the frame from the locally running mjpg-streamer, but can actually be any URL of any webcam that can stream mjpg video).

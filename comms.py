@@ -317,6 +317,8 @@ class Comms():
             d['FIRMWARE_NAME'] = 'UNKNOWN'
         if 'FIRMWARE_VERSION' not in d:
             d['FIRMWARE_VERSION'] = 'UNKNOWN'
+        if 'PROTOCOL_VERSION' not in d:
+            d['PROTOCOL_VERSION'] = '1.0'
 
         self.log.info("Comms: Firmware: {}, Version: {}, CNC: {}".format(d['FIRMWARE_NAME'], d['FIRMWARE_VERSION'], 'Yes' if d['X-CNC'] == '1' else 'No'))
         self.app.main_window.async_display(s)
