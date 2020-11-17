@@ -241,6 +241,7 @@ class Comms():
             self.ipaddress = ip[0]
             self.log.info('Comms: Connecting to Network at {} port {}'.format(self.ipaddress, self.port))
             serial_conn = loop.create_connection(sc_factory, self.ipaddress, self.port)
+            # TODO should we set self.ping_pong to False here? (Only if V1)
 
         elif self.port.startswith('serial://'):
             sc_factory = functools.partial(SerialConnection, cb=self, f=f)  # uses partial so we can pass a parameter

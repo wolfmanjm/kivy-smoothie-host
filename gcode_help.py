@@ -25,6 +25,7 @@ Builder.load_string('''
 
 <GcodeHelp>:
     rv: rv
+    on_enter: root.populate('G')
     BoxLayout:
         canvas:
             Color:

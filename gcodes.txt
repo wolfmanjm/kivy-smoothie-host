@@ -5,7 +5,7 @@ G3 | Counter-clockwise motion
 G4 | Dwell S<seconds> or P<milliseconds or float seconds(grbl)>
 G10 | Do firmware extruder retract
 G11 | Do firmware extruder un-retract
-G10 Ln | Set workspace coordinates n is 2 or 20, Pn is WCS
+G10 Ln | n is 2 or 20 set workspace coordinates, Pw is WCS, n is 1 set tool offset Pt is the tool to set
 G17 | Select XYZ plane
 G18 | Select XZY plane
 G19 | Select YZX plane
