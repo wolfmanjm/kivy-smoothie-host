@@ -221,6 +221,7 @@ class MPGWidget(RelativeLayout):
 
 class CircularButton(ButtonBehavior, Widget):
     text = StringProperty()
+    font_size = NumericProperty('15sp')
 
     def collide_point(self, x, y):
         return Vector(x, y).distance(self.center) <= self.width / 2
@@ -302,6 +303,9 @@ class JogRoseWidget(BoxLayout):
 
     def motors_off(self):
         self.app.comms.write('M18\n')
+
+    def safe_z(self):
+        self.app.comms.write('$J Z20\n')
 
 
 class KbdWidget(GridLayout):

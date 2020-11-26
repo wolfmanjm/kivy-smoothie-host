@@ -8,6 +8,7 @@
     Label:
         pos: root.pos
         size: root.size
+        font_size: root.font_size
         color: [1,0,0,1]
         text: root.text
 
@@ -226,10 +227,18 @@
 
         CircularButton:
             pos_hint: {'center_x': 0.72, 'center_y': 0.1}
-            text: 'Motors Off'
+            text: 'Motors\n   Off'
+            font_size: '14sp'
             size_hint: None, None
-            size: 80, 40
+            size: 55, 55
             on_press: root.motors_off()
+
+        CircularButton:
+            pos_hint: {'center_x': 0.72, 'center_y': 0.28}
+            text: 'Safe Z'
+            size_hint: None, None
+            size: 55, 55
+            on_press: root.safe_z()
 
         BoxLayout:
             id: abc_panel
