@@ -24,6 +24,8 @@ G31 | Depends on levelling strategy selected,
 G32 | Execute current levelling strategy or for delta do trim calibration
 G38.2 | Standard probe in direction XYZ, halt on error
 G38.3 | Standard probe in direction XYZ
+G38.4 | probe away from work in direction XYZ, halt on error
+G38.5 | probe away from work in direction XYZ
 G43.1 | set tool offset increment
 G43.2 | set tool offset increment and move
 G49 | clear tool offset

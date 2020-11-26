@@ -89,19 +89,19 @@
             ArrowButton:
                 size_hint: None, None
                 size: 50, 50
-                text: '{}+10'.format(root.abc_sel)
-                angle: 0
-                on_press: root.handle_action(root.abc_sel, 10)
-            Button:
-                size_hint: None, None
-                size: 50, 50
                 text: '{}+1'.format(root.abc_sel)
+                angle: 0
                 on_press: root.handle_action(root.abc_sel, 1)
             Button:
                 size_hint: None, None
                 size: 50, 50
                 text: '{}+0.1'.format(root.abc_sel)
                 on_press: root.handle_action(root.abc_sel, 0.1)
+            Button:
+                size_hint: None, None
+                size: 50, 50
+                text: '{}+0.01'.format(root.abc_sel)
+                on_press: root.handle_action(root.abc_sel, 0.01)
 
         MyGridV:
             pos_hint: {'right': 1.0, 'center_y': 0.27}
@@ -110,19 +110,19 @@
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: '{}-0.1'.format(root.abc_sel)
-                on_press: root.handle_action(root.abc_sel, -0.1)
+                text: '{}-0.01'.format(root.abc_sel)
+                on_press: root.handle_action(root.abc_sel, -0.01)
             Button:
                 size_hint: None, None
                 size: 50, 50
-                text: '{}-1'.format(root.abc_sel)
-                on_press: root.handle_action(root.abc_sel, -1)
+                text: '{}-0.1'.format(root.abc_sel)
+                on_press: root.handle_action(root.abc_sel, -0.1)
             ArrowButton:
                 size_hint: None, None
                 size: 50, 50
-                text: '{}-10'.format(root.abc_sel)
+                text: '{}-1'.format(root.abc_sel)
                 angle: 180
-                on_press: root.handle_action(root.abc_sel, -10)
+                on_press: root.handle_action(root.abc_sel, -1)
 
         MyGridV:
             pos_hint: {'center_x': 0.5, 'top': 1.0}
