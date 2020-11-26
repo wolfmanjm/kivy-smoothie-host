@@ -305,7 +305,7 @@ class JogRoseWidget(BoxLayout):
         self.app.comms.write('M18\n')
 
     def safe_z(self):
-        self.app.comms.write('$J Z20\n')
+        self.app.comms.write('$J Z20 S{}\n'.format(self._get_speed()))
 
 
 class KbdWidget(GridLayout):
