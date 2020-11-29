@@ -74,7 +74,7 @@ Builder.load_string('''
 class GcodeHelp(Screen):
     def populate(self, type):
         self.rv.data = []
-        fn = 'gcodes.txt'
+        fn = '{}/gcodes.txt'.format(App.get_running_app().running_directory)
         try:
             with open(fn) as f:
                 for line in f:
@@ -86,7 +86,7 @@ class GcodeHelp(Screen):
                         d = c[1].strip()
                         self.rv.data.append({'gcode': g, 'desc': d})
         except Exception:
-            Logger.error("GcodeHelp: Can't open gcodes.txt")
+            Logger.error("GcodeHelp: Can't open {}".format(fn))
 
     def close(self):
         self.rv.data = []

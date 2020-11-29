@@ -961,6 +961,7 @@ class SmoothieHost(App):
         self.desktop_changed = False
         self.command_history = None
         self.notify_email = False
+        self.running_directory = os.path.dirname(os.path.realpath(__file__))
 
     def build_config(self, config):
         config.setdefaults('General', {

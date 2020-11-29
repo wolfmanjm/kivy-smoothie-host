@@ -56,23 +56,21 @@ class MacrosWidget(StackLayout):
 
     def _load_user_buttons(self, *args):
         # load user defined macros
-        fn = None
         if self.app.is_cnc:
-            # check to see if we have a macros-cnc.ini if so use it
-            if os.path.isfile('macros-cnc.ini') and os.access('macros-cnc.ini', os.R_OK):
-                fn = 'macros-cnc.ini'
-        if fn is None:
-            fn = 'macros.ini'
+            self.macro_file = '{}/macros-cnc.ini'.format(self.app.running_directory)
+            if not (os.path.isfile(self.macro_file) and os.access(self.macro_file, os.R_OK)):
+                self.macro_file = '{}/macros.ini'.format(self.app.running_directory)
 
-        if not (os.path.isfile(fn) and os.access(fn, os.R_OK)):
+        else:
+            self.macro_file = '{}/macros.ini'.format(self.app.running_directory)
+
+        if not (os.path.isfile(self.macro_file) and os.access(self.macro_file, os.R_OK)):
             Logger.info("MacrosWidget: no user defined macros file to load")
             return
 
-        self.macro_file = fn
-
         try:
             config = configparser.ConfigParser()
-            config.read(fn)
+            config.read(self.macro_file)
 
             # add toggle button handling switch states
             for section in config.sections():
