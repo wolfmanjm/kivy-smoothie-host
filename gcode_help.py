@@ -3,6 +3,7 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.logger import Logger
 
 Builder.load_string('''
 <GCHRow@BoxLayout>:
@@ -73,15 +74,19 @@ Builder.load_string('''
 class GcodeHelp(Screen):
     def populate(self, type):
         self.rv.data = []
-        with open('gcodes.txt') as f:
-            for line in f:
-                if line[0] == type or (type == ' ' and line[0].islower()):
-                    c = line.split(' | ')
-                    if len(c) < 2:
-                        continue
-                    g = c[0].strip()
-                    d = c[1].strip()
-                    self.rv.data.append({'gcode': g, 'desc': d})
+        fn = 'gcodes.txt'
+        try:
+            with open(fn) as f:
+                for line in f:
+                    if line[0] == type or (type == ' ' and line[0].islower()):
+                        c = line.split(' | ')
+                        if len(c) < 2:
+                            continue
+                        g = c[0].strip()
+                        d = c[1].strip()
+                        self.rv.data.append({'gcode': g, 'desc': d})
+        except Exception:
+            Logger.error("GcodeHelp: Can't open gcodes.txt")
 
     def close(self):
         self.rv.data = []

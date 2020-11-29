@@ -27,6 +27,8 @@ An RPI with 7" touch screen is about the same price as the better LCD panels, an
 
 ## Usage
 
+Run as ```python3 main.py``` and it MUST be run from the smoopi directory.
+
 To select the port to connect to click the System menu and select Port, then select the serial port from the list, or for a network connection select Network...
 then enter the host or ip optionally followed by the port :23 (23 is the default if not specified), eg smoothieip or 192.168.0.2:23 (NOTE network communication is not well tested).
 Once you have selected a port to connect to it is saved in the ini file, and you can then click the connect menu item to connect.
