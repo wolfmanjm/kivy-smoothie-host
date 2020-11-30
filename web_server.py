@@ -63,7 +63,7 @@ def make_request_handler_class(app, ip):
                     self.wfile.write("<html>\r\n".encode("utf-8"))
                     self.wfile.write('<head><meta http-equiv="refresh" content="5"></head><body>\r\n'.encode("utf-8"))
 
-                    self.wfile.write("{} - Z: {}, ETA: {}, File: {}".format(status, wpos[2], eta, file).encode("utf-8"))
+                    self.wfile.write("{} - Z: {}, {}, File: {}".format(status, wpos[2], eta, file).encode("utf-8"))
                     self.wfile.write("</body></html>\r\n".encode("utf-8"))
                 else:
                     self.wfile.write("{} - Not Running".format(status).encode("utf-8"))
