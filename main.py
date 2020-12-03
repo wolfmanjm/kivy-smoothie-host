@@ -1235,8 +1235,12 @@ class SmoothieHost(App):
         # load the layouts for the desktop screen
         if self.is_desktop == 1:
             Builder.load_file('desktop.kv')
-            if self.config.get('UI', 'screen_size') == 'auto':
-                Window.size = (1024, 768)
+            s = self.config.get('UI', 'screen_size')
+            if s == 'auto':
+                Window.size = (1024, 600)
+            elif 'x' in s:
+                (w, h) = s.split('x')
+                Window.size = (int(w), int(h))
 
         elif self.is_desktop == 2 or self.is_desktop == 3:
             Builder.load_file('desktop_large.kv' if self.is_desktop == 2 else 'desktop_wide.kv')
@@ -1255,9 +1259,8 @@ class SmoothieHost(App):
             Window.bind(on_request_close=self.window_request_close)
 
         elif self.is_desktop == 4:
-            # for full screen xwindows on a small LCD
+            # for full screen xwindows on a small screen (1024x600)
             Builder.load_file('desktop.kv')
-            Window.size = (1024, 600)
 
         else:
             self.is_desktop = 0
