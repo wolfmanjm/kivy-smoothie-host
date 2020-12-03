@@ -117,7 +117,6 @@
         # Left panel
         orientation: 'horizontal'
         BoxLayout:
-            size_hint_x: 0.5
             orientation: 'vertical'
             RecycleView:
                 id: log_window
@@ -143,6 +142,57 @@
                 height: self.minimum_height
                 font_size: '20sp'
                 on_text_validate: app.command_input(self.text); self.text= ''; app._refocus_text_input()
+
+            MacrosWidget:
+                id: macros
+
+        BoxLayout:
+            # right Panel
+            orientation: 'vertical'
+            TabbedPanel:
+                id: tabs
+                do_default_tab: False
+                tab_pos: 'top_mid' if app.tab_top else 'bottom_mid'
+                jog_rose: jog_rose
+                extruder_tab: extruder_tab
+
+                TabbedPanelItem:
+                    id: jog
+                    text: 'jog'
+                    JogRoseWidget:
+                        id: jog_rose
+                        disabled: root.is_printing and not root.is_suspended
+
+                TabbedPanelItem:
+                    id: dro
+                    text: 'DRO'
+                    DROWidget:
+                        id: dro_widget
+
+                TabbedPanelItem:
+                    id: mpg
+                    text: 'MPG'
+                    MPGWidget:
+                        id: mpg_widget
+
+                TabbedPanelItem:
+                    id: extruder_tab
+                    text: 'extruder'
+                    ExtruderWidget:
+                        id: extruder
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: 45
+                Button:
+                    text: 'Run Last File'
+                    disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
+                    on_press: app.main_window.reprint()
+                Button:
+                    text: 'View Last File'
+                    disabled: app.gcode_file == ''
+                    on_press: app.main_window.review()
 
             BoxLayout:
                 orientation: 'horizontal'
@@ -170,56 +220,21 @@
                     size_hint_x: None
                     width: status.texture_size[0]
                     color: 0,0,0,1
+
+            BoxLayout:
+                canvas.before:
+                    Color:
+                        rgba: 1,1,1,1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                size_hint_y: None
+                size: status.texture_size
                 Label:
                     id: eta
                     text: root.eta
                     color: 0,0,0,1
 
-        Splitter:
-            # Right panel
-            max_size: 700
-            min_size: 400
-            size_hint_x: None
-            width: 500
-            #on_release: print('{}'.format(self.size))
-
-            BoxLayout:
-                orientation: 'vertical'
-                TabbedPanel:
-                    id: tabs
-                    do_default_tab: False
-                    tab_pos: 'top_mid' if app.tab_top else 'bottom_mid'
-                    jog_rose: jog_rose
-                    extruder_tab: extruder_tab
-
-                    TabbedPanelItem:
-                        id: jog
-                        text: 'jog'
-                        JogRoseWidget:
-                            id: jog_rose
-                            disabled: root.is_printing and not root.is_suspended
-
-                    TabbedPanelItem:
-                        id: dro
-                        text: 'DRO'
-                        DROWidget:
-                            id: dro_widget
-
-                    TabbedPanelItem:
-                        id: mpg
-                        text: 'MPG'
-                        MPGWidget:
-                            id: mpg_widget
-
-                    TabbedPanelItem:
-                        id: extruder_tab
-                        text: 'extruder'
-                        ExtruderWidget:
-                            id: extruder
-
-                MacrosWidget:
-                    size_hint_y: 0.45
-                    id: macros
 
 
 

@@ -1238,23 +1238,26 @@ class SmoothieHost(App):
             if self.config.get('UI', 'screen_size') == 'auto':
                 Window.size = (1024, 768)
 
-        elif self.is_desktop == 2 or self.is_desktop == 3 or self.is_desktop == 4:
+        elif self.is_desktop == 2 or self.is_desktop == 3:
             Builder.load_file('desktop_large.kv' if self.is_desktop == 2 else 'desktop_wide.kv')
-            if self.is_desktop != 4:
-                # because rpi_egl does not like to be told the size
-                s = self.config.get('UI', 'screen_size')
-                if s == 'auto':
-                    Window.size = (1280, 1024) if self.is_desktop == 2 else (1280, 800)
-                elif 'x' in s:
-                    (w, h) = s.split('x')
-                    Window.size = (int(w), int(h))
+            s = self.config.get('UI', 'screen_size')
+            if s == 'auto':
+                Window.size = (1280, 1024) if self.is_desktop == 2 else (1280, 800)
+            elif 'x' in s:
+                (w, h) = s.split('x')
+                Window.size = (int(w), int(h))
 
-                p = self.config.get('UI', 'screen_pos')
-                if p != 'none' and p != 'auto' and ',' in p:
-                    (t, l) = p.split(',')
-                    Window.top = int(t)
-                    Window.left = int(l)
+            p = self.config.get('UI', 'screen_pos')
+            if p != 'none' and p != 'auto' and ',' in p:
+                (t, l) = p.split(',')
+                Window.top = int(t)
+                Window.left = int(l)
             Window.bind(on_request_close=self.window_request_close)
+
+        elif self.is_desktop == 4:
+            # for full screen xwindows on a small LCD
+            Builder.load_file('desktop.kv')
+            Window.size = (1024, 600)
 
         else:
             self.is_desktop = 0
