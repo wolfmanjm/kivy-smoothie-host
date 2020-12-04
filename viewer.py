@@ -870,7 +870,7 @@ if __name__ == '__main__':
     class GcodeViewerApp(App):
         is_cnc = BooleanProperty(False)
         is_connected = BooleanProperty(False)
-        is_desktop = NumericProperty(2)
+        is_desktop = NumericProperty(3)
         wpos = ListProperty([0, 0, 0])
 
         def __init__(self, **kwargs):

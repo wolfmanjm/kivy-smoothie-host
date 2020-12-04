@@ -80,7 +80,7 @@ class NumericInput(TextInput):
         if v:
             self._last = self.text
             self.text = ""
-            if App.get_running_app().is_desktop == 0:
+            if App.get_running_app().is_desktop <= 1:
                 self.show_keyboard()
                 if self.keyboard and self.keyboard.widget:
                     self.keyboard.widget.layout = "numeric.json"
@@ -88,13 +88,13 @@ class NumericInput(TextInput):
         else:
             if self.text == "":
                 self.text = self._last
-            if App.get_running_app().is_desktop == 0:
+            if App.get_running_app().is_desktop <= 1:
                 if self.keyboard and self.keyboard.widget:
                     self.m_keyboard.layout = "qwerty"
                 self.hide_keyboard()
 
     def on_parent(self, widget, parent):
-        if App.get_running_app().is_desktop != 0:
+        if App.get_running_app().is_desktop > 1:
             return
         self.keyboard_mode = 'managed'
 
@@ -1012,7 +1012,7 @@ class SmoothieHost(App):
                   "desc": "Select Display layout, RPI is for 7in touch screen layout",
                   "section": "UI",
                   "key": "display_type",
-                  "options": ["RPI Touch", "Small Desktop", "Large Desktop", "Wide Desktop", "RPI Full Screen"]
+                  "options": ["RPI Touch", "RPI Full Screen", "Small Desktop", "Large Desktop", "Wide Desktop"]
                 },
 
                 { "type": "bool",
@@ -1200,7 +1200,7 @@ class SmoothieHost(App):
 
             self.config.write()
 
-        elif self.is_desktop == 2 or self.is_desktop == 3:
+        elif self.is_desktop >= 2:
             if self.config.get('UI', 'screen_size') != 'none':
                 # Window.size is automatically adjusted for density, must divide by density when saving size
                 self.config.set('UI', 'screen_size', "{}x{}".format(int(Window.size[0] / Metrics.density), int(Window.size[1] / Metrics.density)))
@@ -1224,29 +1224,26 @@ class SmoothieHost(App):
         lt = self.config.get('UI', 'display_type')
         dtlut = {
             "RPI Touch": 0,
-            "Small Desktop": 1,
-            "Large Desktop": 2,
-            "Wide Desktop": 3,
-            "RPI Full Screen": 4
+            "RPI Full Screen": 1,
+            "Small Desktop": 2,
+            "Large Desktop": 3,
+            "Wide Desktop": 4
         }
 
         self.is_desktop = dtlut.get(lt, 0)
 
-        # load the layouts for the desktop screen
+        # load the layouts
         if self.is_desktop == 1:
+            # for full screen xwindows on a small screen (1024x600)
             Builder.load_file('desktop.kv')
-            s = self.config.get('UI', 'screen_size')
-            if s == 'auto':
-                Window.size = (1024, 600)
-            elif 'x' in s:
-                (w, h) = s.split('x')
-                Window.size = (int(w), int(h))
+            Window.size = (1024, 600)
 
-        elif self.is_desktop == 2 or self.is_desktop == 3:
-            Builder.load_file('desktop_large.kv' if self.is_desktop == 2 else 'desktop_wide.kv')
+        elif self.is_desktop >= 2:
+            kvlut = {2: ('desktop.kv', (1024, 610)), 3: ('desktop_large.kv', (1280, 1024)), 4: ('desktop_wide.kv', (1280, 800))}
+            Builder.load_file(kvlut[self.is_desktop][0])
             s = self.config.get('UI', 'screen_size')
             if s == 'auto':
-                Window.size = (1280, 1024) if self.is_desktop == 2 else (1280, 800)
+                Window.size = kvlut[self.is_desktop][1]
             elif 'x' in s:
                 (w, h) = s.split('x')
                 Window.size = (int(w), int(h))
@@ -1257,10 +1254,6 @@ class SmoothieHost(App):
                 Window.top = int(t)
                 Window.left = int(l)
             Window.bind(on_request_close=self.window_request_close)
-
-        elif self.is_desktop == 4:
-            # for full screen xwindows on a small screen (1024x600)
-            Builder.load_file('desktop.kv')
 
         else:
             self.is_desktop = 0
@@ -1280,7 +1273,7 @@ class SmoothieHost(App):
 
         self.comms = Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file = self.config.get('General', 'last_print_file')
-        if self.is_desktop == 0:
+        if self.is_desktop <= 1:
             self.sm = ScreenManager(transition=NoTransition())
         else:
             self.sm = ScreenManager()
@@ -1297,7 +1290,7 @@ class SmoothieHost(App):
         self.gcode_help = GcodeHelp(name='gcode_help')
         self.sm.add_widget(self.gcode_help)
 
-        if self.is_desktop == 0:
+        if self.is_desktop <= 1:
             # RPI touch screen
             self.text_editor = TextEditor(name='text_editor')
             self.sm.add_widget(self.text_editor)
@@ -1309,10 +1302,15 @@ class SmoothieHost(App):
             self.sm.bind(on_touch_down=self._on_touch)
             Clock.schedule_interval(self._every_second, 1)
 
+            if self.is_desktop == 1:
+                # remove entry widget
+                self.main_window.ids.entry.focus = False
+                self.main_window.ids.blleft.remove_widget(self.main_window.ids.entry)
+
         # select the file chooser to use
         # select which one we want from config
         filechooser = self.config.get('UI', 'filechooser')
-        if self.is_desktop > 0:
+        if self.is_desktop > 1:
             if filechooser != 'default':
                 NativeFileChooser.type_name = filechooser
                 Factory.register('filechooser', cls=NativeFileChooser)
@@ -1329,16 +1327,20 @@ class SmoothieHost(App):
 
             # we want to capture arrow keys
             Window.bind(on_key_down=self._on_keyboard_down)
+            if self.is_desktop == 2:
+                # remove KBD tab
+                self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.console_tab)
+
         else:
             # use Kivy filechooser
             Factory.register('filechooser', cls=FileDialog)
 
         # setup for cnc or 3d printer
         if self.is_cnc:
-            if self.is_desktop < 3:
+            if self.is_desktop <= 3:
                 # remove Extruder panel from tabpanel and tab
                 self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.extruder_tab)
-            elif self.is_desktop == 3:
+            elif self.is_desktop == 4:
                 # remove from panel
                 self.main_window.ids.blright.remove_widget(self.main_window.ids.extruder_tab)
 
@@ -1356,7 +1358,7 @@ class SmoothieHost(App):
             self.main_window.tools_menu.add_widget(ActionButton(text='Web Cam', on_press=lambda x: self._show_web_cam()))
 
         if self.is_spindle_camera:
-            if self.is_desktop in [0, 4]:
+            if self.is_desktop <= 1:
                 try:
                     self.sm.add_widget(SpindleCamera(name='spindle camera'))
                 except Exception as err:

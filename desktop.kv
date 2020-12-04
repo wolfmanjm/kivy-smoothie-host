@@ -72,13 +72,9 @@
                     on_press: root.config_editor()
                     disabled: not app.is_connected or root.is_printing
                 ActionButton:
-                    text: 'Run Last File'
-                    disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
-                    on_press: app.main_window.reprint()
-                ActionButton:
-                    text: 'View Last File'
-                    disabled: app.gcode_file == ''
-                    on_press: app.main_window.review()
+                    text: 'Text Editor'
+                    on_press: root.text_editor()
+                    disabled: app.is_desktop > 1
                 ActionButton:
                     text: 'Upload GCode'
                     disabled: not app.is_connected or root.is_printing
@@ -87,6 +83,10 @@
                     text: 'Fast Stream'
                     disabled: root.is_printing or not app.fast_stream_cmd
                     on_press: app.main_window.fast_stream_gcode()
+                ActionButton:
+                    text: 'SD Print'
+                    disabled: not app.is_connected or root.is_printing
+                    on_press: app.main_window.list_sdcard()
                 ActionButton:
                     text: 'Find Center'
                     disabled: not app.is_connected or root.is_printing
@@ -103,20 +103,32 @@
                     text: 'Settings'
                     on_press: app.open_settings()
                 ActionButton:
+                    text: 'Blank Screen'
+                    on_press: app.blank_screen()
+                    disabled: app.is_desktop > 1
+                ActionButton:
                     text: 'Update'
                     on_press: root.do_update()
                 ActionButton:
                     text: 'Reload Macros'
                     on_press: app.main_window.ids.macros.reload()
+
+                ActionButton:
+                    text: 'Restart'
+                    on_press: root.ask_exit(True)
                 ActionButton:
                     text: 'Quit'
-                    on_press: root.ask_exit()
-
+                    on_press: root.ask_exit(False)
+                ActionButton:
+                    text: 'Shutdown'
+                    on_press: root.ask_shutdown()
+                    disabled: app.is_desktop > 1
 
     BoxLayout:
         # Left panel
         orientation: 'horizontal'
         BoxLayout:
+            id: blleft
             orientation: 'vertical'
             RecycleView:
                 id: log_window
@@ -155,6 +167,7 @@
                 tab_pos: 'top_mid' if app.tab_top else 'bottom_mid'
                 jog_rose: jog_rose
                 extruder_tab: extruder_tab
+                console_tab: console_tab
 
                 TabbedPanelItem:
                     id: jog
@@ -162,6 +175,12 @@
                     JogRoseWidget:
                         id: jog_rose
                         disabled: root.is_printing and not root.is_suspended
+
+                TabbedPanelItem:
+                    id: console_tab
+                    text: 'Console'
+                    KbdWidget:
+                        id: kbd_widget
 
                 TabbedPanelItem:
                     id: dro
