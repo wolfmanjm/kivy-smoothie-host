@@ -125,11 +125,12 @@
                     disabled: app.is_desktop > 1
 
     BoxLayout:
-        # Left panel
         orientation: 'horizontal'
         BoxLayout:
+            # Left panel
             id: blleft
             orientation: 'vertical'
+            size_hint_x: 0.6
             RecycleView:
                 id: log_window
                 viewclass: 'LogLabel'
@@ -161,10 +162,13 @@
         BoxLayout:
             # right Panel
             orientation: 'vertical'
+            size_hint_x: 0.4
+            spacing: 10
             TabbedPanel:
                 id: tabs
                 do_default_tab: False
                 tab_pos: 'top_mid' if app.tab_top else 'bottom_mid'
+                tab_width: 80
                 jog_rose: jog_rose
                 extruder_tab: extruder_tab
                 console_tab: console_tab
@@ -213,46 +217,50 @@
                     disabled: app.gcode_file == ''
                     on_press: app.main_window.review()
 
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: None
-                size: status.texture_size
-                canvas.before:
-                    Color:
-                        rgba: 1,1,1,1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                Label:
-                    id: status
-                    text: root.status
-                    color: 0,0,0,1
-                    size_hint_x: None
-                    width: status.texture_size[0]
-                Label:
-                    id: wpos
-                    text: 'X{:1.1f} Y{:1.1f} Z{:1.1f}'.format(*root.wpos)
-                    color: 0,0,0,1
-                Label:
-                    id: armi
-                    text: '{}|{}'.format('A' if app.is_abs else 'R', 'I' if app.is_inch else 'M')
-                    size_hint_x: None
-                    width: status.texture_size[0]
-                    color: 0,0,0,1
 
             BoxLayout:
-                canvas.before:
-                    Color:
-                        rgba: 1,1,1,1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                size_hint_y: None
-                size: status.texture_size
-                Label:
-                    id: eta
-                    text: root.eta
-                    color: 0,0,0,1
+                orientation: 'vertical'
+                size_hint_y: 0.1
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    size: status.texture_size
+                    canvas.before:
+                        Color:
+                            rgba: 1,1,1,1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        id: status
+                        text: root.status
+                        color: 0,0,0,1
+                        size_hint_x: None
+                        width: status.texture_size[0]
+                    Label:
+                        id: wpos
+                        text: 'X{:1.1f} Y{:1.1f} Z{:1.1f}'.format(*root.wpos)
+                        color: 0,0,0,1
+                    Label:
+                        id: armi
+                        text: '{}|{}'.format('A' if app.is_abs else 'R', 'I' if app.is_inch else 'M')
+                        size_hint_x: None
+                        width: status.texture_size[0]
+                        color: 0,0,0,1
+
+                BoxLayout:
+                    size_hint_y: None
+                    size: status.texture_size
+                    canvas.before:
+                        Color:
+                            rgba: 1,1,1,1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        id: eta
+                        text: root.eta
+                        color: 0,0,0,1
 
 
 
