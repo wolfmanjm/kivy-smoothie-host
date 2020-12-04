@@ -962,6 +962,7 @@ class SmoothieHost(App):
         self.command_history = None
         self.notify_email = False
         self.running_directory = os.path.dirname(os.path.realpath(__file__))
+        self.hdmi = False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -975,7 +976,8 @@ class SmoothieHost(App):
             'fast_stream_cmd': 'python3 -u comms.py serial:///dev/ttyACM1 {file} -f -q',
             'v2': 'false',
             'is_spindle_camera': 'false',
-            'notify_email': 'false'
+            'notify_email': 'false',
+            'hdmi': 'false'
         })
         config.setdefaults('UI', {
             'display_type': "RPI Touch",
@@ -1179,7 +1181,7 @@ class SmoothieHost(App):
         self.comms.stop()   # stop the aysnc loop
         if self.is_webserver:
             self.webserver.stop()
-        if self.blank_timeout > 0:
+        if self.blank_timeout > 0 and self._blanked:
             # unblank if blanked
             self.unblank_screen()
         # stop any loaded modules
@@ -1270,6 +1272,7 @@ class SmoothieHost(App):
         self.manual_tool_change = self.config.getboolean('General', 'manual_tool_change')
         self.wait_on_m0 = self.config.getboolean('General', 'wait_on_m0')
         self.is_v2 = self.config.getboolean('General', 'v2')
+        self.hdmi = self.config.getboolean('General', 'hdmi')
 
         self.comms = Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file = self.config.get('General', 'last_print_file')
@@ -1488,7 +1491,7 @@ class SmoothieHost(App):
         ''' called every second '''
 
         self.secs += 1
-        if self.blank_timeout > 0 and not self.main_window.is_printing:
+        if not self._blanked and self.blank_timeout > 0 and not self.main_window.is_printing:
             self.last_touch_time += 1
             if self.last_touch_time >= self.blank_timeout:
                 self.last_touch_time = 0
@@ -1496,16 +1499,22 @@ class SmoothieHost(App):
 
     def blank_screen(self):
         try:
-            with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
-                f.write('1\n')
+            if self.hdmi:
+                os.system("vcgencmd display_power 0")
+            else:
+                with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
+                    f.write('1\n')
             self._blanked = True
         except Exception:
             Logger.warning("SmoothieHost: unable to blank screen")
 
     def unblank_screen(self):
         try:
-            with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
-                f.write('0\n')
+            if self.hdmi:
+                os.system("vcgencmd display_power 1")
+            else:
+                with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
+                    f.write('0\n')
         except Exception:
             pass
 
