@@ -202,6 +202,8 @@ On an rpi3b+ (and better) it seems the double tap time needs to be increased to 
 Make sure that you run ```raspi-config``` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
 Make sure that under ```~/.kivy/config.ini``` in the ```[input]``` section that only ```mouse = mouse``` is set otherwise you will get multiple cursors and click events will go to unexpected places. 
 When running under XWindows the cursor module is not required nor are the hidinput input drivers.
+If you are using a USB based touch screen under XWindows you need to run smoopi full screen, and set ```mtdev_%(name)s = probesysfs,provider=mtdev``` only under the ```[input]``` section. If the resoulution is 1024x600 or better then the RPI Full Screen layout is preferable.
+It is preferable to set ```fullscreen = 1``` and ```show_cursor = 0``` in the ```~/.kivy/config.ini``` file under the ```[graphics]``` section.
 
 #### Keyboard and Mouse support when running from console (egl-rpi)
 Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. This HIDInput is broken in all the releases of Kivy older than 1.11.0. If using an older version of kivy you will need to replace the ```KIVYINSTALLDIR/kivy/input/providers/hidinput.py``` (on the image this would be ```/usr/local/lib/python3.5/dist-packages/kivy/input/providers/hidinput.py```)
@@ -289,14 +291,16 @@ The smoopi app will start, and will also start on boot. (To stop it you type ```
 Optionally to add a button to boot and to shutdown the rpi install a NORMALLY OPEN push button on pins 5 and 6 on the header, 
 then you need to add the shutdown script to autostart... ```sudo ln -s /home/pi/sv/shutdown /etc/service```. NOTE you may need a capacitor across the button to stop noise shutting down the system.
 
-### Backlight on RPI
-To allow Smoopi to turn on/off the backlight you need to do this...
+### Backlight on RPI Touchscreen
+To allow Smoopi to turn on/off the backlight of the official touch screen you need to do this...
 
     sudo nano /etc/udev/rules.d/backlight-permissions.rules
     and add this...
     SUBSYSTEM=="backlight",RUN+="/bin/chmod 666 /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power"
 
 NOTE the default is for no blanking, there is a setting under the settings menu that allows you to set the timeout for blanking the screen, it is initially set to 0 which is no blanking. If it blanks then touching the screen will unblank it.
+
+NOTE if you are using an HDMI touch screen then you do not need to do the permissions above, however you need to set ```hdmi = true``` under the ```[general]``` section of the ```smoothiehost.ini``` file.
 
 ### Builtin webserver and optional camera
 In Settings you can turn on the webserver (at port 8000) which will simply allow you to get current progress from any web browser, nothing fancy.
