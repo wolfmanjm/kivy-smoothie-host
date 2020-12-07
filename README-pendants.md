@@ -31,7 +31,7 @@ Then you need to do the following on the rpi...
 
 Then you will have the MPG/Pendant controller available for jogging etc.
 
-(NOTE you need the latest version of smoothieware dated greater than 1 October 2018 to support the $J command)
+(NOTE you need the latest version of smoothieware)
 
 ### HB04 wired USB (old one)
 Support for the wired LHB04 MACH3 USB pendant is available.
@@ -123,7 +123,7 @@ Plug in the WHB04B or the dongle and turn the unit on, then run smoopi.
 
 The Fn buttons (hold down Fn key) have hard coded actions to match the printed function.
 
-The other hard coded buttons are the ```step``` button which sets the mode to step mode (described below). The ```Continuous``` button sets continuous jog mode, and ```Fn Continuous``` will set the MPG jog mode which sets velociy mode for the wheel.
+The other hard coded buttons are the ```step``` button which sets the mode to step mode (described below). The ```Continuous``` button sets continuous jog mode, and ```Fn Continuous``` will set the MPG jog mode which sets velocity mode for the wheel.
 
 The Stop button will send a kill/halt (control X) to smoothie and the Reset will send ```$X``` to unkill.
 

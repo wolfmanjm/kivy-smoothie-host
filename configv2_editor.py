@@ -7,8 +7,6 @@ from kivy.uix.label import Label
 from kivy.logger import Logger
 from kivy.uix.screenmanager import ScreenManager, Screen
 
-from kivy.effects.dampedscroll import DampedScrollEffect
-
 from multi_input_box import MultiInputBox
 
 import json

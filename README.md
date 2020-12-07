@@ -21,7 +21,7 @@ The goal is to have a small touch screen host that can run a smoothie and is bet
 It is not meant to be a replacement for say Octoprint whose goals are different.
 A secondary goal is to have a decent smoothie aware desktop host to replace Pronterface and bCNC, that has good support for CNC tasks as well as 3D printing. The CNC goals are to allow setting of the WCS to a point on the workpiece, and move to points on the workpiece to check for placement etc.
 
-(*UPDATE* there is now a desktop layout setting that makes it more usable on a regular desktop, it has been tested on various linux machines but should run anywhere that python3 and kivy will run).
+(*UPDATE* there are several desktop layouts that make it more usable on a regular desktop that has a larger screen, it has been tested on various linux machines but should run anywhere that python3 and kivy will run).
 
 An RPI with 7" touch screen is about the same price as the better LCD panels, and makes a great standalone controller for a 3D printer.
 

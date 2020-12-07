@@ -1297,6 +1297,8 @@ class SmoothieHost(App):
             # RPI touch screen
             self.text_editor = TextEditor(name='text_editor')
             self.sm.add_widget(self.text_editor)
+            # disable overscroll
+            self.main_window.ids.log_window.effect_cls = 'ScrollEffect'
             self.main_window.ids.log_window.effect_y.friction = 1.0
 
             self.blank_timeout = self.config.getint('General', 'blank_timeout')
