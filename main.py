@@ -916,6 +916,10 @@ class MainWindow(BoxLayout):
         self.app.text_editor.open(file_path)
         self.app.sm.current = 'text_editor'
 
+    def on_previous(self):
+        if self.app.is_desktop >= 1:
+            Window.minimize()
+
 
 class MainScreen(Screen):
     pass
