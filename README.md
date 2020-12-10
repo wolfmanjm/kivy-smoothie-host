@@ -114,7 +114,7 @@ To use it we would add the following to the smoothiehost.ini (or via Settings)
 ```fast_stream_cmd = python3 -u comms.py serial:///dev/ttyACM1 {file} -f -q```
 
 ### Multiple configs
-In some cases you may be using one desktop system running Smoopi to control different machines. In this case you can create different config files (default is `smoothiehost.ini`) by running Smoopi with a extension on the command line eg ```python3 main.py mine``` in this case it will load the config from 'smoothiehost-mine.ini' instead of `smoothiehost.ini`, of course `mine` can be any extension you like.
+In some cases you may be using one desktop system running Smoopi to control different machines. In this case you can create different config files (default is `smoothiehost.ini`) by running Smoopi with an extension on the command line eg ```python3 main.py mine``` in this case it will load the config from 'smoothiehost-mine.ini' instead of `smoothiehost.ini`, of course `mine` can be any extension you like.
 
 ## Install on RPI
 
@@ -189,7 +189,7 @@ For instance...
        xclip xsel
     sudo apt-get install python3-pip
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
-    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@stable
+    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@1.11.1
 
 This installs a known working version of kivy.
 
@@ -204,10 +204,16 @@ On an rpi3b+ (and better) it seems the double tap time needs to be increased to 
 
 #### Running under XWindows on RPI
 Make sure that you run ```raspi-config``` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
-Make sure that under ```~/.kivy/config.ini``` in the ```[input]``` section that only ```mouse = mouse``` is set otherwise you will get multiple cursors and click events will go to unexpected places. 
+Make sure that under '~/.kivy/config.ini' in the '[input]' section that only 'mouse = mouse' is set otherwise you will get multiple cursors and click events will go to unexpected places. 
 When running under XWindows the cursor module is not required nor are the hidinput input drivers.
-If you are using a USB based touch screen under XWindows you need to run smoopi full screen, and set ```mtdev_%(name)s = probesysfs,provider=mtdev``` only under the ```[input]``` section. If the resoulution is 1024x600 or better then the RPI Full Screen layout is preferable.
-It is preferable to set ```fullscreen = 1``` and ```show_cursor = 0``` in the ```~/.kivy/config.ini``` file under the ```[graphics]``` section.
+If you are using a USB based touch screen under XWindows you need to run smoopi full screen, and set ```mtdev_%(name)s = probesysfs,provider=mtdev``` only under the '[input]' section. If the resolution is 1024x600 or better then the RPI Full Screen layout is preferable.
+It is preferable to set:
+
+    fullscreen = 1
+    show_cursor = 0
+
+in the '~/.kivy/config.ini' file under the '[graphics]' section,
+and ```desktop = 1``` under the '[kivy]' section.
 
 #### Keyboard and Mouse support when running from console (egl-rpi)
 Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. This HIDInput is broken in all the releases of Kivy older than 1.11.0. If using an older version of kivy you will need to replace the ```KIVYINSTALLDIR/kivy/input/providers/hidinput.py``` (on the image this would be ```/usr/local/lib/python3.5/dist-packages/kivy/input/providers/hidinput.py```)
@@ -344,9 +350,9 @@ If that does not work then install from source...
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
-    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@stable
+    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@1.11.1
 
-stable seems to work ok so long as it is > v1.11.0
+1.11.1 seems to work ok. (@stable is now 2.0.0 which doesn't work with the python version on stretch, you would need to upgrade python as well to use 2.0.0)
 
 Install some dependencies we need...
 
