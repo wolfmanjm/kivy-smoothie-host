@@ -191,7 +191,7 @@ For instance...
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
     python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@1.11.1
 
-This installs a known working version of kivy.
+This installs a known working version of kivy using the version of python found on debian stretch (and rasbian stretch).
 
 On an rpi3b+ (and better) it seems the double tap time needs to be increased to be usable..
 

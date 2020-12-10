@@ -72,14 +72,6 @@
                     text: 'Text Editor'
                     on_press: root.text_editor()
                 ActionButton:
-                    text: 'Run Last File'
-                    disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
-                    on_press: app.main_window.reprint()
-                ActionButton:
-                    text: 'View Last File'
-                    disabled: app.gcode_file == ''
-                    on_press: app.main_window.review()
-                ActionButton:
                     text: 'Upload GCode'
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.main_window.upload_gcode()
@@ -148,6 +140,18 @@
                     default_size_hint: 1, None
                     size_hint_y: None
                     height: self.minimum_height
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(45)
+                Button:
+                    text: 'Run Last File'
+                    disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
+                    on_press: app.main_window.reprint()
+                Button:
+                    text: 'View Last File'
+                    disabled: app.gcode_file == ''
+                    on_press: app.main_window.review()
             BoxLayout:
                 orientation: 'horizontal'
                 size_hint_y: None
