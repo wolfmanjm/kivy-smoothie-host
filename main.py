@@ -1174,7 +1174,6 @@ class SmoothieHost(App):
             self.camera_url = value
         elif token == ('General', 'fast_stream_cmd'):
             self.fast_stream_cmd = value
-
         elif token == ('General', 'notify_email'):
             self.notify_email = value == '1'
         else:

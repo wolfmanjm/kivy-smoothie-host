@@ -67,6 +67,7 @@ Macros buttons can prompt for input and substitute the given variables.
 (See sample-macros.ini for examples).
 Simple macro buttons can be created by clicking the green `New Macro` button.
 If a simple macro starts with ```@``` then the following characters are a file name and that file is opened and sent to smoothie. Note that ok is not checked, so it must be a fairly small file of gcodes.
+If in CNC mode it will first check for 'macros-cnc.ini' and load that if found, otherwise it will load 'macros.ini'.
 
 ### CNC Support (PCB milling etc)
 There are features specifically implemented to make CNC use easier.
@@ -82,7 +83,7 @@ NOTE for toolchange to be caught by Smoopi the M6 must be on a line by itself or
 
 - Flatcam gcode is supported but a minor postprocess on the gcode needs to be done so the comment showing the tool required is moved to before the M6 (it is currently after the M6 so you don't see it until after you resume).
 
-- ```M0``` can be enabled and any (MSG, xxxx) is displayed in the console window. However M0 simply pauses the job until the dialog is dismissed. This presumes the tool heights are all thhe same and no jogging is required to change a tool
+- ```M0``` can be enabled and any (MSG, xxxx) is displayed in the console window. However M0 simply pauses the job until the dialog is dismissed. This presumes the tool heights are all the same and no jogging is required to change a tool
 
 - The viewer allows setting the WCS to any arbitrary point on the workpiece, and to move to any point on the workpiece. This allows positioning and size checking before the job is run.
 
@@ -111,6 +112,9 @@ To use it we would add the following to the smoothiehost.ini (or via Settings)
 (For rpi or Linux, windows it will be a COMn: port)
 
 ```fast_stream_cmd = python3 -u comms.py serial:///dev/ttyACM1 {file} -f -q```
+
+### Multiple configs
+In some cases you may be using one desktop system running Smoopi to control different machines. In this case you can create different config files (default is `smoothiehost.ini`) by running Smoopi with a extension on the command line eg ```python3 main.py mine``` in this case it will load the config from 'smoothiehost-mine.ini' instead of `smoothiehost.ini`, of course `mine` can be any extension you like.
 
 ## Install on RPI
 
