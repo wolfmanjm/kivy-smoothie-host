@@ -150,7 +150,13 @@ class GcodeViewerScreen(Screen):
         threading.Thread(target=self._load_file).start()
 
     @mainthread
-    def _loaded(self):
+    def _loaded(self, ok):
+        if not ok:
+            # print(traceback.format_exc())
+            mb = MessageBox(text='File not found: {}'.format(self.app.gcode_file))
+            mb.open()
+            self.manager.current = 'main'
+
         Logger.debug("GcodeViewerScreen: in _loaded. ok: {}".format(self._loaded_ok))
         self.remove_widget(self.li)
         self.li = None
@@ -167,11 +173,9 @@ class GcodeViewerScreen(Screen):
         try:
             self.parse_gcode_file(self.app.gcode_file, True)
         except Exception:
-            print(traceback.format_exc())
-            mb = MessageBox(text='File not found: {}'.format(self.app.gcode_file))
-            mb.open()
-
-        self._loaded()
+            self._loaded(False)
+        else:
+            self._loaded(True)
 
     def _redraw(self, instance, value):
         self.ids.surface.canvas.remove(self.canv)
