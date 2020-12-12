@@ -163,7 +163,7 @@ Once that is done setup smoopi to run on boot by doing...
 Once running use the System menu upgrade to fetch the latest smoopi. If that is successful, then quit under the System menu and smoopi will exit and then be restarted by runit.
 
 
-### Rasbian/Debian Stretch on RPI
+### Rasbian/Debian Stretch on RPI (NOT rpi4b)
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
@@ -201,6 +201,11 @@ On an rpi3b+ (and better) it seems the double tap time needs to be increased to 
     double_tap_time = 400 # <-- increase this from the 200 default
     triple_tap_distance = 20
     triple_tap_time = 600 # <- and this to be > than double_tap_time
+
+#### RPI4b and Buster
+It is a little harder to get this to run on an RPI4b, it is recommended to run under XWindows (>= 2GB memory is needed).
+Basically you will need to install kivy @stable or @master (>= 2.0.0) and build from source, then follow the next paragraph.
+If you read the Kivy install instructions for rpi4b and buster you *may* be able to get a touch screen to run without XWindows but I have not tested this.
 
 #### Running under XWindows on RPI
 Make sure that you run ```raspi-config``` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
@@ -352,7 +357,7 @@ If that does not work then install from source...
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
     python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@1.11.1
 
-1.11.1 seems to work ok. (@stable is now 2.0.0 which doesn't work with the python version on stretch, you would need to upgrade python as well to use 2.0.0)
+1.11.1 seems to work well. (@stable is now 2.0.0 which doesn't work with python versions < 3.6, if you have python version >= 3.6 then you could install @master which is 2.0.0, @stable has a bug which stops the spindle cam from working).
 
 Install some dependencies we need...
 
