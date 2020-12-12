@@ -208,17 +208,17 @@ Basically you will need to install kivy @stable or @master (>= 2.0.0) and build 
 If you read the Kivy install instructions for rpi4b and buster you *may* be able to get a touch screen to run without XWindows but I have not tested this.
 
 #### Running under XWindows on RPI
-Make sure that you run ```raspi-config``` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
-Make sure that under '~/.kivy/config.ini' in the '[input]' section that only 'mouse = mouse' is set otherwise you will get multiple cursors and click events will go to unexpected places. 
+Make sure that you run `raspi-config` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
+Make sure that under `~/.kivy/config.ini` in the `[input]` section that only `mouse = mouse` is set otherwise you will get multiple cursors and click events will go to unexpected places. 
 When running under XWindows the cursor module is not required nor are the hidinput input drivers.
-If you are using a USB based touch screen under XWindows you need to run smoopi full screen, and set ```mtdev_%(name)s = probesysfs,provider=mtdev``` only under the '[input]' section. If the resolution is 1024x600 or better then the RPI Full Screen layout is preferable.
+If you are using a USB based touch screen under XWindows you need to run smoopi full screen, and set ```mtdev_%(name)s = probesysfs,provider=mtdev``` only under the `[input]` section. If the resolution is 1024x600 or better then the RPI Full Screen layout is preferable.
 It is preferable to set:
 
     fullscreen = 1
     show_cursor = 0
 
-in the '~/.kivy/config.ini' file under the '[graphics]' section,
-and ```desktop = 1``` under the '[kivy]' section.
+in the `~/.kivy/config.ini` file under the `[graphics]` section,
+and ```desktop = 1``` under the `[kivy]` section.
 
 #### Keyboard and Mouse support when running from console (egl-rpi)
 Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. This HIDInput is broken in all the releases of Kivy older than 1.11.0. If using an older version of kivy you will need to replace the ```KIVYINSTALLDIR/kivy/input/providers/hidinput.py``` (on the image this would be ```/usr/local/lib/python3.5/dist-packages/kivy/input/providers/hidinput.py```)
