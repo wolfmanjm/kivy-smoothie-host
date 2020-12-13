@@ -12,7 +12,7 @@ Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDM
 
 It will run on Windows if you install Python 3.5.2 (or newer), and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
 
-NOTE it has been briefly tested on python versions >= 3.8 with Kivy 2.0 and appears to work under XWindows, it has not been tested on an RPI touch screen though.
+NOTE it has been briefly tested on python versions >= 3.8 with Kivy 2.0 and appears to work under XWindows, it has not been tested on a RPI touch screen though.
 
 The minimum usable resolution is 800x480.
 
