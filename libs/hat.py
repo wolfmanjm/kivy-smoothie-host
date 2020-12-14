@@ -14,7 +14,7 @@ Builder.load_string('''
             pos: [self.center[0] - self.height / 2, self.center[1] - self.height / 2]
             size: self.height, self.height
     size_hint: None, None
-    size: 64, 64
+    size: dp(64), dp(64)
     Image:
         id: pad
         source: "img/4-direction-48.png"

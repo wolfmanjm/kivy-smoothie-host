@@ -215,14 +215,14 @@
         CircularButton:
             pos_hint: {'center_x': 0.1, 'center_y': 0.28}
             size_hint: None, None
-            size: 50, 50
+            size: dp(50), dp(50)
             text: 'Origin'
             on_press: root.handle_action('O', 0)
 
         CircularButton:
             pos_hint: {'center_x': 0.1, 'center_y': 0.1}
             size_hint: None, None
-            size: 50, 50
+            size: dp(50), dp(50)
             text: 'Home'
             on_press: root.handle_action('H', 0)
 
@@ -231,14 +231,14 @@
             text: 'Motors\nOff'
             font_size: '14sp'
             size_hint: None, None
-            size: 55, 55
+            size: dp(55), dp(55)
             on_press: root.motors_off()
 
         CircularButton:
             pos_hint: {'center_x': 0.72, 'center_y': 0.28}
             text: 'Safe Z'
             size_hint: None, None
-            size: 55, 55
+            size: dp(55), dp(55)
             on_press: root.safe_z()
 
         BoxLayout:
@@ -275,24 +275,24 @@
                     id: js100
                     text: '100%'
                     size_hint: None, None
-                    size: 50, 50
+                    size: dp(50), dp(50)
                     group: 'speed_group'
                 CircularToggleButton:
                     id: js50
                     text: '50%'
                     size_hint: None, None
-                    size: 50, 50
+                    size: dp(50), dp(50)
                     group: 'speed_group'
                     state: 'down'
                 CircularToggleButton:
                     id: js25
                     text: '25%'
                     size_hint: None, None
-                    size: 50, 50
+                    size: dp(50), dp(50)
                     group: 'speed_group'
                 CircularToggleButton:
                     id: js10
                     text: '10%'
                     size_hint: None, None
-                    size: 50, 50
+                    size: dp(50), dp(50)
                     group: 'speed_group'
