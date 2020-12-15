@@ -120,6 +120,7 @@
         # Left panel
         orientation: 'horizontal'
         BoxLayout:
+            id: blleft
             size_hint_x: 0.65
             orientation: 'vertical'
             RecycleView:
@@ -190,7 +191,9 @@
                     id: tabs
                     do_default_tab: False
                     tab_pos: 'top_mid' if app.tab_top else 'bottom_mid'
+                    tab_width: dp(80)
                     jog_rose: jog_rose
+                    console_tab: console_tab
 
                     TabbedPanelItem:
                         id: jog
@@ -198,6 +201,12 @@
                         JogRoseWidget:
                             id: jog_rose
                             #disabled: root.is_printing and not root.is_suspended
+
+                    TabbedPanelItem:
+                        id: console_tab
+                        text: 'Console'
+                        KbdWidget:
+                            id: kbd_widget
 
                     TabbedPanelItem:
                         id: mpg

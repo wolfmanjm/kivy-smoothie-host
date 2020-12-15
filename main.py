@@ -80,7 +80,7 @@ class NumericInput(TextInput):
         if v:
             self._last = self.text
             self.text = ""
-            if App.get_running_app().is_desktop <= 1:
+            if App.get_running_app().is_touch:
                 self.show_keyboard()
                 if self.keyboard and self.keyboard.widget:
                     self.keyboard.widget.layout = "numeric.json"
@@ -88,15 +88,14 @@ class NumericInput(TextInput):
         else:
             if self.text == "":
                 self.text = self._last
-            if App.get_running_app().is_desktop <= 1:
+            if App.get_running_app().is_touch:
                 if self.keyboard and self.keyboard.widget:
                     self.m_keyboard.layout = "qwerty"
                 self.hide_keyboard()
 
     def on_parent(self, widget, parent):
-        if App.get_running_app().is_desktop > 1:
-            return
-        self.keyboard_mode = 'managed'
+        if App.get_running_app().is_touch:
+            self.keyboard_mode = 'managed'
 
 
 class DROWidget(RelativeLayout):
@@ -967,6 +966,7 @@ class SmoothieHost(App):
         self.notify_email = False
         self.running_directory = os.path.dirname(os.path.realpath(__file__))
         self.hdmi = False
+        self.is_touch = False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -990,7 +990,8 @@ class SmoothieHost(App):
             'screen_size': 'auto',
             'screen_pos': 'auto',
             'screen_offset': '0,0',
-            'filechooser': 'default'
+            'filechooser': 'default',
+            'touch_screen': 'false'
         })
 
         config.setdefaults('Extruder', {
@@ -1022,11 +1023,19 @@ class SmoothieHost(App):
                 },
 
                 { "type": "bool",
+                  "title": "Touch screen",
+                  "desc": "Turn on for a touch screen",
+                  "section": "UI",
+                  "key": "touch_screen"
+                },
+
+                { "type": "bool",
                   "title": "CNC layout",
                   "desc": "Turn on for a CNC layout, otherwise it is a 3D printer Layout",
                   "section": "UI",
                   "key": "cnc"
                 },
+
 
                 { "type": "bool",
                   "title": "Tabs on top",
@@ -1242,26 +1251,30 @@ class SmoothieHost(App):
             # for full screen xwindows on a small screen (1024x600)
             Builder.load_file('desktop.kv')
             Window.size = (1024, 600)
+            self.is_touch = True
 
         elif self.is_desktop >= 2:
             kvlut = {2: ('desktop.kv', (1024, 610)), 3: ('desktop_large.kv', (1280, 1024)), 4: ('desktop_wide.kv', (1280, 800))}
             Builder.load_file(kvlut[self.is_desktop][0])
-            s = self.config.get('UI', 'screen_size')
-            if s == 'auto':
-                Window.size = kvlut[self.is_desktop][1]
-            elif 'x' in s:
-                (w, h) = s.split('x')
-                Window.size = (int(w), int(h))
+            self.is_touch = self.config.getboolean('UI', 'touch_screen')
+            if not self.is_touch:
+                s = self.config.get('UI', 'screen_size')
+                if s == 'auto':
+                    Window.size = kvlut[self.is_desktop][1]
+                elif 'x' in s:
+                    (w, h) = s.split('x')
+                    Window.size = (int(w), int(h))
 
-            p = self.config.get('UI', 'screen_pos')
-            if p != 'none' and p != 'auto' and ',' in p:
-                (t, l) = p.split(',')
-                Window.top = int(t)
-                Window.left = int(l)
-            Window.bind(on_request_close=self.window_request_close)
+                p = self.config.get('UI', 'screen_pos')
+                if p != 'none' and p != 'auto' and ',' in p:
+                    (t, l) = p.split(',')
+                    Window.top = int(t)
+                    Window.left = int(l)
+                Window.bind(on_request_close=self.window_request_close)
 
         else:
             self.is_desktop = 0
+            self.is_touch = True
             # load the layouts for rpi 7" touch screen
             Builder.load_file('rpi.kv')
 
@@ -1279,7 +1292,7 @@ class SmoothieHost(App):
 
         self.comms = Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file = self.config.get('General', 'last_print_file')
-        if self.is_desktop <= 1:
+        if self.is_touch:
             self.sm = ScreenManager(transition=NoTransition())
         else:
             self.sm = ScreenManager()
@@ -1296,7 +1309,7 @@ class SmoothieHost(App):
         self.gcode_help = GcodeHelp(name='gcode_help')
         self.sm.add_widget(self.gcode_help)
 
-        if self.is_desktop <= 1:
+        if self.is_touch:
             # RPI touch screen
             self.text_editor = TextEditor(name='text_editor')
             self.sm.add_widget(self.text_editor)
@@ -1306,19 +1319,19 @@ class SmoothieHost(App):
 
             self.blank_timeout = self.config.getint('General', 'blank_timeout')
             Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
+            if self.blank_timeout > 0:
+                self.sm.bind(on_touch_down=self._on_touch)
+                Clock.schedule_interval(self._every_second, 1)
 
-            self.sm.bind(on_touch_down=self._on_touch)
-            Clock.schedule_interval(self._every_second, 1)
-
-            if self.is_desktop == 1:
-                # remove entry widget
+            if self.is_desktop > 0:
+                # remove log window entry widget
                 self.main_window.ids.entry.focus = False
                 self.main_window.ids.blleft.remove_widget(self.main_window.ids.entry)
 
         # select the file chooser to use
         # select which one we want from config
         filechooser = self.config.get('UI', 'filechooser')
-        if self.is_desktop > 1:
+        if not self.is_touch:
             if filechooser != 'default':
                 NativeFileChooser.type_name = filechooser
                 Factory.register('filechooser', cls=NativeFileChooser)
@@ -1335,7 +1348,7 @@ class SmoothieHost(App):
 
             # we want to capture arrow keys
             Window.bind(on_key_down=self._on_keyboard_down)
-            if self.is_desktop == 2:
+            if self.is_desktop > 1:
                 # remove KBD tab
                 self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.console_tab)
 
@@ -1424,7 +1437,7 @@ class SmoothieHost(App):
             return True
 
         # handle command history if in desktop mode
-        if self.is_desktop > 0:
+        if self.is_desktop > 1:
             if v == 0.01:  # it is a control key
                 if codepoint == 'p':
                     # get previous history by finding all the recently sent commands
@@ -1497,7 +1510,6 @@ class SmoothieHost(App):
 
     def _every_second(self, dt):
         ''' called every second '''
-
         self.secs += 1
         if not self._blanked and self.blank_timeout > 0 and not self.main_window.is_printing:
             self.last_touch_time += 1
