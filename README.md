@@ -165,7 +165,9 @@ Once that is done setup smoopi to run on boot by doing...
 Once running use the System menu upgrade to fetch the latest smoopi. If that is successful, then quit under the System menu and smoopi will exit and then be restarted by runit.
 
 
-### Rasbian/Debian Stretch on RPI (NOT rpi4b)
+### Rasbian/Debian Stretch/Buster on RPI (NOT rpi4b)
+
+Note the latest Debian version is Buster and this also seems to work.
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
@@ -193,7 +195,7 @@ For instance...
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
     python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@1.11.1
 
-This installs a known working version of kivy using the version of python found on debian stretch (and rasbian stretch).
+This installs a known working version of kivy using the version of python found on debian stretch and buster.
 
 On an rpi3b+ (and better) it seems the double tap time needs to be increased to be usable..
 
@@ -223,10 +225,8 @@ in the `~/.kivy/config.ini` file under the `[graphics]` section,
 and ```desktop = 1``` under the `[kivy]` section.
 
 #### Keyboard and Mouse support when running from console (egl-rpi)
-Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. This HIDInput is broken in all the releases of Kivy older than 1.11.0. If using an older version of kivy you will need to replace the ```KIVYINSTALLDIR/kivy/input/providers/hidinput.py``` (on the image this would be ```/usr/local/lib/python3.5/dist-packages/kivy/input/providers/hidinput.py```)
-with this version: https://github.com/wolfmanjm/kivy/blob/master/kivy/input/providers/hidinput.py
-
-You will also need to add the following line to your ```~/.kivy/config.ini``` file under the ```[input]``` section:-
+Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. 
+You will  need to add the following line to your ```~/.kivy/config.ini``` file under the ```[input]``` section:-
     
     [input]
     %(name)s = probesysfs,provider=hidinput
@@ -241,12 +241,12 @@ and disable the onscreen keyboard:-
     keyboard_mode = system
 
 ### Common setup
-It is recommended to do this:- 
+It is recommended to do this first...
 
     > sudo apt-get update
     > sudo apt-get upgrade
 
-Install some smoopi dependencies...
+Then install some smoopi dependencies...
 
     > python3 -m pip install --user --upgrade pyserial aiofiles
 
@@ -254,10 +254,10 @@ Install Smoopi itself
 
     > mkdir smoopi
     > cd smoopi
-    > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git .
+    > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git ./smoopi
 
 Run with...
-
+    > cd ./smoopi
     > python3 main.py
 
 NOTE when using the touch panel make sure the ```~/.kivy/config.ini``` has the following set so the virtual keyboard works in a usable fashion on an RPI touch screen...
