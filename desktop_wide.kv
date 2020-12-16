@@ -22,6 +22,7 @@
     orientation: 'vertical'
     entry: entry
     tools_menu: tools_menu
+    system_menu: system_menu
 
     ActionBar:
         pos_hint: {'top':1}
@@ -96,6 +97,7 @@
                     on_press: app.main_window.fast_stream_gcode()
 
             ActionGroup:
+                id: system_menu
                 text: 'System'
                 mode: 'spinner'
                 ActionButton:

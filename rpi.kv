@@ -70,7 +70,7 @@
                     disabled: not app.is_connected or root.is_printing
                 ActionButton:
                     text: 'Text Editor'
-                    on_press: root.text_editor()
+                    on_press: root.edit_text()
                 ActionButton:
                     text: 'Upload GCode'
                     disabled: not app.is_connected or root.is_printing

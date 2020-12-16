@@ -529,7 +529,7 @@ class MainWindow(BoxLayout):
             self.app.stop()
             os.execl(sys.executable, sys.executable, *sys.argv)
 
-    def ask_shutdown(self):
+    def ask_shutdown(self, *args):
         # are you sure?
         mb = MessageBox(text='Shutdown - Are you Sure?', cb=self._do_shutdown)
         mb.open()
@@ -906,12 +906,12 @@ class MainWindow(BoxLayout):
     def config_editor(self):
         self.app.config_editor.open()
 
-    def text_editor(self):
+    def edit_text(self, *args):
         # get file to view
         f = Factory.filechooser()
-        f.open(self.last_path, title='File to Edit', filters=['*'], cb=self._text_editor)
+        f.open(self.last_path, title='File to Edit', filters=['*'], cb=self._edit_text)
 
-    def _text_editor(self, file_path, directory):
+    def _edit_text(self, file_path, directory):
         self.app.text_editor.open(file_path)
         self.app.sm.current = 'text_editor'
 
@@ -1327,6 +1327,13 @@ class SmoothieHost(App):
                 # remove log window entry widget
                 self.main_window.ids.entry.focus = False
                 self.main_window.ids.blleft.remove_widget(self.main_window.ids.entry)
+                # add text editor tool
+                self.main_window.tools_menu.add_widget(ActionButton(text='Text Editor', on_press=self.main_window.edit_text))
+                # add blanker
+                if self.blank_timeout > 0:
+                    self.main_window.system_menu.add_widget(ActionButton(text='Blank Screen', on_press=self.blank_screen))
+                # add shutdown
+                self.main_window.system_menu.add_widget(ActionButton(text='Shutdown', on_press=self.main_window.ask_shutdown))
 
         # select the file chooser to use
         # select which one we want from config
@@ -1517,7 +1524,7 @@ class SmoothieHost(App):
                 self.last_touch_time = 0
                 self.blank_screen()
 
-    def blank_screen(self):
+    def blank_screen(self, *args):
         try:
             if self.hdmi:
                 os.system("vcgencmd display_power 0")

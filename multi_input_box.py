@@ -12,7 +12,7 @@ Builder.load_string('''
     width : min(0.95 * self.window.width, dp(500))
     height: dp(content.height) + dp(80)
     title: "Option Title"
-    pos_hint: {'top': 1} if app.is_desktop <= 1 else {'center_y': 0.5}
+    pos_hint: {'top': 1} if app.is_touch else {'center_y': 0.5}
     auto_dismiss: False
 
     BoxLayout:
