@@ -267,6 +267,7 @@ class Comms():
 
             # issue a M115 command to get things started
             self._write('\n')
+            time.sleep(1)
             self._write('M115\n')
 
             if self.report_rate > 0:
@@ -1016,7 +1017,6 @@ class Comms():
 if __name__ == "__main__":
 
     import datetime
-    from time import sleep
 
     ''' a standalone streamer to test it with '''
 
