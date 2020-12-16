@@ -267,6 +267,7 @@ class Comms():
 
             # issue a M115 command to get things started
             self._write('\n')
+            self.proto.flush_queue()
             time.sleep(1)
             self._write('M115\n')
 
