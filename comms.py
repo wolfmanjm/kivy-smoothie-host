@@ -1016,7 +1016,6 @@ class Comms():
 if __name__ == "__main__":
 
     import datetime
-    from time import sleep
 
     ''' a standalone streamer to test it with '''
 
