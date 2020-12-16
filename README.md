@@ -12,7 +12,7 @@ Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDM
 
 It will run on Windows if you install Python 3.5.2 (or newer), and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
 
-NOTE it has been briefly tested on python versions >= 3.8 with Kivy 2.0 and appears to work under XWindows, it has not been tested on a RPI touch screen though.
+NOTE it has been tested on python versions >= 3.8 with Kivy 2.0 on Buster and an RPI3b and the touch screen works in standalone and under XWindows (although notes are below on how to run efficiently under XWindows)
 
 The minimum usable resolution is 800x480.
 
@@ -49,6 +49,8 @@ You can select 3d printer mode or CNC mode from the Settings menu, this can affe
 - The config editor displays the current smoothie config in a scrollable window, values can be updated click the return key and then will update the config on sd accordingly. (reset is of course required to take effect).
 - Under the Tools menu there is an entry to upload GCode files to the sdcard, and to start an sdcard based print. (don't try to upload non gcode files)
 - There is a Fast Stream Tool for streaming gcode that has very small segments and stutters under normal streaming (or for raster laser engraving)
+
+If your screen is larger than the 800x480 of the RPI touch screen there are various other layouts designed to work on bigger screens, if you also set the touch_screen setting it presumes you are running on a touch screen in full screen mode, and adds a few extra menu items to allow shutdown and also a simple text editor. There is also a screen blanking option.
 
 There is a gcode visualizer window that shows the layers, or for CNC allows setting WPOS and moving the gantry to specific parts of the Gcode...
 Click the Viewer menu item, select the file to view, then the layers can be moved up or down.
