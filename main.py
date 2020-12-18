@@ -278,14 +278,18 @@ class JogRoseWidget(BoxLayout):
         if axis is not None:
             s = self._get_speed()
             # starts continuous jog
-            # TODO must not send another $J -c until ok is recieved from previous one
-            self.app.comms.write('$J -c {}{} S{}\n'.format(axis, v, s))
-            self.cont_moving = True
+            # must not send another $J -c until ok is recieved from previous one
+            if not self.cont_moving:
+                self.cont_moving = True
+                self.app.comms.ok_notify_cb = lambda x: self.got_ok(x)
+                self.app.comms.write('$J -c {}{} S{}\n'.format(axis, v, s))
+
+    def got_ok(self, f):
+        self.cont_moving = False
 
     def hat_released(self):
         if self.cont_moving:
             self.app.comms.write('\x19')
-            self.cont_moving = False
 
     def handle_action(self, axis, v):
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:

@@ -144,6 +144,7 @@ class Comms():
         self.file_streamer = None
         self.report_rate = reportrate
         self._reroute_incoming_data_to = None
+        self.ok_notify_cb = None
         self._restart_timer = False
         self.is_streaming = False
         self.do_query = False
@@ -440,6 +441,9 @@ class Comms():
                         self.okcnt.set()
                     else:
                         self.okcnt += 1
+                if self.ok_notify_cb:
+                    self.ok_notify_cb(True)
+                    self.ok_notify_cb = False
 
                 # if there is anything after the ok display it
                 if len(s) > 2:
@@ -459,6 +463,9 @@ class Comms():
                 self.handle_state(s)
 
             elif s.startswith("!!") or s.startswith("error:Alarm lock"):
+                if self.ok_notify_cb:
+                    self.ok_notify_cb(False)
+                    self.ok_notify_cb = False
                 self.handle_alarm(s)
                 # we should now be paused
                 if self.okcnt is not None and self.ping_pong:
