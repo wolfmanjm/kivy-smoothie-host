@@ -443,7 +443,7 @@ class Comms():
                         self.okcnt += 1
                 if self.ok_notify_cb:
                     self.ok_notify_cb(True)
-                    self.ok_notify_cb = False
+                    self.ok_notify_cb = None
 
                 # if there is anything after the ok display it
                 if len(s) > 2:
@@ -465,14 +465,14 @@ class Comms():
             elif s.startswith("!!") or s.startswith("error:Alarm lock"):
                 if self.ok_notify_cb:
                     self.ok_notify_cb(False)
-                    self.ok_notify_cb = False
+                    self.ok_notify_cb = None
                 self.handle_alarm(s)
                 # we should now be paused
                 if self.okcnt is not None and self.ping_pong:
                     # we need to unblock waiting for ok if we get this
                     self.okcnt.set()
 
-            elif s.startswith("ALARM") or s.startswith("ERROR") or s.startswith("HALTED"):
+            elif s.startswith("ALARM") or s.startswith("ERROR") or s.startswith("HALTED") or s.startswith('error:'):
                 self.handle_alarm(s)
 
             elif s.startswith('//'):
