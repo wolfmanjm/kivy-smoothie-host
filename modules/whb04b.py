@@ -204,6 +204,7 @@ class WHB04B():
         self.hid = WHB04BHID()
         self.lcd_data.header = 0xFDFE
         self.lcd_data.seed = 0xFE
+        self.cont_moving = None
 
     def twos_comp(self, val, bits):
         """compute the 2's complement of int value val"""
@@ -328,10 +329,13 @@ class WHB04B():
 
         return False
 
+    def got_ok(self, v):
+        # got ok from $J -c, may be premature if so this stops us sending ^Y
+        self.cont_moving = False
+
     def _run(self):
         self.app = App.get_running_app()
         self.load_macros()
-        contdir = None
 
         while not self.quit:
             try:
@@ -390,7 +394,7 @@ class WHB04B():
 
                         # check if we are in continuous mode
                         if self.continuous_mode:
-                            if contdir is not None:
+                            if self.cont_moving:
                                 # if we are moving
                                 if btn_1 == BUT_CONT:
                                     # still down so just update lcd
@@ -400,7 +404,7 @@ class WHB04B():
                                     # released so stop continuous mode
                                     self.app.comms.write('\x19')  # control Y
                                     self.continuous_mode = False
-                                    contdir = None
+
                             elif btn_1 != BUT_CONT:
                                 self.continuous_mode = False
 
@@ -434,9 +438,11 @@ class WHB04B():
                                 # first turn of wheel sets the direction,
                                 # it goes until Cont button is released
                                 # $J -c {axis}1 S{delta/100}
-                                # TODO must not send another $J -c until ok is recieved from previous one
-                                self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.contlut[inc] / 100.0))
-                                contdir = wheel
+                                # must not send another $J -c until ok is recieved from previous one
+                                if not self.cont_moving:
+                                    self.cont_moving = True
+                                    self.app.comms.ok_notify_cb = lambda x: self.got_ok(x)
+                                    self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.contlut[inc] / 100.0))
 
                             else:
                                 if self.mpg_mode:
