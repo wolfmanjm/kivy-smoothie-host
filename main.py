@@ -886,8 +886,8 @@ class MainWindow(BoxLayout):
         if not self.app.is_connected or self.is_printing:
             return ""
 
-        if not self.app.is_v2 and self.status == 'Run':
-            # for v1 we do not send these commands when running as they clog up the USB serial channel
+        if not self.app.is_v2 and self.status in ['Run', 'Home']:
+            # FIXME: for v1 we do not send these commands when running as they clog up the USB serial channel
             return ""
 
         cmd = ""
