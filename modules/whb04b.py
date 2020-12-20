@@ -204,7 +204,7 @@ class WHB04B():
         self.hid = WHB04BHID()
         self.lcd_data.header = 0xFDFE
         self.lcd_data.seed = 0xFE
-        self.cont_moving = None
+        self.cont_moving = False
 
     def twos_comp(self, val, bits):
         """compute the 2's complement of int value val"""
