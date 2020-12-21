@@ -40,9 +40,6 @@ Builder.load_string('''
             size_hint_y: None
             height: 40
             Button:
-                text: 'Back'
-                on_press: root.close()
-            Button:
                 text: 'GCodes'
                 on_press: root.populate('G')
             Button:
@@ -54,6 +51,9 @@ Builder.load_string('''
             Button:
                 text: '$Codes'
                 on_press: root.populate('$')
+            Button:
+                text: 'Back'
+                on_press: root.close()
 
         RecycleView:
             id: rv

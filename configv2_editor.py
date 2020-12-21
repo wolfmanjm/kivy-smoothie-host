@@ -30,13 +30,13 @@ Builder.load_string('''
             padding: dp(8)
             spacing: dp(16)
             Button:
-                text: 'Back'
-                on_press: root.close()
-            Button:
                 size: 100, 40
                 size_hint: None, None
                 text: 'New Entry'
                 on_press: root.new_entry();
+            Button:
+                text: 'Back'
+                on_press: root.close()
 
         BoxLayout:
             id: placeholder

@@ -8,13 +8,20 @@ This uses python >= 3.5 and < 3.8 and kivy >= 1.11.0
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
 
-Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDMI monitor running Buster. (Touch screen has not been tested on the RPI-4).
+Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDMI monitor running Buster, running the app full screen if using a touch panel.
 
 It will run on Windows if you install Python 3.5.2 (or newer), and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
 
 NOTE it has been tested on python versions >= 3.8 with Kivy 2.0 on Buster and an RPI3b and the touch screen works in standalone and under XWindows (although notes are below on how to run efficiently under XWindows)
 
 The minimum usable resolution is 800x480.
+
+## Tested touch panels
+The following touch panels have been tested and work nicely:
+
+1. Official RPI 7" touch screen. Works well with the `RPI Touch` layout 800x480
+2. Waveshare 7" QLED IPS Capacitive Touch Display. Works well with the `RPI Full Screen` layout 1024x600
+3. SunFounder 10.1" HDMI 1280x800 IPS LCD Touchscreen. Works well with the `Wide Desktop` layout and setting the `Touch screen` setting.
 
 ## Goal
 The goal is to have a small touch screen host that can run a smoothie and is better than an LCD Panel, and almost as good as a host PC running pronterface.

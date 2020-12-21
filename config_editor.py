@@ -46,9 +46,6 @@ Builder.load_string('''
             padding: dp(8)
             spacing: dp(16)
             Button:
-                text: 'Back'
-                on_press: root.close()
-            Button:
                 text: 'New Switch'
                 on_press: root.new_switch()
 
@@ -64,6 +61,10 @@ Builder.load_string('''
                     padding: dp(10), dp(10), 0, 0
                     multiline: False
                     on_text_validate: root.insert(self.text)
+
+            Button:
+                text: 'Back'
+                on_press: root.close()
 
         RecycleView:
             id: rv
