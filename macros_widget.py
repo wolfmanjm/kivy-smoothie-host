@@ -307,7 +307,7 @@ class MacrosWidget(StackLayout):
             else:
                 # just display results
                 self.app.main_window.async_display("> {}".format(cmd))
-                p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='latin1')
+                p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # , encoding='latin1'
                 result, err = p.communicate()
                 for l in result.splitlines():
                     self.app.main_window.async_display(l)
