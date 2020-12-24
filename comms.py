@@ -564,8 +564,12 @@ class Comms():
     def handle_alarm(self, s):
         ''' handle case where smoothie sends us !! or an error of some sort '''
         self.log.warning('Comms: alarm message: {}'.format(s))
-        # pause any streaming immediately, (let operator decide to abort or not)
-        self._stream_pause(True, False)
+        if self.file_streamer:
+            # pause any streaming immediately, (let operator decide to abort or not)
+            self._stream_pause(True, False)
+            if self.app.notify_email:
+                notify = Notify()
+                notify.send('Run paused abnormally: {}, last Z: {}, last line: {}'.format(s, self.wpos[2], self.last_line))
 
         # NOTE old way was to abort, but we could resume if we can fix the error
         # self._stream_pause(False, True)
