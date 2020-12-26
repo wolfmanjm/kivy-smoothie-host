@@ -1239,6 +1239,7 @@ class SmoothieHost(App):
         return False
 
     def build(self):
+        Logger.debug('SmoothieHost: Backend used is: {}'.format(Window.get_gl_backend_name()))
         self.title = 'Smoopi'
         lt = self.config.get('UI', 'display_type')
         dtlut = {
