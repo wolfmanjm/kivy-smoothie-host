@@ -971,6 +971,7 @@ class SmoothieHost(App):
         self.running_directory = os.path.dirname(os.path.realpath(__file__))
         self.hdmi = False
         self.is_touch = False
+        self.minimized = False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1323,8 +1324,9 @@ class SmoothieHost(App):
 
             self.blank_timeout = self.config.getint('General', 'blank_timeout')
             Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
+            self.sm.bind(on_touch_down=self._on_touch)
+
             if self.blank_timeout > 0:
-                self.sm.bind(on_touch_down=self._on_touch)
                 Clock.schedule_interval(self._every_second, 1)
 
             if self.is_desktop > 0:
@@ -1338,6 +1340,9 @@ class SmoothieHost(App):
                     self.main_window.system_menu.add_widget(ActionButton(text='Blank Screen', on_press=self.blank_screen))
                 # add shutdown
                 self.main_window.system_menu.add_widget(ActionButton(text='Shutdown', on_press=self.main_window.ask_shutdown))
+
+                Window.bind(on_minimize=self._on_minimize)
+                Window.bind(on_restore=self._on_restore)
 
         # select the file chooser to use
         # select which one we want from config
@@ -1550,13 +1555,23 @@ class SmoothieHost(App):
             pass
 
     def _on_touch(self, a, b):
-        self.last_touch_time = 0
-        if self._blanked:
-            self._blanked = False
-            self.unblank_screen()
+        if self.minimized:
             return True
 
+        if self.blank_timeout > 0:
+            self.last_touch_time = 0
+            if self._blanked:
+                self._blanked = False
+                self.unblank_screen()
+                return True
+
         return False
+
+    def _on_minimize(self, *args):
+        self.minimized = True
+
+    def _on_restore(self, *args):
+        self.minimized = False
 
     def get_application_config(self):
         # allow a command line argument to select a different config file to use
