@@ -962,7 +962,6 @@ class SmoothieHost(App):
         self.last_touch_time = 0
         self.camera_url = None
         self.loaded_modules = []
-        self.secs = 0
         self.last_probe = {'X': 0, 'Y': 0, 'Z': 0, 'status': False}
         self.tool_scripts = ToolScripts()
         self.desktop_changed = False
@@ -1526,8 +1525,7 @@ class SmoothieHost(App):
             Logger.warn("load_modules: exception: {}".format(traceback.format_exc()))
 
     def _every_second(self, dt):
-        ''' called every second '''
-        self.secs += 1
+        ''' called every second if blanking is enabled '''
         if not self._blanked and self.blank_timeout > 0 and not self.main_window.is_printing:
             self.last_touch_time += 1
             if self.last_touch_time >= self.blank_timeout:
