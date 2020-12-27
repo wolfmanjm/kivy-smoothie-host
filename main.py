@@ -1232,7 +1232,7 @@ class SmoothieHost(App):
                 top = Window.top - int(t)
                 left = Window.left - int(l)
                 self.config.set('UI', 'screen_pos', "{},{}".format(top, left))
-                Logger.info('SmoothieHost: close Window.size: {}, Window.top: {}, Window.left: {}'.format(Window.size, top, left))
+                Logger.info('SmoothieHost: close Window.size: {}, Window.pos: {}x{}'.format(Window.size, top, left))
 
             self.config.write()
 

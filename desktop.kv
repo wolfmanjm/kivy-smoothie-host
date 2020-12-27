@@ -4,6 +4,7 @@
 #:include macros.kv
 #:include mpg.kv
 #:include dro.kv
+#:include menu.kv
 
 # <Widget>:
 #     # set default font size
@@ -20,96 +21,6 @@
 
 <MainWindow>:
     orientation: 'vertical'
-    tools_menu: tools_menu
-    system_menu: system_menu
-
-    ActionBar:
-        pos_hint: {'top':1}
-        ActionView:
-            use_separator: True
-            ActionPrevious:
-                title: 'Smoopi'
-                with_previous: True
-                on_press: root.on_previous()
-
-            ActionOverflow:
-
-            ActionToggleButton:
-                id: connect_button
-                text: 'Connect'
-                disabled: root.is_printing
-                #important: True
-                on_press: root.connect()
-            ActionButton:
-                id: print_but
-                disabled: not app.is_connected
-                text: 'Run' # also 'Pause'/'Resume'
-                #important: True
-                on_press: root.start_print()
-            ActionButton:
-                disabled: not root.is_printing
-                text: 'Abort'
-                #important: True
-                on_press: root.abort_print()
-            ActionButton:
-                disabled: not app.is_connected
-                text: '--- Kill  ---' if app.status != 'Alarm' else 'Clear Alarm'
-                color: 1, 0, 0, 1
-                #important: True
-                on_press: root.do_kill()
-            ActionButton:
-                text: 'Viewer'
-                on_press: root.show_viewer()
-
-            ActionGroup:
-                id: tools_menu
-                text: 'Tools'
-                mode: 'spinner'
-                ActionButton:
-                    text: 'Config Editor'
-                    on_press: root.config_editor()
-                    disabled: not app.is_connected or root.is_printing
-                ActionButton:
-                    text: 'Upload GCode'
-                    disabled: not app.is_connected or root.is_printing
-                    on_press: app.main_window.upload_gcode()
-                ActionButton:
-                    text: 'Fast Stream'
-                    disabled: root.is_printing or not app.fast_stream_cmd
-                    on_press: app.main_window.fast_stream_gcode()
-                ActionButton:
-                    text: 'SD Print'
-                    disabled: not app.is_connected or root.is_printing
-                    on_press: app.main_window.list_sdcard()
-                ActionButton:
-                    text: 'Find Center'
-                    disabled: not app.is_connected or root.is_printing
-                    on_press: app.tool_scripts.find_center()
-
-            ActionGroup:
-                id: system_menu
-                text: 'System'
-                mode: 'spinner'
-                ActionButton:
-                    text: 'Select Port'
-                    disabled: app.is_connected
-                    on_press: root.change_port()
-                ActionButton:
-                    text: 'Settings'
-                    on_press: app.open_settings()
-                ActionButton:
-                    text: 'Update'
-                    on_press: root.do_update()
-                ActionButton:
-                    text: 'Reload Macros'
-                    on_press: app.main_window.ids.macros.reload()
-
-                ActionButton:
-                    text: 'Restart'
-                    on_press: root.ask_exit(True)
-                ActionButton:
-                    text: 'Quit'
-                    on_press: root.ask_exit(False)
 
     BoxLayout:
         orientation: 'horizontal'
