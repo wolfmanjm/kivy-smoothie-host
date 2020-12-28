@@ -1526,6 +1526,10 @@ class SmoothieHost(App):
 
     def _every_second(self, dt):
         ''' called every second if blanking is enabled '''
+        if self.minimized:
+            # don't blank if minimized
+            return
+
         if not self._blanked and self.blank_timeout > 0 and not self.main_window.is_printing:
             self.last_touch_time += 1
             if self.last_touch_time >= self.blank_timeout:
