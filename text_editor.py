@@ -66,6 +66,10 @@ Builder.load_string('''
                 on_press: root.insert(False)
                 disabled: not root.editable or rv.selected_idx < 0
             Button:
+                text: 'Delete'
+                on_press: root.delete()
+                disabled: not root.editable or rv.selected_idx < 0
+            Button:
                 text: 'Save'
                 on_press: root.save()
                 disabled: not root.editable
@@ -154,6 +158,19 @@ class TextEditor(Screen):
 
         self.rv.refresh_from_data()
         Clock.schedule_once(partial(self._refocus_it, i), 0.3)
+
+    def delete(self):
+        i = self.rv.selected_idx
+        if i < 0:
+            # print("No line is selected")
+            return
+        self.rv.data.pop(i)
+        self.max_cnt -= 1
+        # we need to renumber all following lines
+        for j in range(i + 1, self.max_cnt):
+            self.rv.data[j]['index'] = j
+
+        self.rv.refresh_from_data()
 
     def _refocus_it(self, i, *largs):
         self.rv.view_adapter.get_visible_view(i).ti.focus = True
