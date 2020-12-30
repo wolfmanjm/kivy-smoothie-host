@@ -125,6 +125,7 @@ class TextEditor(Screen):
             self.rv.data.append({'value': '', 'index': -1, 'ro': True})
 
         Row.rv = self.rv
+        print(self.rv.data)
 
     def close(self):
         self.rv.data = []
@@ -167,9 +168,10 @@ class TextEditor(Screen):
         self.rv.data.pop(i)
         self.max_cnt -= 1
         # we need to renumber all following lines
-        for j in range(i + 1, self.max_cnt):
+        for j in range(i, self.max_cnt):
             self.rv.data[j]['index'] = j
 
+        print(self.rv.data)
         self.rv.refresh_from_data()
 
     def _refocus_it(self, i, *largs):
