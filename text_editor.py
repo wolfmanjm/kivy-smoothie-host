@@ -51,9 +51,6 @@ Builder.load_string('''
             height: dp(60)
             padding: dp(8)
             spacing: dp(16)
-            Button:
-                text: 'Close'
-                on_press: root.close()
             ToggleButton:
                 text: 'Edit' if not root.editable else "Readonly"
                 on_press: root.set_edit()
@@ -73,6 +70,9 @@ Builder.load_string('''
                 text: 'Save'
                 on_press: root.save()
                 disabled: not root.editable
+            Button:
+                text: 'Close'
+                on_press: root.close()
 
         RecycleView:
             id: rv
