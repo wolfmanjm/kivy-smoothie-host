@@ -28,12 +28,12 @@ Builder.load_string('''
     on_leave: self.clear()
     BoxLayout:
         orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgb: 0.5, 0.5, 0.5, 0.5
+            Rectangle:
+                size: self.size
         BoxLayout:
-            canvas.before:
-                Color:
-                    rgb: 0.5, 0.5, 0.5, 0.5
-                Rectangle:
-                    size: self.size
             id: view_window
             pos_hint: {'top': 1}
             Scatter:
