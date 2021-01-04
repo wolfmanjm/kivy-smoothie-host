@@ -28,11 +28,6 @@ Builder.load_string('''
     on_leave: self.clear()
     BoxLayout:
         orientation: 'vertical'
-        Label:
-            text: "{} size: {}x{}".format(app.gcode_file, root.bounds[0], root.bounds[1])
-            size_hint_y: None
-            height: self.texture_size[1]
-
         BoxLayout:
             canvas.before:
                 Color:
@@ -61,6 +56,10 @@ Builder.load_string('''
 
                 canvas.after:
                     ScissorPop:
+        Label:
+            text: "{} size: {}x{}".format(app.gcode_file, root.bounds[0], root.bounds[1])
+            size_hint_y: None
+            height: self.texture_size[1]
 
         BoxLayout:
             orientation: 'horizontal'
