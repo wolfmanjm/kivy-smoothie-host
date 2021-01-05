@@ -43,18 +43,16 @@ class ExtruderWidget(BoxLayout):
     def selected_temp(self, type, temp):
         # new temp selected from dropdown
         if type == 'hotend':
+            self.ids.set_hotend_temp.text = temp
             self.last_hotend_temp = float(temp)
-            self.temp_set = True
-            self.ids.hotend_slider.value = 0
             if self.ids.hotend_switch.active:
                 # update temp
                 self.set_temp(type, self.last_hotend_temp)
                 self.temp_changed = True
 
         elif type == 'bed':
+            self.ids.set_bed_temp.text = temp
             self.last_bed_temp = float(temp)
-            self.temp_set = True
-            self.ids.bed_slider.value = 0
             if self.ids.bed_switch.active:
                 # update temp
                 self.set_temp(type, self.last_bed_temp)
@@ -67,17 +65,13 @@ class ExtruderWidget(BoxLayout):
             return
 
         if type == 'bed':
-            self.ids.set_bed_temp.text = '{:1.1f}'.format(self.last_bed_temp + float(value))
-            if self.ids.bed_switch.active:
-                # update temp
-                self.set_temp(type, self.ids.set_bed_temp.text)
-                self.temp_changed = True
+            t = float(self.ids.set_bed_temp.text.split()[0])
+            self.ids.set_bed_temp.text = '{:1.1f}'.format(t + float(value))
+            self.selected_temp(type, self.ids.set_bed_temp.text)
         else:
-            self.ids.set_hotend_temp.text = '{:1.1f}'.format(self.last_hotend_temp + float(value))
-            if self.ids.hotend_switch.active:
-                # update temp
-                self.set_temp(type, self.ids.set_hotend_temp.text)
-                self.temp_changed = True
+            t = float(self.ids.set_hotend_temp.text)
+            self.ids.set_hotend_temp.text = '{:1.1f}'.format(t + float(value))
+            self.selected_temp(type, self.ids.set_hotend_temp.text)
 
     def set_last_temp(self, type, value):
         if type == 'bed':

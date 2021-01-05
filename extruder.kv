@@ -188,7 +188,7 @@
                 id: graph_view
 
     GridLayout:
-        cols: 5
+        cols: 3
         padding: 5, 5
         spacing: 5
 
@@ -200,22 +200,27 @@
             id: hotend_switch
             disabled: not app.is_connected
             on_active: root.switch_active(self, 'hotend', self.active, set_hotend_temp.text.split()[0])
-        Spinner:
-            id: set_hotend_temp
-            text: 'select temp' if not root.last_hotend_temp else str(root.last_hotend_temp)
-            values: app.config.get('Extruder', 'hotend_presets').split(',')
-            option_cls: Factory.HotendSpinnerOptions
-
-        Label:
-            size_hint_x: None
-            width: self.texture_size[0]
-            text: '°C'
-        Slider:
-            id: hotend_slider
-            min: -30
-            max: 30
-            value: 0
-            on_value: root.adjust_temp('hotend', self.value)
+        BoxLayout:
+            orientation: 'horizontal'
+            Button:
+                text: '+'
+                size_hint_x: None
+                width: dp(40)
+                on_press: root.adjust_temp('hotend', '5')
+            Spinner:
+                id: set_hotend_temp
+                text: 'select temp' if not root.last_hotend_temp else str(root.last_hotend_temp)
+                values: app.config.get('Extruder', 'hotend_presets').split(',')
+                option_cls: Factory.HotendSpinnerOptions
+            Button:
+                text: '-'
+                size_hint_x: None
+                width: dp(40)
+                on_press: root.adjust_temp('hotend', '-5')
+            Label:
+                size_hint_x: None
+                width: self.texture_size[0]
+                text: '°C'
 
         Label:
             size_hint_x: None
@@ -226,23 +231,28 @@
             disabled: not app.is_connected
             on_active: root.switch_active(self, 'bed', self.active, set_bed_temp.text.split()[0])
 
-        Spinner:
-            id: set_bed_temp
-            text: 'select temp' if not root.last_bed_temp else str(root.last_bed_temp)
-            values: app.config.get('Extruder', 'bed_presets').split(',')
-            option_cls: Factory.BedSpinnerOptions
+        BoxLayout:
+            orientation: 'horizontal'
+            Button:
+                text: '+'
+                size_hint_x: None
+                width: dp(40)
+                on_press: root.adjust_temp('bed', '5')
+            Spinner:
+                id: set_bed_temp
+                text: 'select temp' if not root.last_bed_temp else str(root.last_bed_temp)
+                values: app.config.get('Extruder', 'bed_presets').split(',')
+                option_cls: Factory.BedSpinnerOptions
+            Button:
+                text: '-'
+                size_hint_x: None
+                width: dp(40)
+                on_press: root.adjust_temp('bed', '-5')
 
-        Label:
-            size_hint_x: None
-            width: self.texture_size[0]
-            text: '°C'
-        Slider:
-            id: bed_slider
-            min: -20
-            max: 20
-            value: 0
-            on_value: root.adjust_temp('bed', self.value)
-
+            Label:
+                size_hint_x: None
+                width: self.texture_size[0]
+                text: '°C'
 
     BoxLayout:
         orientation: 'horizontal'
