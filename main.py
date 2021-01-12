@@ -1325,6 +1325,8 @@ class SmoothieHost(App):
             self.blank_timeout = self.config.getint('General', 'blank_timeout')
             Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
             self.sm.bind(on_touch_down=self._on_touch)
+            self.sm.bind(on_touch_up=self._on_touch_up)
+            self.sm.bind(on_touch_move=self._on_touch_move)
 
             if self.blank_timeout > 0:
                 Clock.schedule_interval(self._every_second, 1)
@@ -1568,6 +1570,16 @@ class SmoothieHost(App):
                 self.unblank_screen()
                 return True
 
+        return False
+
+    def _on_touch_up(self, a, b):
+        if self.minimized:
+            return True
+        return False
+
+    def _on_touch_move(self, a, b):
+        if self.minimized:
+            return True
         return False
 
     def _on_minimize(self, *args):
