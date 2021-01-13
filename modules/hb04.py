@@ -159,7 +159,6 @@ class HB04():
     # button look up table
     butlut = {
         1: "origin",
-        2: "start",
         3: "rewind",
         4: "probez",
         5: "macro3",
@@ -218,6 +217,9 @@ class HB04():
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
 
     def handle_button(self, btn, axis):
+        if btn not in self.butlut:
+            return False
+
         name = self.butlut[btn]
 
         if(name in self.macrobut):
@@ -248,10 +250,6 @@ class HB04():
             cmd = "M5" if self.app.is_spindle_on else "M3"
         elif btn == BUT_HALF:
             cmd = "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis) - ord('X')] / 2.0)
-        elif btn == BUT_START:
-            # if running then will pause
-            self.app.main_window.start_last_file()
-            return True
 
         if cmd:
             self.app.comms.write("{}\n".format(cmd))
@@ -338,6 +336,11 @@ class HB04():
 
                         if btn_1 == BUT_RESET and self.app.status == 'Alarm':
                             self.app.comms.write('$X\n')
+                            continue
+
+                        if btn_1 == BUT_START:
+                            # if running then will pause
+                            self.app.main_window.start_last_file()
                             continue
 
                         # don't do jogging etc if printing unless we are suspended
