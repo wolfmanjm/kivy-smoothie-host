@@ -3,6 +3,7 @@
 from easyhid import Enumeration
 from kivy.logger import Logger
 from kivy.app import App
+from kivy.uix.actionbar import ActionButton
 
 import threading
 import traceback
@@ -212,6 +213,9 @@ class HB04():
 
             # load any default settings
             self.mul = config.getint("defaults", "multiplier", fallback=8)
+
+            # add editor tool
+            self.app.main_window.tools_menu.add_widget(ActionButton(text='Edit hb04', on_press=lambda x: self.app.main_window._edit_text('hb04.ini')))
 
         except Exception as err:
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))

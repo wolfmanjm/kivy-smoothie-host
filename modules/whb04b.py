@@ -3,6 +3,7 @@
 from easyhid import Enumeration
 from kivy.logger import Logger
 from kivy.app import App
+from kivy.uix.actionbar import ActionButton
 
 import threading
 import traceback
@@ -234,6 +235,9 @@ class WHB04B():
             self.s_inc = config.getint("defaults", "speed_inc", fallback=10)
             self.safe_z = config.getint("defaults", "safe_z", fallback=20)
 
+            # add editor tool
+            self.app.main_window.tools_menu.add_widget(ActionButton(text='edit whb04', on_press=lambda x: self.app.main_window._edit_text('whb04b.ini')))
+
         except Exception as err:
             Logger.warning('WHB04B: WARNING - exception parsing config file: {}'.format(err))
 
@@ -461,7 +465,15 @@ class WHB04B():
                                     # feed rate this seems to work best
                                     dist = delta * wheel
                                     speed = 1.0
+                                    if axis == 'Z':
+                                        # We don't want the Z axis to move as far (as it is slow)
+                                        dist = dist / 10
                                     self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
+
+                                elif delta == 0:
+                                    # Lead mode, not sure what it is or what to use it for
+                                    pass
+
                                 # print("$J {}{} S{}\n".format(axis, dist, speed))
 
                         self.refresh_lcd()

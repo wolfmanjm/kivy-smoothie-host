@@ -915,7 +915,7 @@ class MainWindow(BoxLayout):
         f = Factory.filechooser()
         f.open(self.last_path, title='File to Edit', filters=['*'], cb=self._edit_text)
 
-    def _edit_text(self, file_path, directory):
+    def _edit_text(self, file_path, directory=None):
         self.app.text_editor.open(file_path)
         self.app.sm.current = 'text_editor'
 

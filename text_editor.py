@@ -125,7 +125,6 @@ class TextEditor(Screen):
             self.rv.data.append({'value': '', 'index': -1, 'ro': True})
 
         Row.rv = self.rv
-        print(self.rv.data)
 
     def close(self):
         self.rv.data = []
