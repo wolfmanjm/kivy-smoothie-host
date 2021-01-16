@@ -111,9 +111,11 @@ class Row(BoxLayout):
 
 class TextEditor(Screen):
     editable = BooleanProperty(False)
+    cb = None
 
-    def open(self, fn):
+    def open(self, fn, cb=None):
         self.fn = fn
+        self.cb = cb
         cnt = 0
         with open(fn) as f:
             for line in f:
@@ -129,6 +131,9 @@ class TextEditor(Screen):
     def close(self):
         self.rv.data = []
         self.manager.current = 'main'
+        if self.editable and self.cb is not None:
+            self.cb()
+        self.cb = None
 
     def save(self):
         if self.editable:

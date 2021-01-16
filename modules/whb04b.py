@@ -222,7 +222,7 @@ class WHB04B():
         self.quit = True
         self.t.join()
 
-    def load_macros(self):
+    def load_macros(self, reload=False):
         try:
             config = configparser.ConfigParser()
             config.read('whb04b.ini')
@@ -235,11 +235,20 @@ class WHB04B():
             self.s_inc = config.getint("defaults", "speed_inc", fallback=10)
             self.safe_z = config.getint("defaults", "safe_z", fallback=20)
 
-            # add editor tool
-            self.app.main_window.tools_menu.add_widget(ActionButton(text='edit whb04', on_press=lambda x: self.app.main_window._edit_text('whb04b.ini')))
+            if not reload:
+                # add editor tool
+                self.app.main_window.tools_menu.add_widget(ActionButton(text='Edit whb04b', on_press=self.edit_macros))
 
         except Exception as err:
             Logger.warning('WHB04B: WARNING - exception parsing config file: {}'.format(err))
+
+    def edit_macros(self, *args):
+        self.app.text_editor.open('whb04b.ini', self.reload_macros)
+        self.app.sm.current = 'text_editor'
+
+    def reload_macros(self):
+        self.macrobut.clear()
+        self.load_macros(True)
 
     def handle_button(self, btn1, btn2, axis):
         Logger.debug('WHB04B: handle_button: {}, {}, {}'.format(btn1, btn2, axis))

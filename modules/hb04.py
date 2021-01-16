@@ -203,7 +203,7 @@ class HB04():
         self.quit = True
         self.t.join()
 
-    def load_macros(self):
+    def load_macros(self, reload=False):
         try:
             config = configparser.ConfigParser()
             config.read('hb04.ini')
@@ -213,12 +213,20 @@ class HB04():
 
             # load any default settings
             self.mul = config.getint("defaults", "multiplier", fallback=8)
-
-            # add editor tool
-            self.app.main_window.tools_menu.add_widget(ActionButton(text='Edit hb04', on_press=lambda x: self.app.main_window._edit_text('hb04.ini')))
+            if not reload:
+                # add editor tool
+                self.app.main_window.tools_menu.add_widget(ActionButton(text='Edit hb04', on_press=self.edit_macros))
 
         except Exception as err:
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
+
+    def edit_macros(self, *args):
+        self.app.text_editor.open('hb04.ini', self.reload_macros)
+        self.app.sm.current = 'text_editor'
+
+    def reload_macros(self):
+        self.macrobut.clear()
+        self.load_macros(True)
 
     def handle_button(self, btn, axis):
         if btn not in self.butlut:
