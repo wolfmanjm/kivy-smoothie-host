@@ -152,7 +152,7 @@ class GcodeViewerScreen(Screen):
     def _loaded(self, ok):
         if not ok:
             # print(traceback.format_exc())
-            mb = MessageBox(text='File not found: {}'.format(self.app.gcode_file))
+            mb = MessageBox(text='File not found: {} or Parse error'.format(self.app.gcode_file))
             mb.open()
             self.manager.current = 'main'
 
@@ -171,7 +171,8 @@ class GcodeViewerScreen(Screen):
         self._loaded_ok = False
         try:
             self.parse_gcode_file(self.app.gcode_file, True)
-        except Exception:
+        except Exception as e:
+            Logger.error('GcodeViewerScreen: Got Exception: {}'.format(e))
             self._loaded(False)
         else:
             self._loaded(True)
@@ -871,13 +872,13 @@ if __name__ == '__main__':
         pass
 
     class GcodeViewerApp(App):
-        is_cnc = BooleanProperty(False)
         is_connected = BooleanProperty(False)
         is_desktop = NumericProperty(3)
         wpos = ListProperty([0, 0, 0])
 
         def __init__(self, **kwargs):
             super(GcodeViewerApp, self).__init__(**kwargs)
+            self.is_cnc = False
             if len(sys.argv) > 1:
                 self.gcode_file = sys.argv[1]
                 if not self.gcode_file.endswith('.gcode'):
