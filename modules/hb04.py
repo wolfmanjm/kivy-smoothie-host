@@ -213,9 +213,12 @@ class HB04():
 
             # load any default settings
             self.mul = config.getint("defaults", "multiplier", fallback=8)
-            if not reload:
+            if self.app.is_touch:
                 # add editor tool
                 self.app.main_window.tools_menu.add_widget(ActionButton(text='Edit hb04', on_press=self.edit_macros))
+            else:
+                # add relaod macros
+                self.app.main_window.tools_menu.add_widget(ActionButton(text='Reload hb04', on_press=self.reload_macros))
 
         except Exception as err:
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
@@ -224,7 +227,7 @@ class HB04():
         self.app.text_editor.open('hb04.ini', self.reload_macros)
         self.app.sm.current = 'text_editor'
 
-    def reload_macros(self):
+    def reload_macros(self, *args):
         self.macrobut.clear()
         self.load_macros(True)
 

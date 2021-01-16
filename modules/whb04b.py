@@ -236,8 +236,12 @@ class WHB04B():
             self.safe_z = config.getint("defaults", "safe_z", fallback=20)
 
             if not reload:
-                # add editor tool
-                self.app.main_window.tools_menu.add_widget(ActionButton(text='Edit whb04b', on_press=self.edit_macros))
+                if self.app.is_touch:
+                    # add editor tool
+                    self.app.main_window.tools_menu.add_widget(ActionButton(text='Edit whb04b', on_press=self.edit_macros))
+                else:
+                    # add relaod macros
+                    self.app.main_window.tools_menu.add_widget(ActionButton(text='Reload whb04b', on_press=self.reload_macros))
 
         except Exception as err:
             Logger.warning('WHB04B: WARNING - exception parsing config file: {}'.format(err))
@@ -246,7 +250,7 @@ class WHB04B():
         self.app.text_editor.open('whb04b.ini', self.reload_macros)
         self.app.sm.current = 'text_editor'
 
-    def reload_macros(self):
+    def reload_macros(self, *args):
         self.macrobut.clear()
         self.load_macros(True)
 

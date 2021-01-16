@@ -941,21 +941,21 @@ class SmoothieHost(App):
     is_inch = BooleanProperty(False)
     is_spindle_on = BooleanProperty(False)
     is_abs = BooleanProperty(True)
-    is_desktop = NumericProperty(0)
-    is_cnc = BooleanProperty(False)
     tab_top = BooleanProperty(False)
-    main_window = ObjectProperty()
     gcode_file = StringProperty()
     is_show_camera = BooleanProperty(False)
     is_spindle_camera = BooleanProperty(False)
-    manual_tool_change = BooleanProperty(False)
-    is_v2 = BooleanProperty(True)
-    wait_on_m0 = BooleanProperty(False)
-    fast_stream_cmd = StringProperty("")
 
     # Factory.register('Comms', cls=Comms)
     def __init__(self, **kwargs):
         super(SmoothieHost, self).__init__(**kwargs)
+        self.main_window = None
+        self.manual_tool_change = False
+        self.is_v2 = True
+        self.wait_on_m0 = False
+        self.fast_stream_cmd = ""
+        self.is_cnc = False
+        self.is_desktop = 0
         self.webserver = False
         self._blanked = False
         self.blank_timeout = 0

@@ -4,6 +4,10 @@ Supported pendants are documented here.
 ## Pendants
 There is support for a home made MPG pendant using a Teensy as a rawhid device. Also the LHB04 Mach3 pendant and the WHB04B (wired and wireless)
 
+### General
+If the pendant supports macros they can be edited in the appropriate ini file.
+A Tools menu entry will be added to quickly edit the file using the built in text editor. If the file was modified it will automatically be reloaded.
+
 ### Home made
 Project here...
 * https://github.com/wolfmanjm/mpg-usb
