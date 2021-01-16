@@ -1197,7 +1197,7 @@ class SmoothieHost(App):
         self.comms.stop()   # stop the aysnc loop
         if self.is_webserver:
             self.webserver.stop()
-        if self.blank_timeout > 0 and self._blanked:
+        if self.is_touch and self.blank_timeout > 0 and self._blanked:
             # unblank if blanked
             self.unblank_screen()
         # stop any loaded modules
@@ -1412,7 +1412,7 @@ class SmoothieHost(App):
         # load any modules specified in config
         self._load_modules()
 
-        if self.blank_timeout > 0:
+        if self.is_touch and self.blank_timeout > 0:
             # unblank if blanked
             self.unblank_screen()
 
@@ -1530,6 +1530,10 @@ class SmoothieHost(App):
         ''' called every second if blanking is enabled '''
         if self.minimized:
             # don't blank if minimized
+            return
+
+        if not self.is_touch:
+            # we don't blank desktops
             return
 
         if not self._blanked and self.blank_timeout > 0 and not self.main_window.is_printing:
