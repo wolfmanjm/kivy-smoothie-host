@@ -240,7 +240,7 @@ class WHB04B():
                     # add editor tool
                     self.app.main_window.tools_menu.add_widget(ActionButton(text='Edit whb04b', on_press=self.edit_macros))
                 else:
-                    # add relaod macros
+                    # add reload macros
                     self.app.main_window.tools_menu.add_widget(ActionButton(text='Reload whb04b', on_press=self.reload_macros))
 
         except Exception as err:

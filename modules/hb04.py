@@ -217,7 +217,7 @@ class HB04():
                 # add editor tool
                 self.app.main_window.tools_menu.add_widget(ActionButton(text='Edit hb04', on_press=self.edit_macros))
             else:
-                # add relaod macros
+                # add reload macros
                 self.app.main_window.tools_menu.add_widget(ActionButton(text='Reload hb04', on_press=self.reload_macros))
 
         except Exception as err:
