@@ -360,9 +360,6 @@ class MainWindow(BoxLayout):
         self.last_line = 0
         self.is_sdprint = False
 
-        # print('font size: {}'.format(self.ids.log_window.font_size))
-        # Clock.schedule_once(self.my_callback, 2) # hack to overcome the page layout not laying out initially
-
     def on_touch_down(self, touch):
         if self.ids.log_window.collide_point(touch.x, touch.y):
             if touch.is_triple_tap:
