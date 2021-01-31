@@ -80,7 +80,7 @@ class ConfigV2Editor(Screen):
 
     def open(self):
         self.app = App.get_running_app()
-        self.ids.placeholder.add_widget(Label(text='Loading....'))
+        self.ids.placeholder.add_widget(Label(text='Loading.... This may take a while!'))
         self.manager.current = 'config_editor'
         self.config = ConfigParser.get_configparser('Smoothie Config')
         if self.config is None:
@@ -132,6 +132,7 @@ class ConfigV2Editor(Screen):
             self.msp.on_close()
             self.msp = None
         self.jsondata = []
+        self.configdata = []
         self.config = None
         self.manager.current = 'main'
 
