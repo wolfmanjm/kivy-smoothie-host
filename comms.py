@@ -807,7 +807,7 @@ class Comms():
                 if self.proto:
                     self.proto.flush_queue()
 
-                self._write('\x18')
+                # self._write('\x18') # not sure we want to Kill
 
             if success and not self.ping_pong:
                 self.log.debug('Comms: Waiting for okcnt to catch up: {} vs {}'.format(self.okcnt, linecnt))
