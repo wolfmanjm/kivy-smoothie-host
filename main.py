@@ -1608,9 +1608,9 @@ class SmoothieHost(App):
 
     def display_settings(self, settings):
         if not self.sm.has_screen('settings_screen'):
-            self.settings_screen = Screen(name='settings_screen')
-            self.settings_screen.add_widget(settings)
-            self.sm.add_widget(self.settings_screen)
+            settings_screen = Screen(name='settings_screen')
+            settings_screen.add_widget(settings)
+            self.sm.add_widget(settings_screen)
 
         self.sm.current = 'settings_screen'
         return True
