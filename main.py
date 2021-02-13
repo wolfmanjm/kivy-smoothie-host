@@ -1557,6 +1557,7 @@ class SmoothieHost(App):
             else:
                 with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
                     f.write('0\n')
+            self._blanked = False
         except Exception:
             pass
 
