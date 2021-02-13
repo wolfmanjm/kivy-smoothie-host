@@ -1533,11 +1533,16 @@ class SmoothieHost(App):
             # we don't blank desktops
             return
 
-        if not self._blanked and self.blank_timeout > 0 and not self.main_window.is_printing:
-            self.last_touch_time += 1
-            if self.last_touch_time >= self.blank_timeout:
+        if self.blank_timeout > 0:
+            if self.sm.current != 'main' or self.main_window.is_printing:
+                # don't blank unless we are on main screen and not printing
                 self.last_touch_time = 0
-                self.blank_screen()
+
+            elif not self._blanked:
+                self.last_touch_time += 1
+                if self.last_touch_time >= self.blank_timeout:
+                    self.last_touch_time = 0
+                    self.blank_screen()
 
     def blank_screen(self, *args):
         try:
@@ -1600,6 +1605,18 @@ class SmoothieHost(App):
 
         Logger.info("SmoothieHost: config file is: {}".format(self.config_file))
         return super(SmoothieHost, self).get_application_config(defaultpath=self.config_file)
+
+    def display_settings(self, settings):
+        if not self.sm.has_screen('settings_screen'):
+            self.settings_screen = Screen(name='settings_screen')
+            self.settings_screen.add_widget(settings)
+            self.sm.add_widget(self.settings_screen)
+
+        self.sm.current = 'settings_screen'
+        return True
+
+    def close_settings(self, *largs):
+        self.sm.current = 'main'
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):
