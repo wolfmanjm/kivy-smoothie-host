@@ -14,6 +14,8 @@ class Optparse
         options.tool_dia= 4
         options.feed_rate=  1200 # mm/min
         options.diameter= 50
+        options.points= 50
+        options.test= false
 
         opt_parser= OptionParser.new do |opts|
           opts.banner = "Usage: probe.rb [options]"
@@ -23,7 +25,7 @@ class Optparse
           end
 
           opts.on( "-j", "--job TYPE", String,
-                   "The job to run one of [size|center]" ) do |n|
+                   "The job to run one of [size|center|spiral]" ) do |n|
             options.job= n
           end
 
@@ -55,6 +57,15 @@ class Optparse
           opts.on( "-f", "--feed-rate FR", Float,
                    "feed rate to use" ) do |opt|
               options.feed_rate= opt
+          end
+
+          opts.on( "-n", "--points N", Float,
+                   "number of points in spiral test" ) do |opt|
+              options.points= opt
+          end
+
+          opts.on( "-x", "--[no-]test", "run as a test" ) do |opt|
+              options.test= opt
           end
 
         end
@@ -122,7 +133,7 @@ end
 def send(arg, wait=true)
     STDERR.puts "DEBUG: sending #{arg}" if @verbose
     STDOUT.write(arg + "\n")
-    if wait
+    if wait and !$options.test
       # wait for ok
       l= STDIN.gets # read a line
       STDERR.puts "DEBUG: #{l}" if @verbose
@@ -217,6 +228,29 @@ def probe_center
     STDERR.puts "Diameter is #{diam+d1} mm"
 end
 
+def probe_spiral(n, radius)
+    a = radius / (2.0 * Math::sqrt(n * Math::PI))
+    step_length = radius * radius / (2 * a * n)
+
+    maxz = -1e6
+    minz = 1e6
+    (0..n).each do |i|
+        angle = Math::sqrt(2 * (i * step_length) / a)
+        r = angle * a
+        # polar to cartesian
+        x = r * Math::cos(angle)
+        y = r * Math::sin(angle)
+        moveTo(x: x, y: y, up: true, down: false)
+        p1 = probe(:z, -20)
+        z= p1.z
+        STDERR.puts("PROBE: X#{x}, Y#{y}, Z#{z}")
+        maxz = z if(z > maxz)
+        minz = z if(z < minz)
+    end
+
+    STDERR.puts("max: #{maxz}, min: #{minz}, delta: #{maxz-minz}")
+  end
+
   if $options.job == 'size'
     begin
       send("M120")
@@ -229,6 +263,15 @@ end
     begin
       send("M120")
       probe_center
+    ensure
+      send("M121")
+    end
+
+  elsif $options.job == 'spiral'
+
+    begin
+      send("M120")
+      probe_spiral($options.points, $options.diameter/2.0)
     ensure
       send("M121")
     end
