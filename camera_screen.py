@@ -31,8 +31,12 @@ Builder.load_string('''
 
 class MjpegViewer(Image):
 
-    def start(self, url):
-        self.url = url
+    def start(self):
+        app = App.get_running_app()
+        self.url = app.camera_url
+        self.realm = app.config.get('Web', 'camera_realm', fallback=None)
+        self.user = app.config.get('Web', 'camera_user', fallback=None)
+        self.pw = app.config.get('Web', 'camera_password', fallback=None)
         self.quit = False
         self.t = threading.Thread(target=self._read_stream)
         self.t.start()
@@ -43,8 +47,18 @@ class MjpegViewer(Image):
 
     def _read_stream(self):
         try:
+            if self.realm and self.user and self.pw:
+                auth_handler = urllib.request.HTTPBasicAuthHandler()
+                auth_handler.add_password(realm=self.realm, uri=self.url, user=self.user, passwd=self.pw)
+                opener = urllib.request.build_opener(auth_handler)
+                urllib.request.install_opener(opener)
+
             stream = urllib.request.urlopen(self.url)
+
         except Exception as err:
+            if hasattr(err, 'code') and err.code == 401:
+                Logger.error("MjpegViewer: url: {} - requires authentication: {}".format(self.url, err.headers['www-authenticate']))
+
             self.quit = True
             Logger.error("MjpegViewer: Failed to open url: {} - error: {}".format(self.url, err))
             return None
@@ -82,8 +96,7 @@ class MjpegViewer(Image):
 
 class CameraScreen(Screen):
     def start(self):
-        url = App.get_running_app().camera_url
-        self.ids.viewer.start(url)
+        self.ids.viewer.start()
 
     def stop(self):
         self.ids.viewer.stop()

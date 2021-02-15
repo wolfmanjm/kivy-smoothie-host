@@ -331,6 +331,15 @@ In Settings you can turn on the webserver (at port 8000) which will simply allow
 Also in Settings you can enable the video option which uses mjpg-streamer 
 (which needs to be built and installed, See https://github.com/jacksonliam/mjpg-streamer.git for instructions on that). If enabled and running then the video will show up in the progress web page.
 There is also a camera option in the system menu which allows a preview of the camera view. The url for the camera is in the settings, and should be the url which gets a video stream from the camera. If the camera is local it should be set to '''localhost''' which will get replaced with the actual IP when a remote browser requests it. (The default '''http://localhost:8080/?action=stream''' is to get the frame from the locally running mjpg-streamer, but can actually be any URL of any webcam that can stream mjpg video).
+If there is an error in the logs when you open the camera that says that authentication is required then add to the web section of the ```smoothiehost.ini``` in addition to the url already added:
+    
+    [web]
+    camera_realm = REALM
+    camera_user = user
+    camera_password = password
+
+replacing the REALM with the realm specified in the error log, and the user and password that the camera needs.
+
 
 If you are using the supplied image and want the streamer to auto start then..
 
