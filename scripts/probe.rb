@@ -150,11 +150,12 @@ def moveBy(x: 0, y: 0, down: true, up: true)
     send("G90")
 end
 
-def moveTo(x: nil, y: nil, down: true, up: true)
+def moveTo(x: nil, y: nil, z: nil, down: true, up: true)
     send("G91 G0 Z#{$options.z}") if up
     args= ""
     args += "X#{x} " unless x.nil?
     args += "Y#{y} " unless y.nil?
+    args += "Z#{z} " unless z.nil?
     send("G90 G0 #{args}")
     send("G91 G0 Z#{-$options.z}") if down
     send("G90")
@@ -234,15 +235,17 @@ def probe_spiral(n, radius)
 
     maxz = -1e6
     minz = 1e6
+    zs = $options.z
     (0..n).each do |i|
         angle = Math::sqrt(2 * (i * step_length) / a)
         r = angle * a
         # polar to cartesian
         x = r * Math::cos(angle)
         y = r * Math::sin(angle)
-        moveTo(x: x, y: y, up: true, down: false)
+        moveTo(x: x, y: y, z: zs, up: false, down: false)
         p1 = probe(:z, -20)
         z= p1.z
+        moveTo(z: zs, up: false, down: false)
         STDERR.puts("PROBE: X#{x}, Y#{y}, Z#{z}")
         maxz = z if(z > maxz)
         minz = z if(z < minz)

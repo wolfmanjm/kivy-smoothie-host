@@ -32,6 +32,7 @@ class MacrosWidget(StackLayout):
         # we do this so the kv defined buttons are loaded first
         Clock.schedule_once(self._load_user_buttons)
         self.toggle_buttons = {}
+        self.debug = False
 
     def _handle_toggle(self, name, v):
         t = self.toggle_buttons.get(name, None)
@@ -97,6 +98,7 @@ class MacrosWidget(StackLayout):
                     script = config.get(section, 'exec', fallback=None)
                     args = config.get(section, 'args', fallback=None)
                     io = config.getboolean(section, 'io', fallback=False)
+                    self.debug = config.getboolean(section, 'debug', fallback=False)
                     btn = Factory.MacroButton()
                     btn.text = name
                     btn.background_color = (1, 1, 0, 1)
@@ -289,7 +291,7 @@ class MacrosWidget(StackLayout):
                         if pr[0] == p.stdout.name:
                             s = p.stdout.readline()
                             if s:
-                                if not repeating:
+                                if not repeating and self.debug:
                                     self.app.main_window.async_display("<<< script: {}".format(s.rstrip()))
                                 self.app.comms.write('{}'.format(s))
 
