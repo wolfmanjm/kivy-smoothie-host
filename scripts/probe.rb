@@ -251,6 +251,13 @@ def probe_spiral(n, radius)
     STDERR.puts("max: #{maxz}, min: #{minz}, delta: #{maxz-minz}")
   end
 
+  # first send blank line and wait for 'ok' as there maybe some queued up stuff which we need to ignore
+  STDOUT.write("\n")
+  while true
+    l= STDIN.gets # read a line
+    break if l.start_with?("ok")
+  end
+
   if $options.job == 'size'
     begin
       send("M120")
