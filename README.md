@@ -337,9 +337,9 @@ If there is an error in the logs when you open the camera that says that authent
     camera_realm = REALM
     camera_user = user
     camera_password = password
+    camera_singleshot = 0
 
-replacing the REALM with the realm specified in the error log, and the user and password that the camera needs.
-
+replacing the REALM with the realm specified in the error log, and the user and password that the camera needs. If the camera only supplies one snapshot per request then set the ```camera_singleshot = 1```.
 
 If you are using the supplied image and want the streamer to auto start then..
 
