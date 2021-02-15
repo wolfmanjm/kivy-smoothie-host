@@ -10,6 +10,7 @@ from kivy.logger import Logger, LOG_LEVELS
 import io
 import urllib.request
 import threading
+import time
 
 Builder.load_string('''
 <MjpegViewer>:
@@ -37,6 +38,7 @@ class MjpegViewer(Image):
         self.realm = app.config.get('Web', 'camera_realm', fallback=None)
         self.user = app.config.get('Web', 'camera_user', fallback=None)
         self.pw = app.config.get('Web', 'camera_password', fallback=None)
+        self.singleshot = app.config.getboolean('Web', 'camera_singleshot', fallback=False)
         self.quit = False
         self.t = threading.Thread(target=self._read_stream)
         self.t.start()
@@ -64,6 +66,7 @@ class MjpegViewer(Image):
             return None
 
         Logger.info("MjpegViewer: started thread")
+
         bytes = b''
         while not self.quit:
             try:
@@ -79,9 +82,16 @@ class MjpegViewer(Image):
                     im = CoreImage(data, ext="jpeg", nocache=True)
                     self.update_image(im)
 
+                    if self.singleshot:
+                        # camera only supplies a snapshot not a stream
+                        time.sleep(0.2)
+                        stream = urllib.request.urlopen(self.url)
+                        bytes = b''
+
             except Exception as err:
                 Logger.error("MjpegViewer: Failed to read_queue url: {} - error: {}".format(self.url, err))
                 return None
+
         Logger.info("MjpegViewer: ending thread")
 
     @mainthread
