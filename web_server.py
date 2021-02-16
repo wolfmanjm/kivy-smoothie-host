@@ -125,7 +125,25 @@ class ProgressServer(object):
 
 
 if __name__ == "__main__":
+    class MainWindow(object):
+        """docstring for MainWindow"""
+        def __init__(self):
+            super(MainWindow, self).__init__()
+            self.is_printing = False
+
+    class MyApp(object):
+        """docstring for MyApp"""
+        def __init__(self):
+            super(MyApp, self).__init__()
+            self.status = "Not Connected"
+            self.is_show_camera = False
+            self.main_window = MainWindow()
+            self.camera_url = 'http://camipaddress:port'
+            # self.camera_realm = 'CameraServer'
+            # self.camera_user = 'user'
+            # self.camera_password = 'pw'
+            # self.camera_singleshot = 1
 
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
     s = ProgressServer()
-    s.start(8000)
+    s.start(MyApp(), 8000)
