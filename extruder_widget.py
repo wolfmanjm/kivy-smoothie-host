@@ -59,11 +59,6 @@ class ExtruderWidget(BoxLayout):
                 self.temp_changed = True
 
     def adjust_temp(self, type, value):
-        if value == 'select temp' or self.temp_set:
-            # if we programmaticaly set the value ignore it
-            self.temp_set = False
-            return
-
         if type == 'bed':
             t = float(self.ids.set_bed_temp.text.split()[0])
             self.ids.set_bed_temp.text = '{:1.1f}'.format(t + float(value))
