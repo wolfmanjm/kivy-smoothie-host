@@ -72,6 +72,9 @@
                     text: 'Text Editor'
                     on_press: root.edit_text()
                 ActionButton:
+                    text: 'RPN Calculator'
+                    on_press: app.sm.current = 'calculator'
+                ActionButton:
                     text: 'Upload GCode'
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.main_window.upload_gcode()

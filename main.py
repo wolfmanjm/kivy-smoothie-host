@@ -48,6 +48,7 @@ from gcode_help import GcodeHelp
 from text_editor import TextEditor
 from tool_scripts import ToolScripts
 from notify import Notify
+from calc_widget import CalcScreen
 
 import subprocess
 import threading
@@ -1318,6 +1319,7 @@ class SmoothieHost(App):
             # disable overscroll
             # self.main_window.ids.log_window.effect_cls = 'ScrollEffect'
             # self.main_window.ids.log_window.effect_y.friction = 1.0
+            self.sm.add_widget(CalcScreen(name='calculator'))
 
             self.blank_timeout = self.config.getint('General', 'blank_timeout')
             Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
@@ -1334,6 +1336,9 @@ class SmoothieHost(App):
                 self.main_window.ids.blleft.remove_widget(self.main_window.ids.entry)
                 # add text editor tool
                 self.main_window.tools_menu.add_widget(ActionButton(text='Text Editor', on_press=self.main_window.edit_text))
+                # add calculator
+                self.main_window.tools_menu.add_widget(ActionButton(text='Calculator', on_press=lambda x: self.set_screen('calculator')))
+
                 # add blanker
                 if self.blank_timeout > 0:
                     self.main_window.system_menu.add_widget(ActionButton(text='Blank Screen', on_press=self.blank_screen))
@@ -1414,6 +1419,9 @@ class SmoothieHost(App):
             self.unblank_screen()
 
         return self.sm
+
+    def set_screen(self, s):
+        self.sm.current = s
 
     def _show_spindle_cam(self):
         if self.is_desktop <= 1:
