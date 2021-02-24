@@ -1490,13 +1490,16 @@ class SmoothieHost(App):
             self.main_window.display('> {}'.format(s))
             try:
                 p = subprocess.Popen(s[1:], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-                result, err = p.communicate()
+                result, err = p.communicate(timeout=10)
                 for l in result.splitlines():
                     self.main_window.display(l)
                 for l in err.splitlines():
                     self.main_window.display(l)
                 if p.returncode != 0:
                     self.main_window.display('returncode: {}'.format(p.returncode))
+            except subprocess.TimeoutExpired:
+                p.kill()
+                self.main_window.display('> command timed out')
             except Exception as err:
                 self.main_window.display('> command exception: {}'.format(err))
 
