@@ -7,6 +7,7 @@ from kivy.lang import Builder
 from kivy.core.window import Window
 
 import subprocess
+import configparser
 
 Builder.load_string('''
 <CalcButt@Button>
@@ -100,7 +101,9 @@ class CalcScreen(Screen):
     def __init__(self, **kwargs):
         super(CalcScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.use_dc = True
+        config = configparser.ConfigParser()
+        config.read('smoothiehost.ini')
+        self.backend = config.get('General', 'calc_backend', fallback="dc")
 
     def _add_line_to_log(self, s):
         self.app.main_window.display(s)
@@ -111,7 +114,7 @@ class CalcScreen(Screen):
             self.display.text = res
         elif key == 'Space':
             self.display.text += " "
-        elif key == '_' and not self.use_dc:
+        elif key == '_' and self.backend != "dc":
             self.display.text += "-"
         else:
             self.display.text += key
@@ -120,12 +123,16 @@ class CalcScreen(Screen):
         self.app.main_window.display(">>> {}".format(txt))
         # send to unix shell
         try:
-            if self.use_dc:
+            if self.backend == 'dc':
                 p = subprocess.Popen("dc", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
                 result, err = p.communicate(timeout=5, input="10 k {} p".format(txt))
-            else:
+            elif self.backend == 'bc':
                 p = subprocess.Popen("bc", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
                 result, err = p.communicate(timeout=5, input="scale=10; {}\n".format(txt))
+            else:
+                result = "{}".format(eval(txt))
+                self.app.main_window.display("<<< {}".format(result))
+                return result
 
             if p.returncode == 0:
                 self.app.main_window.display("<<< {}".format(result))
