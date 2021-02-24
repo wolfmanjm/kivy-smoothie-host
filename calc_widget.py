@@ -100,6 +100,7 @@ class CalcScreen(Screen):
     def __init__(self, **kwargs):
         super(CalcScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.use_dc = True
 
     def _add_line_to_log(self, s):
         self.app.main_window.display(s)
@@ -110,21 +111,32 @@ class CalcScreen(Screen):
             self.display.text = res
         elif key == 'Space':
             self.display.text += " "
+        elif key == '_' and not self.use_dc:
+            self.display.text += "-"
         else:
             self.display.text += key
 
     def _do_calc(self, txt):
-        self.app.main_window.display(">>> dc -e \"10 k {} p\" ".format(txt))
+        self.app.main_window.display(">>> {}".format(txt))
         # send to unix shell
         try:
-            p = subprocess.Popen("dc -e \"10 k {} p\"".format(txt), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-            result, err = p.communicate()
+            if self.use_dc:
+                p = subprocess.Popen("dc", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                result, err = p.communicate(timeout=5, input="10 k {} p".format(txt))
+            else:
+                p = subprocess.Popen("bc", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                result, err = p.communicate(timeout=5, input="scale=10; {}\n".format(txt))
+
             if p.returncode == 0:
                 self.app.main_window.display("<<< {}".format(result))
                 return " ".join(result.splitlines())
 
+        except subprocess.TimeoutExpired:
+            p.kill()
+            self.app.main_window.display('<<< calculator timed out')
+
         except Exception as err:
-            print('command exception: {}'.format(err))
+            self.app.main_window.display('<<< calculator exception: {}'.format(err))
 
         return "Error"
 
