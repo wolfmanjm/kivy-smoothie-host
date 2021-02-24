@@ -11,7 +11,7 @@ import subprocess
 Builder.load_string('''
 <CalcButt@Button>
     on_press: self.parent.parent.parent.do_action(self.text)
-
+    font_size: sp(30)
 <CalcScreen>:
     display: entry
 
@@ -33,11 +33,13 @@ Builder.load_string('''
                 size_hint_x: None
                 width: dp(100)
                 text: '<-'
+                font_size: sp(30)
                 on_press: entry.text = entry.text[:-1]
             Button:
                 size_hint_x: None
                 width: dp(100)
                 text: 'Clr'
+                font_size: sp(30)
                 on_press: entry.text = ""
 
         BoxLayout:
@@ -72,17 +74,18 @@ Builder.load_string('''
 
         BoxLayout:
             CalcButt:
+                text: '_'
+            CalcButt:
                 text: '0'
             CalcButt:
                 text: '.'
-            CalcButt:
-                text: '_'
             CalcButt:
                 text: '*'
 
         BoxLayout:
             Button:
                 text: 'Off'
+                font_size: sp(30)
                 on_press: root.manager.current = 'main'
             CalcButt:
                 text: 'Space'
