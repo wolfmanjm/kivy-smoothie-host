@@ -143,7 +143,7 @@ class CalcScreen(Screen):
             self.app.main_window.display('<<< calculator timed out')
 
         except Exception as err:
-            self.app.main_window.display('<<< calculator exception: {}'.format(err))
+            self.app.main_window.display('<<< calculator error: {}'.format(err))
 
         return "Error"
 
