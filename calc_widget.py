@@ -103,7 +103,7 @@ class CalcScreen(Screen):
         self.app = App.get_running_app()
         config = configparser.ConfigParser()
         config.read('smoothiehost.ini')
-        self.backend = config.get('General', 'calc_backend', fallback="dc")
+        self.backend = config.get('General', 'calc_backend', fallback="eval")
 
     def _add_line_to_log(self, s):
         self.app.main_window.display(s)
@@ -120,7 +120,7 @@ class CalcScreen(Screen):
             self.display.text += key
 
     def _do_calc(self, txt):
-        self.app.main_window.display(">>> {}".format(txt))
+        self.app.main_window.display("> {}".format(txt))
         # send to unix shell
         try:
             if self.backend == 'dc':
@@ -131,19 +131,19 @@ class CalcScreen(Screen):
                 result, err = p.communicate(timeout=5, input="scale=10; {}\n".format(txt))
             else:
                 result = "{}".format(eval(txt))
-                self.app.main_window.display("<<< {}".format(result))
+                self.app.main_window.display("< {}".format(result))
                 return result
 
             if p.returncode == 0:
-                self.app.main_window.display("<<< {}".format(result))
+                self.app.main_window.display("< {}".format(result))
                 return " ".join(result.splitlines())
 
         except subprocess.TimeoutExpired:
             p.kill()
-            self.app.main_window.display('<<< calculator timed out')
+            self.app.main_window.display('< calculator timed out')
 
         except Exception as err:
-            self.app.main_window.display('<<< calculator error: {}'.format(err))
+            self.app.main_window.display('< calculator error: {}'.format(err))
 
         return "Error"
 
