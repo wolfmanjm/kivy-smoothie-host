@@ -711,6 +711,13 @@ class Comms():
                         # handle tool change M6 or M06
                         if line == "M6" or line == "M06" or "M6 " in line or "M06 " in line or line.endswith("M6"):
                             tool_change_state = 1
+                            # look ahead for possible (MSG...
+                            pos = await f.tell()  # remember where we are
+                            nxtline = await f.readline()
+                            if nxtline.startswith('(MSG'):
+                                self.app.main_window.async_display(nxtline)
+                            else:
+                                await f.seek(pos)  # set back to start of next line
 
                     if self.app.wait_on_m0:
                         # handle M0 if required
