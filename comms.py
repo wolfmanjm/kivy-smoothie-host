@@ -50,7 +50,10 @@ class SerialConnection(asyncio.Protocol):
             # transport.serial.rts = False  # You can manipulate Serial object via transport
             transport.serial.reset_input_buffer()
             transport.serial.reset_output_buffer()
-            # transport.serial.set_low_latency_mode(True)
+            try:
+                transport.serial.set_low_latency_mode(True)
+            except Exception as e:
+                self.log.warning("Failed to set low latency mode: {}".format(e))
             # print(transport.serial)
 
     def flush_queue(self):
