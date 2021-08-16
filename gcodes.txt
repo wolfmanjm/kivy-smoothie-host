@@ -36,6 +36,7 @@ G91 | set Relative mode
 G92 | Set global workspace coordinate system
 G92.1 | Reset G92
 G92.4 | manually set homing (MCS) for XYZ
+M2 | End of job
 M3 | Starts the spindle. S<speed in RPM>
 M5 | Stops the spindle
 M7 | Starts the mist switch (for CNC)
@@ -52,7 +53,7 @@ M26 | Reset a SD card print
 M27 | Report print progress
 M28 | Begin write to SD card
 M29 | End write to SD card
-M30 | Delete a file on the SD card
+M30 | Delete a file on the SD card (or end of job in GRBL mode)
 M32 | Select a file, and start playing it
 M48 | Test zprobe repeatability [P<iterations> Z<feedrate>]
 M82 | Set absolute mode for extruder only
