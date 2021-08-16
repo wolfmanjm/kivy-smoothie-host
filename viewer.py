@@ -13,6 +13,7 @@ from kivy.uix.image import Image
 from kivy.clock import Clock, mainthread
 from kivy.core.text import Label as CoreLabel
 from message_box import MessageBox
+from input_box import InputBox
 
 import logging
 import sys
@@ -72,20 +73,24 @@ Builder.load_string('''
                     Rectangle:
                         size: self.size
                 id: z_value
-                text: 'Z{}'.format(round(root.current_z, 1))
+                text: '{}<>{}'.format(root.below_layer, root.above_layer) if root.twod_mode else 'Z{}'.format(round(root.current_z, 1))
                 size_hint_x: None
                 width: self.texture_size[0]
             Button:
+                text: 'Set slice'
+                size_hint_x: None
+                opacity: 1 if root.twod_mode else 0
+                width: dp(80) if root.twod_mode else 0
+                on_press: root.set_slice()
+            Button:
                 text: 'First Layer'
-                disabled: root.twod_mode
                 on_press: root.clear(); root.loading()
             Button:
                 text: 'Prev Layer'
-                disabled: root.twod_mode or len(root.layers) <= 2
+                disabled: not root.twod_mode and len(root.layers) <= 2
                 on_press: root.prev_layer()
             Button:
                 text: 'Next Layer'
-                disabled: root.twod_mode
                 on_press: root.next_layer()
             Spinner:
                 text_autoupdate: True
@@ -127,6 +132,9 @@ class GcodeViewerScreen(Screen):
     valid = BooleanProperty(False)
     bounds = ListProperty([0, 0])
     layers = ListProperty([0])
+    slice_size = NumericProperty(1.0)
+    above_layer = NumericProperty(-1)
+    below_layer = NumericProperty(0.0)
 
     def __init__(self, comms=None, **kwargs):
         super(GcodeViewerScreen, self).__init__(**kwargs)
@@ -151,7 +159,6 @@ class GcodeViewerScreen(Screen):
     @mainthread
     def _loaded(self, ok):
         if not ok:
-            # print(traceback.format_exc())
             mb = MessageBox(text='File not found: {} or Parse error'.format(self.app.gcode_file))
             mb.open()
             self.manager.current = 'main'
@@ -173,6 +180,7 @@ class GcodeViewerScreen(Screen):
             self.parse_gcode_file(self.app.gcode_file, True)
         except Exception as e:
             Logger.error('GcodeViewerScreen: Got Exception: {}'.format(e))
+            # print(traceback.format_exc())
             self._loaded(False)
         else:
             self._loaded(True)
@@ -205,15 +213,42 @@ class GcodeViewerScreen(Screen):
         self.ids.surface.transform = m
         # not sure why we need to do this
         self.ids.surface.top = Window.height
+        # reset cnc layers
+        self.above_layer = -self.slice_size
+        self.below_layer = 0.0
 
     def next_layer(self):
+        if self.twod_mode:
+            self.above_layer -= self.slice_size
+            self.below_layer -= self.slice_size
+
         self.loading()
 
     def prev_layer(self):
-        if len(self.layers) > 2:
-            self.layers.pop()
-            self.layers.pop()
+        if self.twod_mode:
+            self.above_layer += self.slice_size
+            self.below_layer += self.slice_size
             self.loading()
+
+        else:
+            if len(self.layers) > 2:
+                self.layers.pop()
+                self.layers.pop()
+                self.loading()
+
+    def _set_slice(self, val):
+        if val:
+            try:
+                self.slice_size = float(val)
+                self.above_layer = -self.slice_size
+                self.below_layer = 0.0
+                self.loading()
+            except Exception as e:
+                pass
+
+    def set_slice(self):
+        o = InputBox(title='Set Slice', text='enter size in mm of slice to view', cb=self._set_slice)
+        o.open()
 
     def do_print(self):
         self.app.main_window._start_print()
@@ -311,6 +346,7 @@ class GcodeViewerScreen(Screen):
         y = lastpos[1]
         z = lastpos[2]
 
+        point_count = 0
         with open(fn) as f:
             # jump to last read position
             f.seek(self.layers[-1])
@@ -426,6 +462,17 @@ class GcodeViewerScreen(Screen):
                         if z is not None:
                             self.current_z = z
 
+                    else:
+                        # in CNC mode we want to only see layers above a certain threshold
+                        # but as we mostly do depth first cutting we have to process everything
+                        self.current_z = self.above_layer
+                        if z is not None and (z < self.above_layer or z > self.below_layer):
+                            # ignore layers below or above thresholds
+                            Logger.debug('...Ignored...')
+                            last_gcode = gcode
+                            lastpos = [x, y, z]
+                            continue
+
                     Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}, s= {}".format(x, y, z, s))
 
                     # find bounding box
@@ -443,6 +490,7 @@ class GcodeViewerScreen(Screen):
                     if last_gcode != gcode:
                         # flush vertices
                         if points:
+                            point_count += len(points) / 2
                             self.canv.add(Color(0, 0, 0))
                             self.canv.add(Line(points=points, width=1, cap='none', joint='none'))
                             points = []
@@ -461,6 +509,7 @@ class GcodeViewerScreen(Screen):
                             if self.laser_mode and s <= 0.01:
                                 # do not draw non cutting lines
                                 if points:
+                                    point_count += len(points) / 2
                                     # draw accumulated points upto this point
                                     self.canv.add(Color(0, 0, 0))
                                     self.canv.add(Line(points=points, width=1, cap='none', joint='none'))
@@ -482,6 +531,7 @@ class GcodeViewerScreen(Screen):
                                 # a G1 with no E, treat as G0 and draw moves in red
                                 # print("move to: {}, {}, {}".format(x, y, z))
                                 if points:
+                                    point_count += len(points) / 2
                                     # draw accumulated points upto this point
                                     self.canv.add(Color(0, 0, 0))
                                     self.canv.add(Line(points=points, width=1, cap='none', joint='none'))
@@ -493,6 +543,7 @@ class GcodeViewerScreen(Screen):
                         else:
                             # A G1 with no X or Y, maybe E only move (retract) or Z move (layer change)
                             if points:
+                                point_count += len(points) / 2
                                 # draw accumulated points upto this point
                                 self.canv.add(Color(0, 0, 0))
                                 self.canv.add(Line(points=points, width=1, cap='none', joint='none'))
@@ -583,6 +634,7 @@ class GcodeViewerScreen(Screen):
                             max_y = max(y1, max_y)
                             min_y = min(y1, min_y)
 
+                        point_count += len(points) / 2
                         self.canv.add(Color(0, 0, 0))
                         self.canv.add(Line(points=points, width=1, cap='none', joint='none'))
                         points = []
@@ -603,10 +655,13 @@ class GcodeViewerScreen(Screen):
 
         # flush any points not yet drawn
         if points:
+            point_count += len(points) / 2
             # draw accumulated points upto this point
             self.canv.add(Color(0, 0, 0))
             self.canv.add(Line(points=points, width=1, cap='none', joint='none'))
             points = []
+
+        Logger.debug("GcodeViewerScreen: point count= {}".format(point_count))
 
         # center the drawing and scale it
         dx = max_x - min_x
