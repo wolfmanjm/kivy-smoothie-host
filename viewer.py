@@ -73,7 +73,7 @@ Builder.load_string('''
                     Rectangle:
                         size: self.size
                 id: z_value
-                text: '{}<>{}'.format(root.below_layer, root.above_layer) if root.twod_mode else 'Z{}'.format(round(root.current_z, 1))
+                text: '{}<>{}'.format(round(root.below_layer, 1), round(root.above_layer, 1)) if root.twod_mode else 'Z{}'.format(round(root.current_z, 1))
                 size_hint_x: None
                 width: self.texture_size[0]
             Button:
@@ -930,6 +930,7 @@ if __name__ == '__main__':
         is_connected = BooleanProperty(False)
         is_desktop = NumericProperty(3)
         wpos = ListProperty([0, 0, 0])
+        is_touch = BooleanProperty(False)
 
         def __init__(self, **kwargs):
             super(GcodeViewerApp, self).__init__(**kwargs)
