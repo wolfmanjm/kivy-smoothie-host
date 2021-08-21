@@ -995,7 +995,9 @@ class SmoothieHost(App):
             'filechooser': 'default',
             'touch_screen': 'false'
         })
-
+        config.setdefaults('Viewer', {
+            'slice': "1.0",
+        })
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',
             'last_hotend_temp': '185',

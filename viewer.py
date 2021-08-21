@@ -5,7 +5,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.graphics import Color, Line, Scale, Translate, PopMatrix, PushMatrix, Rectangle
 from kivy.graphics import InstructionGroup
-from kivy.properties import NumericProperty, BooleanProperty, ListProperty
+from kivy.properties import NumericProperty, BooleanProperty, ListProperty, ObjectProperty
 from kivy.graphics.transformation import Matrix
 from kivy.core.window import Window
 from kivy.uix.boxlayout import BoxLayout
@@ -121,7 +121,7 @@ Builder.load_string('''
 
 XY = 0
 XZ = 1
-CNC_accuracy = 0.05
+CNC_accuracy = 0.1
 
 
 class GcodeViewerScreen(Screen):
@@ -133,10 +133,10 @@ class GcodeViewerScreen(Screen):
     bounds = ListProperty([0, 0])
     layers = ListProperty([0])
     slice_size = NumericProperty(1.0)
-    above_layer = NumericProperty(-1)
+    above_layer = NumericProperty(-1.0)
     below_layer = NumericProperty(0.0)
 
-    def __init__(self, comms=None, **kwargs):
+    def __init__(self, comms=None, is_standalone=False, **kwargs):
         super(GcodeViewerScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.last_file_pos = None
@@ -148,6 +148,9 @@ class GcodeViewerScreen(Screen):
         self.comms = comms
         self.twod_mode = self.app.is_cnc
         self.rval = 0.0
+        if not is_standalone:
+            self.slice_size = self.app.config.get('Viewer', 'slice')
+            self.above_layer = -self.slice_size
 
     def loading(self):
         self.valid = False
@@ -926,6 +929,10 @@ if __name__ == '__main__':
     class ExitScreen(Screen):
         pass
 
+    class SimpleConfig():
+        def get(self, key):
+            return "1.0"
+
     class GcodeViewerApp(App):
         is_connected = BooleanProperty(False)
         is_desktop = NumericProperty(3)
@@ -946,7 +953,7 @@ if __name__ == '__main__':
             Window.size = (1024, 768)
             self.sm = ScreenManager()
             self.sm.add_widget(StartScreen(name='start'))
-            self.sm.add_widget(GcodeViewerScreen(name='gcode'))
+            self.sm.add_widget(GcodeViewerScreen(name='gcode', is_standalone=True))
             self.sm.add_widget(ExitScreen(name='main'))
             self.sm.current = 'gcode'
 
