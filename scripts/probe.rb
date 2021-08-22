@@ -138,14 +138,37 @@ def send(arg, wait=true)
       l= STDIN.gets # read a line
       STDERR.puts "DEBUG: #{l}" if @verbose
       if !l.start_with?("ok")
-        raise "unexpected response: #{l}"
+        raise "unexpected response to #{arg}: #{l}"
       end
     end
 end
 
-def moveBy(x: 0, y: 0, down: true, up: true)
+def send_expect(arg, expect, wait=true)
+    STDERR.puts "DEBUG: sending #{arg}" if @verbose
+    STDOUT.write(arg + "\n")
+    if expect and !$options.test
+      # wait for expect
+      l= STDIN.gets # read a line
+      STDERR.puts "DEBUG: #{l}" if @verbose
+      if l.match(expect).nil?
+        raise "unexpected response: #{l}"
+      end
+    end
+
+    if wait and !$options.test
+      # wait for ok
+      l= STDIN.gets # read a line
+      STDERR.puts "DEBUG: #{l}" if @verbose
+      if !l.start_with?("ok")
+        raise "unexpected response: #{l}"
+      end
+    end
+
+end
+
+def moveBy(x: 0, y: 0, z: 0, down: true, up: true)
     send("G91 G0 Z#{$options.z}") if up
-    send("G91 G0 X#{x} Y#{y}")
+    send("G91 G0 X#{x} Y#{y} Z#{z}")
     send("G0 Z#{-$options.z}") if down
     send("G90")
 end
@@ -252,7 +275,78 @@ def probe_spiral(n, radius)
     end
 
     STDERR.puts("max: #{maxz}, min: #{minz}, delta: #{maxz-minz}")
+end
+
+# send query to get current angle
+def get_angle()
+  STDOUT.write "M114.3\n"
+  l= STDIN.gets # read a line
+  STDERR.puts "DEBUG: #{l}" if @verbose
+  # ok APOS: X:-16.4493 Y:-16.4493 Z:-16.4493
+  if l.start_with?("ok APOS: ")
+      m= l.match(/.*X:([-0-9.]+) Y:([-0-9.]+) Z:([-0-9.]+)/)
+    unless m.nil?
+      pos= OpenStruct.new
+      pos.x, pos.y, pos.z = m[1..3].collect{ |i| i.to_f }
+      return pos
+    end
   end
+
+  raise "unexpected response after M114.3: #{l}"
+end
+
+# send query to get current steps/mm
+def get_steps_mm()
+  STDOUT.write "M92\n"
+  l= STDIN.gets # read a line
+  STDERR.puts "DEBUG: #{l}" if @verbose
+  # X:1600.000000 Y:1600.000000 Z:1600.000000\nok
+
+  if l.start_with?("X:")
+      m= l.match(/X:([-0-9.]+) Y:([-0-9.]+) Z:([-0-9.]+)/)
+    unless m.nil?
+      pos= OpenStruct.new
+      pos.x, pos.y, pos.z = m[1..3].collect{ |i| i.to_f }
+
+      # wait for ok
+      l= STDIN.gets # read a line
+      STDERR.puts "DEBUG: #{l}" if @verbose
+      if !l.start_with?("ok")
+        raise "unexpected response to M92: #{l}"
+      end
+
+      return pos
+    end
+  end
+
+  raise "unexpected response after query: #{l}"
+end
+
+# Special tool for rotary delta, measures the movement between two known points to calculate a known angle
+def probe_angle()
+    moveTo(x: 0, y: 0, z: 90, up: false, down: false)
+    send_expect "G30.1", "Z:"
+    a1 = get_angle.x
+
+    moveBy z: 1, up: false, down: false
+
+    send_expect "G30.1 R1", "Z:"
+    a2 = get_angle.x
+
+    d= (a2-a1).abs
+    if d == 0
+      ds= 1.0
+    else
+      ds= d / 27.969858547367227
+    end
+
+    STDERR.puts("a1: #{a1}, a2: #{a2}, delta: #{d}, ds: #{ds}")
+    # current steps/degree * ds = new steps/degree
+    spmm = get_steps_mm
+    nspmm = spmm.x * ds
+    STDERR.puts("Old #{spmm.x}, New: #{nspmm}")
+    STDERR.puts("M92 X#{nspmm} Y#{nspmm} Z#{nspmm}")
+end
 
   # first send blank line and wait for 'ok' as there maybe some queued up stuff which we need to ignore
   STDOUT.write("\n")
@@ -278,7 +372,6 @@ def probe_spiral(n, radius)
     end
 
   elsif $options.job == 'spiral'
-
     begin
       send("M120")
       probe_spiral($options.points, $options.diameter/2.0)
@@ -287,9 +380,12 @@ def probe_spiral(n, radius)
     end
 
   elsif $options.job == 'pos'
-      wp= getpos()
-      mp = getpos(true)
-      STDERR.puts "WPOS x#{wp.x} y#{wp.y} z#{wp.z} MPOS x#{mp.x} y#{mp.y} z#{mp.z}"
+    wp= getpos()
+    mp = getpos(true)
+    STDERR.puts "WPOS x#{wp.x} y#{wp.y} z#{wp.z} MPOS x#{mp.x} y#{mp.y} z#{mp.z}"
+
+  elsif $options.job == 'angle'
+    probe_angle
 
   else
       STDERR.puts "job #{$options.job} Not yet supported"

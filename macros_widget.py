@@ -302,6 +302,7 @@ class MacrosWidget(StackLayout):
                                     self.app.main_window.async_display('{}\r'.format(e.rstrip()))
                                 else:
                                     self.app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
+                                    Logger.info('script: {}'.format(e.rstrip()))
 
                     p.poll()
 
