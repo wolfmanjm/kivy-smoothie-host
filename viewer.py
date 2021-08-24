@@ -58,7 +58,7 @@ Builder.load_string('''
                 canvas.after:
                     ScissorPop:
         Label:
-            text: "{} size: {}x{}".format(app.gcode_file, root.bounds[0], root.bounds[1])
+            text: "{} size: {:1.4f}x{:1.4f}".format(app.gcode_file, root.bounds[0], root.bounds[1])
             size_hint_y: None
             height: self.texture_size[1]
 
