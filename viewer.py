@@ -326,6 +326,10 @@ class GcodeViewerScreen(Screen):
         max_y = float('nan')
         min_x = float('nan')
         min_y = float('nan')
+        extent_max_x = float('nan')
+        extent_max_y = float('nan')
+        extent_min_x = float('nan')
+        extent_min_y = float('nan')
         has_e = False
         plane = XY
         rel_move = False
@@ -466,6 +470,15 @@ class GcodeViewerScreen(Screen):
                             self.current_z = z
 
                     else:
+                        # find extents of entire thing
+                        if math.isnan(extent_min_x) or x < extent_min_x:
+                            extent_min_x = x
+                        if math.isnan(extent_min_y) or y < extent_min_y:
+                            extent_min_y = y
+                        if math.isnan(extent_max_x) or x > extent_max_x:
+                            extent_max_x = x
+                        if math.isnan(extent_max_y) or y > extent_max_y:
+                            extent_max_y = y
                         # in CNC mode we want to only see layers above a certain threshold
                         # but as we mostly do depth first cutting we have to process everything
                         self.current_z = self.above_layer
@@ -717,6 +730,11 @@ class GcodeViewerScreen(Screen):
         self.canv.add(Line(circle=(cex, cey, cer)))
         self.canv.add(Line(points=[cex - cer, cey, cex + cer, cey], width=1, cap='none', joint='none'))
         self.canv.add(Line(points=[cex, cey - cer, cex, cey + cer], width=1, cap='none', joint='none'))
+
+        # extents
+        if self.twod_mode:
+            self.canv.add(Color(1, 0, 1, mode='rgb'))
+            self.canv.add(Line(points=[extent_min_x, extent_min_y, extent_max_x, extent_min_y, extent_max_x, extent_max_y, extent_min_x, extent_max_y, extent_min_x, extent_min_y], width=1, cap='none', joint='none'))
 
         # tool position marker
         if self.app.is_connected:
