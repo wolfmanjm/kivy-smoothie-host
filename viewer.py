@@ -680,13 +680,18 @@ class GcodeViewerScreen(Screen):
         Logger.debug("GcodeViewerScreen: point count= {}".format(point_count))
 
         # center the drawing and scale it
-        dx = max_x - min_x
-        dy = max_y - min_y
-        if dx == 0 or dy == 0:
-            Logger.warning("GcodeViewerScreen: size is bad, maybe need 2D mode")
-            return
 
-        self.bounds = [dx, dy]
+        if self.twod_mode:
+            dx = extent_max_x - extent_min_x
+            dy = extent_max_y - extent_min_y
+            self.bounds = [dx, dy]
+        else:
+            dx = max_x - min_x
+            dy = max_y - min_y
+            if dx == 0 or dy == 0:
+                Logger.warning("GcodeViewerScreen: size is bad, maybe need 2D mode")
+                return
+            self.bounds = [dx, dy]
 
         dx += 4
         dy += 4
