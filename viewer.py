@@ -58,7 +58,7 @@ Builder.load_string('''
                 canvas.after:
                     ScissorPop:
         Label:
-            text: "{} size: {:1.4f}x{:1.4f}".format(app.gcode_file, root.bounds[0], root.bounds[1])
+            text: "{} size: {:1.4f}x{:1.4f} {}".format(app.gcode_file, root.bounds[0], root.bounds[1], "Not all displayed" if root.too_many else "")
             size_hint_y: None
             height: self.texture_size[1]
 
@@ -135,6 +135,7 @@ class GcodeViewerScreen(Screen):
     slice_size = NumericProperty(1.0)
     above_layer = NumericProperty(-1.0)
     below_layer = NumericProperty(0.0)
+    too_many = BooleanProperty(False)
 
     def __init__(self, comms=None, is_standalone=False, **kwargs):
         super(GcodeViewerScreen, self).__init__(**kwargs)
@@ -469,6 +470,13 @@ class GcodeViewerScreen(Screen):
                         if z is not None:
                             self.current_z = z
 
+                        if point_count > 10000:
+                            # TODO make configurable, set low for rpi
+                            Logger.info('Too many vectors to display')
+                            self.too_many = True
+                            got_layer = True
+                            break
+
                     else:
                         # find extents of entire thing
                         if math.isnan(extent_min_x) or x < extent_min_x:
@@ -487,6 +495,11 @@ class GcodeViewerScreen(Screen):
                             Logger.debug('...Ignored...')
                             last_gcode = gcode
                             lastpos = [x, y, z]
+                            continue
+
+                        if point_count > 10000:
+                            Logger.debug('...Too many Ignored...')
+                            self.too_many = True
                             continue
 
                     Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}, s= {}".format(x, y, z, s))
