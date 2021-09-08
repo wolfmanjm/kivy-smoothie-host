@@ -528,8 +528,7 @@ class GcodeViewerScreen(Screen):
                         # G02 X0 Y-2 I0 J-2.0
                         mposx, mposy = (lastpos[0], lastpos[1])
                         centerX, centerY = (mposx + i, mposy + j)
-                        endpointX = x
-                        endpointY = y
+                        endpointX, endpointY = (x, y)
                         clockwise = (gcode == 2)
 
                         sX = mposx - centerX
