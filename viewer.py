@@ -555,7 +555,7 @@ class GcodeViewerScreen(Screen):
 
                         radius = math.sqrt(aX * aX + aY * aY)
                         circle_dat = (centerX, centerY, radius, math.degrees(angleA), math.degrees(angleB))
-
+                        print(circle_dat)
                         self.canv.add(Color(0, 0, 0))
                         self.canv.add(Line(circle=circle_dat))
 
