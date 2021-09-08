@@ -149,6 +149,7 @@ class GcodeViewerScreen(Screen):
         self.comms = comms
         self.twod_mode = self.app.is_cnc
         self.rval = 0.0
+        self.max_vectors = -1
         if not is_standalone:
             self.slice_size = self.app.config.get('Viewer', 'slice')
             self.above_layer = -self.slice_size
