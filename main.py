@@ -997,6 +997,7 @@ class SmoothieHost(App):
         })
         config.setdefaults('Viewer', {
             'slice': "1.0",
+            'vectors': "-1",
         })
         config.setdefaults('Extruder', {
             'last_bed_temp': '60',

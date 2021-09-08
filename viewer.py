@@ -152,6 +152,7 @@ class GcodeViewerScreen(Screen):
         if not is_standalone:
             self.slice_size = self.app.config.get('Viewer', 'slice')
             self.above_layer = -self.slice_size
+            self.max_vectors = self.app.config.getint('Viewer', 'vectors')
 
     def loading(self):
         self.valid = False
@@ -416,9 +417,9 @@ class GcodeViewerScreen(Screen):
                         if z is not None:
                             self.current_z = z
 
-                        if point_count > 10000:
+                        if self.max_vectors > 0 and point_count > self.max_vectors:
                             # TODO make configurable, set low for rpi
-                            Logger.info('Too many vectors to display')
+                            Logger.info('GcodeViewerScreen: Too many vectors to display')
                             self.too_many = True
                             got_layer = True
                             break
@@ -443,8 +444,8 @@ class GcodeViewerScreen(Screen):
                             lastpos = [x, y, z]
                             continue
 
-                        if point_count > 15000:
-                            Logger.debug('...Too many Ignored...')
+                        if self.max_vectors > 0 and point_count > self.max_vectors:
+                            Logger.info('GcodeViewerScreen: Too many vectors to display')
                             self.too_many = True
                             continue
 
