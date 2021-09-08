@@ -443,7 +443,7 @@ class GcodeViewerScreen(Screen):
                             lastpos = [x, y, z]
                             continue
 
-                        if point_count > 10000:
+                        if point_count > 15000:
                             Logger.debug('...Too many Ignored...')
                             self.too_many = True
                             continue
@@ -532,30 +532,26 @@ class GcodeViewerScreen(Screen):
                         endpointY = y
                         clockwise = (gcode == 2)
 
-                        aX = mposx - centerX
-                        aY = mposy - centerY
-                        bX = endpointX - centerX
-                        bY = endpointY - centerY
+                        sX = mposx - centerX
+                        sY = mposy - centerY
+                        eX = endpointX - centerX
+                        eY = endpointY - centerY
 
                         if clockwise:
                             # Clockwise
-                            angleA = math.atan2(bY, bX)
-                            angleB = math.atan2(aY, aX)
+                            angleA = math.atan2(sY, sX)
+                            angleB = math.atan2(eY, eX)
+
                         else:
                             # Counterclockwise
-                            angleA = math.atan2(aY, aX)
-                            angleB = math.atan2(bY, bX)
+                            angleB = math.atan2(sY, sX)
+                            angleA = math.atan2(eY, eX)
 
-                        # Make sure angleB is always greater than angleA
-                        # and if not add 2PI so that it is (this also takes
-                        # care of the special case of angleA == angleB,
-                        # ie we want a complete circle)
-                        if angleB <= angleA:
-                            angleB += 2. * math.pi
+                        if angleA <= angleB:
+                            angleA += 2. * math.pi
 
-                        radius = math.sqrt(aX * aX + aY * aY)
-                        circle_dat = (centerX, centerY, radius, math.degrees(angleA), math.degrees(angleB))
-                        print(circle_dat)
+                        radius = math.sqrt(sX * sX + sY * sY)
+                        circle_dat = (centerX, centerY, radius, 90 - math.degrees(angleA), 90 - math.degrees(angleB), 64)
                         self.canv.add(Color(0, 0, 0))
                         self.canv.add(Line(circle=circle_dat))
 
@@ -563,6 +559,7 @@ class GcodeViewerScreen(Screen):
                         min_x = min(centerX - radius, min_x)
                         max_y = max(centerY + radius, max_y)
                         min_y = min(centerY - radius, min_y)
+                        point_count += 4
 
                     # always remember last position
                     lastpos = [x, y, z]
