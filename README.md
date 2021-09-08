@@ -96,6 +96,8 @@ NOTE for toolchange to be caught by Smoopi the M6 must be on a line by itself or
 
 - The viewer allows setting the WCS to any arbitrary point on the workpiece, and to move to any point on the workpiece. This allows positioning and size checking before the job is run.
 
+-  On an RPI with limited GPU memory you can limit the number of vectors that are displayed by setting the ```[viewer] vectors=10000``` (so the display doesn't freeze). There is a bounding box though around the entire object even if some details are skipped, so WCS can still be set correctly.
+
 ### Suspend (filament change) support
 M600/suspend is handled correctly, and will suspend the print until the resume button is clicked (this will send M601). A useful thing is to insert ```(MSG any message here)``` in the gcode file before the M600 which will display in the console window, it could be a prompt to change the filament to a specific color for instance.
 
