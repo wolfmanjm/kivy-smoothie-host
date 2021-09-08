@@ -257,60 +257,6 @@ class GcodeViewerScreen(Screen):
     def do_print(self):
         self.app.main_window._start_print()
 
-    # ----------------------------------------------------------------------
-    # Return center x,y,z,r for arc motions 2,3 and set self.rval
-    # Cribbed from bCNC
-    # ----------------------------------------------------------------------
-
-    def motionCenter(self, gcode, plane, xyz_cur, xyz_val, ival, jval, kval=0.0):
-        if self.rval > 0.0:
-            if plane == XY:
-                x = xyz_cur[0]
-                y = xyz_cur[1]
-                xv = xyz_val[0]
-                yv = xyz_val[1]
-            elif plane == XZ:
-                x = xyz_cur[0]
-                y = xyz_cur[2]
-                xv = xyz_val[0]
-                yv = xyz_val[2]
-            else:
-                x = xyz_cur[1]
-                y = xyz_cur[2]
-                xv = xyz_val[1]
-                yv = xyz_val[2]
-
-            ABx = xv - x
-            ABy = yv - y
-            Cx = 0.5 * (x + xv)
-            Cy = 0.5 * (y + yv)
-            AB = math.sqrt(ABx**2 + ABy**2)
-            try:
-                OC = math.sqrt(self.rval**2 - AB**2 / 4.0)
-            except Exception:
-                OC = 0.0
-
-            if gcode == 2:
-                OC = -OC  # CW
-            if AB != 0.0:
-                return Cx - OC * ABy / AB, Cy + OC * ABx / AB
-            else:
-                # Error!!!
-                return x, y
-        else:
-            # Center
-            xc = xyz_cur[0] + ival
-            yc = xyz_cur[1] + jval
-            zc = xyz_cur[2] + kval
-            self.rval = math.sqrt(ival**2 + jval**2 + kval**2)
-
-            if plane == XY:
-                return xc, yc
-            elif plane == XZ:
-                return xc, zc
-            else:
-                return yc, zc
-
     extract_gcode = re.compile(r"(G|X|Y|Z|I|J|K|E|S)(-?\d*\.?\d*\.?)")
 
     def parse_gcode_file(self, fn, one_layer=False):
@@ -579,94 +525,44 @@ class GcodeViewerScreen(Screen):
                                 points = []
 
                     elif gcode in [2, 3]:  # CW=2,CCW=3 circle
-                        # code cribbed from bCNC
-                        xyz = []
-                        xyz.append((lastpos[0], lastpos[1], lastpos[2]))
-                        uc, vc = self.motionCenter(gcode, plane, lastpos, [x, y, z], i, j)
+                        # G02 X0 Y-2 I0 J-2.0
+                        mposx, mposy = (lastpos[0], lastpos[1])
+                        centerX, centerY = (mposx + i, mposy + j)
+                        endpointX = x
+                        endpointY = y
+                        clockwise = (gcode == 2)
 
-                        if plane == XY:
-                            u0 = lastpos[0]
-                            v0 = lastpos[1]
-                            w0 = lastpos[2]
-                            u1 = x
-                            v1 = y
-                            w1 = z
-                        elif plane == XZ:
-                            u0 = lastpos[0]
-                            v0 = lastpos[2]
-                            w0 = lastpos[1]
-                            u1 = x
-                            v1 = z
-                            w1 = y
-                            gcode = 5 - gcode  # flip 2-3 when XZ plane is used
+                        aX = mposx - centerX
+                        aY = mposy - centerY
+                        bX = endpointX - centerX
+                        bY = endpointY - centerY
+
+                        if clockwise:
+                            # Clockwise
+                            angleA = math.atan2(bY, bX)
+                            angleB = math.atan2(aY, aX)
                         else:
-                            u0 = lastpos[1]
-                            v0 = lastpos[2]
-                            w0 = lastpos[0]
-                            u1 = y
-                            v1 = z
-                            w1 = x
-                        phi0 = math.atan2(v0 - vc, u0 - uc)
-                        phi1 = math.atan2(v1 - vc, u1 - uc)
-                        try:
-                            sagitta = 1.0 - CNC_accuracy / self.rval
-                        except ZeroDivisionError:
-                            sagitta = 0.0
-                        if sagitta > 0.0:
-                            df = 2.0 * math.acos(sagitta)
-                            df = min(df, math.pi / 4.0)
-                        else:
-                            df = math.pi / 4.0
+                            # Counterclockwise
+                            angleA = math.atan2(aY, aX)
+                            angleB = math.atan2(bY, bX)
 
-                        if gcode == 2:
-                            if phi1 >= phi0 - 1e-10:
-                                phi1 -= 2.0 * math.pi
-                            ws = (w1 - w0) / (phi1 - phi0)
-                            phi = phi0 - df
-                            while phi > phi1:
-                                u = uc + self.rval * math.cos(phi)
-                                v = vc + self.rval * math.sin(phi)
-                                w = w0 + (phi - phi0) * ws
-                                phi -= df
-                                if plane == XY:
-                                    xyz.append((u, v, w))
-                                elif plane == XZ:
-                                    xyz.append((u, w, v))
-                                else:
-                                    xyz.append((w, u, v))
-                        else:
-                            if phi1 <= phi0 + 1e-10:
-                                phi1 += 2.0 * math.pi
-                            ws = (w1 - w0) / (phi1 - phi0)
-                            phi = phi0 + df
-                            while phi < phi1:
-                                u = uc + self.rval * math.cos(phi)
-                                v = vc + self.rval * math.sin(phi)
-                                w = w0 + (phi - phi0) * ws
-                                phi += df
-                                if plane == XY:
-                                    xyz.append((u, v, w))
-                                elif plane == XZ:
-                                    xyz.append((u, w, v))
-                                else:
-                                    xyz.append((w, u, v))
+                        # Make sure angleB is always greater than angleA
+                        # and if not add 2PI so that it is (this also takes
+                        # care of the special case of angleA == angleB,
+                        # ie we want a complete circle)
+                        if angleB <= angleA:
+                            angleB += 2. * math.pi
 
-                        xyz.append((x, y, z))
-                        # plot the points
-                        points = []
-                        for t in xyz:
-                            x1, y1, z1 = t
-                            points.append(x1)
-                            points.append(y1)
-                            max_x = max(x1, max_x)
-                            min_x = min(x1, min_x)
-                            max_y = max(y1, max_y)
-                            min_y = min(y1, min_y)
+                        radius = math.sqrt(aX * aX + aY * aY)
+                        circle_dat = (centerX, centerY, radius, math.degrees(angleA), math.degrees(angleB))
 
-                        point_count += len(points) / 2
                         self.canv.add(Color(0, 0, 0))
-                        self.canv.add(Line(points=points, width=1, cap='none', joint='none'))
-                        points = []
+                        self.canv.add(Line(circle=circle_dat))
+
+                        max_x = max(centerX + radius, max_x)
+                        min_x = min(centerX - radius, min_x)
+                        max_y = max(centerY + radius, max_y)
+                        min_y = min(centerY - radius, min_y)
 
                     # always remember last position
                     lastpos = [x, y, z]
