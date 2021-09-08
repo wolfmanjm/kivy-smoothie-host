@@ -337,7 +337,7 @@ def probe_angle()
     if d == 0
       ds= 1.0
     else
-      ds= d / 27.969858547367227
+      ds= d / 27.917376257801326
     end
 
     STDERR.puts("a1: #{a1}, a2: #{a2}, delta: #{d}, ds: #{ds}")
