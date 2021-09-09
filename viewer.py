@@ -839,6 +839,7 @@ class GcodeViewerScreen(Screen):
             self.twod_mode = True
             self.laser_mode = True
 
+        self.layers = [0]
         self.loading()
 
 
