@@ -435,11 +435,11 @@ class GcodeViewerScreen(Screen):
                             extent_max_x = x
                         if math.isnan(extent_max_y) or y > extent_max_y:
                             extent_max_y = y
-                        # in CNC mode we want to only see layers above a certain threshold
+                        # in CNC mode we want to only see slices between a slice
                         # but as we mostly do depth first cutting we have to process everything
                         self.current_z = self.above_layer
-                        if z is not None and (z < self.above_layer or z > self.below_layer):
-                            # ignore layers below or above thresholds
+                        if gcode > 0 and z is not None and (z < self.above_layer or z > self.below_layer):
+                            # ignore layers below or above slice
                             Logger.debug('...Ignored...')
                             last_gcode = gcode
                             lastpos = [x, y, z]
