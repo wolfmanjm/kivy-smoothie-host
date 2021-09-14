@@ -58,7 +58,7 @@ Builder.load_string('''
                 canvas.after:
                     ScissorPop:
         Label:
-            text: "{} size: {:1.4f}x{:1.4f} {}".format(app.gcode_file, root.bounds[0], root.bounds[1], "Not all displayed" if root.too_many else "")
+            text: "{} size: {:1.4f}x{:1.4f} minz: {:1.4f} maxz: {:1.4f} {}".format(app.gcode_file, root.bounds[0], root.bounds[1], root.bounds[2], root.bounds[3], "Not all displayed" if root.too_many else "")
             size_hint_y: None
             height: self.texture_size[1]
 
@@ -130,7 +130,7 @@ class GcodeViewerScreen(Screen):
     twod_mode = BooleanProperty(False)
     laser_mode = BooleanProperty(False)
     valid = BooleanProperty(False)
-    bounds = ListProperty([0, 0])
+    bounds = ListProperty([0, 0, 0, 0])
     layers = ListProperty([0])
     slice_size = NumericProperty(1.0)
     above_layer = NumericProperty(-1.0)
@@ -186,7 +186,7 @@ class GcodeViewerScreen(Screen):
             self.parse_gcode_file(self.app.gcode_file, True)
         except Exception as e:
             Logger.error('GcodeViewerScreen: Got Exception: {}'.format(e))
-            # print(traceback.format_exc())
+            print(traceback.format_exc())
             self._loaded(False)
         else:
             self._loaded(True)
@@ -275,6 +275,8 @@ class GcodeViewerScreen(Screen):
         max_y = float('nan')
         min_x = float('nan')
         min_y = float('nan')
+        min_z = float('nan')
+        max_z = float('nan')
         extent_max_x = float('nan')
         extent_max_y = float('nan')
         extent_min_x = float('nan')
@@ -435,6 +437,12 @@ class GcodeViewerScreen(Screen):
                             extent_max_x = x
                         if math.isnan(extent_max_y) or y > extent_max_y:
                             extent_max_y = y
+                        if z is not None:
+                            if math.isnan(min_z) or z < min_z:
+                                min_z = z
+                            if math.isnan(max_z) or z > max_z:
+                                max_z = z
+
                         # in CNC mode we want to only see slices between a slice
                         # but as we mostly do depth first cutting we have to process everything
                         self.current_z = self.above_layer
@@ -461,6 +469,11 @@ class GcodeViewerScreen(Screen):
                         max_x = x
                     if math.isnan(max_y) or y > max_y:
                         max_y = y
+                    if not self.twod_mode and z is not None:
+                        if math.isnan(min_z) or z < min_z:
+                            min_z = z
+                        if math.isnan(max_z) or z > max_z:
+                            max_z = z
 
                     # accumulating vertices is more efficient but we need to flush them at some point
                     # Here we flush them if we encounter a new G code like G3 following G1
@@ -591,14 +604,14 @@ class GcodeViewerScreen(Screen):
         if self.twod_mode:
             dx = extent_max_x - extent_min_x
             dy = extent_max_y - extent_min_y
-            self.bounds = [dx, dy]
+            self.bounds = [dx, dy, min_z, max_z]
         else:
             dx = max_x - min_x
             dy = max_y - min_y
             if dx == 0 or dy == 0:
                 Logger.warning("GcodeViewerScreen: size is bad, maybe need 2D mode")
                 return
-            self.bounds = [dx, dy]
+            self.bounds = [dx, dy, min_z, max_z]
 
         dx += 4
         dy += 4
