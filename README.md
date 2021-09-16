@@ -96,6 +96,8 @@ NOTE for toolchange to be caught by Smoopi the M6 must be on a line by itself or
 
 - The viewer allows setting the WCS to any arbitrary point on the workpiece, and to move to any point on the workpiece. This allows positioning and size checking before the job is run.
 
+- When viewing a CNC gcode file it only displays a 'slice' (0 to -1mm) in the gcode, this is set to 1.0mm by default, and should be set to the depth of cut for the file you are viewing. (For instance if the DOC is 0.4mm then set the slice to 0.4).
+
 -  On an RPI with limited GPU memory you can limit the number of vectors that are displayed by setting the ```[viewer] vectors=10000``` (so the display doesn't freeze). There is a bounding box though around the entire object even if some details are skipped, so WCS can still be set correctly.
 
 ### Suspend (filament change) support
@@ -176,13 +178,13 @@ Once running use the System menu upgrade to fetch the latest smoopi. If that is 
 
 ### Rasbian/Debian Stretch/Buster on RPI (NOT rpi4b)
 
-Note the latest Debian version is Buster and this also seems to work.
+Note the latest tested Debian version is Buster and seems to work.
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
 (This may work on older RPI versions but is not tested, please read this https://www.raspberrypi.org/documentation/hardware/display/legacy.md).
 
-Install the latest raspbian stretch lite... (No XWindows)
+Install the latest raspbian stretch or buster lite... (No XWindows)
 http://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
 
 Follow these instructions if using an rpi 3 B+ and rasbian stretch...
@@ -217,7 +219,7 @@ On an rpi3b+ (and better) it seems the double tap time needs to be increased to 
 
 #### RPI4b and Buster
 It is a little harder to get this to run on an RPI4b, it is recommended to run under XWindows (>= 2GB memory is needed).
-Basically you will need to install kivy @stable or @master (>= 2.0.0) and build from source, then follow the next paragraph.
+Basically you will need to install kivy @stable or @master (>= 2.0.0) or build from source, then follow the next paragraph.
 If you read the Kivy install instructions for rpi4b and buster you *may* be able to get a touch screen to run without XWindows but I have not tested this.
 
 #### Running under XWindows on RPI
