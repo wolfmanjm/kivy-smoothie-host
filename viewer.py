@@ -277,10 +277,6 @@ class GcodeViewerScreen(Screen):
         min_y = float('nan')
         min_z = float('nan')
         max_z = float('nan')
-        extent_max_x = float('nan')
-        extent_max_y = float('nan')
-        extent_min_x = float('nan')
-        extent_min_y = float('nan')
         has_e = False
         plane = XY
         rel_move = False
@@ -429,14 +425,14 @@ class GcodeViewerScreen(Screen):
 
                     else:
                         # find extents of entire thing
-                        if math.isnan(extent_min_x) or x < extent_min_x:
-                            extent_min_x = x
-                        if math.isnan(extent_min_y) or y < extent_min_y:
-                            extent_min_y = y
-                        if math.isnan(extent_max_x) or x > extent_max_x:
-                            extent_max_x = x
-                        if math.isnan(extent_max_y) or y > extent_max_y:
-                            extent_max_y = y
+                        if math.isnan(min_x) or x < min_x:
+                            min_x = x
+                        if math.isnan(min_y) or y < min_y:
+                            min_y = y
+                        if math.isnan(max_x) or x > max_x:
+                            max_x = x
+                        if math.isnan(max_y) or y > max_y:
+                            max_y = y
                         if z is not None:
                             if math.isnan(min_z) or z < min_z:
                                 min_z = z
@@ -461,19 +457,20 @@ class GcodeViewerScreen(Screen):
                     Logger.debug("GcodeViewerScreen: x= {}, y= {}, z= {}, s= {}".format(x, y, z, s))
 
                     # find bounding box
-                    if math.isnan(min_x) or x < min_x:
-                        min_x = x
-                    if math.isnan(min_y) or y < min_y:
-                        min_y = y
-                    if math.isnan(max_x) or x > max_x:
-                        max_x = x
-                    if math.isnan(max_y) or y > max_y:
-                        max_y = y
-                    if not self.twod_mode and z is not None:
-                        if math.isnan(min_z) or z < min_z:
-                            min_z = z
-                        if math.isnan(max_z) or z > max_z:
-                            max_z = z
+                    if not self.twod_mode:
+                        if math.isnan(min_x) or x < min_x:
+                            min_x = x
+                        if math.isnan(min_y) or y < min_y:
+                            min_y = y
+                        if math.isnan(max_x) or x > max_x:
+                            max_x = x
+                        if math.isnan(max_y) or y > max_y:
+                            max_y = y
+                        if z is not None:
+                            if math.isnan(min_z) or z < min_z:
+                                min_z = z
+                            if math.isnan(max_z) or z > max_z:
+                                max_z = z
 
                     # accumulating vertices is more efficient but we need to flush them at some point
                     # Here we flush them if we encounter a new G code like G3 following G1
@@ -573,10 +570,6 @@ class GcodeViewerScreen(Screen):
                         min_x = min(centerX - radius, min_x)
                         max_y = max(centerY + radius, max_y)
                         min_y = min(centerY - radius, min_y)
-                        extent_min_x = min(min_x, extent_min_x)
-                        extent_min_y = min(min_y, extent_min_y)
-                        extent_max_x = max(max_x, extent_max_x)
-                        extent_max_y = max(max_y, extent_max_y)
                         point_count += 4
 
                     # always remember last position
@@ -604,18 +597,14 @@ class GcodeViewerScreen(Screen):
         Logger.debug("GcodeViewerScreen: point count= {}".format(point_count))
 
         # center the drawing and scale it
+        dx = max_x - min_x
+        dy = max_y - min_y
+        self.bounds = [dx, dy, min_z, max_z]
 
-        if self.twod_mode:
-            dx = extent_max_x - extent_min_x
-            dy = extent_max_y - extent_min_y
-            self.bounds = [dx, dy, min_z, max_z]
-        else:
-            dx = max_x - min_x
-            dy = max_y - min_y
+        if not self.twod_mode:
             if dx == 0 or dy == 0:
                 Logger.warning("GcodeViewerScreen: size is bad, maybe need 2D mode")
                 return
-            self.bounds = [dx, dy, min_z, max_z]
 
         dx += 4
         dy += 4
@@ -663,7 +652,7 @@ class GcodeViewerScreen(Screen):
         # extents
         if self.twod_mode:
             self.canv.add(Color(1, 0, 1, mode='rgb'))
-            self.canv.add(Line(points=[extent_min_x, extent_min_y, extent_max_x, extent_min_y, extent_max_x, extent_max_y, extent_min_x, extent_max_y, extent_min_x, extent_min_y], width=1, cap='none', joint='none'))
+            self.canv.add(Line(points=[min_x, min_y, max_x, min_y, max_x, max_y, min_x, max_y, min_x, min_y], width=1, cap='none', joint='none'))
 
         # tool position marker
         if self.app.is_connected:
