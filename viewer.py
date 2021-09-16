@@ -573,6 +573,10 @@ class GcodeViewerScreen(Screen):
                         min_x = min(centerX - radius, min_x)
                         max_y = max(centerY + radius, max_y)
                         min_y = min(centerY - radius, min_y)
+                        extent_min_x = min(min_x, extent_min_x)
+                        extent_min_y = min(min_y, extent_min_y)
+                        extent_max_x = max(max_x, extent_max_x)
+                        extent_max_y = max(max_y, extent_max_y)
                         point_count += 4
 
                     # always remember last position
