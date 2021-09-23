@@ -39,6 +39,8 @@ class MjpegViewer(Image):
         self.user = app.config.get('Web', 'camera_user', fallback=None)
         self.pw = app.config.get('Web', 'camera_password', fallback=None)
         self.singleshot = app.config.getboolean('Web', 'camera_singleshot', fallback=False)
+        self.flipy = app.config.getboolean('Web', 'camera_flip_y', fallback=False)
+        self.flipx = app.config.getboolean('Web', 'camera_flip_x', fallback=False)
         self.quit = False
         self.t = threading.Thread(target=self._read_stream)
         self.t.start()
@@ -102,6 +104,10 @@ class MjpegViewer(Image):
         if im is not None:
             self.texture = im.texture
             self.texture_size = im.texture.size
+            if self.flipy:
+                self.texture.flip_vertical()
+            if self.flipx:
+                self.texture.flip_horizontal()
 
 
 class CameraScreen(Screen):

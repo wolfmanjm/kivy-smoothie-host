@@ -348,48 +348,48 @@ def probe_angle()
     STDERR.puts("M92 X#{nspmm} Y#{nspmm} Z#{nspmm}")
 end
 
-  # first send blank line and wait for 'ok' as there maybe some queued up stuff which we need to ignore
-  STDOUT.write("\n")
-  while true
-    l= STDIN.gets # read a line
-    break if l.start_with?("ok")
-  end
+# first send blank line and wait for 'ok' as there maybe some queued up stuff which we need to ignore
+STDOUT.write("\n")
+while true
+l= STDIN.gets # read a line
+break if l.start_with?("ok")
+end
 
-  if $options.job == 'size'
-    begin
-      send("M120")
-      probe_size
-    ensure
-      send("M121")
-    end
+if $options.job == 'size'
+begin
+  send("M120")
+  probe_size
+ensure
+  send("M121")
+end
 
-  elsif $options.job == 'center'
-    begin
-      send("M120")
-      probe_center
-    ensure
-      send("M121")
-    end
+elsif $options.job == 'center'
+begin
+  send("M120")
+  probe_center
+ensure
+  send("M121")
+end
 
-  elsif $options.job == 'spiral'
-    begin
-      send("M120")
-      probe_spiral($options.points, $options.diameter/2.0)
-    ensure
-      send("M121")
-    end
+elsif $options.job == 'spiral'
+begin
+  send("M120")
+  probe_spiral($options.points, $options.diameter/2.0)
+ensure
+  send("M121")
+end
 
-  elsif $options.job == 'pos'
-    wp= getpos()
-    mp = getpos(true)
-    STDERR.puts "WPOS x#{wp.x} y#{wp.y} z#{wp.z} MPOS x#{mp.x} y#{mp.y} z#{mp.z}"
+elsif $options.job == 'pos'
+wp= getpos()
+mp = getpos(true)
+STDERR.puts "WPOS x#{wp.x} y#{wp.y} z#{wp.z} MPOS x#{mp.x} y#{mp.y} z#{mp.z}"
 
-  elsif $options.job == 'angle'
-    probe_angle
+elsif $options.job == 'angle'
+probe_angle
 
-  else
-      STDERR.puts "job #{$options.job} Not yet supported"
-      exit 1
-  end
+else
+  STDERR.puts "job #{$options.job} Not yet supported"
+  exit 1
+end
 
 exit 0

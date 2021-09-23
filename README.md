@@ -3,7 +3,7 @@ A Smoothie host designed to run on an rpi with multitouch screen or on a desktop
 
 This is stable and ready for everyday use.
 
-This uses python >= 3.5 and < 3.8 and kivy >= 1.11.0
+This uses python >= 3.5 and <= 3.8 and kivy >= 1.11.0
 
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
@@ -452,7 +452,7 @@ If using one of the desktop layouts you will have access to the jog screen for j
 ![MPG Screen](pics/mpg-mode.png)
 ## Config Editor
 ![Config editor](pics/config-editor.png)
-## GCode viewer 
+## GCode viewer
 ![Gcode Viewer Screen](pics/viewerscreen.png)
 ![Selection in Gcode Viewer Screen](pics/viewer-select.png)
 ## Settings
