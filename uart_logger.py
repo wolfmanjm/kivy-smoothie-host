@@ -1,6 +1,5 @@
 import serial
 import threading
-import time
 
 from kivy.logger import Logger
 
