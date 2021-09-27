@@ -12,7 +12,7 @@ class UartLogger():
 
     def open(self, cb):
         try:
-            self.ser = serial.Serial(self.port)
+            self.ser = serial.Serial(self.port, baudrate=115200)
             self.ser.flushInput()
         except Exception as e:
             Logger.error("UartLogger: Failed to open uart: {}".format(e))
