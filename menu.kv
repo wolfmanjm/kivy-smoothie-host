@@ -64,6 +64,9 @@
                     text: 'Find Center'
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.tool_scripts.find_center()
+                ActionButton:
+                    text: 'Start Uart Log'
+                    on_press: app.main_window.start_uart_log()
 
             ActionGroup:
                 id: system_menu

@@ -1,5 +1,4 @@
 from kivy.app import App
-from kivy.uix.image import AsyncImage
 from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock, mainthread

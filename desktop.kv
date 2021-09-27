@@ -109,6 +109,12 @@
                 orientation: 'horizontal'
                 size_hint_y: None
                 height: dp(45)
+                ToggleButton:
+                    text: 'UART Log'
+                    on_state: app.main_window.toggle_uart_view(self.state)
+                    size_hint_x: None
+                    opacity: 1 if root.is_uart_log_enabled else 0
+                    width: dp(80) if root.is_uart_log_enabled else 0
                 Button:
                     text: 'Run Last File'
                     disabled: app.gcode_file == '' or not app.is_connected or root.is_printing

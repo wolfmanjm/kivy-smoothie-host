@@ -90,6 +90,9 @@
                     text: 'Find Center'
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.tool_scripts.find_center()
+                ActionButton:
+                    text: 'Start Uart Log'
+                    on_press: app.main_window.start_uart_log()
 
             ActionGroup:
                 text: 'System'
@@ -147,6 +150,12 @@
                 orientation: 'horizontal'
                 size_hint_y: None
                 height: dp(45)
+                ToggleButton:
+                    text: 'UART Log'
+                    on_state: app.main_window.toggle_uart_view(self.state)
+                    size_hint_x: None
+                    opacity: 1 if root.is_uart_log_enabled else 0
+                    width: dp(80) if root.is_uart_log_enabled else 0
                 Button:
                     text: 'Run Last File'
                     disabled: app.gcode_file == '' or not app.is_connected or root.is_printing

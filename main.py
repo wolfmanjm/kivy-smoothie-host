@@ -49,6 +49,7 @@ from text_editor import TextEditor
 from tool_scripts import ToolScripts
 from notify import Notify
 from calc_widget import CalcScreen
+from uart_logger import UartLogger
 
 import subprocess
 import threading
@@ -349,6 +350,7 @@ class MainWindow(BoxLayout):
     eta = StringProperty('Not Streaming')
     is_printing = BooleanProperty(False)
     is_suspended = BooleanProperty(False)
+    is_uart_log_enabled = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(MainWindow, self).__init__(**kwargs)
@@ -360,6 +362,8 @@ class MainWindow(BoxLayout):
         self.paused = False
         self.last_line = 0
         self.is_sdprint = False
+        self.save_console_data = None
+        self.uart_log_data = []
 
     def on_touch_down(self, touch):
         if self.ids.log_window.collide_point(touch.x, touch.y):
@@ -673,6 +677,37 @@ class MainWindow(BoxLayout):
 
     def review(self):
         self._show_viewer(self.app.gcode_file, self.last_path)
+
+    def start_uart_log(self):
+        ll = self.app.comms.get_ports()
+        ports = []
+        for p in ll:
+            ports.append('{}'.format(p.device))
+
+        sb = SelectionBox(title='Select Uart log port', text='Select the uart log port to open from drop down', values=ports, cb=self._set_uart_port)
+        sb.open()
+
+    @mainthread
+    def _uart_log_input(self, dat):
+        self.uart_log_data.append({'text': dat})
+        if self.save_console_data is not None:
+            # The uart log is in view
+            self.ids.log_window.data.append({'text': dat})
+
+    def _set_uart_port(self, s):
+        if s:
+            Logger.info('MainWindow: Selected Uart log port {}'.format(s))
+            uart_log = UartLogger(s)
+            uart_log.open(self._uart_log_input)
+            self.is_uart_log_enabled = True
+
+    def toggle_uart_view(self, state):
+        if state == "down":
+            self.save_console_data = self.ids.log_window.data
+            self.ids.log_window.data = self.uart_log_data
+        elif self.save_console_data is not None:
+            self.ids.log_window.data = self.save_console_data
+            self.save_console_data = None
 
     @mainthread
     def stream_finished(self, ok):
