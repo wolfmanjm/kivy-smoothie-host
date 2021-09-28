@@ -443,6 +443,11 @@ NOTE that only the first finger to touch is tracked so if that is lifted it will
 
 If using one of the desktop layouts you will have access to the jog screen for jogging, or you can use the pendant.
 
+## UART debug logger
+When debugging configs etc it is useful to monitor the DEBUG UART output from the smoothie board, this can easily be done by ataching an FTDI to the smoothie board. However the RPI also has UART pins so you can hook the smoothie UART direct to the RPI uart without needing a FTDI.
+In Smoopi under tools you select the ```Start Uart Log``` menu item and select the port (usually /dev/ttyAMA0 on RPI). Then a toggle button appears under the log view that allows you to toggle between the normal console output and the UART debug output.
+On an RPI enabling the UART pins on the header is a bit tricky, you need to disable the linux console and enable the uart in raspi-config, and also in the /boot/config.txt you need to add ```dtoverlay=pi3-disable-bt``` for the UART to be enabled properly.
+
 # Screen shots
 ## Extruder screens
 ![Extruder Screen](pics/screen1.png)
