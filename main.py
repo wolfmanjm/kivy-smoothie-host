@@ -695,7 +695,7 @@ class MainWindow(BoxLayout):
 
     @mainthread
     def _uart_log_input(self, dat):
-        d = {'text': dat}
+        d = {'text': dat.rstrip()}
         self.uart_log_data.append(d)
         if self.is_uart_log_in_view:
             # The uart log is in view
