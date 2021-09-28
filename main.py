@@ -364,6 +364,7 @@ class MainWindow(BoxLayout):
         self.is_sdprint = False
         self.save_console_data = []
         self.uart_log_data = []
+        self.is_uart_log_in_view = False
 
     def on_touch_down(self, touch):
         if self.ids.log_window.collide_point(touch.x, touch.y):
@@ -375,6 +376,11 @@ class MainWindow(BoxLayout):
 
     def add_line_to_log(self, s, overwrite=False):
         ''' Add lines to the log window, which is trimmed to the last 200 lines '''
+        if self.is_uart_log_in_view:
+            # not in view at the moment
+            self.save_console_data.append({'text': s})
+            return
+
         max_lines = 200  # TODO needs to be configurable
         n = len(self.ids.log_window.data)
         if overwrite:
