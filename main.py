@@ -362,7 +362,7 @@ class MainWindow(BoxLayout):
         self.paused = False
         self.last_line = 0
         self.is_sdprint = False
-        self.save_console_data = None
+        self.save_console_data = []
         self.uart_log_data = []
 
     def on_touch_down(self, touch):
@@ -689,25 +689,31 @@ class MainWindow(BoxLayout):
 
     @mainthread
     def _uart_log_input(self, dat):
-        self.uart_log_data.append({'text': dat})
-        if self.save_console_data is not None:
+        d = {'text': dat}
+        self.uart_log_data.append(d)
+        if self.is_uart_log_in_view:
             # The uart log is in view
-            self.ids.log_window.data.append({'text': dat})
+            self.ids.log_window.data.append(d)
 
     def _set_uart_port(self, s):
         if s:
             Logger.info('MainWindow: Selected Uart log port {}'.format(s))
             uart_log = UartLogger(s)
-            uart_log.open(self._uart_log_input)
-            self.is_uart_log_enabled = True
+            if uart_log.open(self._uart_log_input):
+                self.is_uart_log_enabled = True
+            else:
+                self.is_uart_log_enabled = False
+                self.display('Error unable to open {} as Uart log port'.format(s))
 
     def toggle_uart_view(self, state):
         if state == "down":
             self.save_console_data = self.ids.log_window.data
             self.ids.log_window.data = self.uart_log_data
-        elif self.save_console_data is not None:
+            self.is_uart_log_in_view = True
+        else:
             self.ids.log_window.data = self.save_console_data
-            self.save_console_data = None
+            self.save_console_data = []
+            self.is_uart_log_in_view = False
 
     @mainthread
     def stream_finished(self, ok):
