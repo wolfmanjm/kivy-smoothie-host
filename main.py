@@ -362,7 +362,7 @@ class MainWindow(BoxLayout):
         self.paused = False
         self.last_line = 0
         self.is_sdprint = False
-        self.save_console_data = []
+        self.save_console_data = None
         self.uart_log_data = []
         self.is_uart_log_in_view = False
 
@@ -695,8 +695,22 @@ class MainWindow(BoxLayout):
 
     @mainthread
     def _uart_log_input(self, dat):
-        d = {'text': dat.rstrip()}
+        txt = dat.rstrip()
+        if dat.startswith('ERROR:') or dat.startswith('FATAL:'):
+            txt = "[color=ff0000]{}[/color]".format(txt)
+        elif dat.startswith('WARNING:'):
+            txt = "[color=ffff00]{}[/color]".format(txt)
+        elif dat.startswith('INFO:'):
+            txt = "[color=00ff00]{}[/color]".format(txt)
+        elif dat.startswith('DEBUG:'):
+            txt = "[color=0000ff]{}[/color]".format(txt)
+        else:
+            txt = "[color=ffffff]{}[/color]".format(txt)
+
+        d = {'text': txt}
+
         self.uart_log_data.append(d)
+
         if self.is_uart_log_in_view:
             # The uart log is in view
             self.ids.log_window.data.append(d)
@@ -713,13 +727,15 @@ class MainWindow(BoxLayout):
 
     def toggle_uart_view(self, state):
         if state == "down":
-            self.save_console_data = self.ids.log_window.data
+            self.save_console_data = []
+            for i in self.ids.log_window.data:
+                self.save_console_data.append(i)
             self.ids.log_window.data = self.uart_log_data
             self.is_uart_log_in_view = True
         else:
-            self.ids.log_window.data = self.save_console_data
-            self.save_console_data = []
             self.is_uart_log_in_view = False
+            self.ids.log_window.data = self.save_console_data
+            self.save_console_data = None
 
     @mainthread
     def stream_finished(self, ok):
