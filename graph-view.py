@@ -73,17 +73,19 @@ class GraphView(FloatLayout):
             self.maxsecs = self.ids.graph.xmax * 60.
 
         if heater == 'hotend0':
-            if math.isinf(temp):
-                if self.he1_plot is not None:
-                    self.ids.graph.remove_plot(self.he1_plot)
-                    self.he1_plot.points = []
-                    self.he1_plot = None
-                return
+            # if temp < 0 or math.isinf(temp):
+            #     if self.he1_plot is not None:
+            #         self.ids.graph.remove_plot(self.he1_plot)
+            #         self.he1_plot.points = []
+            #         self.he1_plot = None
+            #     return
 
             if self.he1_plot is None:
                 self.he1_plot = MeshLinePlot(color=(1, 0, 0))
                 self.ids.graph.add_plot(self.he1_plot)
 
+            if temp < 10 or math.isinf(temp):
+                temp = 10
             self.he1_plot.points.append((self.secs / 60., temp))
             # truncate points
             if len(self.he1_plot.points) > self.maxsecs:
@@ -105,17 +107,19 @@ class GraphView(FloatLayout):
                     self.he1sp_plot = None
 
         elif heater == 'bed':
-            if math.isinf(temp):
-                if self.bed_plot is not None:
-                    self.ids.graph.remove_plot(self.bed_plot)
-                    self.bed_plot.points = []
-                    self.bed_plot = None
-                return
+            # if temp < 0 or math.isinf(temp):
+            #     if self.bed_plot is not None:
+            #         self.ids.graph.remove_plot(self.bed_plot)
+            #         self.bed_plot.points = []
+            #         self.bed_plot = None
+            #     return
 
             if self.bed_plot is None:
                 self.bed_plot = MeshLinePlot(color=(0, 1, 0))
                 self.ids.graph.add_plot(self.bed_plot)
 
+            if temp < 10 or math.isinf(temp):
+                temp = 10
             self.bed_plot.points.append((self.secs / 60., temp))
 
             if len(self.bed_plot.points) > self.maxsecs:

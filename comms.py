@@ -456,7 +456,7 @@ class Comms():
                 try:
                     self.handle_status(s)
                 except Exception:
-                    self.log.error("Comms: error parsing status")
+                    self.log.error("Comms: error parsing status - {}".format(s))
 
             elif s.startswith('[PRB:'):
                 # Handle PRB reply
