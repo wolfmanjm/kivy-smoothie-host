@@ -42,10 +42,12 @@ def get_ip():
     return IP
 
 
-def make_request_handler_class(app, ip):
+def make_request_handler_class(app, ip, flipx, flipy):
     class MyRequestHandler(BaseHTTPRequestHandler):
         m_app = app
         m_ip = ip
+        m_flipx = flipx
+        m_flipy = flipy
 
         def _set_headers(self):
             self.send_response(200)
@@ -75,7 +77,8 @@ def make_request_handler_class(app, ip):
                     if "localhost" in camurl:
                         # we need to replace localhost with actual ip so remote browsers can get it
                         camurl = camurl.replace("localhost", MyRequestHandler.m_ip)
-                    self.wfile.write('\r\n<center><img src="{}" /></center>\r\n'.format(camurl).encode("utf-8"))
+                    flipit = 'style="transform: scale({},{});"'.format(-1 if self.m_flipx else 1, -1 if self.m_flipy else 1)
+                    self.wfile.write('\r\n<center><img {} src="{}" /></center>\r\n'.format(flipit, camurl).encode("utf-8"))
                 else:
                     self.wfile.write('camera not enabled'.encode("utf-8"))
                 self.wfile.write("</body></html>\r\n".encode("utf-8"))
@@ -99,13 +102,15 @@ class ProgressServer(object):
         self.port = port
         self.app = app
         self.myServer = None
+        self.flipy = app.config.getboolean('Web', 'camera_flip_y', fallback=False)
+        self.flipx = app.config.getboolean('Web', 'camera_flip_x', fallback=False)
         self.t = threading.Thread(target=self._start)
         self.t.start()
 
     def _start(self):
         ip = get_ip()
         logger.info("ProgressServer: IP address is: {}".format(ip))
-        RequestHandlerClass = make_request_handler_class(self.app, ip)
+        RequestHandlerClass = make_request_handler_class(self.app, ip, self.flipx, self.flipy)
         self.myServer = HTTPServer(("", self.port), RequestHandlerClass)
         logger.info("ProgressServer: Web Server Starting - %s:%s" % ("", self.port))
 
