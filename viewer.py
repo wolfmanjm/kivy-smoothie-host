@@ -264,7 +264,7 @@ class GcodeViewerScreen(Screen):
     def parse_gcode_file(self, fn, one_layer=False):
         # open file parse gcode and draw
         Logger.debug("GcodeViewerScreen: parsing file {}". format(fn))
-        lastpos = [self.app.wpos[0], self.app.wpos[1], None]  # XYZ, set to initial tool position
+        lastpos = [None, None, None]  # XYZ, set to initial tool position
         last_layer_z = None
         lastdeltaz = None
         laste = 0
@@ -389,6 +389,9 @@ class GcodeViewerScreen(Screen):
                     e = laste if 'E' not in d else float(d['E'])
                     s = lasts if 'S' not in d else float(d['S'])
 
+                    if x is None or y is None:
+                        continue
+
                     if not self.twod_mode:
                         # handle layers (when Z changes)
                         if last_layer_z is None:
@@ -483,6 +486,10 @@ class GcodeViewerScreen(Screen):
                             points = []
 
                     last_gcode = gcode
+
+                    if lastpos[0] is None or lastpos[1] is None:
+                        lastpos = [x, y, z]
+                        continue
 
                     # in slicer generated files there is no G0 so we need a way to know when to draw, so if there is an E then draw else don't
                     if gcode == 0:
