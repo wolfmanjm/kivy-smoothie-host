@@ -393,6 +393,13 @@ Install some dependencies we need...
 
     python3 -m pip install --user --upgrade pyserial aiofiles
 
+
+Install Smoopi itself
+
+    > mkdir smoopi
+    > cd smoopi
+    > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git ./smoopi
+
 Run as
 
     > cd kivy-smoothie-host
