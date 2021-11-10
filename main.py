@@ -310,7 +310,7 @@ class JogRoseWidget(BoxLayout):
         self.app.comms.write('M18\n')
 
     def safe_z(self):
-        self.app.comms.write('$J Z20 S{}\n'.format(self._get_speed()))
+        self.app.comms.write('$J Z{} S{}\n'.format(self.app.safez, self._get_speed()))
 
 
 class KbdWidget(GridLayout):
@@ -1032,6 +1032,7 @@ class SmoothieHost(App):
         self.hdmi = False
         self.is_touch = False
         self.minimized = False
+        self.safez = 20
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1046,7 +1047,8 @@ class SmoothieHost(App):
             'v2': 'false',
             'is_spindle_camera': 'false',
             'notify_email': 'false',
-            'hdmi': 'false'
+            'hdmi': 'false',
+            'safez': '20'
         })
         config.setdefaults('UI', {
             'display_type': "RPI Touch",
@@ -1253,6 +1255,8 @@ class SmoothieHost(App):
             self.fast_stream_cmd = value
         elif token == ('General', 'notify_email'):
             self.notify_email = value == '1'
+        elif token == ('General', 'safez'):
+            self.safez = float(value)
         else:
             self.main_window.display("NOTICE: Restart is needed")
 
@@ -1358,6 +1362,7 @@ class SmoothieHost(App):
         self.wait_on_m0 = self.config.getboolean('General', 'wait_on_m0')
         self.is_v2 = self.config.getboolean('General', 'v2')
         self.hdmi = self.config.getboolean('General', 'hdmi')
+        self.safez = self.config.getfloat('General', 'safez')
 
         self.comms = Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file = self.config.get('General', 'last_print_file')
