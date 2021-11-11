@@ -1048,6 +1048,8 @@ class SmoothieHost(App):
             'is_spindle_camera': 'false',
             'notify_email': 'false',
             'hdmi': 'false',
+        })
+        config.setdefaults('Jog', {
             'safez': '20'
         })
         config.setdefaults('UI', {
@@ -1255,7 +1257,7 @@ class SmoothieHost(App):
             self.fast_stream_cmd = value
         elif token == ('General', 'notify_email'):
             self.notify_email = value == '1'
-        elif token == ('General', 'safez'):
+        elif token == ('Jog', 'safez'):
             self.safez = float(value)
         else:
             self.main_window.display("NOTICE: Restart is needed")
@@ -1362,7 +1364,7 @@ class SmoothieHost(App):
         self.wait_on_m0 = self.config.getboolean('General', 'wait_on_m0')
         self.is_v2 = self.config.getboolean('General', 'v2')
         self.hdmi = self.config.getboolean('General', 'hdmi')
-        self.safez = self.config.getfloat('General', 'safez')
+        self.safez = self.config.getfloat('Jog', 'safez')
 
         self.comms = Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file = self.config.get('General', 'last_print_file')
