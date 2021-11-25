@@ -219,8 +219,13 @@ On an rpi3b+ (and better) it seems the double tap time needs to be increased to 
 
 #### RPI4b and Buster
 It is a little harder to get this to run on an RPI4b, it is recommended to run under XWindows (>= 2GB memory is needed).
-Basically you will need to install kivy @stable or @master (>= 2.0.0) or build from source, then follow the next paragraph.
-If you read the Kivy install instructions for rpi4b and buster you *may* be able to get a touch screen to run without XWindows but I have not tested this.
+First install the Full XWindows version of Buster on the RPI4b.
+Then you will need to install kivy @stable or @master (>= 2.0.0) or build from source, then follow the next paragraph "Running under XWindows on RPI"
+e.g.
+
+    python3 -m pip install --upgrade --user kivy[base,media]
+
+*NOTE* If you read the Kivy install instructions for rpi4b and buster https://github.com/kivy/kivy/blob/master/doc/sources/installation/installation-rpi.rst#raspberry-pi-1-4-installation you *may* be able to get a touch screen to run without XWindows but I have not tested this and most reports say it doesn't work. Reading this issue may help.. https://github.com/kivy/kivy/issues/6474
 
 #### Running under XWindows on RPI
 Make sure that you run `raspi-config` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
