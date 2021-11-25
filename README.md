@@ -227,6 +227,10 @@ e.g.
 
 *NOTE* If you read the Kivy install instructions for rpi4b and buster https://github.com/kivy/kivy/blob/master/doc/sources/installation/installation-rpi.rst#raspberry-pi-1-4-installation you *may* be able to get a touch screen to run without XWindows but I have not tested this and most reports say it doesn't work. Reading this issue may help.. https://github.com/kivy/kivy/issues/6474
 
+It may be necesary to set this on RPI4b before running smoopi.
+
+     LD_LIBRARY_PATH=/opt/vc/lib
+     
 #### Running under XWindows on RPI
 Make sure that you run `raspi-config` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
 Make sure that under `~/.kivy/config.ini` in the `[input]` section that only `mouse = mouse` is set otherwise you will get multiple cursors and click events will go to unexpected places. 
