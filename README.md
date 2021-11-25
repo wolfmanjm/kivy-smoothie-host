@@ -8,7 +8,7 @@ This uses python >= 3.5 and <= 3.8 and kivy >= 1.11.0
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
 
-Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDMI monitor running Buster, running the app full screen if using a touch panel.
+Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDMI monitor running Buster, running the app full screen if using a touch panel. (see special instructions for installion on rpi4b below)
 
 It will run on Windows if you install Python 3.5.2 (or newer), and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
 
@@ -146,7 +146,7 @@ Samsung Evo+ are also supposed to be very fast in an RPI.
 The last line is quite important otherwise you get a whole lot of ok's echoed back to smoothie when it opens. This does not appear to be needed on a desktop probably due to the speed it is setup vs the rpi.
 
 ### Image
-For RPI 3a and 3b and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else.
+For RPI 3a and 3b and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else. (This *WILL NOT WORK* on an RPI4b).
 
 Download from <http://smoothieware.org/_media/bin/smoopi_img2.zip> (you need to copy paste this URL into your browser).
 unzip and image the resulting .img to an sdcard using for instance https://www.balena.io/etcher/ which can image direct from the .zip file.
