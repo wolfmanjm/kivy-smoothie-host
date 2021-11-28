@@ -223,9 +223,10 @@ First install the Full XWindows version of Buster on the RPI4b.
 https://downloads.raspberrypi.org/raspbian/images/raspbian-2020-02-14/
 or Bullseye which is here... https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/2021-10-30-raspios-bullseye-armhf.zip
 
-Then you will need to install kivy @stable or @master (>= 2.0.0) or build from source, then follow the next paragraph "Running under XWindows on RPI", rhen install smoopi following the insturciton under the "Common Setup" header.
+Then you will need to install kivy @stable or @master (>= 2.0.0) or build from source, then follow the next paragraph "Running under XWindows on RPI", then install smoopi following the instructions under the "Common Setup" header.
 This recipe worked for me under Buster and Bullseye...
 
+    > sudo apt-get update
     > sudo python3 -m pip install --upgrade pip setuptools virtualenv
     > sudo apt install pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa} libmtdev-dev xclip xsel libjpeg-dev
     > sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
