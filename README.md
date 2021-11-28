@@ -176,9 +176,9 @@ Once that is done setup smoopi to run on boot by doing...
 Once running use the System menu upgrade to fetch the latest smoopi. If that is successful, then quit under the System menu and smoopi will exit and then be restarted by runit.
 
 
-### Rasbian/Debian Stretch/Buster on RPI (NOT rpi4b)
+### Raspbian/Debian Stretch/Buster/Bullseye on RPI (NOT rpi4b)
 
-Note the latest tested Debian version is Buster and seems to work.
+Note the latest tested Debian version is Bullseye and seems to work.
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
@@ -217,13 +217,13 @@ On an rpi3b+ (and better) it seems the double tap time needs to be increased to 
     triple_tap_distance = 20
     triple_tap_time = 600 # <- and this to be > than double_tap_time
 
-#### RPI4b and Buster or Bullseye
-It is a little harder to get this to run on an RPI4b, it is recommended to run under XWindows (>= 2GB memory is needed).
-First install the Full XWindows version of Buster on the RPI4b.
-https://downloads.raspberrypi.org/raspbian/images/raspbian-2020-02-14/
-or Bullseye which is here... https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/2021-10-30-raspios-bullseye-armhf.zip
+#### RPI4b and Raspbian Buster or Bullseye
+It is recommended (and easier) to run under XWindows (>= 2GB memory is needed).
+First install the Full XWindows desktop version of Raspberry PI OS on the RPI4b,
+Bullseye which is here... https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/2021-10-30-raspios-bullseye-armhf.zip
+(or Buster which is here https://downloads.raspberrypi.org/raspbian/images/raspbian-2020-02-14/).
 
-Then you will need to install kivy @stable or @master (>= 2.0.0) or build from source, then follow the next paragraph "Running under XWindows on RPI", then install smoopi following the instructions under the "Common Setup" header.
+Then you will need to install kivy (version >= 2.0.0) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Common Setup" header.
 This recipe worked for me under Buster and Bullseye...
 
     > sudo apt-get update
@@ -232,9 +232,9 @@ This recipe worked for me under Buster and Bullseye...
     > sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
     > python3 -m pip install --upgrade --user kivy[base,media]
 
-reading the Kivy install for pi4 is recommended https://kivy.org/doc/stable/installation/installation-rpi.html#install-source-rpi
+Reading the Kivy install for pi4 is recommended https://kivy.org/doc/stable/installation/installation-rpi.html#install-source-rpi
 
-*NOTE* you *may* be able to get a touch screen to run without XWindows (console/headless mode) but I have not tested this. Read this https://kivy.org/doc/stable/installation/installation-rpi.html#raspberry-pi-4-headless-installation-on-raspbian-buster and this issue may help.. https://github.com/kivy/kivy/issues/6474
+*NOTE* you *may* be able to get a touch screen to run without XWindows (console/headless mode) but I have not tested this (it is quite a complex install, and installing from source is required). Read this https://kivy.org/doc/stable/installation/installation-rpi.html#raspberry-pi-4-headless-installation-on-raspbian-buster and this issue may help.. https://github.com/kivy/kivy/issues/6474
 
 #### Running under XWindows on RPI
 Make sure that you run `raspi-config` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
