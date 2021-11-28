@@ -66,7 +66,7 @@ import importlib
 import signal
 
 # we must have Python version between 3.5 and 3.8 inclusive
-assert (3, 9) >= sys.version_info >= (3, 5), "Python version needs to be >= 3.5 and <= 3.8, you have {}".format(sys.version)
+assert (3, 10) >= sys.version_info >= (3, 5), "Python version needs to be >= 3.5 and <= 3.9, you have {}".format(sys.version)
 
 kivy.require('1.11.0')
 
