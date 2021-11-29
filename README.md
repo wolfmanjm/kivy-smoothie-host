@@ -238,32 +238,44 @@ Reading the Kivy install for pi4 is recommended https://kivy.org/doc/stable/inst
 
 #### Running under XWindows on RPI
 Make sure that you run `raspi-config` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
-Make sure that under `~/.kivy/config.ini` in the `[input]` section that only `mouse = mouse` is set otherwise you will get multiple cursors and click events will go to unexpected places. 
-When running under XWindows the cursor module is not required nor are the hidinput input drivers.
-If you are using a USB based touch screen under XWindows you need to run smoopi full screen, and set ```mtdev_%(name)s = probesysfs,provider=mtdev``` only under the `[input]` section. If the resolution is 1024x600 or better then the RPI Full Screen layout is preferable.
-It is preferable to set:
+If using a mouse make sure that in `~/.kivy/config.ini` 
 
+    [input]
+    mouse = mouse
+
+is the only entry under `[input]` otherwise you will get multiple cursors and click events will go to unexpected places. 
+
+When running under XWindows the cursor module is not required nor are the hidinput input drivers.
+
+If you are using a USB based touch screen under XWindows you need to run smoopi full screen, and in `~/.kivy/config.ini`
+you have the following settings...
+
+    [kivy]
+    desktop = 1
+
+    [graphics]
     fullscreen = 1
     show_cursor = 0
 
-in the `~/.kivy/config.ini` file under the `[graphics]` section,
-and ```desktop = 1``` under the `[kivy]` section.
+    [input]
+    mtdev_%(name)s = probesysfs,provider=mtdev
+
+If the resolution is 1024x600 the RPI Full Screen layout is preferable. 
+If you have 1024x800 or better then the wide screen layout is preferable (make sure to set ```[UI] touch_screen = true``` in ```smoothiehost.ini```)
 
 #### Keyboard and Mouse support when running from console (egl-rpi)
 Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. 
-You will  need to add the following line to your ```~/.kivy/config.ini``` file under the ```[input]``` section:-
+You will  need to add the following line to your ```~/.kivy/config.ini``` ...
+    
+    [kivy]
+    keyboard_mode = system
     
     [input]
     %(name)s = probesysfs,provider=hidinput
-    
-and the following line under the ```[modules]``` section:-
 
     [modules]
     cursor = 1
 
-and disable the onscreen keyboard:-
-
-    keyboard_mode = system
 
 ### Common setup
 It is recommended to do this first...
