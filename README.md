@@ -223,11 +223,11 @@ First install the Full XWindows desktop version of Raspberry PI OS on the RPI4b,
 Bullseye which is here... https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/2021-10-30-raspios-bullseye-armhf.zip
 (or Buster which is here https://downloads.raspberrypi.org/raspbian/images/raspbian-2020-02-14/).
 
-Then you will need to install kivy (version >= 2.0.0) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Common Setup" header.
+Then you will need to install kivy (version >= 2.0.0) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Smoopi install and setup" header.
 This recipe worked for me under Buster and Bullseye...
 
     > sudo apt-get update
-    > sudo python3 -m pip install --upgrade pip setuptools virtualenv
+    > sudo python3 -m pip install --upgrade pip setuptools
     > sudo apt install pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa} libmtdev-dev xclip xsel libjpeg-dev
     > sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
     > python3 -m pip install --upgrade --user kivy[base,media]
@@ -277,7 +277,7 @@ You will  need to add the following line to your ```~/.kivy/config.ini``` ...
     cursor = 1
 
 
-### Common setup
+### Smoopi install and setup
 It is recommended to do this first...
 
     > sudo apt-get update
@@ -390,10 +390,10 @@ It should auto start then.
 
 ## On linux Desktop (and maybe windows/macos)
 
-Install on recent Linux (Ubuntu/Debian etc) and python >= 3.5.x and <= 3.8.x using the fast wheels installation...
+Install on recent Linux (Ubuntu/Debian etc) and python >= 3.5.x and <= 3.9.x using the fast wheels installation...
     
     sudo apt install python3-pip
-    python3 -m pip install --upgrade --user pip setuptools virtualenv
+    python3 -m pip install --upgrade --user pip setuptools
     python3 -m pip install --user --upgrade kivy
 
 See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
