@@ -8,11 +8,9 @@ This uses python >= 3.5 and <= 3.9.2 and kivy >= 1.11.0
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
 
-Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDMI monitor running Buster, running the app full screen if using a touch panel. (see special instructions for installion on rpi4b below)
+Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDMI monitor running Buster, running the app full screen if using a touch panel. (see special instructions for installation on rpi4b below)
 
 It will run on Windows if you install Python 3.5.2 (or newer), and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
-
-NOTE it has been tested on python versions >= 3.8 with Kivy 2.0 on Buster and an RPI3b and the touch screen works in standalone and under XWindows (although notes are below on how to run efficiently under XWindows)
 
 The minimum usable resolution is 800x480.
 
