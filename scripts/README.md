@@ -1,4 +1,4 @@
-Scripts are little programs written in virtually any language that can send and recieve directly to the Smoothieboard via Smoopi.
+Scripts are little programs written in virtually any language that can send and receive directly to the Smoothieboard via Smoopi.
 They are launched from a Macro button that is formatted so...
 
     [script some name]
@@ -11,7 +11,7 @@ They are launched from a Macro button that is formatted so...
 
 Where progam-name is the name of the scripting interpreter (eg ruby or python) and path-to-script is the path of the script to run.
 
-When the script is running all communications with the Smoopi interfacew are turned off (so DRO will not update etc).
+When the script is running all communications with the Smoopi interface are turned off (so DRO will not update etc).
 
 When the script writes to stdout that is sent directly to the smoothieboard, when the script reads from stdin it reads whatever the smootieboard has sent back, when the script writes to stderr it shows up in the console window.
 
