@@ -519,11 +519,6 @@ class MainWindow(BoxLayout):
         self.app.is_abs = a[4] == 'G90'
         self.app.is_spindle_on = a[7] == 'M3'
 
-    @mainthread
-    def alarm_state(self, s):
-        ''' called when smoothie is in Alarm state and it is sent a gcode '''
-        self.add_line_to_log("! Alarm state: {}".format(s))
-
     def ask_exit(self, restart=False):
         # are you sure?
         if restart:
@@ -579,6 +574,29 @@ class MainWindow(BoxLayout):
             self.config.set('General', 'serial_port', 'net://{}'.format(s))
             self.config.write()
 
+    @mainthread
+    def alarm_state(self, s):
+        ''' called when smoothie is in Alarm state and it is sent a gcode '''
+        self.add_line_to_log("! Alarm state: {}".format(s))
+        if self.is_suspended:
+            self.add_line_to_log("! NOTE: currently suspended so must Abort as resume will not work")
+
+    def do_kill(self):
+        if self.status == 'Alarm':
+            self.app.comms.write('$X\n')
+        else:
+            # are you sure?
+            mb = MessageBox(text='KILL - Are you Sure?', cb=self._do_kill)
+            mb.open()
+
+    def _do_kill(self, ok):
+        if ok:
+            if self.is_suspended:
+                # we have to abort as well
+                self._abort_print(True)
+            else:
+                self.app.comms.write('\x18')
+
     def abort_print(self):
         # are you sure?
         mb = MessageBox(text='Abort - Are you Sure?', cb=self._abort_print)
@@ -586,6 +604,11 @@ class MainWindow(BoxLayout):
 
     def _abort_print(self, ok):
         if ok:
+            if self.is_suspended:
+                # we have to KILL to get smoothie out of suspend state
+                self.is_suspended = False
+                self.app.comms.write('\x18')
+
             self.app.comms.stream_pause(False, True)
 
     @mainthread
@@ -596,7 +619,7 @@ class MainWindow(BoxLayout):
         self.is_suspended = suspended
         if paused:
             if suspended:
-                self.add_line_to_log(">>> Streaming Suspended, Resume or KILL as needed")
+                self.add_line_to_log(">>> Streaming Suspended, Resume or Abort as needed")
             else:
                 self.add_line_to_log(">>> Streaming Paused, Abort or Continue as needed")
         else:
@@ -894,18 +917,6 @@ class MainWindow(BoxLayout):
         self.set_last_file(directory, file_path)
         self.app.sm.current = 'viewer'
 
-    def do_kill(self):
-        if self.status == 'Alarm':
-            self.app.comms.write('$X\n')
-        else:
-            # are you sure?
-            mb = MessageBox(text='KILL - Are you Sure?', cb=self._do_kill)
-            mb.open()
-
-    def _do_kill(self, ok):
-        if ok:
-            self.app.comms.write('\x18')
-
     def do_update(self):
         try:
             p = subprocess.Popen(['git', 'pull'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -933,7 +944,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def tool_change_prompt(self, l):
         # Print is paused by gcode command M6, prompt for tool change
-        self.display("ACTION NEEDED: Manual Tool Change:\n Tool: {}\nWait for machine to stop, then you can jog around to change the tool.\n tap resume to continue".format(l))
+        self.display("ACTION NEEDED: Manual Tool Change:\n Tool: {}\nWait for machine to stop, then you can jog around to change the tool.\n tap Resume to continue\n**** REMEMBER to reset Z Height before Resuming ****\n".format(l))
 
     @mainthread
     def m0_dlg(self):

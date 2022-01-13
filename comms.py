@@ -613,8 +613,8 @@ class Comms():
     def _stream_pause(self, pause, do_abort):
         if self.file_streamer:
             if do_abort:
-                self.pause_stream = False
                 self.abort_stream = True  # aborts stream
+                self.pause_stream = False
                 if self.ping_pong and self.okcnt is not None:
                     self.okcnt.set()  # release it in case it is waiting for ok so it can abort
                 self.log.info('Comms: Aborting Stream')

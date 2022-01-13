@@ -40,7 +40,7 @@
                 on_press: root.connect()
             ActionButton:
                 id: print_but
-                disabled: not app.is_connected
+                disabled: not app.is_connected or app.status == 'Alarm'
                 text: 'Run' # also 'Pause'/'Resume'
                 important: True
                 on_press: root.start_print()
@@ -159,7 +159,7 @@
                     width: dp(80) if root.is_uart_log_enabled else 0
                 Button:
                     text: 'Run Last File'
-                    disabled: app.gcode_file == '' or not app.is_connected or root.is_printing
+                    disabled: app.gcode_file == '' or not app.is_connected or root.is_printing or app.status == 'Alarm'
                     on_press: app.main_window.reprint()
                 Button:
                     text: 'View Last File'
