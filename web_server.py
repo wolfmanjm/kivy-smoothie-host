@@ -20,7 +20,7 @@ main_page = '''
 
 <br/>
 
-<iframe src="camera" height="500" width="800">
+<iframe src="camera" height="600" width="800">
 </iframe>
 
 </body>
