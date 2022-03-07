@@ -155,7 +155,8 @@ class GcodeViewerScreen(Screen):
         self.li = Image(source='img/image-loading.gif')
         self.add_widget(self.li)
         self.ids.surface.canvas.remove(self.canv)
-        self._load_file()
+        # give loading image a chance to display
+        Clock.schedule_once(self._load_file)
 
     def _loaded(self, ok):
         if not ok:
@@ -174,7 +175,7 @@ class GcodeViewerScreen(Screen):
             if self.app.is_connected:
                 self.app.bind(wpos=self.update_tool)
 
-    def _load_file(self):
+    def _load_file(self, *args):
         self._loaded_ok = False
         try:
             self.parse_gcode_file(self.app.gcode_file, True)
