@@ -20,7 +20,6 @@ import sys
 import re
 import math
 import time
-import threading
 import traceback
 
 Builder.load_string('''
@@ -156,9 +155,8 @@ class GcodeViewerScreen(Screen):
         self.li = Image(source='img/image-loading.gif')
         self.add_widget(self.li)
         self.ids.surface.canvas.remove(self.canv)
-        threading.Thread(target=self._load_file).start()
+        self._load_file()
 
-    @mainthread
     def _loaded(self, ok):
         if not ok:
             mb = MessageBox(text='File not found: {} or Parse error'.format(self.app.gcode_file))

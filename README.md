@@ -389,7 +389,7 @@ It should auto start then.
 
 ## On linux Desktop (and maybe windows/macos)
 
-Install on recent Linux (Ubuntu/Debian etc) and python >= 3.5.x and <= 3.9.x using the fast wheels installation...
+Install on recent Linux (Ubuntu/Debian etc) and python >= 3.7.x and <= 3.10.x using the fast wheels installation...
     
     sudo apt install python3-pip
     python3 -m pip install --upgrade --user pip setuptools
@@ -412,7 +412,7 @@ If that does not work then install from source...
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
     python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@1.11.1
 
-1.11.1 seems to work well. (@stable is now 2.0.0 which doesn't work with python versions < 3.6, if you have python version >= 3.6 then you could install @master which is 2.0.0, @stable has a bug which stops the spindle cam from working).
+1.11.1 seems to work well. (@stable is now 2.1.0 which doesn't work with python versions < 3.7, if you have python version >= 3.7 then you could install @master which is 2.1.0).
 
 Install some dependencies we need...
 
