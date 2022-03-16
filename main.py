@@ -1,5 +1,6 @@
 import kivy
 
+from kivy.config import Config
 from kivy.app import App
 from kivy.lang import Builder
 
@@ -70,7 +71,7 @@ assert (3, 10) >= sys.version_info >= (3, 5), "Python version needs to be >= 3.5
 
 kivy.require('1.11.0')
 
-Window.softinput_mode = 'below_target'
+# Window.softinput_mode = 'below_target'
 
 
 class NumericInput(TextInput):

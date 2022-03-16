@@ -222,14 +222,14 @@ First install the Full XWindows desktop version of Raspberry PI OS on the RPI4b,
 Bullseye which is here... https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/2021-10-30-raspios-bullseye-armhf.zip
 (or Buster which is here https://downloads.raspberrypi.org/raspbian/images/raspbian-2020-02-14/).
 
-Then you will need to install kivy (version >= 2.0.0) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Smoopi install and setup" header.
+Then you will need to install kivy (version == 2.0.0) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Smoopi install and setup" header.
 This recipe worked for me under Buster and Bullseye...
 
     > sudo apt-get update
     > sudo python3 -m pip install --upgrade pip setuptools
     > sudo apt install pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa} libmtdev-dev xclip xsel libjpeg-dev
     > sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-    > python3 -m pip install --upgrade --user kivy[base,media]
+    > python3 -m pip install --upgrade --user kivy[base,media]==2.0.0
 
 Reading the Kivy install for pi4 is recommended https://kivy.org/doc/stable/installation/installation-rpi.html#install-source-rpi
 
@@ -393,7 +393,9 @@ Install on recent Linux (Ubuntu/Debian etc) and python >= 3.7.x and <= 3.10.x us
     
     sudo apt install python3-pip
     python3 -m pip install --upgrade --user pip setuptools
-    python3 -m pip install --user --upgrade kivy
+    python3 -m pip install --user --upgrade kivy==2.0.0
+
+We use 2.0.0 as 2.1.0 seems to have onscreen keyboard bugs, but if you are not using the inscreen keyboard then 2.1.0 is fine.
 
 See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
 
