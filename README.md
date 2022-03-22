@@ -159,7 +159,7 @@ and add your wifi credentials to the ssid= and the psk=  lines.
 
 Reboot, and wifi should be working.
 
-Then update raspbian stretch...
+Then update raspbian...
 
 * login in with username pi and password raspberry
 * sudo apt-get update
@@ -174,6 +174,8 @@ Once that is done setup smoopi to run on boot by doing...
 
 Once running use the System menu upgrade to fetch the latest smoopi. If that is successful, then quit under the System menu and smoopi will exit and then be restarted by runit.
 
+You can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
+(type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen).
 
 ### Raspbian/Debian Stretch/Buster/Bullseye on RPI (NOT rpi4b)
 
