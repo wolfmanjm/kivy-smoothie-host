@@ -176,20 +176,28 @@ Once running use the System menu upgrade to fetch the latest smoopi. If that is 
 
 ### Raspbian/Debian Stretch/Buster/Bullseye on RPI (NOT rpi4b)
 
-Note the latest tested Debian version is Bullseye and seems to work.
+Note the latest Debian version is Bullseye and seems to work.
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
 (This may work on older RPI versions but is not tested, please read this https://www.raspberrypi.org/documentation/hardware/display/legacy.md).
 
-Install the latest raspbian stretch or buster lite... (No XWindows)
-http://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
-
+Install the latest raspbian stretch/buster/bullseye lite... (No XWindows)
+eg http://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
 
 Or you can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
-(type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen).
+(type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the lite OS.
 
-Follow these instructions if using an rpi 3 B+ and rasbian stretch...
+If you installed Bullseye (or Buster) you can do a quick install of the Kivy wheel using the following commands...
+
+    sudo apt update
+    sudo apt upgrade (maybe reboot)
+    sudo apt install python3-pip
+    sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
+    python3 -m pip install --user kivy
+    ; then skip to the Smoopi install and setup section below....
+
+If that doesn't work then follow these instructions if using an rpi 3 B+ and rasbian stretch...
 https://kivy.org/doc/stable/installation/installation-rpi.html
 
 But change all references to python.. to python3.. As we need kivy for python3.
@@ -204,7 +212,7 @@ For instance...
        gstreamer1.0-plugins-{bad,base,good,ugly} \
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel
-    sudo apt-get install python3-pip
+    sudo apt-get install python3-pip git
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
     python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@1.11.1
 
@@ -232,7 +240,7 @@ This recipe worked for me under Buster and Bullseye...
     > sudo python3 -m pip install --upgrade pip setuptools
     > sudo apt install pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa} libmtdev-dev xclip xsel libjpeg-dev
     > sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-    > python3 -m pip install --upgrade --user kivy[base,media]==2.0.0
+    > python3 -m pip install --upgrade --user kivy[base,media]
 
 Reading the Kivy install for pi4 is recommended https://kivy.org/doc/stable/installation/installation-rpi.html#install-source-rpi
 
@@ -291,6 +299,7 @@ Then install some smoopi dependencies...
 
 Install Smoopi itself
 
+    > sudo apt install git-core (if not already installed)
     > mkdir smoopi
     > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git ./smoopi
 
