@@ -174,9 +174,6 @@ Once that is done setup smoopi to run on boot by doing...
 
 Once running use the System menu upgrade to fetch the latest smoopi. If that is successful, then quit under the System menu and smoopi will exit and then be restarted by runit.
 
-You can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
-(type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen).
-
 ### Raspbian/Debian Stretch/Buster/Bullseye on RPI (NOT rpi4b)
 
 Note the latest tested Debian version is Bullseye and seems to work.
@@ -187,6 +184,10 @@ Note the latest tested Debian version is Bullseye and seems to work.
 
 Install the latest raspbian stretch or buster lite... (No XWindows)
 http://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
+
+
+Or you can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
+(type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen).
 
 Follow these instructions if using an rpi 3 B+ and rasbian stretch...
 https://kivy.org/doc/stable/installation/installation-rpi.html
