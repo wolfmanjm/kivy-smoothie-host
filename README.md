@@ -176,13 +176,13 @@ Once running use the System menu upgrade to fetch the latest smoopi. If that is 
 
 ### Raspbian/Debian Stretch/Buster on RPI (NOT rpi4b)
 
-Note the latest version is Bullseye and does not work on the official touch screen so use Buster
+Note the latest version is Bullseye and does not work on the official touch screen so use Buster. (see below if you must use Bullseye).
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
 (This may work on older RPI versions but is not tested, please read this https://www.raspberrypi.org/documentation/hardware/display/legacy.md).
 
-Install the latest raspbian stretch/buster/bullseye lite... (No XWindows)
+Install the latest raspbian stretch/buster lite... (No XWindows)
 eg http://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
 
 Or you can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
@@ -192,15 +192,15 @@ If you installed Buster you can do a quick install of the Kivy wheel using the f
 
     sudo apt update
     sudo apt upgrade (maybe reboot)
-    sudo apt install python3-pip
     sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
+    sudo apt install python3-pip
     python3 -m pip install --user kivy
     ; then skip to the Smoopi install and setup section below....
 
-If that doesn't work then follow these instructions if using an rpi 3B+ and rasbian stretch...
+If that doesn't work then follow these instructions if using an rpi 3B+ ...
 https://kivy.org/doc/stable/installation/installation-rpi.html
 
-But change all references to python.. to python3.. As we need kivy for python3.
+But change all references of python to python3 as we need kivy for python3.
 
 For instance...
 
@@ -226,6 +226,18 @@ On an rpi3b+ (and better) it seems the double tap time needs to be increased to 
     double_tap_time = 400 # <-- increase this from the 200 default
     triple_tap_distance = 20
     triple_tap_time = 600 # <- and this to be > than double_tap_time
+
+#### Bullseye on touch screen and RPI3
+I was able to get the lcd to work under bullseye (did not test the touch screen though).
+I had to add this to the /boot/config.txt
+
+    [all]
+    # Disable compensation for displays with overscan
+    disable_overscan=1
+
+    # to force lcd detection on RPI1
+    ignore_lcd=0
+    dtoverlay=vc4-fkms-v3d
 
 #### RPI4b and Raspbian Buster or Bullseye
 It is recommended (and easier) to run under XWindows (>= 2GB memory is needed).
@@ -301,8 +313,7 @@ Then install some smoopi dependencies...
 Install Smoopi itself
 
     > sudo apt install git-core (if not already installed)
-    > mkdir smoopi
-    > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git ./smoopi
+    > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git smoopi
 
 Run with...
 
