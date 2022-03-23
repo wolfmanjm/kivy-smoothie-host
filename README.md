@@ -174,9 +174,9 @@ Once that is done setup smoopi to run on boot by doing...
 
 Once running use the System menu upgrade to fetch the latest smoopi. If that is successful, then quit under the System menu and smoopi will exit and then be restarted by runit.
 
-### Raspbian/Debian Stretch/Buster/Bullseye on RPI (NOT rpi4b)
+### Raspbian/Debian Stretch/Buster on RPI (NOT rpi4b)
 
-Note the latest Debian version is Bullseye and seems to work.
+Note the latest version is Bullseye and does not work on the official touch screen so use Buster
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
@@ -186,9 +186,9 @@ Install the latest raspbian stretch/buster/bullseye lite... (No XWindows)
 eg http://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
 
 Or you can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
-(type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the lite OS.
+(type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the Buster lite OS.
 
-If you installed Bullseye (or Buster) you can do a quick install of the Kivy wheel using the following commands...
+If you installed Buster you can do a quick install of the Kivy wheel using the following commands...
 
     sudo apt update
     sudo apt upgrade (maybe reboot)
@@ -197,7 +197,7 @@ If you installed Bullseye (or Buster) you can do a quick install of the Kivy whe
     python3 -m pip install --user kivy
     ; then skip to the Smoopi install and setup section below....
 
-If that doesn't work then follow these instructions if using an rpi 3 B+ and rasbian stretch...
+If that doesn't work then follow these instructions if using an rpi 3B+ and rasbian stretch...
 https://kivy.org/doc/stable/installation/installation-rpi.html
 
 But change all references to python.. to python3.. As we need kivy for python3.
@@ -232,8 +232,9 @@ It is recommended (and easier) to run under XWindows (>= 2GB memory is needed).
 First install the Full XWindows desktop version of Raspberry PI OS on the RPI4b,
 Bullseye which is here... https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/2021-10-30-raspios-bullseye-armhf.zip
 (or Buster which is here https://downloads.raspberrypi.org/raspbian/images/raspbian-2020-02-14/).
+(Note touch screens have been reported to have issues with bullseye).
 
-Then you will need to install kivy (version == 2.0.0) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Smoopi install and setup" header.
+Then you will need to install kivy (version == 2.1.0) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Smoopi install and setup" header.
 This recipe worked for me under Buster and Bullseye...
 
     > sudo apt-get update
