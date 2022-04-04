@@ -133,7 +133,7 @@ In some cases you may be using one desktop system running Smoopi to control diff
 **NOTE** Get a good sdcard for the rpi as it makes a significant difference in performance, an A1 rating is best like sandisk ultra 16gb A1 or the 32gb version.
 Samsung Evo+ are also supposed to be very fast in an RPI.
 
-**WARNING** Backup the sdcard regularly (I use rpi-clone), as the cards do fail quite quickly (I've had one fail after 9 months), the Sandisk ultras seem especially prone to early failure, and apparently using them on RPI invalidate the cards warranty.
+**WARNING** Backup the sdcard regularly (I use rpi-clone), as the cards do fail quite quickly (I've had one fail after 9 months), the Sandisk ultras seem especially prone to early failure, and apparently using them on RPI invalidates the cards warranty.
 
 **NOTE** on the current image and all installs on raspbian you need to add this...
 

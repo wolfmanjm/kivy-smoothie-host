@@ -572,7 +572,7 @@ class Comms():
             self._stream_pause(True, False)
             if self.app.notify_email:
                 notify = Notify()
-                notify.send('Run paused abnormally: {}, last Z: {}, last line: {}'.format(s, self.wpos[2], self.last_line))
+                notify.send('Run paused abnormally: {}, last Z: {}, last line: {}'.format(s, self.app.main_window.wpos[2], self.last_line))
 
         # NOTE old way was to abort, but we could resume if we can fix the error
         # self._stream_pause(False, True)
