@@ -567,12 +567,11 @@ class Comms():
     def handle_alarm(self, s):
         ''' handle case where smoothie sends us !! or an error of some sort '''
         self.log.warning('Comms: alarm message: {}'.format(s))
+        was_printing = False
         if self.file_streamer:
             # pause any streaming immediately, (let operator decide to abort or not)
             self._stream_pause(True, False)
-            if self.app.notify_email:
-                notify = Notify()
-                notify.send('Run paused abnormally: {}, last Z: {}, last line: {}'.format(s, self.app.main_window.wpos[2], self.last_line))
+            was_printing = True
 
         # NOTE old way was to abort, but we could resume if we can fix the error
         # self._stream_pause(False, True)
@@ -580,7 +579,7 @@ class Comms():
         #    self.proto.flush_queue()
 
         # call upstream after we have allowed stream to stop
-        async_main_loop.call_soon(self.app.main_window.alarm_state, s)
+        async_main_loop.call_soon(self.app.main_window.alarm_state, (s, was_printing))
 
     def stream_gcode(self, fn, progress=None):
         ''' called from external thread to start streaming a file '''

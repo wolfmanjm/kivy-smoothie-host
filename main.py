@@ -576,11 +576,16 @@ class MainWindow(BoxLayout):
             self.config.write()
 
     @mainthread
-    def alarm_state(self, s):
+    def alarm_state(self, msg):
         ''' called when smoothie is in Alarm state and it is sent a gcode '''
+        s, was_printing = msg
         self.add_line_to_log("! Alarm state: {}".format(s))
         if self.is_suspended:
             self.add_line_to_log("! NOTE: currently suspended so must Abort as resume will not work")
+        elif was_printing:
+            if self.app.notify_email:
+                notify = Notify()
+                notify.send('Run in ALARM state: {}, last Z: {}, last line: {}'.format(s, self.wpos[2], self.last_line))
 
     def do_kill(self):
         if self.status == 'Alarm':
