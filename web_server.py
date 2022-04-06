@@ -14,13 +14,13 @@ main_page = '''
 <h1>Smoopi status page</h1>
 
 <div id="statusDiv">
-<iframe src="status" height="64" width="800">
+<iframe src="status" height="64" width="810">
 </iframe>
 </div>
 
 <br/>
 
-<iframe src="camera" height="600" width="800">
+<iframe src="camera" height="610" width="810">
 </iframe>
 
 </body>
