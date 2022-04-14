@@ -9,6 +9,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 
 from multi_input_box import MultiInputBox
 
+from functools import partial
 import json
 import configparser
 import threading
@@ -30,10 +31,14 @@ Builder.load_string('''
             padding: dp(8)
             spacing: dp(16)
             Button:
-                size: 100, 40
-                size_hint: None, None
                 text: 'New Entry'
                 on_press: root.new_entry();
+            Button:
+                text: 'New Output Switch'
+                on_press: root.new_switch(True);
+            Button:
+                text: 'New Input Switch'
+                on_press: root.new_switch(False);
             Button:
                 text: 'Back'
                 on_press: root.close()
@@ -77,6 +82,26 @@ class ConfigV2Editor(Screen):
     def _new_entry(self, opts):
         if opts and opts['section'] and opts['key'] and opts['value']:
             self.app.comms.write("config-set \"{}\" {} {}\n".format(opts['section'], opts['key'], opts['value']))
+
+    def new_switch(self, flg):
+        o = MultiInputBox(title='Add {} Switch'.format('Output' if flg else 'Input'))
+        if flg:
+            o.setOptions(['Name', 'On Command', 'Off Command', 'Pin'], partial(self._new_switch, flg))
+        else:
+            o.setOptions(['Name', 'Command', 'Pin'], partial(self._new_switch, flg))
+
+        o.open()
+
+    def _new_switch(self, flg, opts):
+        if opts and opts['Name']:
+            sw = opts['Name']
+            self.app.comms.write("config-set switch {}.enable = true\n".format(sw))
+            if flg:
+                for k, v in {'Off Command': 'input_off_command', 'On Command': 'input_on_command', 'Pin': 'output_pin'}.items():
+                    self.app.comms.write("config-set switch {}.{} = {}\n".format(sw, v, opts[k]))
+            else:
+                for k, v in {'Command': 'output_on_command', 'Pin': 'input_pin'}.items():
+                    self.app.comms.write("config-set switch {}.{} = {}\n".format(sw, v, opts[k]))
 
     def open(self):
         self.app = App.get_running_app()
