@@ -46,8 +46,11 @@ Builder.load_string('''
             padding: dp(8)
             spacing: dp(16)
             Button:
-                text: 'New Switch'
-                on_press: root.new_switch()
+                text: 'New Output Switch'
+                on_press: root.new_output_switch()
+            Button:
+                text: 'New Input Switch'
+                on_press: root.new_input_switch()
 
             BoxLayout:
                 spacing: dp(8)
@@ -110,12 +113,12 @@ class ConfigEditor(Screen):
     def insert(self, value):
         self.rv.data.insert(0, {'k': value, 'v': ''})
 
-    def new_switch(self):
-        o = MultiInputBox(title='Add Switch')
-        o.setOptions(['Name', 'On Command', 'Off Command', 'Pin'], self._new_switch)
+    def new_output_switch(self):
+        o = MultiInputBox(title='Add Output Switch')
+        o.setOptions(['Name', 'On Command', 'Off Command', 'Pin'], self._new_output_switch)
         o.open()
 
-    def _new_switch(self, opts):
+    def _new_output_switch(self, opts):
         if opts and opts['Name']:
             sw = "switch.{}".format(opts['Name'])
             self.rv.data.insert(0, {'k': "{}.input_off_command".format(sw), 'v': opts['Off Command']})
@@ -123,6 +126,20 @@ class ConfigEditor(Screen):
             self.rv.data.insert(0, {'k': "{}.output_pin".format(sw), 'v': opts['Pin']})
             self.rv.data.insert(0, {'k': "{}.enable".format(sw), 'v': 'true'})
             for i in range(4):
+                self.save_change(self.rv.data[i]['k'], self.rv.data[i]['v'])
+
+    def new_input_switch(self):
+        o = MultiInputBox(title='Add Input Switch')
+        o.setOptions(['Name', 'Output On Command', 'Pin'], self._new_input_switch)
+        o.open()
+
+    def _new_input_switch(self, opts):
+        if opts and opts['Name']:
+            sw = "switch.{}".format(opts['Name'])
+            self.rv.data.insert(0, {'k': "{}.output_on_command".format(sw), 'v': opts['Output On Command']})
+            self.rv.data.insert(0, {'k': "{}.input_pin".format(sw), 'v': opts['Pin']})
+            self.rv.data.insert(0, {'k': "{}.enable".format(sw), 'v': 'true'})
+            for i in range(3):
                 self.save_change(self.rv.data[i]['k'], self.rv.data[i]['v'])
 
     def save_change(self, k, v):
