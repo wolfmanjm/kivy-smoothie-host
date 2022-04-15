@@ -627,7 +627,7 @@ class MainWindow(BoxLayout):
             if suspended:
                 self.add_line_to_log(">>> Streaming Suspended, Resume or Abort as needed")
                 if self.app.notify_email:
-                    Notify().send('Run has been suspended: {}, last Z: {}, last line: {}'.format(s, self.wpos[2], self.last_line))
+                    Notify().send('Run has been suspended: last Z: {}, last line: {}'.format(self.wpos[2], self.last_line))
 
             else:
                 self.add_line_to_log(">>> Streaming Paused, Abort or Continue as needed")
