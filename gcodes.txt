@@ -103,6 +103,9 @@ M374.1 | delete calibration grid
 M375 | load calibration grid
 M375.1 | display the current grid
 M400 | Wait for the queue to be empty
+M404 | Filament detector set parameters S<second per check> P<pulses per mm>
+M405 | Disable Filament detector
+M406 | Enable Filament detector
 M407 | Get filament detector information
 M500 | Save settings to an override file
 M501 | Load config-override file (V1 optionally specifying the extension)
