@@ -1,7 +1,7 @@
 import kivy
 
 from kivy.app import App
-from kivy.properties import NumericProperty, ObjectProperty, DictProperty
+from kivy.properties import NumericProperty, ObjectProperty, DictProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.logger import Logger
 
@@ -14,6 +14,7 @@ class ExtruderWidget(BoxLayout):
     last_bed_temp = NumericProperty()
     last_hotend_temp = NumericProperty()
     curtool = NumericProperty(-1)
+    has_T1 = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(ExtruderWidget, self).__init__(**kwargs)
@@ -113,6 +114,9 @@ class ExtruderWidget(BoxLayout):
                             self.bed_switch.active = False
 
             elif type == 'hotend0' or type == 'hotend1':
+                if type == 'hotend1' and not self.has_T1:
+                    self.has_T1 = true
+
                 if (self.ids.tool_t0.state == 'down' and type == 'hotend0') or (self.ids.tool_t1.state == 'down' and type == 'hotend1'):
                     if math.isinf(temp):
                         self.hotend_dg.value = float('inf')

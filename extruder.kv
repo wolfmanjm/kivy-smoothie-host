@@ -276,7 +276,7 @@
             size_hint_y: None
             size: 40, 40
             text: 'T1'
-            disabled: not app.is_connected
+            disabled: not app.is_connected or not root.has_T1
             allow_no_selection: False
 
 
