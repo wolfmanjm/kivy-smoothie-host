@@ -115,7 +115,7 @@ class ExtruderWidget(BoxLayout):
 
             elif type == 'hotend0' or type == 'hotend1':
                 if type == 'hotend1' and not self.has_T1:
-                    self.has_T1 = true
+                    self.has_T1 = True
 
                 if (self.ids.tool_t0.state == 'down' and type == 'hotend0') or (self.ids.tool_t1.state == 'down' and type == 'hotend1'):
                     if math.isinf(temp):
