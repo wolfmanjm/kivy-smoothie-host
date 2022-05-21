@@ -385,6 +385,9 @@ class GcodeViewerScreen(Screen):
                     s = lasts if 'S' not in d else float(d['S'])
 
                     if x is None or y is None:
+                        if z is not None:
+                            lastpos[2] = z
+
                         continue
 
                     if not self.twod_mode:
