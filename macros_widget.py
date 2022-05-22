@@ -82,12 +82,18 @@ class MacrosWidget(StackLayout):
                     loff = config.get(section, 'label off', fallback=None)
                     cmd_on = config.get(section, 'command on', fallback=None)
                     cmd_off = config.get(section, 'command off', fallback=None)
+                    default = config.get(section, 'default', fallback="off")
                     if name is None or lon is None or loff is None or cmd_on is None or cmd_off is None:
                         Logger.error("MacrosWidget: config error - {} is invalid".format(section))
                         continue
 
                     tbtn = Factory.MacroToggleButton()
-                    tbtn.text = lon
+                    if default == "on":
+                        tbtn.state = "down"
+                        tbtn.text = loff
+                    else:
+                        tbtn.text = lon
+
                     self.toggle_buttons[name] = (lon, loff, cmd_on, cmd_off, tbtn, poll)
                     tbtn.bind(on_press=partial(self._handle_toggle, name))
                     tbtn.ud = True
