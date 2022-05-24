@@ -68,7 +68,7 @@ def make_request_handler_class(app, ip, flipx, flipy):
                     self.wfile.write("{} - Z: {}, {}, File: {}".format(status, wpos[2], eta, file).encode("utf-8"))
                     self.wfile.write("</body></html>\r\n".encode("utf-8"))
                 else:
-                    self.wfile.write("{} - Not Running".format(status).encode("utf-8"))
+                    self.wfile.write("{} - Not Printing".format(status).encode("utf-8"))
 
             elif self.path == '/camera':
                 self.wfile.write("<html><body>\r\n".encode("utf-8"))
