@@ -103,7 +103,7 @@ M374.1 | delete calibration grid
 M375 | load calibration grid
 M375.1 | display the current grid
 M400 | Wait for the queue to be empty
-M404 | Filament detector set parameters S<second per check> P<pulses per mm>
+M404 | Filament detector temporarily set parameters S<second per check> P<pulses per mm> H<leave heaters on>
 M405 | Disable Filament detector
 M406 | Enable Filament detector
 M407 | Get filament detector information

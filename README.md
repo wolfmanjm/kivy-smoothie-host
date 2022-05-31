@@ -272,6 +272,17 @@ is the only entry under `[input]` otherwise you will get multiple cursors and cl
 
 When running under XWindows the cursor module is not required nor are the hidinput input drivers.
 
+If running as a resizable window under X you need to make sure the following are set in the `~/.kivy/config.ini`
+
+    [kivy]
+    desktop = 1
+
+    [graphics]
+    fullscreen = 0
+    borderless = 0
+    resizable = 1
+    show_cursor = 1
+
 If you are using a USB based touch screen under XWindows you need to run smoopi full screen, and in `~/.kivy/config.ini`
 you have the following settings...
 
@@ -285,8 +296,11 @@ you have the following settings...
     [input]
     mtdev_%(name)s = probesysfs,provider=mtdev
 
+(make sure to set ```[UI] touch_screen = true``` in ```smoothiehost.ini```)
+
 If the resolution is 1024x600 the RPI Full Screen layout is preferable. 
-If you have 1024x800 or better then the wide screen layout is preferable (make sure to set ```[UI] touch_screen = true``` in ```smoothiehost.ini```)
+If you have 1024x800 or better then the wide screen layout is preferable
+When running under XWindows one of the Desktop screen layout is preferable.
 
 #### Keyboard and Mouse support when running from console (egl-rpi)
 Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. 
