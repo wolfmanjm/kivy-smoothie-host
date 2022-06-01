@@ -292,15 +292,17 @@ you have the following settings...
     [graphics]
     fullscreen = 1
     show_cursor = 0
+    borderless = 1
+    resizable = 0
 
     [input]
     mtdev_%(name)s = probesysfs,provider=mtdev
 
-(make sure to set ```[UI] touch_screen = true``` in ```smoothiehost.ini```)
+(also make sure to set ```[UI] touch_screen = true``` in ```smoothiehost.ini```)
 
 If the resolution is 1024x600 the RPI Full Screen layout is preferable. 
-If you have 1024x800 or better then the wide screen layout is preferable
-When running under XWindows one of the Desktop screen layout is preferable.
+If you have 1024x800 or better then the wide screen layout is preferable.
+Either way when running under XWindows one of the Desktop screen layouts should be used.
 
 #### Keyboard and Mouse support when running from console (egl-rpi)
 Kivy uses a module called the HIDInput for an external (USB) Mouse and keyboard. 
