@@ -54,6 +54,7 @@ class ConfigV2Editor(Screen):
     config = None
     configdata = []
     msp = None
+    force_close = False
 
     def _add_line(self, line):
         ll = line.lstrip().rstrip()
@@ -104,6 +105,7 @@ class ConfigV2Editor(Screen):
                     self.app.comms.write("config-set switch {}.{} = {}\n".format(sw, v, opts[k]))
 
     def open(self):
+        self.force_close = False
         self.app = App.get_running_app()
         self.ids.placeholder.add_widget(Label(text='Loading.... This may take a while!'))
         self.manager.current = 'config_editor'
@@ -128,6 +130,9 @@ class ConfigV2Editor(Screen):
             self.jsondata.append({"type": "title", "title": self.current_section})
 
             for (key, v) in self.config.items(section):
+                if self.force_close:
+                    return
+
                 o = v.find('#')
                 if o > 0:
                     # convert comment into desc and strip from value
@@ -151,6 +156,7 @@ class ConfigV2Editor(Screen):
         self.jsondata = []
 
     def close(self):
+        self.force_close = True
         self.app.comms.redirect_incoming(None)
         self.ids.placeholder.clear_widgets()
         if self.msp:
