@@ -93,6 +93,7 @@
                     on_press: app.tool_scripts.find_center()
                 ActionButton:
                     text: 'Start Uart Log'
+                    disabled: root.is_uart_log_enabled
                     on_press: app.main_window.start_uart_log()
 
             ActionGroup:

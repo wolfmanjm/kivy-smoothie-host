@@ -444,6 +444,8 @@ class GcodeViewerScreen(Screen):
                             if math.isnan(max_z) or z > max_z:
                                 max_z = z
 
+                        # Logger.debug("GcodeViewerScreen: min - {} {} {} {}".format(min_x, min_y, max_x, max_y))
+
                         # in CNC mode we want to only see slices between a slice
                         # but as we mostly do depth first cutting we have to process everything
                         self.current_z = self.above_layer
@@ -568,17 +570,18 @@ class GcodeViewerScreen(Screen):
                             angleA = math.atan2(eY, eX)
 
                         if angleA <= angleB:
-                            angleA += 2. * math.pi
+                            angleA += 2.0 * math.pi
 
                         radius = math.sqrt(sX * sX + sY * sY)
                         circle_dat = (centerX, centerY, radius, 90 - math.degrees(angleA), 90 - math.degrees(angleB), 64)
                         self.canv.add(Color(0, 0, 0))
                         self.canv.add(Line(circle=circle_dat))
-
-                        max_x = max(centerX + radius, max_x)
-                        min_x = min(centerX - radius, min_x)
-                        max_y = max(centerY + radius, max_y)
-                        min_y = min(centerY - radius, min_y)
+                        # Logger.debug("GcodeViewerScreen: Circle {}".format(circle_dat))
+                        # FIXME this gets out of hand for large radius arcs that are only partial arcs
+                        # max_x = max(centerX + radius, max_x)
+                        # min_x = min(centerX - radius, min_x)
+                        # max_y = max(centerY + radius, max_y)
+                        # min_y = min(centerY - radius, min_y)
                         point_count += 4
 
                     # always remember last position

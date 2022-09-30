@@ -366,6 +366,7 @@ class MainWindow(BoxLayout):
         self.save_console_data = None
         self.uart_log_data = []
         self.is_uart_log_in_view = False
+        self.uart_log = None
 
     def on_touch_down(self, touch):
         if self.ids.log_window.collide_point(touch.x, touch.y):
@@ -717,6 +718,20 @@ class MainWindow(BoxLayout):
         self._show_viewer(self.app.gcode_file, self.last_path)
 
     def start_uart_log(self):
+        if self.is_uart_log_enabled:
+            # close it
+            if self.uart_log:
+                self.uart_log.close()
+                self.display('Uart log port closed')
+            if self.is_uart_log_in_view:
+                self.toggle_uart_view("up")
+
+            self.is_uart_log_enabled = False
+            self.uart_log = None
+            Logger.info('MainWindow: Closed Uart log port')
+            return
+
+        # open it
         ll = self.app.comms.get_ports()
         ports = []
         for p in ll:
@@ -728,6 +743,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def _uart_log_input(self, dat):
         txt = dat.rstrip()
+        Logger.info('BOOTLOG: {}'.format(txt))
         if dat.startswith('ERROR:') or dat.startswith('FATAL:'):
             txt = "[color=ff0000]{}[/color]".format(txt)
         elif dat.startswith('WARNING:'):
@@ -750,11 +766,13 @@ class MainWindow(BoxLayout):
     def _set_uart_port(self, s):
         if s:
             Logger.info('MainWindow: Selected Uart log port {}'.format(s))
-            uart_log = UartLogger(s)
-            if uart_log.open(self._uart_log_input):
+            self.uart_log = UartLogger(s)
+            if self.uart_log.open(self._uart_log_input):
                 self.is_uart_log_enabled = True
+                self.display('Uart log port {} open'.format(s))
             else:
                 self.is_uart_log_enabled = False
+                self.uart_log = None
                 self.display('Error unable to open {} as Uart log port'.format(s))
 
     def toggle_uart_view(self, state):

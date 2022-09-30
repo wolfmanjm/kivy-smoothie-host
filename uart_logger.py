@@ -9,6 +9,7 @@ class UartLogger():
         super(UartLogger, self).__init__()
         self.port = arg
         self.cb = None
+        self.ser = None
 
     def open(self, cb):
         try:
@@ -16,6 +17,7 @@ class UartLogger():
             self.ser.flushInput()
         except Exception as e:
             Logger.error("UartLogger: Failed to open uart: {}".format(e))
+            self.ser = None
             return False
 
         self.cb = cb
@@ -23,6 +25,11 @@ class UartLogger():
         self.comms_thread.start()
 
         return True
+
+    def close(self):
+        if self.ser:
+            self.ser.close()
+            self.ser = None
 
     def _async_read(self):
         while True:
@@ -34,3 +41,6 @@ class UartLogger():
 
             except Exception:
                 pass
+
+            if self.ser is None:
+                return
