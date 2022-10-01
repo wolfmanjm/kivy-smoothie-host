@@ -154,13 +154,14 @@ class ConfigV2Editor(Screen):
     def _build(self):
         self.app.comms.redirect_incoming(None)
         for section in self.config.sections():
+            self._update_progress(section)
             self.current_section = section
             self.jsondata.append({"type": "title", "title": self.current_section})
-            self._update_progress(section)
 
             for (key, v) in self.config.items(section):
                 if self.force_close:
                     return
+
                 o = v.find('#')
                 if o > 0:
                     # convert comment into desc and strip from value
