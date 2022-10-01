@@ -103,15 +103,7 @@ class ConfigV2Editor(Screen):
             if ll == "ok":
                 # finished
                 self.start = False
-                try:
-                    self.config.read_string('\n'.join(self.configdata))
-                except Exception as e:
-                    Logger.error("ConfigV2Editor: Error parsing the config file: {}".format(e))
-                    self.app.main_window.async_display("Error parsing config file, see log")
-                    self.close()
-                    return
-
-                self.configdata = []
+                self._update_progress("Processing config....")
 
                 # run the build in a thread as it is so slow
                 Logger.debug("ConfigV2Editor: starting build")
@@ -153,6 +145,18 @@ class ConfigV2Editor(Screen):
 
     def _build(self):
         self.app.comms.redirect_incoming(None)
+
+        try:
+            self.config.read_string('\n'.join(self.configdata))
+
+        except Exception as e:
+            Logger.error("ConfigV2Editor: Error parsing the config file: {}".format(e))
+            self.app.main_window.async_display("Error parsing config file, see log")
+            self.close()
+            return
+
+            self.configdata = []
+
         for section in self.config.sections():
             self._update_progress(section)
             self.current_section = section
