@@ -45,6 +45,7 @@ Builder.load_string('''
 
         BoxLayout:
             id: placeholder
+            orientation: 'vertical'
 ''')
 
 
@@ -55,25 +56,9 @@ class ConfigV2Editor(Screen):
     configdata = []
     msp = None
     force_close = False
-
-    def _add_line(self, line):
-        ll = line.lstrip().rstrip()
-        if not ll.startswith("#") and ll != "":
-            if ll == "ok":
-                # finished
-                try:
-                    self.config.read_string('\n'.join(self.configdata))
-                except Exception as e:
-                    Logger.error("ConfigV2Editor: Error parsing the config file: {}".format(e))
-                    self.app.main_window.async_display("Error parsing config file, see log")
-                    self.close()
-                    return
-
-                self.configdata = []
-                self._build()
-
-            else:
-                self.configdata.append(ll)
+    start = False
+    progress = None
+    count = 0
 
     def new_entry(self):
         o = MultiInputBox(title='Add new entry')
@@ -104,10 +89,46 @@ class ConfigV2Editor(Screen):
                 for k, v in {'Command': 'output_on_command', 'Pin': 'input_pin'}.items():
                     self.app.comms.write("config-set switch {}.{} = {}\n".format(sw, v, opts[k]))
 
+    def _add_line(self, line):
+        if not self.start:
+            return
+
+        ll = line.lstrip().rstrip()
+        self.count += 1
+        if self.count > 10:
+            self._update_progress(ll)
+            self.count = 0
+
+        if not ll.startswith("#") and ll != "":
+            if ll == "ok":
+                # finished
+                self.start = False
+                try:
+                    self.config.read_string('\n'.join(self.configdata))
+                except Exception as e:
+                    Logger.error("ConfigV2Editor: Error parsing the config file: {}".format(e))
+                    self.app.main_window.async_display("Error parsing config file, see log")
+                    self.close()
+                    return
+
+                self.configdata = []
+
+                # run the build in a thread as it is so slow
+                Logger.debug("ConfigV2Editor: starting build")
+                t = threading.Thread(target=self._build, daemon=True)
+                t.start()
+
+            else:
+                self.configdata.append(ll)
+
     def open(self):
         self.force_close = False
+        self.start = False
         self.app = App.get_running_app()
         self.ids.placeholder.add_widget(Label(text='Loading.... This may take a while!'))
+        self.progress = Label(text="Current line....")
+        self.ids.placeholder.add_widget(self.progress)
+
         self.manager.current = 'config_editor'
         self.config = ConfigParser.get_configparser('Smoothie Config')
         if self.config is None:
@@ -117,22 +138,29 @@ class ConfigV2Editor(Screen):
                 self.config.remove_section(section)
 
         # get config, parse and populate
+        self.start = False
         self.app.comms.redirect_incoming(self._add_line)
+
+        # wait for any outstanding queries
+        Clock.schedule_once(self._send_command, 1)
+
+    def _send_command(self, dt):
         # issue command
+        Logger.debug("ConfigV2Editor: fetching config.ini")
+        self.start = True
         self.app.comms.write('cat /sd/config.ini\n')
         self.app.comms.write('\n')  # get an ok to indicate end of cat
 
-    @mainthread
     def _build(self):
         self.app.comms.redirect_incoming(None)
         for section in self.config.sections():
             self.current_section = section
             self.jsondata.append({"type": "title", "title": self.current_section})
+            self._update_progress(section)
 
             for (key, v) in self.config.items(section):
                 if self.force_close:
                     return
-
                 o = v.find('#')
                 if o > 0:
                     # convert comment into desc and strip from value
@@ -148,13 +176,25 @@ class ConfigV2Editor(Screen):
                     tt = {"type": 'string', "title": key, "desc": comment, "section": self.current_section, "key": key}
                 self.jsondata.append(tt)
 
+        self._done()
+
+    @mainthread
+    def _update_progress(self, sec):
+        if self.progress is not None:
+            self.progress.text = sec
+            self.progress.texture_update()
+
+    @mainthread
+    def _done(self):
         self.msp = MySettingsPanel()
         self.msp.add_json_panel('Smoothie Config', self.config, data=json.dumps(self.jsondata))
         ss = self.ids.placeholder
         ss.clear_widgets()
         ss.add_widget(self.msp)
         self.jsondata = []
+        self.progress = None
 
+    @mainthread
     def close(self):
         self.force_close = True
         self.app.comms.redirect_incoming(None)
@@ -165,6 +205,7 @@ class ConfigV2Editor(Screen):
         self.jsondata = []
         self.configdata = []
         self.config = None
+        self.progress = None
         self.manager.current = 'main'
 
 

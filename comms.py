@@ -388,9 +388,9 @@ class Comms():
         if l:
             if self.timer:
                 # temporarily turn off status timer so we don't get unexpected lines
+                self._restart_timer = True
                 self.timer.cancel()
                 self.timer = None
-                self._restart_timer = True
             else:
                 self._restart_timer = False
 
