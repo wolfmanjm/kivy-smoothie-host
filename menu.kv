@@ -49,6 +49,10 @@
                     on_press: root.config_editor()
                     disabled: not app.is_connected or root.is_printing
                 ActionButton:
+                    text: 'TMC Config'
+                    on_press: root.open_tmc_configurator()
+                    #disabled: not app.is_connected or root.is_printing
+                ActionButton:
                     text: 'Upload GCode'
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.main_window.upload_gcode()

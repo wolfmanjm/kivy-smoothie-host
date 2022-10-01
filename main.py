@@ -51,6 +51,7 @@ from tool_scripts import ToolScripts
 from notify import Notify
 from calc_widget import CalcScreen
 from uart_logger import UartLogger
+from tmc_configurator import TMCConfigurator
 
 import subprocess
 import threading
@@ -1021,6 +1022,13 @@ class MainWindow(BoxLayout):
     def on_previous(self):
         if self.app.is_desktop >= 1:
             Window.minimize()
+
+    def open_tmc_configurator(self):
+        if not self.app.sm.has_screen('tmc_configurator'):
+            tmc_configurator = TMCConfigurator(name='tmc_configurator')
+            self.app.sm.add_widget(tmc_configurator)
+
+        self.app.sm.current = 'tmc_configurator'
 
 
 class MainScreen(Screen):
