@@ -1,7 +1,7 @@
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.clock import mainthread
+from kivy.clock import mainthread, Clock
 from kivy.properties import NumericProperty, BooleanProperty
 
 '''
@@ -88,6 +88,7 @@ Builder.load_string('''
                     max: 54
                     value: root.blank_time
                     on_value: root.set_blank_time(self.value)
+
             BoxLayout:
                 orientation: 'vertical'
                 Label:
@@ -190,6 +191,11 @@ Builder.load_string('''
             height: dp(60)
             padding: dp(8)
             spacing: dp(16)
+            ToggleButton:
+                text: 'Run'
+                state: 'normal'
+                on_state: root.set_run(self.state == 'down')
+
             Button:
                 text: 'Save'
                 on_press: root.save_settings()
@@ -212,6 +218,9 @@ class TMCConfigurator(Screen):
 
     pfd = BooleanProperty(True)
     rot = BooleanProperty(False)
+
+    move_timer = None
+    direction = False
 
     enabled_list = {'X': True, 'Y': True, 'Z': True, 'A': True}
     motor_lut = {'X': 0, 'Y': 1, 'Z': 2, 'A': 3}
@@ -265,6 +274,25 @@ class TMCConfigurator(Screen):
     def set_rot(self, v):
         self.rot = v
         self.send_M911_command('S2 Z{}'.format("1" if self.rot else "0"))
+
+    def _move_motors(self, arg):
+        d = '-10' if self.direction else '10'
+        self.direction = not self.direction
+
+        for a in self.enabled_list:
+            if self.enabled_list[a]:
+                self.send_command("G0 {}{}".format(a, d))
+
+    def set_run(self, v):
+        if v:
+            # run selected motors up and down
+            self.move_timer = Clock.schedule_interval(self._move_motors, 2)
+
+        else:
+            # stop motors
+            if self.move_timer:
+                self.move_timer.cancel()
+                self.move_timer = None
 
     def reset_settings(self):
         self.set_constant_off_time(self.default_settings[0])
