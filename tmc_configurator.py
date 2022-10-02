@@ -8,6 +8,34 @@ from kivy.properties import NumericProperty, BooleanProperty
     M911.3 S1 [Unnn Vnnn Wnnn Xnnn Ynnn] - setSpreadCycleChopper
               U=constant_off_time, V=blank_time, W=hysteresis_start, X=hysteresis_end, Y=hysteresis_decrement
                 2...15               0..54         1...8               -3..12            0..3
+
+ * constant_off_time: The off time setting controls the minimum chopper frequency.
+ * For most applications an off time within the range of 5μs to 20μs will fit.
+ *      2...15: off time setting
+ *
+ * blank_time: Selects the comparator blank time. This time needs to safely cover the switching event and the
+ * duration of the ringing on the sense resistor. For
+ *      0: min. setting 3: max. setting
+ *
+ * fast_decay_time_setting: Fast decay time setting. With CHM=1, these bits control the portion of fast decay for each chopper cycle.
+ *      0: slow decay only
+ *      1...15: duration of fast decay phase
+ *
+ * sine_wave_offset: Sine wave offset. With CHM=1, these bits control the sine wave offset.
+ * A positive offset corrects for zero crossing error.
+ *      -3..-1: negative offset 0: no offset 1...12: positive offset
+ *
+ * use_current_comparator: Selects usage of the current comparator for termination of the fast decay cycle.
+ * If current comparator is enabled, it terminates the fast decay cycle in case the current
+ * reaches a higher negative value than the actual positive value.
+ *      1: enable comparator termination of fast decay cycle
+ *      0: end by time only
+
+ void TMC26X::setConstantOffTimeChopper(int8_t constant_off_time, int8_t blank_time, int8_t fast_decay_time_setting, int8_t sine_wave_offset, uint8_t use_current_comparator)
+
+ setConstantOffTimeChopper(GET('U'), GET('V'), GET('W'), GET('X'), GET('Y'));
+ setConstantOffTimeChopper(7, 54, 13, 12, 1);
+
     TODO
         dump registers for inclusion in config (or set config)
         maybe allow setting of ConstantOffTimeChopper
@@ -166,12 +194,16 @@ Builder.load_string('''
                 text: 'Save'
                 on_press: root.save_settings()
             Button:
+                text: 'Reset'
+                on_press: root.reset_settings()
+            Button:
                 text: 'Back'
                 on_press: root.close()
 ''')
 
 
 class TMCConfigurator(Screen):
+    default_settings = [5, 54, 5, 0, 0]
     constant_off_time = NumericProperty(5)
     blank_time = NumericProperty(54)
     hysteresis_start = NumericProperty(5)
@@ -234,10 +266,18 @@ class TMCConfigurator(Screen):
         self.rot = v
         self.send_M911_command('S2 Z{}'.format("1" if self.rot else "0"))
 
+    def reset_settings(self):
+        self.set_constant_off_time(self.default_settings[0])
+        self.set_blank_time(self.default_settings[1])
+        self.set_hysteresis_start(self.default_settings[2])
+        self.set_hysteresis_end(self.default_settings[3])
+        self.set_hysteresis_dec(self.default_settings[4])
+        self.set_pfd(True)
+        self.set_rot(False)
+
     def save_settings(self):
-        send_command('M911')
+        self.send_command('M911')
         # self.app.comms.write("config-set sd {} {}\n".format(k, v))
-        pass
 
     def close(self):
         self.manager.current = 'main'
