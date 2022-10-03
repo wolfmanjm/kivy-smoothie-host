@@ -281,12 +281,12 @@ class TMCConfigurator(Screen):
 
         for a in self.enabled_list:
             if self.enabled_list[a]:
-                self.send_command("G0 {}{}".format(a, d))
+                self.send_command("M120 G91 G0 {}{} F100 M121".format(a, d))
 
     def set_run(self, v):
         if v:
             # run selected motors up and down
-            self.move_timer = Clock.schedule_interval(self._move_motors, 2)
+            self.move_timer = Clock.schedule_interval(self._move_motors, 7)
 
         else:
             # stop motors
