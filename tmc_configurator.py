@@ -286,6 +286,7 @@ class TMCConfigurator(Screen):
     def set_run(self, v):
         if v:
             # run selected motors up and down
+            self._move_motors(None)
             self.move_timer = Clock.schedule_interval(self._move_motors, 7)
 
         else:

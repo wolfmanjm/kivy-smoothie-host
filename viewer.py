@@ -321,13 +321,20 @@ class GcodeViewerScreen(Screen):
                 p = ln.find(';')
                 if p >= 0:
                     ln = ln[:p]
+                p = ln.find('(')
+                if p >= 0:
+                    p2 = ln.find(')')
+                    lnt = ln[:p]
+                    if p2 > 0:
+                        lnt += ln[p2 + 1:]
+                    ln = lnt
+
                 matches = self.extract_gcode.findall(ln)
 
                 # this handles multiple G codes on one line
                 gcodes = []
                 d = {}
                 for m in matches:
-                    # print(m)
                     if m[0] == 'G' and 'G' in d:
                         # we have another G code on the same line
                         gcodes.append(d)
