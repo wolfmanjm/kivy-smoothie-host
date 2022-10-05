@@ -56,6 +56,8 @@
                 height: self.minimum_height
                 font_size: '20sp'
                 on_text_validate: app.command_input(self.text); self.text= ''; app._refocus_text_input()
+                use_bubble: True
+                use_handles: True
 
             MacrosWidget:
                 id: macros

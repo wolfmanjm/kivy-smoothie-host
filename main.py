@@ -15,7 +15,7 @@ from kivy.uix.stacklayout import StackLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
-from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior
+from kivy.uix.behaviors import ButtonBehavior, ToggleButtonBehavior, FocusBehavior
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.actionbar import ActionButton
 
@@ -28,7 +28,10 @@ from kivy.core.window import Window
 from kivy.config import ConfigParser
 from kivy.metrics import dp, Metrics
 # needed to fix sys.excepthook errors, fixed in 2.x.x
-from kivy.uix.recycleview.views import _cached_views, _view_base_cache
+from kivy.uix.recycleview.views import RecycleDataViewBehavior, _cached_views, _view_base_cache
+from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.core.clipboard import Clipboard
 
 from native_file_chooser import NativeFileChooser
 from mpg_knob import Knob
@@ -73,6 +76,37 @@ assert (3, 10) >= sys.version_info >= (3, 5), "Python version needs to be >= 3.5
 kivy.require('1.11.0')
 
 # Window.softinput_mode = 'below_target'
+
+
+class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
+                                 RecycleBoxLayout):
+    ''' Adds selection and focus behaviour to the view. '''
+
+
+class LogLabel(RecycleDataViewBehavior, Label):
+    ''' Add selection support to the Label '''
+    index = None
+    selected = BooleanProperty(False)
+    selectable = BooleanProperty(True)
+
+    def refresh_view_attrs(self, rv, index, data):
+        ''' Catch and handle the view changes '''
+        self.index = index
+        return super(LogLabel, self).refresh_view_attrs(
+            rv, index, data)
+
+    def on_touch_down(self, touch):
+        ''' Add selection on touch down '''
+        if super(LogLabel, self).on_touch_down(touch):
+            return True
+        if touch.is_double_tap and self.collide_point(*touch.pos) and self.selectable:
+            return self.parent.select_with_touch(self.index, touch)
+
+    def apply_selection(self, rv, index, is_selected):
+        ''' Respond to the selection of items in the view. '''
+        self.selected = is_selected
+        if is_selected:
+            Clipboard.copy(rv.data[index]['text'])
 
 
 class NumericInput(TextInput):
