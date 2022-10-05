@@ -31,6 +31,7 @@ from kivy.metrics import dp, Metrics
 from kivy.uix.recycleview.views import RecycleDataViewBehavior, _cached_views, _view_base_cache
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.core.clipboard import Clipboard
 
 from native_file_chooser import NativeFileChooser
 from mpg_knob import Knob
@@ -107,6 +108,8 @@ class LogLabel(RecycleDataViewBehavior, Label):
         self.selected = is_selected
         if is_selected:
             App.get_running_app().last_command = rv.data[index]['text']
+            # also stick in clipboard if we are running X
+            Clipboard.copy(rv.data[index]['text'])
 
 
 class NumericInput(TextInput):
