@@ -54,6 +54,9 @@
                     default_size_hint: 1, None
                     size_hint_y: None
                     height: self.minimum_height
+                    multiselect: False
+                    touch_multiselect: False
+
             TextInput:
                 id: entry
                 focus: True
@@ -63,8 +66,8 @@
                 height: self.minimum_height
                 font_size: '20sp'
                 on_text_validate: app.command_input(self.text); self.text= ''; app._refocus_text_input()
-                use_bubble: True
-                use_handles: True
+                use_bubble: False
+                use_handles: False
 
             MacrosWidget:
                 id: macros

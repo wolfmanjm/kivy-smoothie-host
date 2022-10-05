@@ -31,7 +31,6 @@ from kivy.metrics import dp, Metrics
 from kivy.uix.recycleview.views import RecycleDataViewBehavior, _cached_views, _view_base_cache
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
-from kivy.core.clipboard import Clipboard
 
 from native_file_chooser import NativeFileChooser
 from mpg_knob import Knob
@@ -81,6 +80,7 @@ kivy.require('1.11.0')
 class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
                                  RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
+    touch_deselect_last = BooleanProperty(True)
 
 
 class LogLabel(RecycleDataViewBehavior, Label):
@@ -100,14 +100,13 @@ class LogLabel(RecycleDataViewBehavior, Label):
         if super(LogLabel, self).on_touch_down(touch):
             return True
         if touch.is_double_tap and self.collide_point(*touch.pos) and self.selectable:
-            print(self.parent)
             return self.parent.select_with_touch(self.index, touch)
 
     def apply_selection(self, rv, index, is_selected):
         ''' Respond to the selection of items in the view. '''
         self.selected = is_selected
         if is_selected:
-            Clipboard.copy(rv.data[index]['text'])
+            App.get_running_app().last_command = rv.data[index]['text']
 
 
 class NumericInput(TextInput):
@@ -354,7 +353,6 @@ class KbdWidget(GridLayout):
     def __init__(self, **kwargs):
         super(KbdWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.last_command = ""
 
     def _add_line_to_log(self, s):
         self.app.main_window.display(s)
@@ -365,10 +363,10 @@ class KbdWidget(GridLayout):
             if self.display.text.strip():
                 self._add_line_to_log('<< {}'.format(self.display.text))
                 self.app.comms.write('{}\n'.format(self.display.text))
-                self.last_command = self.display.text
+                self.app.last_command = self.display.text
             self.display.text = ''
         elif key == 'Repeat':
-            self.display.text = self.last_command
+            self.display.text = self.app.last_command
         elif key == 'BS':
             self.display.text = self.display.text[:-1]
         elif key == '?':
@@ -378,7 +376,7 @@ class KbdWidget(GridLayout):
 
     def handle_input(self, s):
         self.app.command_input(s)
-        self.last_command = s
+        self.app.last_command = s
         self.display.text = ''
 
 
@@ -1115,6 +1113,7 @@ class SmoothieHost(App):
         self.is_touch = False
         self.minimized = False
         self.safez = 20
+        self.last_command = ""
 
     def build_config(self, config):
         config.setdefaults('General', {

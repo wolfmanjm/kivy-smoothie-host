@@ -47,20 +47,15 @@
                 bar_width: dp(10)
                 scroll_y: 0
 
-                SelectableRecycleBoxLayout    # Draw a background to indicate selection
-    canvas.before:
-        Color:
-            rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, 0, 1)
-        Rectangle:
-            pos: self.pos
-            size: self.size
-:
+                SelectableRecycleBoxLayout
                     id: log_window_layout
                     orientation: 'vertical'
                     default_size: None, None
                     default_size_hint: 1, None
                     size_hint_y: None
                     height: self.minimum_height
+                    multiselect: False
+                    touch_multiselect: False
 
             TextInput:
                 id: entry
@@ -71,8 +66,8 @@
                 height: self.minimum_height
                 font_size: '20sp'
                 on_text_validate: app.command_input(self.text); self.text= ''; app._refocus_text_input()
-                use_bubble: True
-                use_handles: True
+                use_bubble: False
+                use_handles: False
 
             BoxLayout:
                 orientation: 'horizontal'
