@@ -333,7 +333,7 @@ class KbdWidget(GridLayout):
                 self.last_command = self.display.text
             self.display.text = ''
         elif key == 'Repeat':
-            self.display.text = self.last_command
+            self.display.text = self.n
         elif key == 'BS':
             self.display.text = self.display.text[:-1]
         elif key == '?':
@@ -343,6 +343,7 @@ class KbdWidget(GridLayout):
 
     def handle_input(self, s):
         self.app.command_input(s)
+        self.last_command = s
         self.display.text = ''
 
 
@@ -391,7 +392,7 @@ class MainWindow(BoxLayout):
             return
 
         self.ids.log_window.data.append({'text': s})
-        # we use some hysterysis here so we don't truncate every line added over max_lines
+        # we use some hysteresis here so we don't truncate every line added over max_lines
         n = n - max_lines  # how many lines over our max
         if n > 10:
             # truncate log to last max_lines, we delete the oldest 10 or so lines
