@@ -9,7 +9,14 @@
 # <Widget>:
 #     # set default font size
 #     font_size: dp(12)
-<LogLabel@Label>:
+<LogLabel>:
+    # Draw a background to indicate selection
+    canvas.before:
+        Color:
+            rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, 0, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
     size_hint_y: None
     height: self.texture_size[1]
     text_size: self.width, None
@@ -40,7 +47,14 @@
                 bar_width: dp(10)
                 scroll_y: 0
 
-                RecycleBoxLayout:
+                SelectableRecycleBoxLayout    # Draw a background to indicate selection
+    canvas.before:
+        Color:
+            rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, 0, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+:
                     id: log_window_layout
                     orientation: 'vertical'
                     default_size: None, None

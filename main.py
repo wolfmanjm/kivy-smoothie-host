@@ -100,6 +100,7 @@ class LogLabel(RecycleDataViewBehavior, Label):
         if super(LogLabel, self).on_touch_down(touch):
             return True
         if touch.is_double_tap and self.collide_point(*touch.pos) and self.selectable:
+            print(self.parent)
             return self.parent.select_with_touch(self.index, touch)
 
     def apply_selection(self, rv, index, is_selected):
@@ -367,7 +368,7 @@ class KbdWidget(GridLayout):
                 self.last_command = self.display.text
             self.display.text = ''
         elif key == 'Repeat':
-            self.display.text = self.n
+            self.display.text = self.last_command
         elif key == 'BS':
             self.display.text = self.display.text[:-1]
         elif key == '?':
