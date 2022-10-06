@@ -1465,6 +1465,7 @@ class SmoothieHost(App):
             self.config_editor = ConfigV2Editor(name='config_editor')
         else:
             self.config_editor = ConfigEditor(name='config_editor')
+
         self.sm.add_widget(self.config_editor)
         self.gcode_help = GcodeHelp(name='gcode_help')
         self.sm.add_widget(self.gcode_help)

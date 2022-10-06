@@ -104,7 +104,7 @@
                 ActionButton:
                     text: 'TMC Config'
                     on_press: root.open_tmc_configurator()
-                    disabled: not app.is_connected or root.is_printing
+                    disabled: not app.is_connected or root.is_printing or not app.is_v2
 
             ActionGroup:
                 text: 'System'
