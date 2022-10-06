@@ -3,6 +3,7 @@
 from easyhid import Enumeration
 from kivy.logger import Logger
 from kivy.app import App
+from kivy.clock import mainthread
 
 import threading
 import traceback
@@ -237,6 +238,7 @@ class MPG_rawhid():
 
         return False
 
+    @mainthread
     def load_macros(self):
         try:
             config = configparser.ConfigParser()

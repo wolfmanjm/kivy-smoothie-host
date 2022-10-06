@@ -4,6 +4,7 @@ from easyhid import Enumeration
 from kivy.logger import Logger
 from kivy.app import App
 from kivy.uix.actionbar import ActionButton
+from kivy.clock import mainthread
 
 import threading
 import traceback
@@ -222,6 +223,7 @@ class WHB04B():
         self.quit = True
         self.t.join()
 
+    @mainthread
     def load_macros(self, reload=False):
         try:
             config = configparser.ConfigParser()
