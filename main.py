@@ -82,6 +82,7 @@ class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
                                  RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
     touch_deselect_last = BooleanProperty(True)
+    is_focusable = BooleanProperty(False)
 
 
 class LogLabel(RecycleDataViewBehavior, Label):
