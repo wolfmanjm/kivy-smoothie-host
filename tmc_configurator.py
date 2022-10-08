@@ -22,6 +22,7 @@ Builder.load_string('''
             do_default_tab: False
             tab_pos: 'top_left'
             tab_width: dp(160)
+            on_current_tab: root.tab_changed()
 
             TabbedPanelItem:
                 id: sc_tab
@@ -274,6 +275,16 @@ Builder.load_string('''
             text: 'status'
 ''')
 
+# class Plane(TabbedPanel):
+#     def __init__(self, **kwargs):
+#         super(Plane, self).__init__(**kwargs)
+#         self.bind(current_tab=self.contentChanged_cb)
+#         # also tried content, nothing happened again
+#         # self.bind(content=self.contentChanged_cb)
+
+#     def contentChanged_cb(self, obj, value):
+#         print 'CHANGE'
+
 
 class TMCConfigurator(Screen):
     default_sc_settings = [5, 54, 5, 0, 0]
@@ -296,6 +307,8 @@ class TMCConfigurator(Screen):
 
     move_timer = None
     direction = False
+    waiting = False
+    switch_requested = True
 
     enabled_list = {'X': True, 'Y': False, 'Z': False, 'A': False}
     motor_lut = {'X': 0, 'Y': 1, 'Z': 2, 'A': 3}
@@ -305,12 +318,24 @@ class TMCConfigurator(Screen):
         # get current settings for selected motor
         self.get_chop_register()
 
+    def tab_changed(self):
+        name = self.ids.modes.current_tab.text
+        print("tab changed to {} - {}".format(name, self.switch_requested))
+        if self.switch_requested:
+            # reset to default settings relevant for mode
+            if name == 'SpreadCycle':
+                self.set_default_settings(True)
+            else:
+                self.set_default_settings(False)
+
+        self.switch_requested = True
+
     def set_enabled(self, axis, flg):
         # print("enabled: {} {}".format(axis, flg))
         self.enabled_list[axis] = flg
         if flg:
             self.current_motor = self.motor_lut[axis]
-            self.start()
+            self.get_chop_register()
 
     def enable_motors(self):
         args = ""
@@ -404,14 +429,26 @@ class TMCConfigurator(Screen):
                 self.move_timer.cancel()
                 self.move_timer = None
 
-    def reset_settings(self):
-        self.set_constant_off_time(self.default_sc_settings[0])
-        self.set_blank_time(self.default_sc_settings[1])
-        self.set_hysteresis_start(self.default_sc_settings[2])
-        self.set_hysteresis_end(self.default_sc_settings[3])
-        self.set_hysteresis_dec(self.default_sc_settings[4])
+    def set_default_settings(self, scflg):
+        if scflg:
+            self.set_constant_off_time(self.default_sc_settings[0])
+            self.set_blank_time(self.default_sc_settings[1])
+            self.set_hysteresis_start(self.default_sc_settings[2])
+            self.set_hysteresis_end(self.default_sc_settings[3])
+            self.set_hysteresis_dec(self.default_sc_settings[4])
+
+        else:
+            self.set_cotc_constant_off_time(self.default_cot_settings[0])
+            self.set_cotc_blank_time(self.default_cot_settings[1])
+            self.set_fast_decay_time(self.default_cot_settings[2])
+            self.set_sine_wave_offset(self.default_cot_settings[3])
+            self.set_use_current_comparator(self.default_cot_settings[4] == 1)
+
         self.set_pfd(True)
         self.set_rot(False)
+
+    def reset_settings(self):
+        self.set_default_settings(True)
         self.switch_to_cot_tab(False)
 
     def save_settings(self):
@@ -430,15 +467,26 @@ class TMCConfigurator(Screen):
 
     def send_command(self, args):
         App.get_running_app().comms.write('{}\n'.format(args))
+        self.set_message("Sent: {}".format(args))
 
     def set_message(self, v):
         self.ids.messages.text = v
 
     @mainthread
     def switch_to_cot_tab(self, arg):
-        self.ids.modes.switch_to(self.ids.cot_tab if arg else self.ids.sc_tab)
+        ct = self.ids.modes.current_tab.text
+        if arg and ct != 'ConstantOffTime':
+            self.switch_requested = False
+            self.ids.modes.switch_to(self.ids.cot_tab)
+        elif not arg and ct != 'SpreadCycle':
+            self.switch_requested = False
+            self.ids.modes.switch_to(self.ids.sc_tab)
 
     def _response(self, line):
+        if not self.waiting:
+            # Not sent command yet, anything we get is probably a query response
+            return
+
         ll = line.lstrip().rstrip()
         if ll == "ok":
             App.get_running_app().comms.redirect_incoming(None)
@@ -456,14 +504,13 @@ class TMCConfigurator(Screen):
             Logger.error("TMCConfigurator: Error - unexpected axis {}".format(ll[0]))
             self.set_message("Error - unexpected axis in response {}".format(ll[0]))
 
-        elif ll[1] != "0":
+        elif ll[1] == "1":
             self.switch_to_cot_tab(True)
-            # unpack the results
             self.cotc_constant_off_time = int(ll[2])
             self.cotc_blank_time = int(ll[3])
             self.fast_decay_time = int(ll[4])
             self.sine_wave_offset = int(ll[5])
-            self.use_current_comparator = True if int(ll[6]) == 1 else False
+            self.use_current_comparator = True if ll[6] == '1' else False
             self.set_message("Loaded settings for motor {} in Constant Off Time Mode".format(self.current_motor))
 
         elif ll[1] == "0":
@@ -479,11 +526,13 @@ class TMCConfigurator(Screen):
             Logger.error("TMCConfigurator: Should not get here!!!!")
 
     def _get_chop_register(self, arg):
+        self.waiting = True
         self.send_command("M911.1 P{}".format(self.current_motor))
 
     def get_chop_register(self):
         # retrieve the current setting for selected motor
+        self.waiting = False
         App.get_running_app().comms.redirect_incoming(self._response)
         # wait for any outstanding queries
-        Clock.schedule_once(self._get_chop_register, 1)
+        Clock.schedule_once(self._get_chop_register, 0.5)
         self.set_message("Getting settings for motor {} ...".format(self.current_motor))
