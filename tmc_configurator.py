@@ -5,43 +5,6 @@ from kivy.clock import mainthread, Clock
 from kivy.properties import NumericProperty, BooleanProperty
 from kivy.logger import Logger
 
-'''
-    M911.3 S1 [Unnn Vnnn Wnnn Xnnn Ynnn] - setSpreadCycleChopper
-              U=constant_off_time, V=blank_time, W=hysteresis_start, X=hysteresis_end, Y=hysteresis_decrement
-                2...15               0..54         1...8               -3..12            0..3
-
- * constant_off_time: The off time setting controls the minimum chopper frequency.
- * For most applications an off time within the range of 5μs to 20μs will fit.
- *      2...15: off time setting
- *
- * blank_time: Selects the comparator blank time. This time needs to safely cover the switching event and the
- * duration of the ringing on the sense resistor. For
- *      0: min. setting 3: max. setting
- *
- * fast_decay_time_setting: Fast decay time setting. With CHM=1, these bits control the portion of fast decay for each chopper cycle.
- *      0: slow decay only
- *      1...15: duration of fast decay phase
- *
- * sine_wave_offset: Sine wave offset. With CHM=1, these bits control the sine wave offset.
- * A positive offset corrects for zero crossing error.
- *      -3..-1: negative offset 0: no offset 1...12: positive offset
- *
- * use_current_comparator: Selects usage of the current comparator for termination of the fast decay cycle.
- * If current comparator is enabled, it terminates the fast decay cycle in case the current
- * reaches a higher negative value than the actual positive value.
- *      1: enable comparator termination of fast decay cycle
- *      0: end by time only
-
- void TMC26X::setConstantOffTimeChopper(int8_t constant_off_time, int8_t blank_time, int8_t fast_decay_time_setting, int8_t sine_wave_offset, uint8_t use_current_comparator)
-
- setConstantOffTimeChopper(GET('U'), GET('V'), GET('W'), GET('X'), GET('Y'));
- setConstantOffTimeChopper(7, 54, 13, 12, 1);
-
-    TODO
-        maybe allow setting of ConstantOffTimeChopper
-'''
-
-
 Builder.load_string('''
 <TMCConfigurator>:
     on_enter: self.start()
@@ -53,94 +16,187 @@ Builder.load_string('''
                 size: self.size
                 pos: self.pos
         orientation: 'vertical'
-        BoxLayout:
-            orientation: 'horizontal'
-            BoxLayout:
-                orientation: 'vertical'
-                Label:
-                    size_hint_y: None
-                    height: 40
-                    text: 'Constant Off Time'
-                Label:
-                    size_hint_y: None
-                    height: 40
-                    text: str(int(s1.value))
-                Slider: # constant off time
-                    id: s1
-                    orientation: 'vertical'
-                    min: 2
-                    max: 15
-                    value: root.constant_off_time
-                    on_value: root.set_constant_off_time(self.value)
-            BoxLayout:
-                orientation: 'vertical'
-                Label:
-                    size_hint_y: None
-                    height: 40
-                    text: 'Blank Time'
-                Label:
-                    size_hint_y: None
-                    height: 40
-                    text: str(int(s2.value))
-                Slider: # blank time
-                    id: s2
-                    orientation: 'vertical'
-                    min: 24
-                    max: 54
-                    value: root.blank_time
-                    on_value: root.set_blank_time(self.value)
 
-            BoxLayout:
-                orientation: 'vertical'
-                Label:
-                    size_hint_y: None
-                    height: 40
-                    text: 'Hyst start'
-                Label:
-                    size_hint_y: None
-                    height: 40
-                    text: str(int(s3.value))
-                Slider:
-                    id: s3
-                    orientation: 'vertical'
-                    min: 1
-                    max: 8
-                    value: root.hysteresis_start
-                    on_value: root.set_hysteresis_start(self.value)
-            BoxLayout:
-                orientation: 'vertical'
-                Label:
-                    size_hint_y: None
-                    height: 40
-                    text: 'Hyst end'
-                Label:
-                    size_hint_y: None
-                    height: 40
-                    text: str(int(s4.value))
-                Slider:
-                    id: s4
-                    orientation: 'vertical'
-                    min: -3
-                    max: 12
-                    value: root.hysteresis_end
-                    on_value: root.set_hysteresis_end(self.value)
-            BoxLayout:
-                orientation: 'vertical'
-                Label:
-                    size_hint_y: None
-                    height: 40
-                    text: 'Hyst dec'
-                Label:
-                    size_hint_y: None
-                    height: 40
-                    text: str(int(s5.value))
-                Slider:
-                    id: s5
-                    orientation: 'vertical'
-                    min: 0
-                    max: 3
-                    value: root.hysteresis_dec
-                    on_value: root.set_hysteresis_dec(self.value)
+        TabbedPanel:
+            id: modes
+            do_default_tab: False
+            tab_pos: 'top_left'
+            tab_width: dp(160)
+
+            TabbedPanelItem:
+                id: sc_tab
+                text: 'SpreadCycle'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: 'Constant Off Time'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: str(int(s1.value))
+                        Slider: # constant off time
+                            id: s1
+                            orientation: 'vertical'
+                            min: 2
+                            max: 15
+                            value: root.constant_off_time
+                            on_value: root.set_constant_off_time(self.value)
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: 'Blank Time'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: str(int(s2.value))
+                        Slider: # blank time
+                            id: s2
+                            orientation: 'vertical'
+                            min: 24
+                            max: 54
+                            value: root.blank_time
+                            on_value: root.set_blank_time(self.value)
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: 'Hyst start'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: str(int(s3.value))
+                        Slider:
+                            id: s3
+                            orientation: 'vertical'
+                            min: 1
+                            max: 8
+                            value: root.hysteresis_start
+                            on_value: root.set_hysteresis_start(self.value)
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: 'Hyst end'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: str(int(s4.value))
+                        Slider:
+                            id: s4
+                            orientation: 'vertical'
+                            min: -3
+                            max: 12
+                            value: root.hysteresis_end
+                            on_value: root.set_hysteresis_end(self.value)
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: 'Hyst dec'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: str(int(s5.value))
+                        Slider:
+                            id: s5
+                            orientation: 'vertical'
+                            min: 0
+                            max: 3
+                            value: root.hysteresis_dec
+                            on_value: root.set_hysteresis_dec(self.value)
+
+            TabbedPanelItem:
+                id: cot_tab
+                text: 'ConstantOffTime'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: 'Constant Off Time'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: str(int(s15.value))
+                        Slider: # constant off time
+                            id: s15
+                            orientation: 'vertical'
+                            min: 2
+                            max: 15
+                            value: root.cotc_constant_off_time
+                            on_value: root.set_cotc_constant_off_time(self.value)
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: 'Blank Time'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: str(int(s6.value))
+                        Slider: # blank time
+                            id: s6
+                            orientation: 'vertical'
+                            min: 24
+                            max: 54
+                            value: root.cotc_blank_time
+                            on_value: root.set_cotc_blank_time(self.value)
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: 'Fast Decay Time'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: str(int(s7.value))
+                        Slider:
+                            id: s7
+                            orientation: 'vertical'
+                            min: 0
+                            max: 15
+                            value: root.fast_decay_time
+                            on_value: root.set_fast_decay_time(self.value)
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: 'Sine Wave Offset'
+                        Label:
+                            size_hint_y: None
+                            height: 40
+                            text: str(int(s8.value))
+                        Slider:
+                            id: s8
+                            orientation: 'vertical'
+                            min: -3
+                            max: 12
+                            value: root.sine_wave_offset
+                            on_value: root.set_sine_wave_offset(self.value)
+                    BoxLayout:
+                        orientation: 'vertical'
+                        ToggleButton:
+                            size_hint_y: None
+                            height: dp(60)
+                            text: 'Use Current Comparator'
+                            state: 'down' if root.use_current_comparator else 'normal'
+                            on_state: root.set_use_current_comparator(self.state == 'down')
 
         BoxLayout:
             orientation: 'horizontal'
@@ -220,12 +276,20 @@ Builder.load_string('''
 
 
 class TMCConfigurator(Screen):
-    default_settings = [5, 54, 5, 0, 0]
-    constant_off_time = NumericProperty(default_settings[0])
-    blank_time = NumericProperty(default_settings[1])
-    hysteresis_start = NumericProperty(default_settings[2])
-    hysteresis_end = NumericProperty(default_settings[3])
-    hysteresis_dec = NumericProperty(default_settings[4])
+    default_sc_settings = [5, 54, 5, 0, 0]
+    constant_off_time = NumericProperty(default_sc_settings[0])
+    blank_time = NumericProperty(default_sc_settings[1])
+    hysteresis_start = NumericProperty(default_sc_settings[2])
+    hysteresis_end = NumericProperty(default_sc_settings[3])
+    hysteresis_dec = NumericProperty(default_sc_settings[4])
+
+    # ConstantOffTimeChopper
+    default_cot_settings = [7, 54, 13, 12, 1]
+    cotc_constant_off_time = NumericProperty(default_cot_settings[0])
+    cotc_blank_time = NumericProperty(default_cot_settings[1])
+    fast_decay_time = NumericProperty(default_cot_settings[2])
+    sine_wave_offset = NumericProperty(default_cot_settings[3])
+    use_current_comparator = BooleanProperty(default_cot_settings[4] == 1)
 
     pfd = BooleanProperty(True)
     rot = BooleanProperty(False)
@@ -266,6 +330,8 @@ class TMCConfigurator(Screen):
 
         return ok
 
+    # SpreadCycleChopper
+
     def set_constant_off_time(self, v):
         self.constant_off_time = v
         self.send_M911_command('S1 U{}'.format(self.constant_off_time))
@@ -285,6 +351,30 @@ class TMCConfigurator(Screen):
     def set_hysteresis_dec(self, v):
         self.hysteresis_dec = v
         self.send_M911_command('S1 Y{}'.format(self.hysteresis_dec))
+
+    # ConstantOffTimeChopper
+
+    def set_cotc_constant_off_time(self, v):
+        self.cotc_constant_off_time = v
+        self.send_M911_command('S0 U{}'.format(self.cotc_constant_off_time))
+
+    def set_cotc_blank_time(self, v):
+        self.cotc_blank_time = v
+        self.send_M911_command('S0 V{}'.format(self.cotc_blank_time))
+
+    def set_fast_decay_time(self, v):
+        self.fast_decay_time = v
+        self.send_M911_command('S0 W{}'.format(self.fast_decay_time))
+
+    def set_sine_wave_offset(self, v):
+        self.sine_wave_offset = v
+        self.send_M911_command('S0 X{}'.format(self.sine_wave_offset))
+
+    def set_use_current_comparator(self, v):
+        self.use_current_comparator = v
+        self.send_M911_command('S0 Y{}'.format("1" if self.use_current_comparator else "0"))
+
+    # other settings
 
     def set_pfd(self, v):
         self.pfd = v
@@ -315,13 +405,14 @@ class TMCConfigurator(Screen):
                 self.move_timer = None
 
     def reset_settings(self):
-        self.set_constant_off_time(self.default_settings[0])
-        self.set_blank_time(self.default_settings[1])
-        self.set_hysteresis_start(self.default_settings[2])
-        self.set_hysteresis_end(self.default_settings[3])
-        self.set_hysteresis_dec(self.default_settings[4])
+        self.set_constant_off_time(self.default_sc_settings[0])
+        self.set_blank_time(self.default_sc_settings[1])
+        self.set_hysteresis_start(self.default_sc_settings[2])
+        self.set_hysteresis_end(self.default_sc_settings[3])
+        self.set_hysteresis_dec(self.default_sc_settings[4])
         self.set_pfd(True)
         self.set_rot(False)
+        self.switch_to_cot_tab(False)
 
     def save_settings(self):
         self.send_command('M911 P{}'.format(self.current_motor))
@@ -343,6 +434,10 @@ class TMCConfigurator(Screen):
     def set_message(self, v):
         self.ids.messages.text = v
 
+    @mainthread
+    def switch_to_cot_tab(self, arg):
+        self.ids.modes.switch_to(self.ids.cot_tab if arg else self.ids.sc_tab)
+
     def _response(self, line):
         ll = line.lstrip().rstrip()
         if ll == "ok":
@@ -352,25 +447,36 @@ class TMCConfigurator(Screen):
         ll = ll.split(',')
 
         if len(ll) < 7:
-            Logger.error("TMCConfigurator: Error - unexpected response size {}".format(len(ll)))
-            self.set_message("Error - unexpected response size {}".format(len(ll)))
+            Logger.warning("TMCConfigurator: WARNING - unexpected response size {}".format(len(ll)))
+
+        elif ll[0] not in ['X', 'Y', 'Z', 'A']:
+            Logger.warning("TMCConfigurator: Warning - unexpected response: {}".format(ll))
 
         elif self.motor_lut[ll[0]] != self.current_motor:
             Logger.error("TMCConfigurator: Error - unexpected axis {}".format(ll[0]))
             self.set_message("Error - unexpected axis in response {}".format(ll[0]))
 
         elif ll[1] != "0":
-            Logger.error("TMCConfigurator: Error - Not in spreadcycle mode")
-            self.set_message("Error - Not in spreadcycle mode")
-
-        else:
+            self.switch_to_cot_tab(True)
             # unpack the results
+            self.cotc_constant_off_time = int(ll[2])
+            self.cotc_blank_time = int(ll[3])
+            self.fast_decay_time = int(ll[4])
+            self.sine_wave_offset = int(ll[5])
+            self.use_current_comparator = True if int(ll[6]) == 1 else False
+            self.set_message("Loaded settings for motor {} in Constant Off Time Mode".format(self.current_motor))
+
+        elif ll[1] == "0":
+            self.switch_to_cot_tab(False)
             self.constant_off_time = int(ll[2])
             self.blank_time = int(ll[3])
             self.hysteresis_start = int(ll[4])
             self.hysteresis_end = int(ll[5])
             self.hysteresis_dec = int(ll[6])
-            self.set_message("Loaded settings for motor {}".format(self.current_motor))
+            self.set_message("Loaded settings for motor {} in Spread Cycle Mode".format(self.current_motor))
+
+        else:
+            Logger.error("TMCConfigurator: Should not get here!!!!")
 
     def _get_chop_register(self, arg):
         self.send_command("M911.1 P{}".format(self.current_motor))
