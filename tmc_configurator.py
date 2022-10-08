@@ -275,16 +275,6 @@ Builder.load_string('''
             text: 'status'
 ''')
 
-# class Plane(TabbedPanel):
-#     def __init__(self, **kwargs):
-#         super(Plane, self).__init__(**kwargs)
-#         self.bind(current_tab=self.contentChanged_cb)
-#         # also tried content, nothing happened again
-#         # self.bind(content=self.contentChanged_cb)
-
-#     def contentChanged_cb(self, obj, value):
-#         print 'CHANGE'
-
 
 class TMCConfigurator(Screen):
     default_sc_settings = [5, 54, 5, 0, 0]
@@ -328,7 +318,8 @@ class TMCConfigurator(Screen):
             else:
                 self.set_default_settings(False)
 
-        self.switch_requested = True
+        else:
+            self.switch_requested = True
 
     def set_enabled(self, axis, flg):
         # print("enabled: {} {}".format(axis, flg))
