@@ -328,15 +328,22 @@ class TMCConfigurator(Screen):
             self.current_motor = self.motor_lut[axis]
             self.get_chop_register()
 
+        self.enable_motors()
+
     def enable_motors(self):
+        enabled = ""
         args = ""
         for a in self.enabled_list:
             if not self.enabled_list[a]:
                 args += "{}0 ".format(a)
+            else:
+                enabled += "{} ".format(a)
 
         self.send_command('M17')  # turn them all on
         if args:
             self.send_command('M18 {}'.format(args))  # disable selected ones
+
+        self.set_message("Enabled motor(s) {}".format(enabled))
 
     def are_all_enabled(self):
         ok = True
