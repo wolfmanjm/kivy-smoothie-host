@@ -110,6 +110,9 @@ Builder.load_string('''
                 disabled: not root.select_mode
                 on_press: root.move_gantry()
             Button:
+                text: 'GCode'
+                on_press: app.main_window._edit_text(app.gcode_file)
+            Button:
                 text: 'Back'
                 on_press: root.manager.current = 'main'
 ''')
