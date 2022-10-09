@@ -1072,6 +1072,13 @@ class MainWindow(BoxLayout):
 
         self.app.sm.current = 'tmc_configurator'
 
+    def open_calculator(self, arg=None):
+        if not self.app.sm.has_screen('calculator'):
+            calculator = CalcScreen(name='calculator')
+            self.app.sm.add_widget(calculator)
+
+        self.app.sm.current = 'calculator'
+
 
 class MainScreen(Screen):
     pass
@@ -1480,7 +1487,6 @@ class SmoothieHost(App):
             # disable overscroll
             # self.main_window.ids.log_window.effect_cls = 'ScrollEffect'
             # self.main_window.ids.log_window.effect_y.friction = 1.0
-            self.sm.add_widget(CalcScreen(name='calculator'))
 
             self.blank_timeout = self.config.getint('General', 'blank_timeout')
             Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
@@ -1495,10 +1501,10 @@ class SmoothieHost(App):
                 # remove log window entry widget
                 self.main_window.ids.entry.focus = False
                 self.main_window.ids.blleft.remove_widget(self.main_window.ids.entry)
-                # add text editor tool
+                # add text editor tool to menu
                 self.main_window.tools_menu.add_widget(ActionButton(text='Text Editor', on_press=self.main_window.edit_text))
-                # add calculator
-                self.main_window.tools_menu.add_widget(ActionButton(text='Calculator', on_press=lambda x: self.set_screen('calculator')))
+                # add calculator to menu
+                self.main_window.tools_menu.add_widget(ActionButton(text='Calculator', on_press=self.main_window.open_calculator))
 
                 # add blanker
                 if self.blank_timeout > 0:

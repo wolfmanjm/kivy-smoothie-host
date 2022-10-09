@@ -81,7 +81,7 @@
                     on_press: root.edit_text()
                 ActionButton:
                     text: 'Calculator'
-                    on_press: app.sm.current = 'calculator'
+                    on_press: root.open_calculator()
                 ActionButton:
                     text: 'Upload GCode'
                     disabled: not app.is_connected or root.is_printing
