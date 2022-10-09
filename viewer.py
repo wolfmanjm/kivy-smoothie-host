@@ -376,14 +376,17 @@ class GcodeViewerScreen(Screen):
                     if rel_move:
                         # x or y maybe None if no absolute move preceded this
                         # so presume they are at 0
-                        if x is None:
-                            x = 0
-                        if y is None:
-                            y = 0
-                        x += 0 if 'X' not in d else float(d['X'])
-                        y += 0 if 'Y' not in d else float(d['Y'])
+                        if 'X' in d:
+                            if x is None:
+                                x = 0
+                            x += float(d['X'])
+                        if 'Y' in d:
+                            if y is None:
+                                y = 0
+                            y += float(d['Y'])
                         if z is not None:
-                            z += 0 if 'Z' not in d else float(d['Z'])
+                            if 'Z' in d:
+                                z += float(d['Z'])
 
                     else:
                         x = lastpos[0] if 'X' not in d else float(d['X'])
