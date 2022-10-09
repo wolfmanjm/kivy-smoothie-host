@@ -1054,6 +1054,10 @@ class MainWindow(BoxLayout):
         f.open(self.last_path, title='File to Edit', filters=['*'], cb=self._edit_text)
 
     def _edit_text(self, file_path, directory=None):
+        if not self.app.sm.has_screen('text_editor'):
+            self.app.text_editor = TextEditor(name='text_editor')
+            self.app.sm.add_widget(self.app.text_editor)
+
         self.app.text_editor.open(file_path)
         self.app.sm.current = 'text_editor'
 
@@ -1473,8 +1477,6 @@ class SmoothieHost(App):
 
         if self.is_touch:
             # RPI touch screen
-            self.text_editor = TextEditor(name='text_editor')
-            self.sm.add_widget(self.text_editor)
             # disable overscroll
             # self.main_window.ids.log_window.effect_cls = 'ScrollEffect'
             # self.main_window.ids.log_window.effect_y.friction = 1.0
