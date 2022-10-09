@@ -413,7 +413,7 @@ class TMCConfigurator(Screen):
 
         for a in self.enabled_list:
             if self.enabled_list[a]:
-                self.send_command("M120 G91 G0 {}{} F100 M121".format(a, d))
+                self.send_command("M120 G91 G1 {}{} F100 M121".format(a, d))
 
     def set_run(self, v):
         if v:
