@@ -1563,7 +1563,7 @@ class SmoothieHost(App):
         if self.is_show_camera:
             self.camera_url = self.config.get('Web', 'camera_url')
             self.sm.add_widget(CameraScreen(name='web cam'))
-            self.main_window.tools_menu.add_widget(ActionButton(text='Web Cam', on_press=lambda x: self._show_web_cam()))
+            self.main_window.tools_menu.add_widget(ActionButton(text='Web Cam', on_press=self._show_web_cam))
 
         if self.is_spindle_camera:
             ok = True
@@ -1576,7 +1576,7 @@ class SmoothieHost(App):
                     ok = False
 
             if ok:
-                self.main_window.tools_menu.add_widget(ActionButton(text='Spindle Cam', on_press=lambda x: self._show_spindle_cam()))
+                self.main_window.tools_menu.add_widget(ActionButton(text='Spindle Cam', on_press=self._show_spindle_cam))
 
         # load any modules specified in config
         self._load_modules()
@@ -1590,14 +1590,14 @@ class SmoothieHost(App):
     def set_screen(self, s):
         self.sm.current = s
 
-    def _show_spindle_cam(self):
+    def _show_spindle_cam(self, args=None):
         if self.is_desktop <= 1:
             self.sm.current = "spindle camera"
         else:
             # In desktop mode we run it as a separate window
             SpindleCamera.run_standalone(App.get_running_app())
 
-    def _show_web_cam(self):
+    def _show_web_cam(self, args=None):
         self.sm.current = "web cam"
 
     def _on_keyboard_down(self, instance, key, scancode, codepoint, modifiers):

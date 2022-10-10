@@ -49,10 +49,6 @@
                     on_press: root.config_editor()
                     disabled: not app.is_connected or root.is_printing
                 ActionButton:
-                    text: 'TMC Config'
-                    on_press: root.open_tmc_configurator()
-                    disabled: not app.is_connected or root.is_printing or not app.is_v2
-                ActionButton:
                     text: 'Upload GCode'
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.main_window.upload_gcode()
@@ -71,6 +67,10 @@
                 ActionButton:
                     text: 'Start Uart Log' if not root.is_uart_log_enabled else 'Stop Uart Log'
                     on_press: app.main_window.start_uart_log()
+                ActionButton:
+                    text: 'TMC Config'
+                    on_press: root.open_tmc_configurator()
+                    disabled: not app.is_connected or root.is_printing or not app.is_v2
 
             ActionGroup:
                 id: system_menu

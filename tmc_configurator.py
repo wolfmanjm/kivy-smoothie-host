@@ -213,6 +213,10 @@ Builder.load_string('''
                 text: 'RoT'
                 state: 'down' if root.rot else 'normal'
                 on_state: root.set_rot(self.state == 'down')
+            ToggleButton:
+                text: 'Step interpoln'
+                state: 'down' if root.step_interpolation else 'normal'
+                on_state: root.set_step_interpolation(self.state == 'down')
             Button:
                 text: 'Enable Motors'
                 on_press: root.enable_motors()
@@ -294,6 +298,7 @@ class TMCConfigurator(Screen):
 
     pfd = BooleanProperty(True)
     rot = BooleanProperty(False)
+    step_interpolation = BooleanProperty(True)
 
     move_timer = None
     direction = False
@@ -406,6 +411,10 @@ class TMCConfigurator(Screen):
     def set_rot(self, v):
         self.rot = v
         self.send_M911_command('S2 Z{}'.format("1" if self.rot else "0"))
+
+    def set_step_interpolation(self, v):
+        self.step_interpolation = v
+        self.send_M911_command('S4 Z{}'.format("1" if self.step_interpolation else "0"))
 
     def _move_motors(self, arg):
         d = '-10' if self.direction else '10'
