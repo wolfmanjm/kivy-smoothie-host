@@ -228,4 +228,4 @@ class MySettingsPanel(SettingsWithNoMenu):
 
     def on_config_change(self, config, section, key, value):
         app = App.get_running_app()
-        app.comms.write('config-set "{}" {} {}\n'.format(section, key, value))
+        app.comms.write('config-set "{}" {} "{}"\n'.format(section, key, value))
