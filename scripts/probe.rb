@@ -25,7 +25,7 @@ class Optparse
           end
 
           opts.on( "-j", "--job TYPE", String,
-                   "The job to run one of [size|center|spiral]" ) do |n|
+                   "The job to run one of [size|center|spiral|align|angle|pos]" ) do |n|
             options.job= n
           end
 
@@ -277,6 +277,38 @@ def probe_spiral(n, radius)
     STDERR.puts("max: #{maxz}, min: #{minz}, delta: #{maxz-minz}")
 end
 
+def probe_align_y
+
+    STDERR.puts "Position probe at far right of edge to probe"
+
+    # find initial position
+    probe(:y, 20)
+    moveBy(y: -5) # move off 5mm
+
+    # probe again
+    r1= probe(:y, 20)
+    moveBy(y: -5) # move off 5mm
+    moveBy(x: -500) # move to left 500mm
+    r2= probe(:y, 20)
+
+    diff= r2.y - r1.y
+    STDERR.puts "#{r1.y} - #{r2.y}: Y is out of alignment by #{diff} mm"
+
+    if diff < 0
+        STDERR.puts "Right hand actuator needs to be moved in plus direction by about #{diff*400.0} steps"
+        STDERR.puts "test raw a #{diff*400.0} 100" # moves set number of steps at 100 steps/sec
+    else
+        STDERR.puts "Right hand actuator needs to be moved in minus direction by about #{diff*400.0} steps"
+        STDERR.puts "test raw a #{-diff*400.0} 100" # moves set number of steps at 100 steps/sec
+    end
+
+    # return to start position
+    moveBy(y: -10)
+    moveBy(x: 500)
+
+
+end
+
 # send query to get current angle
 def get_angle()
   STDOUT.write "M114.3\n"
@@ -349,10 +381,12 @@ def probe_angle()
 end
 
 # first send blank line and wait for 'ok' as there maybe some queued up stuff which we need to ignore
-STDOUT.write("\n")
-while true
-l= STDIN.gets # read a line
-break if l.start_with?("ok")
+if !$options.test
+    STDOUT.write("\n")
+    while true
+        l= STDIN.gets # read a line
+        break if l.start_with?("ok")
+    end
 end
 
 if $options.job == 'size'
@@ -386,6 +420,9 @@ STDERR.puts "WPOS x#{wp.x} y#{wp.y} z#{wp.z} MPOS x#{mp.x} y#{mp.y} z#{mp.z}"
 
 elsif $options.job == 'angle'
 probe_angle
+
+elsif $options.job == 'align'
+probe_align_y
 
 else
   STDERR.puts "job #{$options.job} Not yet supported"

@@ -380,7 +380,9 @@ class KbdWidget(GridLayout):
 
     def handle_input(self, s):
         self.app.command_input(s)
-        self.app.last_command = s
+        if s != '?':
+            self.app.last_command = s
+
         self.display.text = ''
 
 

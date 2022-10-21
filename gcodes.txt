@@ -11,9 +11,9 @@ G18 | Select XZY plane
 G19 | Select YZX plane
 G20 | Inch mode
 G21 | Millimeter mode
-G28 | Home the given axis
+G28 | Home the given axis. In GRBL mode park
 G28.1 | Set Predefined Position
-G28.2 | Move to Predefined Position
+G28.2 | Park. In GRBL Home.
 G28.3 | Set Manual Homing position
 G28.4 | Manual Homing based on actuator position
 G28.5 | Clears the homed flag for the specified axis, or all if not specifed
