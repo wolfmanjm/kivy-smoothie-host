@@ -191,6 +191,8 @@ class ConfigV2Editor(Screen):
 
     @mainthread
     def _done(self):
+        self._update_progress("Creating Settings Panel....")
+
         self.msp = MySettingsPanel()
         self.msp.add_json_panel('Smoothie Config', self.config, data=json.dumps(self.jsondata))
         ss = self.ids.placeholder

@@ -143,6 +143,11 @@ def send(arg, wait=true)
     end
 end
 
+def wait
+    # wait for all moves to finish
+    send('M400')
+end
+
 def send_expect(arg, expect, wait=true)
     STDERR.puts "DEBUG: sending #{arg}" if @verbose
     STDOUT.write(arg + "\n")
@@ -283,29 +288,28 @@ def probe_align_y
 
     # find initial position
     probe(:y, 20)
-    moveBy(y: -5) # move off 5mm
+    moveBy(y: -5, up: false, down: false) # move off 5mm
 
     # probe again
     r1= probe(:y, 20)
-    moveBy(y: -5) # move off 5mm
-    moveBy(x: -500) # move to left 500mm
+    moveBy(y: -5, up: false, down: false) # move off 5mm
+    moveBy(x: -500, up: false, down: false) # move to left 500mm
     r2= probe(:y, 20)
 
     diff= r2.y - r1.y
-    STDERR.puts "#{r1.y} - #{r2.y}: Y is out of alignment by #{diff} mm"
+    STDERR.puts "#{r1.y} - #{r2.y}: Y is out of alignment by #{diff.abs} mm"
 
     if diff < 0
-        STDERR.puts "Right hand actuator needs to be moved in plus direction by about #{diff*400.0} steps"
-        STDERR.puts "test raw a #{diff*400.0} 100" # moves set number of steps at 100 steps/sec
+        STDERR.puts "Right hand actuator needs to be moved in +Y direction by about #{diff.abs * 400.0} steps"
+        STDERR.puts "test raw a #{diff.abs * 400.0} 100" # moves set number of steps at 100 steps/sec
     else
-        STDERR.puts "Right hand actuator needs to be moved in minus direction by about #{diff*400.0} steps"
-        STDERR.puts "test raw a #{-diff*400.0} 100" # moves set number of steps at 100 steps/sec
+        STDERR.puts "Right hand actuator needs to be moved in -Y direction by about #{diff.abs * 400.0} steps"
+        STDERR.puts "test raw a #{-(diff.abs * 400.0)} 100" # moves set number of steps at 100 steps/sec
     end
 
     # return to start position
-    moveBy(y: -10)
-    moveBy(x: 500)
-
+    moveBy(y: -10, up: false, down: false)
+    moveBy(x: 500, up: false, down: false)
 
 end
 
@@ -393,6 +397,7 @@ if $options.job == 'size'
 begin
   send("M120")
   probe_size
+  wait
 ensure
   send("M121")
 end
@@ -401,6 +406,7 @@ elsif $options.job == 'center'
 begin
   send("M120")
   probe_center
+  wait
 ensure
   send("M121")
 end
@@ -409,6 +415,7 @@ elsif $options.job == 'spiral'
 begin
   send("M120")
   probe_spiral($options.points, $options.diameter/2.0)
+  wait
 ensure
   send("M121")
 end
@@ -420,9 +427,11 @@ STDERR.puts "WPOS x#{wp.x} y#{wp.y} z#{wp.z} MPOS x#{mp.x} y#{mp.y} z#{mp.z}"
 
 elsif $options.job == 'angle'
 probe_angle
+wait
 
 elsif $options.job == 'align'
 probe_align_y
+wait
 
 else
   STDERR.puts "job #{$options.job} Not yet supported"
