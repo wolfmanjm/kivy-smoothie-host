@@ -2,7 +2,7 @@ G0 | Move to the given coordinates.
 G1 | Move to the given coordinates
 G2 | Clockwise circular motion
 G3 | Counter-clockwise motion
-G4 | Dwell S<seconds> or P<milliseconds or float seconds(grbl)>
+G4 | Dwell S<seconds> or P<milliseconds - GRBL: float seconds>
 G10 | Do firmware extruder retract
 G11 | Do firmware extruder un-retract
 G10 Ln | n is 2 or 20 set workspace coordinates, Pw is WCS, n is 1 set tool offset Pt is the tool to set
@@ -11,9 +11,9 @@ G18 | Select XZY plane
 G19 | Select YZX plane
 G20 | Inch mode
 G21 | Millimeter mode
-G28 | Home the given axis. In GRBL mode park
+G28 | Reprap: Home the given axis - GRBL: park
 G28.1 | Set Predefined Position
-G28.2 | Park. In GRBL Home.
+G28.2 | Reprap: Park - GRBL: Home
 G28.3 | Set Manual Homing position
 G28.4 | Manual Homing based on actuator position
 G28.5 | Clears the homed flag for the specified axis, or all if not specifed
