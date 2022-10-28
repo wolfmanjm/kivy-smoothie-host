@@ -465,18 +465,18 @@ class Comms():
             elif s.startswith('[GC:'):
                 self.handle_state(s)
 
-            elif s.startswith("!!") or s.startswith("error:Alarm lock"):
+            elif s.startswith("!!") or s.startswith("error:Alarm lock") or s.startswith("ALARM:"):
                 if self.ok_notify_cb:
                     self.ok_notify_cb(False)
                     self.ok_notify_cb = None
-                self.handle_alarm(s)
+                self.handle_alarm(s, True)
                 # we should now be paused
                 if self.okcnt is not None and self.ping_pong:
                     # we need to unblock waiting for ok if we get this
                     self.okcnt.set()
 
-            elif s.startswith("ALARM") or s.startswith("ERROR") or s.startswith("HALTED") or s.startswith('error:'):
-                self.handle_alarm(s)
+            elif s.startswith("ERROR") or s.startswith('error:'):
+                self.handle_alarm(s, False)
 
             elif s.startswith('//'):
                 # ignore comments but display them
@@ -564,7 +564,7 @@ class Comms():
         self.app.main_window.async_display("Probe: {} - X: {}, Y: {}, Z: {}".format(st, c[0], c[1], c[2]))
         self.app.last_probe = {'X': float(c[0]), 'Y': float(c[1]), 'Z': float(c[2]), 'status': st == '1'}
 
-    def handle_alarm(self, s):
+    def handle_alarm(self, s, flg):
         ''' handle case where smoothie sends us !! or an error of some sort '''
         self.log.warning('Comms: error message: {}'.format(s))
         was_printing = False
@@ -579,7 +579,7 @@ class Comms():
         #    self.proto.flush_queue()
 
         # call upstream after we have allowed stream to stop
-        async_main_loop.call_soon(self.app.main_window.alarm_state, (s, was_printing))
+        async_main_loop.call_soon(self.app.main_window.alarm_state, (s, was_printing, flg))
 
     def stream_gcode(self, fn, progress=None):
         ''' called from external thread to start streaming a file '''

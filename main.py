@@ -619,9 +619,13 @@ class MainWindow(BoxLayout):
 
     @mainthread
     def alarm_state(self, msg):
-        ''' called when smoothie is in Alarm state and it is sent a gcode '''
-        s, was_printing = msg
-        self.add_line_to_log("! error message: {}".format(s))
+        ''' called when smoothie is in Alarm state (flg == True) or gets an error message (flg == False)'''
+        s, was_printing, flg = msg
+        if flg:
+            self.add_line_to_log("! alarm state: {}".format(s))
+        else:
+            self.add_line_to_log("! error message: {}".format(s))
+
         if self.is_suspended:
             self.add_line_to_log("! NOTE: currently suspended so must Abort as resume will not work")
         elif was_printing:
