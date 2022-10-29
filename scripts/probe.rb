@@ -285,6 +285,7 @@ end
 def probe_align_y
 
     STDERR.puts "Position probe at far right of edge to probe"
+    w = $options.width
 
     # find initial position
     probe(:y, 20)
@@ -293,7 +294,7 @@ def probe_align_y
     # probe again
     r1= probe(:y, 20)
     moveBy(y: -5, up: false, down: false) # move off 5mm
-    moveBy(x: -500, up: false, down: false) # move to left 500mm
+    moveBy(x: -w, up: false, down: false) # move to left 500mm
     r2= probe(:y, 20)
 
     diff= r2.y - r1.y
@@ -309,7 +310,7 @@ def probe_align_y
 
     # return to start position
     moveBy(y: -10, up: false, down: false)
-    moveBy(x: 500, up: false, down: false)
+    moveBy(x: w, up: false, down: false)
 
 end
 
