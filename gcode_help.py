@@ -52,6 +52,9 @@ Builder.load_string('''
                 text: '$Codes'
                 on_press: root.populate('$')
             Button:
+                text: 'Pins'
+                on_press: root.populate('P')
+            Button:
                 text: 'Back'
                 on_press: root.close()
 

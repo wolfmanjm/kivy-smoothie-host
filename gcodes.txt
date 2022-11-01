@@ -176,6 +176,69 @@ $J | [Xnnn] [Ynnn] [Znnn] [Snnn] issue jog command axis can be XYZABC optional S
 $S | <switch names> get switch state(s)
 $X | release ALARM state
 $# | same as get wcs
+PA3 | ADC1_6    GH 4
+PA4 |           GF 5
+PA5 | SPI1_SCK  GE 9
+PA6 | SPI1_MISO GE 8
+PA8 | I2C3_SCL  GB 9
+PB1 |           GF 3
+PB5 | SPI1_MOSI GE 7
+PB9 | UART1 TX  GB 4
+PB11 | UART0 RX GD 5
+PB12 |          GH 9
+PC0 |           GG 5
+PC2 | ADC1_4    GH 5
+PC3 | ADC1_5    GH 3
+PC13 |          GI 9
+PD8 | UART0 TX  GD 4
+PD9 |           GB 3
+PD10 |          GC 5
+PD12 |          GC 4
+PD14 |          GC 3
+PD15 |          GE 6
+PE4 |           GI 7
+PE5 | mot MISO  GA 7
+PE6 | mot MOSI  GA 8
+PE7 |           GD 3
+PE8 |           GE 3
+PE9 | PWM1_1    GD 6
+PE11 | PWM1_2   GD 7
+PE12 | mot CLK  GA 9
+PE13 | PWM1_3   GD 8
+PE14 | PWM1_4   GD 9
+PF0 | I2C2_SDA  GG 8
+PF1 | I2C2_SCL  GG 9
+PF2 |           GH 6
+PF4 | ADC3_4    GI 5
+PF6 | ADC3_3    GI 4
+PF10 | ADC3_1   GI 3
+PF15 |          GG 6
+PG0 |           GF 6
+PG1 |           GF 8
+PH2 |           GG 3
+PH3 |           GG 7
+PH4 |           GG 4
+PH7 |           GH 8
+PH8 | I2C3_SDA  GB 8
+PH14 | UART1 RX GB 5
+PI2 | PWM2_4    GC 9
+PI5 | PWM2_1    GC 6
+PI6 | PWM2_2    GC 7
+PI7 | PWM2_3    GC 8
+PI8 |           GI 6
+PI9 |           GI 8
+PI10 |          GH 7
+PJ2 |           GF 9
+PJ3 |           GF 7
+PJ4 |           GF 4
+PJ6 |           GA 3
+PJ7 |           GE 4
+PJ8 |           GE 5
+PJ9 |           GA 4
+PJ10 |          GA 5
+PJ11 |          GA 6
+PK0 |           GB 6
+PK1 |           GB 7
 
 
 
