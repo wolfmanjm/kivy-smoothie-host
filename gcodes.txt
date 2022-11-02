@@ -176,69 +176,69 @@ $J | [Xnnn] [Ynnn] [Znnn] [Snnn] issue jog command axis can be XYZABC optional S
 $S | <switch names> get switch state(s)
 $X | release ALARM state
 $# | same as get wcs
-PA3 | ADC1_6    GH 4
-PA4 |           GF 5
-PA5 | SPI1_SCK  GE 9
-PA6 | SPI1_MISO GE 8
-PA8 | I2C3_SCL  GB 9
-PB1 |           GF 3
-PB5 | SPI1_MOSI GE 7
-PB9 | UART1 TX  GB 4
-PB11 | UART0 RX GD 5
-PB12 |          GH 9
-PC0 |           GG 5
-PC2 | ADC1_4    GH 5
-PC3 | ADC1_5    GH 3
-PC13 |          GI 9
-PD8 | UART0 TX  GD 4
-PD9 |           GB 3
-PD10 |          GC 5
-PD12 |          GC 4
-PD14 |          GC 3
-PD15 |          GE 6
-PE4 |           GI 7
-PE5 | mot MISO  GA 7
-PE6 | mot MOSI  GA 8
-PE7 |           GD 3
-PE8 |           GE 3
-PE9 | PWM1_1    GD 6
-PE11 | PWM1_2   GD 7
-PE12 | mot CLK  GA 9
-PE13 | PWM1_3   GD 8
-PE14 | PWM1_4   GD 9
-PF0 | I2C2_SDA  GG 8
-PF1 | I2C2_SCL  GG 9
-PF2 |           GH 6
-PF4 | ADC3_4    GI 5
-PF6 | ADC3_3    GI 4
-PF10 | ADC3_1   GI 3
-PF15 |          GG 6
-PG0 |           GF 6
-PG1 |           GF 8
-PH2 |           GG 3
-PH3 |           GG 7
-PH4 |           GG 4
-PH7 |           GH 8
-PH8 | I2C3_SDA  GB 8
-PH14 | UART1 RX GB 5
-PI2 | PWM2_4    GC 9
-PI5 | PWM2_1    GC 6
-PI6 | PWM2_2    GC 7
-PI7 | PWM2_3    GC 8
-PI8 |           GI 6
-PI9 |           GI 8
-PI10 |          GH 7
-PJ2 |           GF 9
-PJ3 |           GF 7
-PJ4 |           GF 4
-PJ6 |           GA 3
-PJ7 |           GE 4
-PJ8 |           GE 5
-PJ9 |           GA 4
-PJ10 |          GA 5
-PJ11 |          GA 6
-PK0 |           GB 6
-PK1 |           GB 7
+PA3 | GH4 ADC1_6
+PA4 | GF5
+PA5 | GE9 SPI1_SCK
+PA6 | GE8 SPI1_MISO
+PA8 | GB9 I2C3_SCL
+PB1 | GF3
+PB5 | GE7 SPI1_MOSI
+PB9 | GB4 UART1 TX
+PB11 | GD5 UART0 RX
+PB12 | GH9
+PC0 | GG5
+PC2 | GH5 ADC1_4
+PC3 | GH3 ADC1_5
+PC13 | GI9
+PD8 | GD4 UART0 TX
+PD9 | GB3
+PD10 | GC5
+PD12 | GC4
+PD14 | GC3
+PD15 | GE6
+PE4 | GI7
+PE5 | GA7 mot MISO
+PE6 | GA8 mot MOSI
+PE7 | GD3
+PE8 | GE3
+PE9 | GD6 PWM1_1
+PE11 | GD7 PWM1_2
+PE12 | GA9 mot CLK
+PE13 | GD8 PWM1_3
+PE14 | GD9 PWM1_4
+PF0 | GG8 I2C2_SDA
+PF1 | GG9 I2C2_SCL
+PF2 | GH6
+PF4 | GI5 ADC3_4
+PF6 | GI4 ADC3_3
+PF10 | GI3 ADC3_1
+PF15 | GG6
+PG0 | GF6
+PG1 | GF8
+PH2 | GG3
+PH3 | GG7
+PH4 | GG4
+PH7 | GH8
+PH8 | GB8 I2C3_SDA
+PH14 | GB5 UART1 RX
+PI2 | GC9 PWM2_4
+PI5 | GC6 PWM2_1
+PI6 | GC7 PWM2_2
+PI7 | GC8 PWM2_3
+PI8 | GI6
+PI9 | GI8
+PI10 | GH7
+PJ2 | GF9
+PJ3 | GF7
+PJ4 | GF4
+PJ6 | GA3
+PJ7 | GE4
+PJ8 | GE5
+PJ9 | GA4
+PJ10 | GA5
+PJ11 | GA6
+PK0 | GB6
+PK1 | GB7
 
 
 
