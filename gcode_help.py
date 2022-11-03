@@ -4,25 +4,19 @@ from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.logger import Logger
+from kivy.properties import NumericProperty
+import kivy.core.text
 
 Builder.load_string('''
-<GCHRow@BoxLayout>:
+<GCHRow@Label>:
     canvas.before:
         Color:
             rgba: 0.5, 0.5, 0.5, 1
         Rectangle:
             size: self.size
             pos: self.pos
-    gcode: ''
-    desc: ''
-    Label:
-        text: root.gcode
-        size_hint_x: None
-        width: self.texture_size[0] + dp(16)
-        font_name: "data/fonts/RobotoMono-Regular.ttf"
-    Label:
-        text: root.desc
-        text_size: self.size
+    text_size: self.size
+    padding_x: dp(4)
 
 <GcodeHelp>:
     rv: rv
@@ -64,19 +58,26 @@ Builder.load_string('''
             scroll_wheel_distance: dp(114)
             bar_width: dp(10)
             viewclass: 'GCHRow'
-            RecycleBoxLayout:
+            RecycleGridLayout:
+                cols: 2
+                cols_minimum: {0: root.max_width, 1: 1280}
                 default_size: None, dp(20)
                 default_size_hint: 1, None
                 size_hint_y: None
                 height: self.minimum_height
-                orientation: 'vertical'
                 spacing: dp(2)
 ''')
 
 
 class GcodeHelp(Screen):
+    max_width = NumericProperty(0)
+
+    def _get_str_pixel_width(self, string, **kwargs):
+        return kivy.core.text.Label(**kwargs).get_extents(string)[0]
+
     def populate(self, type):
         self.rv.data = []
+        self.max_width = 0
         fn = '{}/gcodes.txt'.format(App.get_running_app().running_directory)
         try:
             with open(fn) as f:
@@ -87,7 +88,13 @@ class GcodeHelp(Screen):
                             continue
                         g = c[0].strip()
                         d = c[1].strip()
-                        self.rv.data.append({'gcode': g, 'desc': d})
+                        w = self._get_str_pixel_width(g, font_name="data/fonts/RobotoMono-Regular.ttf", font_size=14) + kivy.metrics.dp(8)
+                        if w > self.max_width:
+                            self.max_width = w
+
+                        self.rv.data.append({'text': g, 'font_name': "data/fonts/RobotoMono-Regular.ttf", 'font_size': 14})
+                        self.rv.data.append({'text': d, 'font_name': "data/fonts/Roboto-Regular.ttf", 'font_size': 14})
+
         except Exception:
             Logger.error("GcodeHelp: Can't open {}".format(fn))
 
