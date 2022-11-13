@@ -2,10 +2,13 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.clock import Clock, mainthread
 from kivy.config import ConfigParser
-from kivy.uix.settings import SettingsWithNoMenu
+from kivy.uix.settings import Settings
 from kivy.uix.label import Label
 from kivy.logger import Logger
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.properties import NumericProperty, BooleanProperty, ListProperty, ObjectProperty
 
 from multi_input_box import MultiInputBox
 
@@ -46,12 +49,41 @@ Builder.load_string('''
         BoxLayout:
             id: placeholder
             orientation: 'vertical'
+
+<InterfaceWithScrollableSidebar>:
+    orientation: 'horizontal'
+    menu: menu
+    content: content
+    MyMenuSidebar:
+        id: menu
+    ContentPanel:
+        id: content
+        current_uid: menu.selected_uid
+
+<MyMenuSidebar>:
+    size_hint_x: None
+    width: '200dp'
+    buttons_layout: menu
+    ScrollView:
+        GridLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            pos: root.pos
+            cols: 1
+            id: menu
+            padding: 5
+
+            canvas.after:
+                Color:
+                    rgb: .2, .2, .2
+                Rectangle:
+                    pos: self.right - 1, self.y
+                    size: 1, self.height
 ''')
 
 
 class ConfigV2Editor(Screen):
-    jsondata = []
-    current_section = None
+    sections = None
     config = None
     configdata = []
     msp = None
@@ -155,12 +187,10 @@ class ConfigV2Editor(Screen):
             self.close()
             return
 
-            self.configdata = []
-
+        sections = []
         for section in self.config.sections():
             self._update_progress(section)
-            self.current_section = section
-            self.jsondata.append({"type": "title", "title": self.current_section})
+            subkeys = {}
 
             for (key, v) in self.config.items(section):
                 if self.force_close:
@@ -175,12 +205,34 @@ class ConfigV2Editor(Screen):
                 else:
                     comment = ""
 
-                if v in ['true', 'false']:
-                    tt = {"type": 'bool', 'values': ['false', 'true'], "title": key, "desc": comment, "section": section, "key": key}
-                else:
-                    tt = {"type": 'string', "title": key, "desc": comment, "section": self.current_section, "key": key}
-                self.jsondata.append(tt)
+                if '.' in key:
+                    (subkey, k) = key.split('.')
+                    x = (k, key, v, comment)
 
+                else:
+                    subkey = " "
+                    x = (key, key, v, comment)
+
+                if subkey in subkeys:
+                    subkeys[subkey].append(x)
+                else:
+                    subkeys[subkey] = [x]
+
+            jsondata = []
+            for t, l in subkeys.items():
+                if t != " ":
+                    jsondata.append({"type": "title", "title": t})
+
+                for i in l:
+                    tit, key, v, comment = i
+                    if v in ['true', 'false']:
+                        tt = {"type": 'bool', 'values': ['false', 'true'], "title": tit, "desc": comment, "section": section, "key": key}
+                    else:
+                        tt = {"type": 'string', "title": tit, "desc": comment, "section": section, "key": key}
+                    jsondata.append(tt)
+            sections.append((section, json.dumps(jsondata)))
+
+        self.sections = sections
         self._done()
 
     @mainthread
@@ -194,30 +246,75 @@ class ConfigV2Editor(Screen):
         self._update_progress("Creating Settings Panel....")
 
         self.msp = MySettingsPanel()
-        self.msp.add_json_panel('Smoothie Config', self.config, data=json.dumps(self.jsondata))
+        for s in self.sections:
+            self.msp.add_json_panel(s[0], self.config, data=s[1])
+
         ss = self.ids.placeholder
         ss.clear_widgets()
         ss.add_widget(self.msp)
-        self.jsondata = []
+        self.sections = None
         self.progress = None
 
     @mainthread
     def close(self):
+        self.manager.current = 'main'
         self.force_close = True
         self.app.comms.redirect_incoming(None)
         self.ids.placeholder.clear_widgets()
         if self.msp:
             self.msp.on_close()
-            self.msp = None
-        self.jsondata = []
+
+        self.sections = None
         self.configdata = []
         self.config = None
         self.progress = None
-        self.manager.current = 'main'
 
 
-class MySettingsPanel(SettingsWithNoMenu):
+class MyMenuSidebar(FloatLayout):
+    selected_uid = NumericProperty(0)
+    buttons_layout = ObjectProperty(None)
+    close_button = ObjectProperty(None)
+
+    def add_item(self, name, uid):
+        label = SettingSidebarLabel(text=name, uid=uid, menu=self)
+        if len(self.buttons_layout.children) == 0:
+            label.selected = True
+        if self.buttons_layout is not None:
+            self.buttons_layout.add_widget(label)
+
+    def on_selected_uid(self, *args):
+        for button in self.buttons_layout.children:
+            if button.uid != self.selected_uid:
+                button.selected = False
+
+
+class SettingSidebarLabel(Label):
+    selected = BooleanProperty(False)
+    uid = NumericProperty(0)
+    menu = ObjectProperty(None)
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return
+        self.selected = True
+        self.menu.selected_uid = self.uid
+
+
+class InterfaceWithScrollableSidebar(BoxLayout):
+    menu = ObjectProperty()
+    content = ObjectProperty()
+
     def __init__(self, *args, **kwargs):
+        super(InterfaceWithScrollableSidebar, self).__init__(*args, **kwargs)
+
+    def add_panel(self, panel, name, uid):
+        self.menu.add_item(name, uid)
+        self.content.add_panel(panel, name, uid)
+
+
+class MySettingsPanel(Settings):
+    def __init__(self, *args, **kwargs):
+        self.interface_cls = InterfaceWithScrollableSidebar
         super(MySettingsPanel, self).__init__(*args, **kwargs)
         # if App.get_running_app().is_desktop <= 1:
         #     # For RPI gets the instance of the ContentPanel which is a ScrollView
@@ -226,7 +323,7 @@ class MySettingsPanel(SettingsWithNoMenu):
         #     self.interface.effect_y.friction = 1.0
 
     def on_close(self):
-        pass
+        print("Closing MySettingsPanel")
 
     def on_config_change(self, config, section, key, value):
         app = App.get_running_app()
