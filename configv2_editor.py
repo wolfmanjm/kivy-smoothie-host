@@ -91,6 +91,7 @@ class ConfigV2Editor(Screen):
     start = False
     progress = None
     count = 0
+    tmo = None
 
     def new_entry(self):
         o = MultiInputBox(title='Add new entry')
@@ -134,6 +135,10 @@ class ConfigV2Editor(Screen):
         if not ll.startswith("#") and ll != "":
             if ll == "ok":
                 # finished
+                if self.tmo:
+                    self.tmo.cancel()
+                    self.tmo = None
+
                 self.start = False
                 self._update_progress("Processing config....")
 
@@ -168,12 +173,18 @@ class ConfigV2Editor(Screen):
         # wait for any outstanding queries
         Clock.schedule_once(self._send_command, 1)
 
+    def _timed_out(self, dt):
+        Logger.error("ConfigV2Editor: Command timed out")
+        self.app.main_window.async_display("Error cat config.ini command timed out")
+        self.close()
+
     def _send_command(self, dt):
         # issue command
         Logger.debug("ConfigV2Editor: fetching config.ini")
         self.start = True
         self.app.comms.write('cat /sd/config.ini\n')
         self.app.comms.write('\n')  # get an ok to indicate end of cat
+        self.tmo = Clock.schedule_once(self._timed_out, 10)
 
     def _build(self):
         self.app.comms.redirect_incoming(None)
@@ -257,6 +268,10 @@ class ConfigV2Editor(Screen):
 
     @mainthread
     def close(self):
+        if self.tmo:
+            self.tmo.cancel()
+            self.tmo = None
+
         self.manager.current = 'main'
         self.force_close = True
         self.app.comms.redirect_incoming(None)
