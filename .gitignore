@@ -1,4 +1,12 @@
-tests/
-Stuff/
 __pycache__/
 *.pyc
+smoothiehost.ini
+smoothiehost-cnc.ini
+macros.ini
+macros-cnc.ini
+tox.ini
+whb04b.ini
+hb04-cnc.ini
+hb04.ini
+mpg_rawhid.ini
+notify.ini
