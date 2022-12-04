@@ -5,7 +5,8 @@ G3 | Counter-clockwise motion
 G4 | Dwell S<seconds> or P<milliseconds - GRBL: float seconds>
 G10 | Do firmware extruder retract
 G11 | Do firmware extruder un-retract
-G10 Ln | n is 2 or 20 set workspace coordinates, Pw is WCS, n is 1 set tool offset Pt is the tool to set
+G10 Ln | n is 2 or 20 set workspace coordinates, Pw is WCS
+G10 L1 | Pn Xnnn Ynnn Znnn set extruder tool offset
 G17 | Select XYZ plane
 G18 | Select XZY plane
 G19 | Select YZX plane
@@ -36,6 +37,7 @@ G91 | set Relative mode
 G92 | Set global workspace coordinate system
 G92.1 | Reset G92
 G92.4 | manually set homing (MCS) for XYZ
+M0 | Pauses job until a button is clicked, handled by Smoopi if enabled
 M2 | End of job
 M3 | Starts the spindle. S<speed in RPM>
 M5 | Stops the spindle
