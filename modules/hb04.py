@@ -182,6 +182,7 @@ class HB04():
     f_ovr = 100
     s_ovr = 100
     cont_mode = False
+    cont_moving = False
 
     def __init__(self, vid, pid):
         # HB04 vendor ID and product ID
@@ -274,6 +275,10 @@ class HB04():
 
         return False
 
+    def got_ok(self, v):
+        # got ok from $J -c, may be premature if so this stops us sending ^Y
+        self.cont_moving = False
+
     def _run(self):
         self.app = App.get_running_app()
         self.load_macros()
@@ -338,14 +343,32 @@ class HB04():
                             self.refresh_lcd()
                             continue
 
-                        if btn_1 == BUT_MPG:
-                            # toggle continuous jog mode
-                            self.cont_mode = not self.cont_mode
-                            self.refresh_lcd()
-                            continue
-
                         if not self.app.is_connected:
                             continue
+
+                        if self.cont_mode:
+                            # we are in continuous jog mode
+                            if self.cont_moving:
+                                # if we are moving
+                                if btn_1 == BUT_MPG:
+                                    # still down so just update lcd
+                                    self.refresh_lcd()
+                                    continue
+                                else:
+                                    # released so stop continuous mode
+                                    self.app.comms.write('\x19')  # control Y
+                                    self.cont_mode = False
+                                    self.refresh_lcd()
+
+                            elif btn_1 != BUT_MPG:
+                                # released before move set
+                                self.cont_mode = False
+                                self.refresh_lcd()
+
+                        elif btn_1 == BUT_MPG:
+                            # set continuous jog mode
+                            self.cont_mode = True
+                            self.refresh_lcd()
 
                         if btn_1 == BUT_STOP and self.app.status != 'Alarm':
                             self.app.comms.write('\x18')
@@ -394,18 +417,14 @@ class HB04():
 
                             # must be one of XYZA so send jogging command
                             if self.cont_mode:
-                                # first move sets direction, it goes until wheel moves
-                                # the other way then it stops.
-                                # $J -c {axis}1 S{mul/10}
-
-                                if contdir is None:
-                                    contdir = wheel
-                                    # TODO must not send another $J -c until ok is recieved from previous one
-                                    self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.mul / 10.0))
-                                elif (contdir < 0 and wheel > 0) or (contdir > 0 and wheel < 0):
-                                    # changed direction so stop jog
-                                    self.app.comms.write('\x19')  # control Y
-                                    contdir = None
+                                # first turn of wheel sets the direction,
+                                # it goes until Cont button is released
+                                # $J -c {axis}1 S{delta/100}
+                                # must not send another $J -c until ok is recieved from previous one
+                                if not self.cont_moving:
+                                    self.cont_moving = True
+                                    self.app.comms.ok_notify_cb = lambda x: self.got_ok(x)
+                                    self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.mullut[self.mul] / 1000.0))
 
                             else:
                                 # velocity_mode:
@@ -413,6 +432,7 @@ class HB04():
                                 # s = -wheel if wheel < 0 else wheel
                                 # if s > 5: s == 5 # seems the max realistic we get
                                 # speed= s/5.0 # scale where 5 is max speed
+                                # MPG/Step mode
                                 step = wheel  # speed of wheel will move more increments rather than increase feed rate
                                 dist = 0.001 * step * self.mullut[self.mul]
                                 speed = 1.0

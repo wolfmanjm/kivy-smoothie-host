@@ -84,7 +84,8 @@ Many of the buttons have default actions, but can be redefined in the ```[macros
 Step button which when held down will increase or decrease the move multiplier based on the wheel moves (clockwise increases).
 at x1 each encoder click moves 0.001mm, at x10 it moves 0.01mm, at x100 it moves 0.1mm etc.
 
-The MPG button will toggle the continuous jog mode or step jog mode, an icon will show if in continuous mode. In continuous jog mode the gantry will move in the selected axis direction based on the direction the wheel is turned after entering cont mode, it will continue to move until the wheel is turned the opposite way. The speed it moves is selected by the move multiplier, where 1x is 0.1 of maximum actuator speed, and 1000x is full actuator speed.
+Holding the MPG button will enable continuous jog mode. In continuous jog mode the gantry will move in the selected axis direction based on the direction the wheel is turned after entering cont mode, it will continue to move until the MPG button is released. The speed it moves is selected by the move multiplier, where 1x is 1/1000 of maximum actuator speed, 100x is 100/1000=0.1 of max speed and 1000x is full actuator speed.
+In Step mode (when MPG is not held down) then the selected axis will move by the amount selected when the wheel is turned.
 
 The Stop button will send a kill/halt (control X) to smoothie and the reset will send ```$X``` to unkill.
 
