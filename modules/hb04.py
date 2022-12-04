@@ -282,7 +282,6 @@ class HB04():
     def _run(self):
         self.app = App.get_running_app()
         self.load_macros()
-        contdir = None
 
         while not self.quit:
             try:
