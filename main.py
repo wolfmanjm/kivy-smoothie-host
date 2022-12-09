@@ -70,10 +70,15 @@ import collections
 import importlib
 import signal
 
-# we must have Python version between 3.5 and 3.9 inclusive
+# we must have Python version between 3.5 and 3.10.x inclusive
 assert (3, 10, 99) >= sys.version_info >= (3, 5), "Python version needs to be >= 3.5 and <= 3.10.x, you have {}".format(sys.version)
 
-kivy.require('1.11.0')
+# different python versions require different kivy versions
+if sys.version_info < (3, 7):
+    kivy.require('1.11.0')
+else:
+    kivy.require('2.1.0')
+
 
 # Window.softinput_mode = 'below_target'
 
