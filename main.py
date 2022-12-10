@@ -79,7 +79,6 @@ if sys.version_info < (3, 7):
 else:
     kivy.require('2.1.0')
 
-
 # Window.softinput_mode = 'below_target'
 
 
