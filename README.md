@@ -3,14 +3,14 @@ A Smoothie host designed to run on an rpi with multitouch screen or on a desktop
 
 This is stable and ready for everyday use.
 
-This uses python >= 3.5 and <= 3.9.2 and kivy >= 1.11.0
+This uses python >= 3.7.x and <= 3.10.x and kivy >= 2.1.x
 
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
 
 Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDMI monitor running Buster, running the app full screen if using a touch panel. (see special instructions for installation on rpi4b below)
 
-It will run on Windows if you install Python 3.5.2 (or newer), and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
+It will run on Windows if you install Python 3.7 (or newer), and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
 
 The minimum usable resolution is 800x480.
 
@@ -147,6 +147,8 @@ Samsung Evo+ are also supposed to be very fast in an RPI.
 The last line is quite important otherwise you get a whole lot of ok's echoed back to smoothie when it opens. This does not appear to be needed on a desktop probably due to the speed it is setup vs the rpi.
 
 ### Image
+*NOTE this is using an old vesion of Raspbian based on Stretch, it is advised to use Buster instead and install from source as below.
+
 For RPI 3a and 3b and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else. (This *WILL NOT WORK* on an RPI4b).
 
 Download from http://smoothieware.org/_media/bin/smoopi_img2.zip (you need to copy paste this URL into your browser).
@@ -176,7 +178,7 @@ Once that is done setup smoopi to run on boot by doing...
 
 Once running use the System menu upgrade to fetch the latest smoopi. If that is successful, then quit under the System menu and smoopi will exit and then be restarted by runit.
 
-### Raspbian/Debian Stretch/Buster on RPI (NOT rpi4b)
+### Raspbian/Buster on RPI (NOT rpi4b)
 
 Note the latest version is Bullseye and does not work on the official touch screen so use Buster. (see below if you must use Bullseye).
 
@@ -184,8 +186,7 @@ Note the latest version is Bullseye and does not work on the official touch scre
 
 (This may work on older RPI versions but is not tested, please read this https://www.raspberrypi.org/documentation/hardware/display/legacy.md).
 
-Install the latest raspbian stretch/buster lite... (No XWindows)
-eg http://downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2019-04-09/2019-04-08-raspbian-stretch-lite.zip
+Install the latest raspbian buster lite... (No XWindows)
 
 Or you can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
 (type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the Buster lite OS.
@@ -216,9 +217,9 @@ For instance...
        xclip xsel
     sudo apt-get install python3-pip git
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
-    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@1.11.1
+    python3 -m pip install --user --upgrade kivy
 
-This installs a known working version of kivy using the version of python found on debian stretch and buster.
+This installs a known working version of kivy using the version of python found on debian buster.
 
 On an rpi3b+ (and better) it seems the double tap time needs to be increased to be usable..
 
