@@ -379,7 +379,9 @@ If you are using the supplied image and want the streamer to auto start then..
     
 It should auto start then.
 
-## On linux Desktop (and maybe windows/macos)
+## Install on Linux Desktop
+
+(and maybe windows/macos)
 
 Install on recent Linux (Ubuntu/Debian etc) and python >= 3.7.x and <= 3.10.x using the fast wheels installation...
     
