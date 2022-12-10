@@ -146,39 +146,7 @@ Samsung Evo+ are also supposed to be very fast in an RPI.
 
 The last line is quite important otherwise you get a whole lot of ok's echoed back to smoothie when it opens. This does not appear to be needed on a desktop probably due to the speed it is setup vs the rpi.
 
-### Image
-*NOTE this is using an old vesion of Raspbian based on Stretch, it is advised to use Buster instead and install from source as below.
-
-For RPI 3a and 3b and touch screen you can just download the image which has a fully running version smoopi with autostart, blanking etc, so no need to do anything else. (This *WILL NOT WORK* on an RPI4b).
-
-Download from http://smoothieware.org/_media/bin/smoopi_img2.zip (you need to copy paste this URL into your browser).
-unzip and image the resulting .img to an sdcard using for instance https://www.balena.io/etcher/ which can image direct from the .zip file.
-
-Once loaded boot into the sdcard, login with username pi and password raspberry then
-
-      sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
-
-and add your wifi credentials to the ssid= and the psk=  lines.
-(or run ```sudo raspi-config```)
-
-Reboot, and wifi should be working.
-
-Then update raspbian...
-
-* login in with username pi and password raspberry
-* sudo apt-get update
-* sudo apt-get upgrade
-
-smoopi is normally run on bootup, but in order to allow you to login and do the initial setup it is initially down. You will need to hook up a keyboard temporarily so you can access the login and run raspi-config etc.
-
-Once that is done setup smoopi to run on boot by doing...
-    
-    > sudo rm /home/pi/sv/smoopi/down
-    > sudo sv up /etc/service/smoopi
-
-Once running use the System menu upgrade to fetch the latest smoopi. If that is successful, then quit under the System menu and smoopi will exit and then be restarted by runit.
-
-### Raspbian/Buster on RPI (NOT rpi4b)
+### Raspbian/Buster on RPI3x (NOT RPI4b)
 
 Note the latest version is Bullseye and does not work on the official touch screen so use Buster. (see below if you must use Bullseye).
 
@@ -187,6 +155,7 @@ Note the latest version is Bullseye and does not work on the official touch scre
 (This may work on older RPI versions but is not tested, please read this https://www.raspberrypi.org/documentation/hardware/display/legacy.md).
 
 Install the latest raspbian buster lite... (No XWindows)
+https://downloads.raspberrypi.org/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2022-09-26/2022-09-22-raspios-buster-armhf-lite.img.xz
 
 Or you can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
 (type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the Buster lite OS.
@@ -198,28 +167,8 @@ If you installed Buster you can do a quick install of the Kivy wheel using the f
     sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
     sudo apt install python3-pip
     python3 -m pip install --user kivy
-    ; then skip to the Smoopi install and setup section below....
 
-If that doesn't work then follow these instructions if using an rpi 3B+ ...
-https://kivy.org/doc/stable/installation/installation-rpi.html
-
-But change all references of python to python3 as we need kivy for python3.
-
-For instance...
-
-    sudo apt-get update
-    sudo apt-get install libsdl2-dev libsdl2-image-dev \
-       libsdl2-mixer-dev libsdl2-ttf-dev \
-       pkg-config libgl1-mesa-dev libgles2-mesa-dev \
-       python3-setuptools libgstreamer1.0-dev git-core \
-       gstreamer1.0-plugins-{bad,base,good,ugly} \
-       gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
-       xclip xsel
-    sudo apt-get install python3-pip git
-    python3 -m pip install --user --upgrade Cython==0.28.2 pillow
-    python3 -m pip install --user --upgrade kivy
-
-This installs a known working version of kivy using the version of python found on debian buster.
+Then skip to the Smoopi install and setup [section below](https://github.com/wolfmanjm/kivy-smoothie-host#smoopi-install-and-setup)
 
 On an rpi3b+ (and better) it seems the double tap time needs to be increased to be usable..
 
@@ -436,9 +385,8 @@ Install on recent Linux (Ubuntu/Debian etc) and python >= 3.7.x and <= 3.10.x us
     
     sudo apt install python3-pip
     python3 -m pip install --upgrade --user pip setuptools
-    python3 -m pip install --user --upgrade kivy==2.0.0
+    python3 -m pip install --user --upgrade kivy
 
-We use 2.0.0 as 2.1.0 seems to have onscreen keyboard bugs, but if you are not using the inscreen keyboard then 2.1.0 is fine.
 
 See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
 
@@ -455,9 +403,7 @@ If that does not work then install from source...
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
-    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@1.11.1
-
-1.11.1 seems to work well. (@stable is now 2.1.0 which doesn't work with python versions < 3.7, if you have python version >= 3.7 then you could install @master which is 2.1.0).
+    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@stable
 
 Install some dependencies we need...
 
