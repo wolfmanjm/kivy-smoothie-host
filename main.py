@@ -71,7 +71,7 @@ import importlib
 import signal
 
 # we must have Python version between 3.7.3 and 3.10.x
-assert (3, 10, 99) >= sys.version_info >= (3, 7, 3), "Python version needs to be >= 3.7.3 and <= 3.10.x, you have {}".format(sys.version)
+assert (3, 10, 99) >= sys.version_info >= (3, 7, 3), f"Python version needs to be >= 3.7.3 and <= 3.10.x, you have {sys.version}"
 
 kivy.require('2.1.0')
 
@@ -157,7 +157,7 @@ class DROWidget(RelativeLayout):
                 d = float(v[1:])
                 v = str(self.app.wpos[i] / d)
             except Exception:
-                Logger.warning("DROWidget: cannot divide by: {}".format(v))
+                Logger.warning(f"DROWidget: cannot divide by: {v}")
                 self.app.wpos[i] = self.app.wpos[i]
                 return
 
@@ -165,21 +165,21 @@ class DROWidget(RelativeLayout):
             # needed because the filter does not allow -ive numbers WTF!!!
             f = float(v.strip())
         except Exception:
-            Logger.warning("DROWidget: invalid float input: {}".format(v))
+            Logger.warning(f"DROWidget: invalid float input: {v}")
             # set the display back to what it was, this looks odd but it forces the display to update
             self.app.wpos[i] = self.app.wpos[i]
             return
 
-        Logger.debug("DROWidget: Set axis {} wpos to {}".format(axis, f))
-        self.app.comms.write('G10 L20 P0 {}{}\n'.format(axis.upper(), f))
+        Logger.debug(f"DROWidget: Set axis {axis} wpos to {f}")
+        self.app.comms.write(f'G10 L20 P0 {axis.upper()}{f}\n')
         self.app.wpos[i] = f
 
     def select_wcs(self, v):
-        self.app.comms.write('{}\n'.format(v))
+        self.app.comms.write(f'{v}\n')
 
     def reset_axis(self, a):
         # only used for ABC axis
-        self.app.comms.write('G92 {}0\n'.format(a))
+        self.app.comms.write(f'G92 {a}0\n')
 
     def update_buttons(self):
         return "$I\n"
@@ -206,7 +206,7 @@ class MPGWidget(RelativeLayout):
         # Run button pressed
         if self.selected_index == -1:
             # change feed override
-            self.app.comms.write('M220 S{}\n'.format(round(self.last_pos, 1)))
+            self.app.comms.write(f'M220 S{round(self.last_pos, 1)}\n')
             return
 
         if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
@@ -219,7 +219,7 @@ class MPGWidget(RelativeLayout):
             cmd = 'G90' if self.ids.abs_mode_tb.state == 'down' else 'G91'
 
             # print('{} {}{} {}'.format(cmd1, self.selected_axis, round(self.last_pos, 3), cmd2))
-            self.app.comms.write('M120 {} G0 {}{} M121\n'.format(cmd, self.selected_axis, round(self.last_pos, 3)))
+            self.app.comms.write(f'M120 {cmd} G0 {self.selected_axis}{round(self.last_pos, 3)} M121\n')
 
     def handle_change(self, ticks):
         if self.selected_index == -1:
@@ -243,7 +243,7 @@ class MPGWidget(RelativeLayout):
         axis = self.selected_axis
         # MPG mode
         if self.ids.mpg_mode_tb.state == 'down':
-            self.app.comms.write('$J {}{}\n'.format(self.selected_axis.upper(), d))
+            self.app.comms.write(f'$J {self.selected_axis.upper()}{d}\n')
 
     def index_changed(self, i):
         if i == -1:
@@ -324,7 +324,7 @@ class JogRoseWidget(BoxLayout):
             if not self.cont_moving:
                 self.cont_moving = True
                 self.app.comms.ok_notify_cb = lambda x: self.got_ok(x)
-                self.app.comms.write('$J -c {}{} S{}\n'.format(axis, v, s))
+                self.app.comms.write(f'$J -c {axis}{v} S{s}\n')
 
     def got_ok(self, f):
         self.cont_moving = False
@@ -344,13 +344,13 @@ class JogRoseWidget(BoxLayout):
             self.app.comms.write('$H\n')
         else:
             s = self._get_speed()
-            self.app.comms.write('$J {}{} S{}\n'.format(axis, v, s))
+            self.app.comms.write(f'$J {axis}{v} S{s}\n')
 
     def motors_off(self):
         self.app.comms.write('M18\n')
 
     def safe_z(self):
-        self.app.comms.write('$J Z{} S{}\n'.format(self.app.safez, self._get_speed()))
+        self.app.comms.write(f'$J Z{self.app.safez} S{self._get_speed()}\n')
 
 
 class KbdWidget(GridLayout):
@@ -363,10 +363,10 @@ class KbdWidget(GridLayout):
 
     def do_action(self, key):
         if key == 'Send':
-            # Logger.debug("KbdWidget: Sending {}".format(self.display.text))
+            # Logger.debug(f"KbdWidget: Sending {self.display.text}")
             if self.display.text.strip():
-                self._add_line_to_log('<< {}'.format(self.display.text))
-                self.app.comms.write('{}\n'.format(self.display.text))
+                self._add_line_to_log(f'<< {self.display.text}')
+                self.app.comms.write(f'{self.display.text}\n')
                 self.app.last_command = self.display.text
             self.display.text = ''
         elif key == 'Repeat':
@@ -447,7 +447,7 @@ class MainWindow(BoxLayout):
 
         else:
             port = self.config.get('General', 'serial_port')
-            self.add_line_to_log("Connecting to {}...".format(port))
+            self.add_line_to_log(f"Connecting to {port}...")
             self.app.comms.connect(port)
 
     def _disconnect(self, b=True):
@@ -525,7 +525,7 @@ class MainWindow(BoxLayout):
 
         if 'SD' in d:
             rt = datetime.timedelta(seconds=int(d['SD'][0]))
-            self.eta = 'SD: {} {}%'.format(rt, d['SD'][1])
+            self.eta = f"SD: {rt} {d['SD'][1]}%"
             if not self.is_sdprint:
                 self.is_sdprint = True
                 self.is_printing = True
@@ -593,7 +593,7 @@ class MainWindow(BoxLayout):
         ll = self.app.comms.get_ports()
         ports = [self.config.get('General', 'serial_port')]  # current port is first in list
         for p in ll:
-            ports.append('serial://{}'.format(p.device))
+            ports.append(f'serial://{p.device}')
 
         ports.append('network...')
 
@@ -602,7 +602,7 @@ class MainWindow(BoxLayout):
 
     def _change_port(self, s):
         if s:
-            Logger.info('MainWindow: Selected port {}'.format(s))
+            Logger.info(f'MainWindow: Selected port {s}')
 
             if s.startswith('network'):
                 mb = InputBox(title='Network address', text='Enter network address as "ipaddress[:port]"', cb=self._new_network_port)
@@ -614,7 +614,7 @@ class MainWindow(BoxLayout):
 
     def _new_network_port(self, s):
         if s:
-            self.config.set('General', 'serial_port', 'net://{}'.format(s))
+            self.config.set('General', 'serial_port', f'net://{s}')
             self.config.write()
 
     @mainthread
@@ -622,16 +622,16 @@ class MainWindow(BoxLayout):
         ''' called when smoothie is in Alarm state (flg == True) or gets an error message (flg == False)'''
         s, was_printing, flg = msg
         if flg:
-            self.add_line_to_log("! alarm state: {}".format(s))
+            self.add_line_to_log(f"! alarm state: {s}")
         else:
-            self.add_line_to_log("! error message: {}".format(s))
+            self.add_line_to_log(f"! error message: {s}")
 
         if self.is_suspended:
             self.add_line_to_log("! NOTE: currently suspended so must Abort as resume will not work")
         elif was_printing:
             if self.app.notify_email:
                 notify = Notify()
-                notify.send('Run in ALARM state: {}, last Z: {}, last line: {}'.format(s, self.wpos[2], self.last_line))
+                notify.send(f'Run in ALARM state: {s}, last Z: {self.wpos[2]}, last line: {self.last_line}')
 
     def do_kill(self):
         if self.status == 'Alarm':
@@ -673,7 +673,7 @@ class MainWindow(BoxLayout):
             if suspended:
                 self.add_line_to_log(">>> Streaming Suspended, Resume or Abort as needed")
                 if self.app.notify_email:
-                    Notify().send('Run has been suspended: last Z: {}, last line: {}'.format(self.wpos[2], self.last_line))
+                    Notify().send(f'Run has been suspended: last Z: {self.wpos[2]}, last line: {self.last_line}')
 
             else:
                 self.add_line_to_log(">>> Streaming Paused, Abort or Continue as needed")
@@ -711,20 +711,20 @@ class MainWindow(BoxLayout):
         if directory is None:
             directory = self.last_path
 
-        Logger.info('MainWindow: printing file: {}'.format(file_path))
+        Logger.info(f'MainWindow: printing file: {file_path}')
 
         try:
             self.nlines = Comms.file_len(file_path, False)  # get number of lines so we can do progress and ETA
-            Logger.debug('MainWindow: number of lines: {}'.format(self.nlines))
+            Logger.debug(f'MainWindow: number of lines: {self.nlines}')
         except Exception:
-            Logger.warning('MainWindow: exception in file_len: {}'.format(traceback.format_exc()))
+            Logger.warning(f'MainWindow: exception in file_len: {traceback.format_exc()}')
             self.nlines = None
 
         self.start_print_time = datetime.datetime.now()
-        self.display('>>> Running file: {}, {} lines'.format(file_path, self.nlines))
+        self.display(f'>>> Running file: {file_path}, {self.nlines} lines')
 
         if self.app.comms.stream_gcode(file_path, progress=lambda x: self.display_progress(x)):
-            self.display('>>> Run started at: {}'.format(self.start_print_time.strftime('%x %X')))
+            self.display(f">>> Run started at: {self.start_print_time.strftime('%x %X')}")
         else:
             self.display('WARNING Unable to start print')
             return
@@ -746,7 +746,7 @@ class MainWindow(BoxLayout):
 
     def reprint(self):
         # are you sure?
-        mb = MessageBox(text='ReRun\n{}?'.format(os.path.basename(self.app.gcode_file)), cb=self._reprint)
+        mb = MessageBox(text=f'ReRun\n{os.path.basename(self.app.gcode_file)}?', cb=self._reprint)
         mb.open()
 
     def _reprint(self, ok):
@@ -780,7 +780,7 @@ class MainWindow(BoxLayout):
         ll = self.app.comms.get_ports()
         ports = []
         for p in ll:
-            ports.append('{}'.format(p.device))
+            ports.append(f'{p.device}')
 
         sb = SelectionBox(title='Select Uart log port', text='Select the uart log port to open from drop down', values=ports, cb=self._set_uart_port)
         sb.open()
@@ -788,17 +788,17 @@ class MainWindow(BoxLayout):
     @mainthread
     def _uart_log_input(self, dat):
         txt = dat.rstrip()
-        Logger.info('BOOTLOG: {}'.format(txt))
+        Logger.info(f'BOOTLOG: {txt}')
         if dat.startswith('ERROR:') or dat.startswith('FATAL:'):
-            txt = "[color=ff0000]{}[/color]".format(txt)
+            txt = f"[color=ff0000]{txt}[/color]"
         elif dat.startswith('WARNING:'):
-            txt = "[color=ffff00]{}[/color]".format(txt)
+            txt = f"[color=ffff00]{txt}[/color]"
         elif dat.startswith('INFO:'):
-            txt = "[color=00ff00]{}[/color]".format(txt)
+            txt = f"[color=00ff00]{txt}[/color]"
         elif dat.startswith('DEBUG:'):
-            txt = "[color=0000ff]{}[/color]".format(txt)
+            txt = f"[color=0000ff]{txt}[/color]"
         else:
-            txt = "[color=ffffff]{}[/color]".format(txt)
+            txt = f"[color=ffffff]{txt}[/color]"
 
         d = {'text': txt}
 
@@ -810,15 +810,15 @@ class MainWindow(BoxLayout):
 
     def _set_uart_port(self, s):
         if s:
-            Logger.info('MainWindow: Selected Uart log port {}'.format(s))
+            Logger.info(f'MainWindow: Selected Uart log port {s}')
             self.uart_log = UartLogger(s)
             if self.uart_log.open(self._uart_log_input):
                 self.is_uart_log_enabled = True
-                self.display('Uart log port {} open'.format(s))
+                self.display(f'Uart log port {s} open')
             else:
                 self.is_uart_log_enabled = False
                 self.uart_log = None
-                self.display('Error unable to open {} as Uart log port'.format(s))
+                self.display(f'Error unable to open {s} as Uart log port')
 
     def toggle_uart_view(self, state):
         if state == "down":
@@ -838,15 +838,15 @@ class MainWindow(BoxLayout):
         self.ids.print_but.text = 'Run'
         self.is_printing = False
         now = datetime.datetime.now()
-        self.display('>>> Run finished {}'.format('ok' if ok else 'abnormally'))
-        self.display(">>> Run ended at : {}, last Z: {}, last line: {}".format(now.strftime('%x %X'), self.wpos[2], self.last_line))
+        self.display(f">>> Run finished {'ok' if ok else 'abnormally'}")
+        self.display(f">>> Run ended at : {now.strftime('%x %X')}, last Z: {self.wpos[2]}, last line: {self.last_line}")
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
-        self.display(">>> Elapsed time: {}".format(et))
+        self.display(f">>> Elapsed time: {et}")
         self.eta = 'Not Streaming'
         if self.app.notify_email:
             notify = Notify()
-            notify.send('Run finished {}, last Z: {}, last line: {}'.format('ok' if ok else 'abnormally', self.wpos[2], self.last_line))
-        Logger.info('MainWindow: Run finished {}, last Z: {}, last line: {}'.format('ok' if ok else 'abnormally', self.wpos[2], self.last_line))
+            notify.send(f"Run finished {'ok' if ok else 'abnormally'}, last Z: {self.wpos[2]}, last line: {self.last_line}")
+        Logger.info(f"MainWindow: Run finished {'ok' if ok else 'abnormally'}, last Z: {self.wpos[2]}, last line: {self.last_line}")
 
     def upload_gcode(self):
         # get file to upload
@@ -856,9 +856,9 @@ class MainWindow(BoxLayout):
     @mainthread
     def _upload_gcode_done(self, ok):
         now = datetime.datetime.now()
-        self.display('>>> Upload finished {}'.format('ok' if ok else 'abnormally'))
+        self.display(f">>> Upload finished {'ok' if ok else 'abnormally'}")
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
-        self.display(">>> Elapsed time: {}".format(et))
+        self.display(f">>> Elapsed time: {et}")
         self.eta = 'Not Streaming'
         self.is_printing = False
         self.app.comms.fast_stream = False
@@ -871,13 +871,13 @@ class MainWindow(BoxLayout):
         fast_stream = True
         try:
             self.nlines = Comms.file_len(file_path, fast_stream)  # get number of lines so we can do progress and ETA
-            Logger.debug('MainWindow: number of lines: {}'.format(self.nlines))
+            Logger.debug(f'MainWindow: number of lines: {self.nlines}')
         except Exception:
-            Logger.warning('MainWindow: exception in file_len: {}'.format(traceback.format_exc()))
+            Logger.warning(f'MainWindow: exception in file_len: {traceback.format_exc()}')
             self.nlines = None
 
         self.start_print_time = datetime.datetime.now()
-        self.display('>>> Uploading file: {}, {} lines'.format(file_path, self.nlines))
+        self.display(f'>>> Uploading file: {file_path}, {self.nlines} lines')
 
         # set fast stream mode if requested
         self.app.comms.fast_stream = fast_stream
@@ -901,7 +901,7 @@ class MainWindow(BoxLayout):
 
     def _fast_stream_thread(self, cmd):
         # execute the command
-        self.async_display("External Fast stream > {}".format(cmd))
+        self.async_display(f"External Fast stream > {cmd}")
         # p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # result, err = p.communicate()
         # for l in result.splitlines():
@@ -945,7 +945,7 @@ class MainWindow(BoxLayout):
             else:
                 eta = 0
 
-            self.eta = 'ETA: {} | {:.1%} | L{}'.format("Paused" if self.paused else datetime.timedelta(seconds=int(eta)), n / self.nlines, n)
+            self.eta = f"ETA: {'Paused' if self.paused else datetime.timedelta(seconds=int(eta))} | {n / self.nlines:.1%} | L{n}"
 
         self.last_line = n
 
@@ -959,7 +959,7 @@ class MainWindow(BoxLayout):
         # dismiss waiting dialog
         fl = {}
         for f in l:
-            f = '/sd/{}'.format(f)
+            f = f'/sd/{f}'
             # if f.endswith('/'):
             #     fl[f[:-1]] = {'size': 0, 'isdir': True}
             # else:
@@ -974,8 +974,8 @@ class MainWindow(BoxLayout):
         f.open(title='SD File to print', file_list=fl, cb=self._start_sd_print)
 
     def _start_sd_print(self, file_path, directory):
-        Logger.info("MainWindow: SDcard print: {}".format(file_path))
-        self.app.comms.write('play {}\n'.format(file_path))
+        Logger.info(f"MainWindow: SDcard print: {file_path}")
+        self.app.comms.write(f'play {file_path}\n')
 
     def show_viewer(self):
         if self.is_printing:
@@ -1008,7 +1008,7 @@ class MainWindow(BoxLayout):
                     self.add_line_to_log(">>> Update: Restart may be required")
         except Exception:
             self.add_line_to_log(">>> Update: Error trying to update. See log")
-            Logger.error('MainWindow: {}'.format(traceback.format_exc()))
+            Logger.error(f'MainWindow: {traceback.format_exc()}')
 
     def show_camera_screen(self):
         self.app.sm.current = 'camera'
@@ -1016,7 +1016,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def tool_change_prompt(self, l):
         # Print is paused by gcode command M6, prompt for tool change
-        self.display("ACTION NEEDED: Manual Tool Change:\n Tool: {}\nWait for machine to stop, then you can jog around to change the tool.\n tap Resume to continue\n**** REMEMBER to reset Z Height before Resuming ****\n".format(l))
+        self.display(f"ACTION NEEDED: Manual Tool Change:\n Tool: {l}\nWait for machine to stop, then you can jog around to change the tool.\n tap Resume to continue\n**** REMEMBER to reset Z Height before Resuming ****\n")
 
     @mainthread
     def m0_dlg(self):
@@ -1393,7 +1393,7 @@ class SmoothieHost(App):
         elif self.is_desktop >= 2:
             if self.config.get('UI', 'screen_size') != 'none':
                 # Window.size is automatically adjusted for density, must divide by density when saving size
-                self.config.set('UI', 'screen_size', "{}x{}".format(int(Window.size[0] / Metrics.density), int(Window.size[1] / Metrics.density)))
+                self.config.set('UI', 'screen_size', f"{int(Window.size[0] / Metrics.density)}x{int(Window.size[1] / Metrics.density)}")
 
             if self.config.get('UI', 'screen_pos') != 'none':
                 # Kivy seems to offset the value given by window managers
@@ -1402,8 +1402,8 @@ class SmoothieHost(App):
                 (t, l) = off.split(',')
                 top = Window.top - int(t)
                 left = Window.left - int(l)
-                self.config.set('UI', 'screen_pos', "{},{}".format(top, left))
-                Logger.info('SmoothieHost: close Window.size: {}, Window.pos: {}x{}'.format(Window.size, top, left))
+                self.config.set('UI', 'screen_pos', f"{top},{left}")
+                Logger.info(f'SmoothieHost: close Window.size: {Window.size}, Window.pos: {top}x{left}')
 
             self.config.write()
 
@@ -1495,7 +1495,7 @@ class SmoothieHost(App):
             # self.main_window.ids.log_window.effect_y.friction = 1.0
 
             self.blank_timeout = self.config.getint('General', 'blank_timeout')
-            Logger.info("SmoothieHost: screen blank set for {} seconds".format(self.blank_timeout))
+            Logger.info(f"SmoothieHost: screen blank set for {self.blank_timeout} seconds")
             self.sm.bind(on_touch_down=self._on_touch)
             self.sm.bind(on_touch_up=self._on_touch_up)
             self.sm.bind(on_touch_move=self._on_touch_move)
@@ -1531,7 +1531,7 @@ class SmoothieHost(App):
                 try:
                     f = Factory.filechooser()
                 except Exception:
-                    Logger.error("SmoothieHost: can't use selected file chooser: {}".format(filechooser))
+                    Logger.error(f"SmoothieHost: can't use selected file chooser: {filechooser}")
                     Factory.unregister('filechooser')
                     Factory.register('filechooser', cls=FileDialog)
 
@@ -1578,7 +1578,7 @@ class SmoothieHost(App):
                     self.sm.add_widget(SpindleCamera(name='spindle camera'))
                 except Exception as err:
                     self.main_window.display('ERROR: failed to load spindle camera. Check logs')
-                    Logger.error('Main: spindle camera exception: {}'.format(err))
+                    Logger.error(f'Main: spindle camera exception: {err}')
                     ok = False
 
             if ok:
@@ -1617,18 +1617,18 @@ class SmoothieHost(App):
                 v = 1
 
         choices = {
-            273: "Y{}".format(v),
-            275: "X{}".format(v),
-            274: "Y{}".format(-v),
-            276: "X{}".format(-v),
-            280: "Z{}".format(v),
-            281: "Z{}".format(-v)
+            273: f"Y{v}",
+            275: f"X{v}",
+            274: f"Y{-v}",
+            276: f"X{-v}",
+            280: f"Z{v}",
+            281: f"Z{-v}"
         }
 
         s = choices.get(key, None)
         if s is not None:
             if not (self.main_window.is_printing and not self.main_window.is_suspended):
-                self.comms.write('$J {}\n'.format(s))
+                self.comms.write(f'$J {s}\n')
 
             return True
 
@@ -1660,7 +1660,7 @@ class SmoothieHost(App):
     def command_input(self, s):
         if s.startswith('!'):
             # shell command send to unix shell
-            self.main_window.display('> {}'.format(s))
+            self.main_window.display(f'> {s}')
             try:
                 p = subprocess.Popen(s[1:], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
                 result, err = p.communicate(timeout=10)
@@ -1669,19 +1669,19 @@ class SmoothieHost(App):
                 for l in err.splitlines():
                     self.main_window.display(l)
                 if p.returncode != 0:
-                    self.main_window.display('returncode: {}'.format(p.returncode))
+                    self.main_window.display(f'returncode: {p.returncode}')
             except subprocess.TimeoutExpired:
                 p.kill()
                 self.main_window.display('> command timed out')
             except Exception as err:
-                self.main_window.display('> command exception: {}'.format(err))
+                self.main_window.display(f'> command exception: {err}')
 
         elif s == '?':
             self.sm.current = 'gcode_help'
 
         else:
-            self.main_window.display('<< {}'.format(s))
-            self.comms.write('{}\n'.format(s))
+            self.main_window.display(f'<< {s}')
+            self.comms.write(f'{s}\n')
 
     # when we hit enter it refocuses the the input
     def _refocus_text_input(self, *args):
@@ -1696,16 +1696,16 @@ class SmoothieHost(App):
 
         try:
             for key in self.config['modules']:
-                Logger.info("load_modules: loading module {}".format(key))
-                mod = importlib.import_module('modules.{}'.format(key))
+                Logger.info(f"load_modules: loading module {key}")
+                mod = importlib.import_module(f'modules.{key}')
                 if mod.start(self.config['modules'][key]):
-                    Logger.info("load_modules: loaded module {}".format(key))
+                    Logger.info(f"load_modules: loaded module {key}")
                     self.loaded_modules.append(mod)
                 else:
-                    Logger.info("load_modules: module {} failed to start".format(key))
+                    Logger.info(f"load_modules: module {key} failed to start")
 
         except Exception:
-            Logger.warn("load_modules: exception: {}".format(traceback.format_exc()))
+            Logger.warn(f"load_modules: exception: {traceback.format_exc()}")
 
     def _every_second(self, dt):
         ''' called every second if blanking is enabled '''
@@ -1783,11 +1783,11 @@ class SmoothieHost(App):
         # allow a command line argument to select a different config file to use
         if(len(sys.argv) > 1):
             ext = sys.argv[1]
-            self.config_file = '%(appdir)s/%(appname)s-%(ext)s.ini' % {'appname': self.name, 'appdir': self.directory, 'ext': ext}
+            self.config_file = f'{self.directory}/{self.name}-{ext}.ini'
         else:
-            self.config_file = '%(appdir)s/%(appname)s.ini' % {'appname': self.name, 'appdir': self.directory}
+            self.config_file = f'{self.directory}/{self.name}.ini'
 
-        Logger.info("SmoothieHost: config file is: {}".format(self.config_file))
+        Logger.info(f"SmoothieHost: config file is: {self.config_file}")
         return super(SmoothieHost, self).get_application_config(defaultpath=self.config_file)
 
     def display_settings(self, settings):

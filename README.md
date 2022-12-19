@@ -383,7 +383,7 @@ It should auto start then.
 
 (and maybe windows/macos)
 
-Install on recent Linux (Ubuntu/Debian etc) and python >= 3.7.x and <= 3.10.x using the fast wheels installation...
+Install on recent Linux (Ubuntu/Debian etc) with python >= 3.7.x and <= 3.10.x using the fast wheels installation...
     
     sudo apt install python3-pip
     python3 -m pip install --upgrade --user pip setuptools
