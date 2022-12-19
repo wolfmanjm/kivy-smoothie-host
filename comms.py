@@ -35,7 +35,7 @@ class SerialConnection(asyncio.Protocol):
 
     def connection_made(self, transport):
         self.transport = transport
-        self.log.debug('SerialConnection: port opened: {}'.format(transport))
+        self.log.debug(f'SerialConnection: port opened: {transport}')
         if self.is_net:
             # we don't want to buffer the entire file on the host
             transport.get_extra_info('socket').setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)
@@ -43,17 +43,17 @@ class SerialConnection(asyncio.Protocol):
             # for net we want to limit how much we queue up otherwise the whole file gets queued
             # this also gives us more progress more often
             transport.set_write_buffer_limits(high=1024, low=256)
-            self.log.info('SerialConnection: Buffer limits: {} - {}'.format(transport._high_water, transport._low_water))
+            self.log.info(f'SerialConnection: Buffer limits: {transport._high_water} - {transport._low_water}')
         else:
             transport.set_write_buffer_limits(high=1024, low=64)
-            self.log.info('SerialConnection: Buffer limits: {} - {}'.format(transport._high_water, transport._low_water))
+            self.log.info(f'SerialConnection: Buffer limits: {transport._high_water} - {transport._low_water}')
             # transport.serial.rts = False  # You can manipulate Serial object via transport
             transport.serial.reset_input_buffer()
             transport.serial.reset_output_buffer()
             try:
                 transport.serial.set_low_latency_mode(True)
             except Exception as e:
-                self.log.warning("Failed to set low latency mode: {}".format(e))
+                self.log.warning(f"Failed to set low latency mode: {e}")
             # print(transport.serial)
 
     def flush_queue(self):
@@ -62,7 +62,7 @@ class SerialConnection(asyncio.Protocol):
 
     def send_message(self, data, hipri=False):
         """ Feed a message to the sender coroutine. """
-        self.log.debug('SerialConnection: send_message: {}'.format(data.strip()))
+        self.log.debug(f'SerialConnection: send_message: {data.strip()}')
         self.transport.write(data.encode('latin1'))
         # print(self.transport.get_write_buffer_size())
 
@@ -72,7 +72,7 @@ class SerialConnection(asyncio.Protocol):
         try:
             str = data.decode(encoding='latin1', errors='ignore')
         except Exception as err:
-            self.log.error("SerialConnection: Got decode error on data {}: {}".format(repr(data), err))
+            self.log.error(f"SerialConnection: Got decode error on data {repr(data)}: {err}")
             # send it upstream anyway
             self.cb.incoming_data(repr(data), True)
             return
@@ -112,7 +112,7 @@ class SerialConnection(asyncio.Protocol):
         await waiter
 
     def pause_writing(self):
-        self.log.debug('SerialConnection: pause writing: {}'.format(self.transport.get_write_buffer_size()))
+        self.log.debug(f'SerialConnection: pause writing: {self.transport.get_write_buffer_size()}')
         # if not self.is_net:
         #     return
         # we only do this pause stream stuff for net
@@ -120,7 +120,7 @@ class SerialConnection(asyncio.Protocol):
         self._paused = True
 
     def resume_writing(self):
-        self.log.debug('SerialConnection: resume writing: {}'.format(self.transport.get_write_buffer_size()))
+        self.log.debug(f'SerialConnection: resume writing: {self.transport.get_write_buffer_size()}')
         # if not self.is_net:
         #     return
         # we only do this pause stream stuff for net
@@ -177,7 +177,7 @@ class Comms():
             async_main_loop.call_soon_threadsafe(self._write, data)
             # asyncio.run_coroutine_threadsafe(self.proto.send_message, async_main_loop)
         else:
-            self.log.warning('Comms: Cannot write to closed connection: {}'.format(data))
+            self.log.warning(f'Comms: Cannot write to closed connection: {data}')
             # self.app.main_window.async_display("<<< {}".format(data))
 
     def _write(self, data):
@@ -243,7 +243,7 @@ class Comms():
                 self.port = ip[1]
 
             self.ipaddress = ip[0]
-            self.log.info('Comms: Connecting to Network at {} port {}'.format(self.ipaddress, self.port))
+            self.log.info(f'Comms: Connecting to Network at {self.ipaddress} port {self.port}')
             serial_conn = loop.create_connection(sc_factory, self.ipaddress, self.port)
             # TODO should we set self.ping_pong to False here? (Only if V1)
 
@@ -255,8 +255,8 @@ class Comms():
 
         else:
             loop.close()
-            self.log.error('Comms: Not a valid connection port: {}'.format(self.port))
-            self.app.main_window.async_display('>>> Connect failed: unknown connection type, use "serial://" or "net://"'.format(self.port))
+            self.log.error(f'Comms: Not a valid connection port: {self.port}')
+            self.app.main_window.async_display(f'>>> Connect failed: unknown connection type {self.port}, use "serial://" or "net://"')
             self.app.main_window.disconnected()
             loop.close()
             async_main_loop = None
@@ -292,7 +292,7 @@ class Comms():
 
             # we wait until all tasks are complete
             pending = asyncio.Task.all_tasks()
-            self.log.debug('Comms: waiting for all tasks to complete: {}'.format(pending))
+            self.log.debug(f'Comms: waiting for all tasks to complete: {pending}')
             loop.run_until_complete(asyncio.gather(*pending))
             # loop.run_forever()
 
@@ -301,8 +301,8 @@ class Comms():
 
         except Exception as err:
             # self.log.error('Comms: {}'.format(traceback.format_exc()))
-            self.log.error("Comms: Got serial error opening port: {0}".format(err))
-            self.app.main_window.async_display(">>> Connect failed: {0}".format(err))
+            self.log.error(f"Comms: Got serial error opening port: {err}")
+            self.app.main_window.async_display(f">>> Connect failed: {err}")
             self.app.main_window.disconnected()
 
         finally:
@@ -325,7 +325,7 @@ class Comms():
         if 'PROTOCOL_VERSION' not in d:
             d['PROTOCOL_VERSION'] = '1.0'
 
-        self.log.info("Comms: Firmware: {}, Version: {}, CNC: {}".format(d['FIRMWARE_NAME'], d['FIRMWARE_VERSION'], 'Yes' if d['X-CNC'] == '1' else 'No'))
+        self.log.info(f"Comms: Firmware: {d['FIRMWARE_NAME']}, Version: {d['FIRMWARE_VERSION']}, CNC: {'Yes' if d['X-CNC'] == '1' else 'No'}")
         self.app.main_window.async_display(s)
 
     def list_sdcard(self, done_cb):
@@ -409,11 +409,11 @@ class Comms():
     def incoming_data(self, data, error=False):
         ''' called by Serial connection when incoming data is received '''
         if error:
-            self.app.main_window.async_display("WARNING: got bad incoming data: {}".format(data))
+            self.app.main_window.async_display(f"WARNING: got bad incoming data: {data}")
 
         ll = data.splitlines(1)
 
-        self.log.debug('Comms: incoming_data: {}'.format(ll))
+        self.log.debug(f'Comms: incoming_data: {ll}')
 
         # process incoming data
         for s in ll:
@@ -450,13 +450,13 @@ class Comms():
 
                 # if there is anything after the ok display it
                 if len(s) > 2:
-                    self.app.main_window.async_display('ok {}'.format(s[3:]))
+                    self.app.main_window.async_display(f'ok {s[3:]}')
 
             elif s.startswith('<'):
                 try:
                     self.handle_status(s)
                 except Exception:
-                    self.log.error("Comms: error parsing status - {}".format(s))
+                    self.log.error(f"Comms: error parsing status - {s}")
 
             elif s.startswith('[PRB:'):
                 # Handle PRB reply
@@ -495,10 +495,10 @@ class Comms():
                         self.app.main_window.async_display('>>> Smoothie requested Disconnect')
                         self.disconnect()
                     else:
-                        self.log.warning('Comms: unknown action command: {}'.format(act))
+                        self.log.warning(f'Comms: unknown action command: {act}')
 
                 else:
-                    self.app.main_window.async_display('{}'.format(s))
+                    self.app.main_window.async_display(f'{s}')
 
             elif "FIRMWARE_NAME:" in s:
                 # process the response to M115
@@ -514,7 +514,7 @@ class Comms():
                 pass
 
             else:
-                self.app.main_window.async_display('{}'.format(s))
+                self.app.main_window.async_display(f'{s}')
 
     def handle_state(self, s):
         # [GC:G0 G55 G17 G21 G90 G94 M0 M5 M9 T1 F4000.0000 S0.8000]
@@ -522,10 +522,10 @@ class Comms():
 
         # split fields
         ll = s.split(' ')
-        self.log.debug("Comms: Got state: {}".format(ll))
+        self.log.debug(f"Comms: Got state: {ll}")
         # we want the current WCS and the current Tool
         if len(ll) < 11:
-            self.log.warning('Comms: Bad state report: {}'.format(s))
+            self.log.warning(f'Comms: Bad state report: {s}')
             return
 
         self.app.main_window.update_state(ll)
@@ -537,7 +537,7 @@ class Comms():
 
         # split fields
         ll = s.split('|')
-        self.log.debug("Comms: Got status: {}".format(ll))
+        self.log.debug(f"Comms: Got status: {ll}")
         if len(ll) < 3:
             self.log.warning('Comms: old status report - set new_status_format')
             self.app.main_window.update_status("ERROR", "set new_status_format true")
@@ -549,7 +549,7 @@ class Comms():
         # strip of rest into a dict of name: [values,...,]
         d = {a: [float(y) for y in b.split(',')] for a, b in [x.split(':') for x in ll[1:]]}
 
-        self.log.debug('Comms: got status:{} - rest: {}'.format(status, d))
+        self.log.debug(f'Comms: got status:{status} - rest: {d}')
 
         self.app.main_window.update_status(status, d)
 
@@ -561,12 +561,12 @@ class Comms():
         ll = s[5:-1].split(':')
         c = ll[0].split(',')
         st = ll[1]
-        self.app.main_window.async_display("Probe: {} - X: {}, Y: {}, Z: {}".format(st, c[0], c[1], c[2]))
+        self.app.main_window.async_display(f"Probe: {st} - X: {c[0]}, Y: {c[1]}, Z: {c[2]}")
         self.app.last_probe = {'X': float(c[0]), 'Y': float(c[1]), 'Z': float(c[2]), 'status': st == '1'}
 
     def handle_alarm(self, s, flg):
         ''' handle case where smoothie sends us !! or an error of some sort '''
-        self.log.warning('Comms: error message: {}'.format(s))
+        self.log.warning(f'Comms: error message: {s}')
         was_printing = False
         if self.file_streamer:
             # pause any streaming immediately, (let operator decide to abort or not)
@@ -631,7 +631,7 @@ class Comms():
                 self.log.info('Comms: Resuming Stream')
 
     async def stream_file(self, fn):
-        self.log.info('Comms: Streaming file {} to port'.format(fn))
+        self.log.info(f'Comms: Streaming file {fn} to port')
         self.is_streaming = True
         self.abort_stream = False
         self.pause_stream = False  # .set() # start out not paused
@@ -746,7 +746,7 @@ class Comms():
                         line = "M600"
                         # we need to pause the stream here immediately, but the real _stream_pause will be called by suspend
                         self.pause_stream = True  # we don't normally set this directly
-                        self.app.main_window.tool_change_prompt("{} - {}".format(line, self.last_tool))
+                        self.app.main_window.tool_change_prompt(f"{line} - {self.last_tool}")
                         tool_change_state = 0
 
                 # s = time.time()
@@ -757,7 +757,7 @@ class Comms():
                     self.okcnt.clear()
 
                 # sending stripped line so add \n
-                self._write("{}\n".format(line))
+                self._write(f"{line}\n")
 
                 # wait for ok from that command (I'd prefer to interleave with the file read but it is too complex)
                 if self.ping_pong and self.okcnt is not None:
@@ -805,7 +805,7 @@ class Comms():
             success = not self.abort_stream
 
         except Exception as err:
-            self.log.error("Comms: Stream file exception: {}".format(err))
+            self.log.error(f"Comms: Stream file exception: {err}")
             # print('Exception: {}'.format(traceback.format_exc()))
 
         finally:
@@ -819,7 +819,7 @@ class Comms():
                 # self._write('\x18') # not sure we want to Kill
 
             if success and not self.ping_pong:
-                self.log.debug('Comms: Waiting for okcnt to catch up: {} vs {}'.format(self.okcnt, linecnt))
+                self.log.debug(f'Comms: Waiting for okcnt to catch up: {self.okcnt} vs {linecnt}')
                 # we have to wait for all lines to be ack'd
                 tmo = 0
                 while self.okcnt < linecnt:
@@ -847,7 +847,7 @@ class Comms():
             # notify upstream that we are done
             self.app.main_window.stream_finished(success)
 
-            self.log.info('Comms: Streaming complete: {}'.format(success))
+            self.log.info(f'Comms: Streaming complete: {success}')
 
         return success
 
@@ -878,10 +878,10 @@ class Comms():
             return
 
         else:
-            self.log.warning('Comms: unknown response: {}'.format(ll))
+            self.log.warning(f'Comms: unknown response: {ll}')
 
     async def _stream_upload_gcode(self, fn, donecb):
-        self.log.info('Comms: Upload gcode file {}'.format(fn))
+        self.log.info(f'Comms: Upload gcode file {fn}')
 
         self.upload_error = False
         self.abort_stream = False
@@ -896,11 +896,11 @@ class Comms():
         try:
             self.okcnt = 0
             okev.clear()
-            self._write("M28 {}\n".format(os.path.basename(fn).lower()))
+            self._write(f"M28 {os.path.basename(fn).lower()}\n")
             await okev.wait()
 
             if self.upload_error:
-                self.log.error('Comms: M28 failed for file /sd/{}'.format(os.path.basename(fn)))
+                self.log.error(f'Comms: M28 failed for file /sd/{os.path.basename(fn)}')
                 self.app.main_window.async_display("error: M28 failed to open file")
                 return
 
@@ -928,14 +928,14 @@ class Comms():
                 # clear the event, which will be set by an incoming ok
                 if self.ping_pong:
                     okev.clear()
-                self._write("{}\n".format(ln))
+                self._write(f"{ln}\n")
 
                 if self.ping_pong:
                     # wait for ok from that line
                     await okev.wait()
 
                 if self.upload_error:
-                    self.log.error('Comms: Upload failed for file /sd/{}'.format(os.path.basename(fn)))
+                    self.log.error(f'Comms: Upload failed for file /sd/{os.path.basename(fn)}')
                     self.app.main_window.async_display("error: upload failed during transfer")
                     return
 
@@ -971,12 +971,12 @@ class Comms():
             success = not self.abort_stream
 
         except Exception as err:
-            self.log.error("Comms: Upload GCode file exception: {}".format(err))
+            self.log.error(f"Comms: Upload GCode file exception: {err}")
 
         finally:
             if not self.ping_pong:
                 # wait for oks to catch up
-                self.log.debug('Comms: Waiting for okcnt to catch up: {} vs {}'.format(self.okcnt, linecnt))
+                self.log.debug(f'Comms: Waiting for okcnt to catch up: {self.okcnt} vs {linecnt}')
                 # we have to wait for all lines to be ack'd
                 tmo = 0
                 while self.okcnt < linecnt:
@@ -1004,7 +1004,7 @@ class Comms():
             self.file_streamer = None
             self.okcnt = None
             donecb(success)
-            self.log.info('Comms: Upload GCode complete: {}'.format(success))
+            self.log.info(f'Comms: Upload GCode complete: {success}')
 
         return success
 
@@ -1069,7 +1069,7 @@ if __name__ == "__main__":
             print(data)
 
         def stream_finished(self, ok):
-            self.log.debug('CommsApp: stream finished: {}'.format(ok))
+            self.log.debug(f'CommsApp: stream finished: {ok}')
             self.ok = ok
             self.end_event.set()
 
@@ -1082,7 +1082,7 @@ if __name__ == "__main__":
             pass
 
         def manual_tool_change(self, l):
-            print("tool change: {}\n".format(l))
+            print(f"tool change: {l}\n")
 
         def action_paused(self, flag, suspend=False):
             print("paused: {}, suspended: {}", flag, suspend)
@@ -1091,7 +1091,7 @@ if __name__ == "__main__":
             return ""
 
         def wait_on_m0(self, l):
-            print("wait on m0: {}\n".format(l))
+            print(f"wait on m0: {l}\n")
 
     start = None
     nlines = None
@@ -1103,7 +1103,7 @@ if __name__ == "__main__":
 
         if nlines:
             if quiet:
-                print("progress: {},{}".format(n, nlines))
+                print(f"progress: {n},{nlines}")
             else:
                 now = datetime.datetime.now()
                 d = (now - start).seconds
@@ -1114,7 +1114,7 @@ if __name__ == "__main__":
                 else:
                     eta = 0
                 et = datetime.timedelta(seconds=int(eta))
-                print("ETA: {} {}/{} {:.1%}".format(et, n, nlines, n / nlines))
+                print(f"ETA: {et} {n}/{nlines} {n / nlines:.1%}")
 
     def upload_done(x):
         app.ok = x
@@ -1123,7 +1123,7 @@ if __name__ == "__main__":
     def main():
         global start, nlines, app, quiet
         if len(sys.argv) < 3:
-            print("Usage: {} port file [-u] [-f] [-q] [-d]".format(sys.argv[0]))
+            print(f"Usage: {sys.argv[0]} port file [-u] [-f] [-q] [-d]")
             exit(1)
 
         upload = False
@@ -1144,15 +1144,15 @@ if __name__ == "__main__":
             elif a == '-q':
                 quiet = True
             else:
-                print("Unknown option: {}".format(a))
+                print(f"Unknown option: {a}")
 
         logging.basicConfig(format='%(levelname)s:%(message)s', level=loglevel)
 
         try:
             nlines = Comms.file_len(sys.argv[2], app.fast_stream)  # get number of lines so we can do progress and ETA
-            print('number of lines: {}'.format(nlines))
+            print(f'number of lines: {nlines}')
         except Exception:
-            print('Exception: {}'.format(traceback.format_exc()))
+            print(f'Exception: {traceback.format_exc()}')
             nlines = None
 
         start = None
@@ -1164,7 +1164,7 @@ if __name__ == "__main__":
                     # wait for startup to clear up any incoming oks
                     sleep(2)  # Time in seconds.
                     start = datetime.datetime.now()
-                    print("Print started at: {}".format(start.strftime('%x %X')))
+                    print(f"Print started at: {start.strftime('%x %X')}")
 
                     if upload:
                         comms.upload_gcode(sys.argv[2], progress=lambda x: display_progress(x), done=upload_done)
@@ -1174,11 +1174,11 @@ if __name__ == "__main__":
                     app.end_event.wait()  # wait for streaming to complete
 
                     now = datetime.datetime.now()
-                    print("File sent: {}".format('Ok' if app.ok else 'Failed'))
-                    print("Print ended at : {}".format(now.strftime('%x %X')))
+                    print(f"File sent: {'Ok' if app.ok else 'Failed'}")
+                    print(f"Print ended at : {now.strftime('%x %X')}")
                     if start:
                         et = datetime.timedelta(seconds=int((now - start).seconds))
-                        print("Elapsed time: {}".format(et))
+                        print(f"Elapsed time: {et}")
 
                 else:
                     print("Error: Failed to connect")
