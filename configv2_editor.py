@@ -100,10 +100,10 @@ class ConfigV2Editor(Screen):
 
     def _new_entry(self, opts):
         if opts and opts['section'] and opts['key'] and opts['value']:
-            self.app.comms.write("config-set \"{}\" {} {}\n".format(opts['section'], opts['key'], opts['value']))
+            self.app.comms.write(f"config-set \"{opts['section']}\" {opts['key']} \"{opts['value']}\"\n")
 
     def new_switch(self, flg):
-        o = MultiInputBox(title='Add {} Switch'.format('Output' if flg else 'Input'))
+        o = MultiInputBox(title=f"Add {'Output' if flg else 'Input'} Switch")
         if flg:
             o.setOptions(['Name', 'On Command', 'Off Command', 'Pin'], partial(self._new_switch, flg))
         else:
@@ -114,13 +114,13 @@ class ConfigV2Editor(Screen):
     def _new_switch(self, flg, opts):
         if opts and opts['Name']:
             sw = opts['Name']
-            self.app.comms.write("config-set switch {}.enable = true\n".format(sw))
+            self.app.comms.write(f"config-set switch {sw}.enable = true\n")
             if flg:
                 for k, v in {'Off Command': 'input_off_command', 'On Command': 'input_on_command', 'Pin': 'output_pin'}.items():
-                    self.app.comms.write("config-set switch {}.{} = {}\n".format(sw, v, opts[k]))
+                    self.app.comms.write(f"config-set switch {sw}.{v} = {opts[k]}\n")
             else:
                 for k, v in {'Command': 'output_on_command', 'Pin': 'input_pin'}.items():
-                    self.app.comms.write("config-set switch {}.{} = {}\n".format(sw, v, opts[k]))
+                    self.app.comms.write(f"config-set switch {sw}.{v} = {opts[k]}\n")
 
     def _add_line(self, line):
         if not self.start:
@@ -193,7 +193,7 @@ class ConfigV2Editor(Screen):
             self.config.read_string('\n'.join(self.configdata))
 
         except Exception as e:
-            Logger.error("ConfigV2Editor: Error parsing the config file: {}".format(e))
+            Logger.error(f"ConfigV2Editor: Error parsing the config file: {e}")
             self.app.main_window.async_display("Error parsing config file, see log")
             self.close()
             return
@@ -342,4 +342,4 @@ class MySettingsPanel(Settings):
 
     def on_config_change(self, config, section, key, value):
         app = App.get_running_app()
-        app.comms.write('config-set "{}" {} "{}"\n'.format(section, key, value))
+        app.comms.write(f'config-set "{section}" {key} "{value}"\n')
