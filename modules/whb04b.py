@@ -64,14 +64,14 @@ class WHB04BHID:
             return None
 
         if len(devices) > 1:
-            Logger.debug("WHB04BHID: more than one device found: {}".format(devices))
+            Logger.debug(f"WHB04BHID: more than one device found: {devices}")
             return None
 
         # open the device
         self.hid = devices[0]
         self.hid.open()
 
-        Logger.debug("WHB04BHID: Opened: {}".format(self.hid.description()))
+        Logger.debug(f"WHB04BHID: Opened: {self.hid.description()}")
         self.opened = True
         return True
 
@@ -257,7 +257,7 @@ class WHB04B():
         self.load_macros(True)
 
     def handle_button(self, btn1, btn2, axis):
-        Logger.debug('WHB04B: handle_button: {}, {}, {}'.format(btn1, btn2, axis))
+        Logger.debug(f'WHB04B: handle_button: {btn1}, {btn2}, {axis}')
         handled = False
         # mode switching
         if btn1 == BUT_STEP:
@@ -302,13 +302,13 @@ class WHB04B():
                     if "{axis}" in cmd:
                         cmd = cmd.replace("{axis}", axis)
                     elif "set-axis-half" == cmd:
-                        cmd = "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis) - ord('X')] / 2.0)
+                        cmd = f"G10 L20 P0 {axis}{self.app.wpos[ord(axis) - ord('X')] / 2.0}"
                     elif "find-center" == cmd:
                         self.app.tool_scripts.find_center()
                         cmd = None
 
                     if cmd:
-                        self.app.comms.write("{}\n".format(cmd))
+                        self.app.comms.write(f"{cmd}\n")
                     return True
 
         else:
@@ -343,7 +343,7 @@ class WHB04B():
                 return True
 
             if cmd:
-                self.app.comms.write("{}\n".format(cmd))
+                self.app.comms.write(f"{cmd}\n")
                 return True
 
         return False
@@ -392,7 +392,7 @@ class WHB04B():
 
                         if self.app.is_connected:
                             if self.f_ovr != self.app.fro:
-                                self.app.comms.write("M220 S{}\n".format(self.f_ovr))
+                                self.app.comms.write(f"M220 S{self.f_ovr}\n")
                             # if self.s_ovr != self.app.sr:
                             #     self.app.comms.write("M221 S{}\n".format(self.s_ovr));
                             if self.reset_mode:
@@ -461,7 +461,7 @@ class WHB04B():
                                 if not self.cont_moving:
                                     self.cont_moving = True
                                     self.app.comms.ok_notify_cb = lambda x: self.got_ok(x)
-                                    self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.contlut[inc] / 100.0))
+                                    self.app.comms.write(f"$J -c {axis}{wheel} S{self.contlut[inc] / 100.0}\n")
 
                             else:
                                 if self.mpg_mode:
@@ -472,7 +472,7 @@ class WHB04B():
                                         s = 16  # seems the max realistic we get
                                     speed = s / 16.0  # scale where 16 is max speed
                                     dist = step * self.contlut[inc] / 100.0  # Max 1mm movement
-                                    self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
+                                    self.app.comms.write(f"$J {axis}{dist} S{speed}\n")
 
                                 elif delta != 0:
                                     # step mode
@@ -483,7 +483,7 @@ class WHB04B():
                                     if axis == 'Z':
                                         # We don't want the Z axis to move as far (as it is slow)
                                         dist = dist / 10
-                                    self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
+                                    self.app.comms.write(f"$J {axis}{dist} S{speed}\n")
 
                                 elif delta == 0:
                                     # Lead mode, not sure what it is or what to use it for
@@ -502,7 +502,7 @@ class WHB04B():
                     Logger.debug("WHB04B: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
 
             except Exception:
-                Logger.error("WHB04B: Exception - {}".format(traceback.format_exc()))
+                Logger.error(f"WHB04B: Exception - {traceback.format_exc()}")
                 if self.hid.opened:
                     self.hid.close()
 

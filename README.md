@@ -1,4 +1,7 @@
 # Smoopi
+
+Github supports ToC, it is available in the top-left corner of this document.
+
 A Smoothie host designed to run on an rpi with multitouch screen or on a desktop with a mouse and keyboard.
 
 This is stable and ready for everyday use.
