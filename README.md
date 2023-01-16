@@ -167,7 +167,7 @@ If you installed Buster you can do a quick install of the Kivy wheel using the f
 
     sudo apt update
     sudo apt upgrade (maybe reboot)
-    sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
+    sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
     sudo apt install python3-pip
     python3 -m pip install --user kivy
 
