@@ -297,8 +297,7 @@ NOTE when using the touch panel make sure the ```~/.kivy/config.ini``` has the f
     keyboard_mode = systemanddock
     desktop = 0
 
-If your ```~/.kivy/config.ini``` is empty or not setup for the touch display then here is an example that works for the RPI official 7" touch screen:-
-https://gist.github.com/4f9c23c7e66f391b8c2d32c01e8a8d14
+If your ```~/.kivy/config.ini``` is empty then the ```~/.kivy``` directory should be removed (if it is there), and run smoopi once and the default config.ini will be created.
 
 To allow the program to shutdown the RPI when the shutdown menu entry is selected you need to do the following, unless smoopi is running as root/superuser.
 
