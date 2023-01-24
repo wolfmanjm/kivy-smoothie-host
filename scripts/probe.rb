@@ -16,6 +16,7 @@ class Optparse
         options.diameter= 50
         options.points= 50
         options.test= false
+        options.auto= false
 
         opt_parser= OptionParser.new do |opts|
           opts.banner = "Usage: probe.rb [options]"
@@ -66,6 +67,10 @@ class Optparse
 
           opts.on( "-x", "--[no-]test", "run as a test" ) do |opt|
               options.test= opt
+          end
+
+          opts.on( "-a", "--[no-]auto", "run auto if required" ) do |opt|
+              options.auto= opt
           end
 
         end
@@ -300,12 +305,19 @@ def probe_align_y
     diff= r2.y - r1.y
     STDERR.puts "#{r1.y} - #{r2.y}: Y is out of alignment by #{diff.abs} mm"
 
+    spmm= get_steps_mm
+    steps= diff.abs * spmm.y
+
     if diff < 0
-        STDERR.puts "Right hand actuator needs to be moved in +Y direction by about #{diff.abs * 400.0} steps"
-        STDERR.puts "test raw a #{diff.abs * 400.0} 100" # moves set number of steps at 100 steps/sec
+        STDERR.puts "Right hand actuator needs to be moved in +Y direction by about #{steps} steps"
     else
-        STDERR.puts "Right hand actuator needs to be moved in -Y direction by about #{diff.abs * 400.0} steps"
-        STDERR.puts "test raw a #{-(diff.abs * 400.0)} 100" # moves set number of steps at 100 steps/sec
+        STDERR.puts "Right hand actuator needs to be moved in -Y direction by about #{steps} steps"
+        steps= -steps
+    end
+
+    if $options.auto
+        STDERR.puts "Adjusting right Y motor by #{steps}"
+        send("test raw a #{steps} 100")
     end
 
     # return to start position
