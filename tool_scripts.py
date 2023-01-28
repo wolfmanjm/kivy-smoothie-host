@@ -4,6 +4,7 @@ from kivy.logger import Logger
 from kivy.app import App
 import threading
 import traceback
+import datetime
 
 
 class ToolScripts():
@@ -20,6 +21,17 @@ class ToolScripts():
         t = threading.Thread(target=self._find_center_thread, daemon=True)
         t.start()
 
+    def set_datetime(self, *args):
+        """ sets the date/time on a V2 """
+        if self.app.is_connected:
+            dt = datetime.datetime.now()
+            # date YYMMDDhhmmss
+            cmd = f"date {dt.year-2000:02d}{dt.month:02d}{dt.day:02d}{dt.hour:02d}{dt.minute:02d}{dt.second:02d}\n"
+            self.app.main_window.async_display(f"setting {cmd}")
+            self.app.comms.write(cmd)
+        else:
+            self.app.main_window.async_display("Must be connected to set datetime")
+
     # private methods
     def _probe(self, x=None, y=None, z=None):
         cmd = ""
@@ -35,7 +47,7 @@ class ToolScripts():
         if not cmd:
             raise Exception("need to specify an axis to probe")
 
-        self.app.comms.write("G38.2 {}\n".format(cmd))
+        self.app.comms.write(f"G38.2 {cmd}\n")
 
         # wait for it to complete
         if not self.app.comms.okcnt.wait(120):

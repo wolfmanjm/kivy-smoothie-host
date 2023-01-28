@@ -1584,6 +1584,9 @@ class SmoothieHost(App):
             if ok:
                 self.main_window.tools_menu.add_widget(ActionButton(text='Spindle Cam', on_press=self._show_spindle_cam))
 
+        if self.is_v2:
+            self.main_window.tools_menu.add_widget(ActionButton(text='Set Datetime', on_press=self.tool_scripts.set_datetime))
+
         # load any modules specified in config
         self._load_modules()
 
