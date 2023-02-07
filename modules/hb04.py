@@ -308,6 +308,8 @@ class HB04():
                     self.app.bind(mpos=self.update_mpos)
                     self.app.bind(fro=self.update_fro)
 
+                    last_axis = None
+
                     # Infinite loop to read data from the HB04
                     while not self.quit:
                         data = self.hid.recv(timeout=1000)
@@ -351,8 +353,11 @@ class HB04():
 
                             self.refresh_lcd()
                             continue
-                        elif axis in ['X', 'Y', 'Z', 'A']:
+
+                        elif axis in ['X', 'Y', 'Z', 'A'] and axis != last_axis:
                             self.mul = self.axis_mul[axis]
+                            last_axis = axis
+                            self.refresh_lcd()
 
                         if not self.app.is_connected:
                             continue
