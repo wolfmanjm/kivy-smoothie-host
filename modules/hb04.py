@@ -178,6 +178,7 @@ class HB04():
     alut = {0: 'off', 0x11: 'X', 0x12: 'Y', 0x13: 'Z', 0x18: 'A', 0x15: 'F', 0x14: 'S'}
     mul = 1
     mullut = {0x00: 0, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
+    axis_mul = {}
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
@@ -216,6 +217,10 @@ class HB04():
 
             # load any default settings
             self.mul = config.getint("defaults", "multiplier", fallback=8)
+            # initialize axis specific multiplier (default is above)
+            for x in ['X', 'Y', 'Z', 'A']:
+                self.axis_mul[x] = config.getint("defaults", f"{x}_multiplier".lower(), fallback=self.mul)
+
             if self.app.is_touch:
                 # add editor tool
                 self.app.main_window.tools_menu.add_widget(ActionButton(text='Edit hb04', on_press=self.edit_macros))
@@ -331,6 +336,8 @@ class HB04():
                         xor_day = data[5]
                         Logger.debug("HB04: btn_1: {}, btn_2: {}, mode: {}, wheel: {}".format(btn_1, btn_2, self.alut[wheel_mode], wheel))
 
+                        axis = self.alut[wheel_mode]
+
                         # handle move multiply buttons
                         if btn_1 == BUT_STEP:
                             self.mul += wheel
@@ -339,8 +346,13 @@ class HB04():
                             if self.mul < 1:
                                 self.mul = 10
                             self.setmul(self.mul)
+                            if axis in ['X', 'Y', 'Z', 'A']:
+                                self.axis_mul[axis] = self.mul
+
                             self.refresh_lcd()
                             continue
+                        elif axis in ['X', 'Y', 'Z', 'A']:
+                            self.mul = self.axis_mul[axis]
 
                         if not self.app.is_connected:
                             continue
@@ -390,8 +402,6 @@ class HB04():
                             # when OFF all other buttons are ignored
                             continue
 
-                        axis = self.alut[wheel_mode]
-
                         # handle other fixed and macro buttons
                         if btn_1 != 0 and self.handle_button(btn_1, axis):
                             continue
@@ -423,7 +433,7 @@ class HB04():
                                 if not self.cont_moving:
                                     self.cont_moving = True
                                     self.app.comms.ok_notify_cb = lambda x: self.got_ok(x)
-                                    self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.mullut[self.mul] / 1000.0))
+                                    self.app.comms.write("$J -c {}{} S{}\n".format(axis, wheel, self.mullut[self.axis_mul[axis]] / 1000.0))
 
                             else:
                                 # velocity_mode:
@@ -433,7 +443,7 @@ class HB04():
                                 # speed= s/5.0 # scale where 5 is max speed
                                 # MPG/Step mode
                                 step = wheel  # speed of wheel will move more increments rather than increase feed rate
-                                dist = 0.001 * step * self.mullut[self.mul]
+                                dist = 0.001 * step * self.mullut[self.axis_mul[axis]]
                                 speed = 1.0
                                 self.app.comms.write("$J {}{} S{}\n".format(axis, dist, speed))
                                 # print("$J {}{} S{}\n".format(axis, dist, speed))
