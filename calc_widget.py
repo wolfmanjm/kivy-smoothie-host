@@ -88,8 +88,9 @@ Builder.load_string('''
                 text: 'Off'
                 font_size: sp(30)
                 on_press: root.manager.current = 'main'
-            CalcButt:
-                text: 'Space'
+            ToggleButton:
+                text: 'mm' if self.state == 'normal' else 'inch'
+                on_press: root.do_mm(self.state == 'normal')
             CalcButt:
                 text: 'Space'
             CalcButt:
@@ -119,8 +120,25 @@ class CalcScreen(Screen):
         else:
             self.display.text += key
 
+    def do_mm(self, flg):
+        try:
+            v = float(self.display.text)
+            if flg:
+                r = v * 25.4
+                unit = 'inch'
+            else:
+                r = v / 25.4
+                unit = 'mm'
+
+            self.display.text = f"{r:1.4f}"
+            self.app.main_window.display(f"< {v:1.4f} {unit} = {r:1.4f} {'mm' if flg else 'inch'}")
+
+        except Exception as err:
+            #  self.app.main_window.display(f'< calculator error: {err}')
+            pass
+
     def _do_calc(self, txt):
-        self.app.main_window.display("> {}".format(txt))
+        self.app.main_window.display(f"> {txt}")
         # send to unix shell
         try:
             if self.backend == 'dc':
@@ -130,12 +148,12 @@ class CalcScreen(Screen):
                 p = subprocess.Popen("bc", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
                 result, err = p.communicate(timeout=5, input="scale=10; {}\n".format(txt))
             else:
-                result = "{}".format(eval(txt))
-                self.app.main_window.display("< {}".format(result))
+                result = f"{eval(txt)}"
+                self.app.main_window.display(f"< {result}")
                 return result
 
             if p.returncode == 0:
-                self.app.main_window.display("< {}".format(result))
+                self.app.main_window.display(f"< {result}")
                 return " ".join(result.splitlines())
 
         except subprocess.TimeoutExpired:
@@ -143,7 +161,7 @@ class CalcScreen(Screen):
             self.app.main_window.display('< calculator timed out')
 
         except Exception as err:
-            self.app.main_window.display('< calculator error: {}'.format(err))
+            self.app.main_window.display(f'< calculator error: {err}')
 
         return "Error"
 

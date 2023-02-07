@@ -1509,8 +1509,6 @@ class SmoothieHost(App):
                 self.main_window.ids.blleft.remove_widget(self.main_window.ids.entry)
                 # add text editor tool to menu
                 self.main_window.tools_menu.add_widget(ActionButton(text='Text Editor', on_press=self.main_window.edit_text))
-                # add calculator to menu
-                self.main_window.tools_menu.add_widget(ActionButton(text='Calculator', on_press=self.main_window.open_calculator))
 
                 # add blanker
                 if self.blank_timeout > 0:
@@ -1586,6 +1584,9 @@ class SmoothieHost(App):
 
         if self.is_v2:
             self.main_window.tools_menu.add_widget(ActionButton(text='Set Datetime', on_press=self.tool_scripts.set_datetime))
+
+        # add calculator to menu
+        self.main_window.tools_menu.add_widget(ActionButton(text='Calculator', on_press=self.main_window.open_calculator))
 
         # load any modules specified in config
         self._load_modules()
