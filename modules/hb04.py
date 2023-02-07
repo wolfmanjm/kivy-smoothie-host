@@ -356,6 +356,7 @@ class HB04():
 
                         elif axis in ['X', 'Y', 'Z', 'A'] and axis != last_axis:
                             self.mul = self.axis_mul[axis]
+                            self.setmul(self.mul)
                             last_axis = axis
                             self.refresh_lcd()
 
