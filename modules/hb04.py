@@ -198,6 +198,11 @@ class HB04():
         return val                          # return positive value as is
 
     def start(self):
+        # get notified when these change
+        self.app.bind(wpos=self.update_wpos)
+        self.app.bind(mpos=self.update_mpos)
+        self.app.bind(fro=self.update_fro)
+
         self.quit = False
         self.t = threading.Thread(target=self._run)
         self.t.start()
@@ -302,11 +307,6 @@ class HB04():
                     self.setfs(self.app.frr, self.app.sr)
                     self.setmul(self.mul)
                     self.update_lcd()
-
-                    # get notified when these change
-                    self.app.bind(wpos=self.update_wpos)
-                    self.app.bind(mpos=self.update_mpos)
-                    self.app.bind(fro=self.update_fro)
 
                     last_axis = None
 
@@ -556,11 +556,17 @@ class HB04():
 
     def update_wpos(self, i, v):
         self.setwcs(v)
-        self.update_lcd()
+        try:
+            self.update_lcd()
+        except Exception as e:
+            Logger.error("HB04: Exception - {}".format(e))
 
     def update_mpos(self, i, v):
         self.setmcs(v[0:3])
-        self.update_lcd()
+        try:
+            self.update_lcd()
+        except Exception as e:
+            Logger.error("HB04: Exception - {}".format(e))
 
     def update_fro(self, i, v):
         self.f_ovr = v
