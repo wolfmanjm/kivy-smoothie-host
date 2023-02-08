@@ -198,16 +198,19 @@ class HB04():
         return val                          # return positive value as is
 
     def start(self):
+        self.quit = False
+        self.t = threading.Thread(target=self._run)
+        self.t.start()
         # get notified when these change
         self.app.bind(wpos=self.update_wpos)
         self.app.bind(mpos=self.update_mpos)
         self.app.bind(fro=self.update_fro)
 
-        self.quit = False
-        self.t = threading.Thread(target=self._run)
-        self.t.start()
-
     def stop(self):
+        self.app.unbind(wpos=self.update_wpos)
+        self.app.unbind(mpos=self.update_mpos)
+        self.app.unbind(fro=self.update_fro)
+
         self.quit = True
         self.t.join()
 
@@ -467,9 +470,6 @@ class HB04():
                 if self.hid.opened:
                     self.hid.close()
 
-            self.app.unbind(wpos=self.update_wpos)
-            self.app.unbind(mpos=self.update_mpos)
-            self.app.unbind(fro=self.update_fro)
             if not self.quit:
                 # retry connection in 5 seconds unless we were asked to quit
                 time.sleep(5)

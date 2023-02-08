@@ -215,11 +215,20 @@ class WHB04B():
         return val                          # return positive value as is
 
     def start(self):
+        # get notified when these change
+        self.app.bind(wpos=self.update_wpos)
+        self.app.bind(mpos=self.update_mpos)
+        self.app.bind(fro=self.update_fro)
+
         self.quit = False
         self.t = threading.Thread(target=self._run)
         self.t.start()
 
     def stop(self):
+        self.app.unbind(wpos=self.update_wpos)
+        self.app.unbind(mpos=self.update_mpos)
+        self.app.unbind(fro=self.update_fro)
+
         self.quit = True
         self.t.join()
 
@@ -368,11 +377,6 @@ class WHB04B():
                     self.setovr(self.f_ovr, self.s_ovr)
                     self.update_lcd()
 
-                    # get notified when these change
-                    self.app.bind(wpos=self.update_wpos)
-                    self.app.bind(mpos=self.update_mpos)
-                    self.app.bind(fro=self.update_fro)
-
                     data_old = -1
                     # Infinite loop to read data from the WHB04B
                     while not self.quit:
@@ -506,9 +510,6 @@ class WHB04B():
                 if self.hid.opened:
                     self.hid.close()
 
-            self.app.unbind(wpos=self.update_wpos)
-            self.app.unbind(mpos=self.update_mpos)
-            self.app.unbind(fro=self.update_fro)
             if not self.quit:
                 # retry connection in 5 seconds unless we were asked to quit
                 time.sleep(5)
@@ -569,12 +570,18 @@ class WHB04B():
     def update_wpos(self, i, v):
         if not self.mcs_mode:
             self._setv(v)
-            self.update_lcd()
+            try:
+                self.update_lcd()
+            except Exception as e:
+                Logger.error("WHB04b: Exception - {}".format(e))
 
     def update_mpos(self, i, v):
         if self.mcs_mode:
             self._setv(v[0:3])
-            self.update_lcd()
+            try:
+                self.update_lcd()
+            except Exception as e:
+                Logger.error("WHB04b: Exception - {}".format(e))
 
     def update_fro(self, i, v):
         self.f_ovr = v
