@@ -201,16 +201,8 @@ class HB04():
         self.quit = False
         self.t = threading.Thread(target=self._run)
         self.t.start()
-        # get notified when these change
-        self.app.bind(wpos=self.update_wpos)
-        self.app.bind(mpos=self.update_mpos)
-        self.app.bind(fro=self.update_fro)
 
     def stop(self):
-        self.app.unbind(wpos=self.update_wpos)
-        self.app.unbind(mpos=self.update_mpos)
-        self.app.unbind(fro=self.update_fro)
-
         self.quit = True
         self.t.join()
 
@@ -246,6 +238,18 @@ class HB04():
     def reload_macros(self, *args):
         self.macrobut.clear()
         self.load_macros(True)
+
+    @mainthread
+    def do_bind(self, flg):
+        if flg:
+            # get notified when these change
+            self.app.bind(wpos=self.update_wpos)
+            self.app.bind(mpos=self.update_mpos)
+            self.app.bind(fro=self.update_fro)
+        else:
+            self.app.unbind(wpos=self.update_wpos)
+            self.app.unbind(mpos=self.update_mpos)
+            self.app.unbind(fro=self.update_fro)
 
     def handle_button(self, btn, axis):
         if btn not in self.butlut:
@@ -310,6 +314,7 @@ class HB04():
                     self.setfs(self.app.frr, self.app.sr)
                     self.setmul(self.mul)
                     self.update_lcd()
+                    self.do_bind(True)
 
                     last_axis = None
 
@@ -469,6 +474,8 @@ class HB04():
                 Logger.error("HB04: Exception - {}".format(traceback.format_exc()))
                 if self.hid.opened:
                     self.hid.close()
+
+            self.do_bind(False)
 
             if not self.quit:
                 # retry connection in 5 seconds unless we were asked to quit
