@@ -493,7 +493,7 @@ class HB04():
         self.lock.acquire()
         for v in a:
             (f, i) = math.modf(v)  # split into fraction and integer
-            f = int(round(f * 10000))  # we only need 3dp
+            f = int(round(f, 4) * 10000)  # we only need 4dp
             (l, h) = self.to_le(int(i))
             self.lcd_data[off] = l
             self.lcd_data[off + 1] = h
