@@ -57,6 +57,13 @@ class FileSystemSDCard(FileSystemAbstract):
 
         return self._files[fn]['size']
 
+    def getdate(self, fn):
+        if self._files is None:
+            return 0
+
+        # sd does not have date at the moment
+        return 0
+
     def is_hidden(self, fn):
         return False
 
