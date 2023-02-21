@@ -541,8 +541,12 @@ class HB04():
 
     def update_lcd(self):
         self.lock.acquire()
-        n = self.hid.write(self.lcd_data)
-        self.lock.release()
+        try:
+            n = self.hid.write(self.lcd_data)
+        except Exception as e:
+            Logger.error("HB04: HID write Exception - {}".format(e))
+        finally:
+            self.lock.release()
         # print("Sent {} out of {}".format(n, len(lcd_data)))
 
     def refresh_lcd(self):
@@ -563,17 +567,11 @@ class HB04():
 
     def update_wpos(self, i, v):
         self.setwcs(v)
-        try:
-            self.update_lcd()
-        except Exception as e:
-            Logger.error("HB04: Exception - {}".format(e))
+        self.update_lcd()
 
     def update_mpos(self, i, v):
         self.setmcs(v[0:3])
-        try:
-            self.update_lcd()
-        except Exception as e:
-            Logger.error("HB04: Exception - {}".format(e))
+        self.update_lcd()
 
     def update_fro(self, i, v):
         self.f_ovr = v
