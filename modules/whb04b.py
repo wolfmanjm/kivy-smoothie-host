@@ -561,11 +561,15 @@ class WHB04B():
 
         self.lcd_data.flags = flags
 
-        buff = ctypes.cast(ctypes.byref(self.lcd_data), ctypes.POINTER(ctypes.c_char * ctypes.sizeof(self.lcd_data)))
-        if buff.contents.raw != self.lcd_data.buff_old:
-            self.lcd_data.buff_old = buff.contents.raw
-            n = self.hid.write(self.lcd_data.buff_old)
-        self.lock.release()
+        try:
+            buff = ctypes.cast(ctypes.byref(self.lcd_data), ctypes.POINTER(ctypes.c_char * ctypes.sizeof(self.lcd_data)))
+            if buff.contents.raw != self.lcd_data.buff_old:
+                self.lcd_data.buff_old = buff.contents.raw
+                n = self.hid.write(self.lcd_data.buff_old)
+        except Exception as e:
+            Logger.error("WHB04b: write Exception - {}".format(e))
+        finally:
+            self.lock.release()
 
     def refresh_lcd(self):
         if not self.app.is_connected or self.app.status == "Alarm":
@@ -576,18 +580,12 @@ class WHB04B():
     def update_wpos(self, i, v):
         if not self.mcs_mode:
             self._setv(v)
-            try:
-                self.update_lcd()
-            except Exception as e:
-                Logger.error("WHB04b: Exception - {}".format(e))
+            self.update_lcd()
 
     def update_mpos(self, i, v):
         if self.mcs_mode:
             self._setv(v[0:3])
-            try:
-                self.update_lcd()
-            except Exception as e:
-                Logger.error("WHB04b: Exception - {}".format(e))
+            self.update_lcd()
 
     def update_fro(self, i, v):
         self.f_ovr = v
