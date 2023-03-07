@@ -260,10 +260,14 @@ class MacrosWidget(StackLayout):
         elif cmd.startswith("set_rpm"):
             if "RPM " in cmd:
                 try:
-                    r = cmd[11:]
+                    p = cmd.find('RPM')
+                    p += 3
+                    r = cmd[p:]
                     self.app.tool_scripts.set_rpm(float(r))
                 except Exception:
                     pass
+            else:
+                self.app.main_window.async_display('RPM argument is required')
 
     def exec_script(self, cmd, io, params, *args):
         if params is not None:
