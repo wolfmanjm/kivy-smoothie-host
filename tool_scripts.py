@@ -40,8 +40,9 @@ class ToolScripts():
             pwm = self.app.spindle_handler.lookup(rpm)
             if self.app.is_connected:
                 self.app.comms.write(f"M3 S{pwm:1.2f}\n")
-            else:
-                self.app.main_window.async_display(f"Spindle RPM of {rpm} is PWM {pwm:1.2f}")
+
+            self.app.main_window.async_display(f"Spindle RPM of {rpm} is PWM {pwm:1.2f}")
+
         else:
             self.app.main_window.async_display("No spindle handler enabled")
 
