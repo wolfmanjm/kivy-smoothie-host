@@ -1072,7 +1072,7 @@ class MainWindow(BoxLayout):
         if self.app.is_desktop >= 1:
             Window.minimize()
 
-    def open_tmc_configurator(self):
+    def open_tmc_configurator(self, arg=None):
         if not self.app.sm.has_screen('tmc_configurator'):
             tmc_configurator = TMCConfigurator(name='tmc_configurator')
             self.app.sm.add_widget(tmc_configurator)
@@ -1571,6 +1571,9 @@ class SmoothieHost(App):
             self.webserver = ProgressServer()
             self.webserver.start(self, 8000)
 
+        # add calculator to menu
+        self.main_window.tools_menu.add_widget(ActionButton(text='Calculator', on_press=self.main_window.open_calculator))
+
         if self.is_show_camera:
             self.camera_url = self.config.get('Web', 'camera_url')
             self.sm.add_widget(CameraScreen(name='web cam'))
@@ -1591,9 +1594,7 @@ class SmoothieHost(App):
 
         if self.is_v2:
             self.main_window.tools_menu.add_widget(ActionButton(text='Set Datetime', on_press=self.tool_scripts.set_datetime))
-
-        # add calculator to menu
-        self.main_window.tools_menu.add_widget(ActionButton(text='Calculator', on_press=self.main_window.open_calculator))
+            self.main_window.tools_menu.add_widget(ActionButton(text='TMC Config', on_press=self.main_window.open_tmc_configurator))
 
         # load any modules specified in config
         self._load_modules()
@@ -1812,13 +1813,6 @@ class SmoothieHost(App):
 
     def close_settings(self, *largs):
         self.sm.current = 'main'
-
-    def scale_rpm(self, rpm):
-        if spindle_handler is not None:
-            pwm = spindle_handler.lookup(rpm)
-            return pwm
-
-        return rpm
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):

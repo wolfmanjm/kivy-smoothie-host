@@ -18,8 +18,11 @@ class ToolScripts():
     def find_center(self):
         """ Finds the center of a circle """
         # needs to be run in a thread
-        t = threading.Thread(target=self._find_center_thread, daemon=True)
-        t.start()
+        if self.app.is_connected:
+            t = threading.Thread(target=self._find_center_thread, daemon=True)
+            t.start()
+        else:
+            self.app.main_window.async_display("Not connected")
 
     def set_datetime(self, *args):
         """ sets the date/time on a V2 """
@@ -31,6 +34,16 @@ class ToolScripts():
             self.app.comms.write(cmd)
         else:
             self.app.main_window.async_display("Must be connected to set datetime")
+
+    def set_rpm(self, rpm):
+        if self.app.spindle_handler is not None:
+            pwm = self.app.spindle_handler.lookup(rpm)
+            if self.app.is_connected:
+                self.app.comms.write(f"M3 S{pwm:1.2f}\n")
+            else:
+                self.app.main_window.async_display(f"Spindle RPM of {rpm} is PWM {pwm:1.2f}")
+        else:
+            self.app.main_window.async_display("No spindle handler enabled")
 
     # private methods
     def _probe(self, x=None, y=None, z=None):

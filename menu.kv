@@ -61,16 +61,8 @@
                     disabled: not app.is_connected or root.is_printing
                     on_press: app.main_window.list_sdcard()
                 ActionButton:
-                    text: 'Find Center'
-                    disabled: not app.is_connected or root.is_printing
-                    on_press: app.tool_scripts.find_center()
-                ActionButton:
                     text: 'Start Uart Log' if not root.is_uart_log_enabled else 'Stop Uart Log'
                     on_press: app.main_window.start_uart_log()
-                ActionButton:
-                    text: 'TMC Config'
-                    on_press: root.open_tmc_configurator()
-                    disabled: not app.is_connected or root.is_printing or not app.is_v2
 
             ActionGroup:
                 id: system_menu

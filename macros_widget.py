@@ -112,6 +112,17 @@ class MacrosWidget(StackLayout):
                     btn.ud = True
                     self.add_widget(btn)
 
+                elif section.startswith('toolscript '):
+                    name = config.get(section, 'name', fallback=None)
+                    script = config.get(section, 'exec', fallback=None)
+                    args = config.get(section, 'args', fallback=None)
+                    btn = Factory.MacroButton()
+                    btn.text = name
+                    btn.background_color = (1, 0, 1, 1)
+                    btn.bind(on_press=partial(self.exec_toolscript, script, args))
+                    btn.ud = True
+                    self.add_widget(btn)
+
             # add simple macro buttons (with optional prompts)
             for (key, v) in config.items('macro buttons'):
                 btn = Factory.MacroButton()
@@ -225,6 +236,34 @@ class MacrosWidget(StackLayout):
         else:
             # plain command just send it
             self.app.comms.write('{}\n'.format(cmd))
+
+    def exec_toolscript(self, cmd, params, *args):
+        if params is not None:
+            ll = params.split(',')
+            mb = MultiInputBox(title='Arguments')
+            mb.setOptions(ll, partial(self._exec_toolscript_params, cmd))
+            mb.open()
+
+        else:
+            self._exec_toolscript(cmd)
+
+    def _exec_toolscript_params(self, cmd, opts):
+        for x in opts:
+            cmd += " " + x + " " + opts[x]
+
+        self._exec_toolscript(cmd)
+
+    def _exec_toolscript(self, cmd):
+        # add any tool scripts here
+        if cmd.startswith("find_center"):
+            self.app.tool_scripts.find_center()
+        elif cmd.startswith("set_rpm"):
+            if "RPM " in cmd:
+                try:
+                    r = cmd[11:]
+                    self.app.tool_scripts.set_rpm(float(r))
+                except Exception:
+                    pass
 
     def exec_script(self, cmd, io, params, *args):
         if params is not None:
