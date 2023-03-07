@@ -749,6 +749,17 @@ class Comms():
                         self.app.main_window.tool_change_prompt(f"{line} - {self.last_tool}")
                         tool_change_state = 0
 
+                # Handle potential translation and scaling of Spindle on command
+                if self.app.spindle_handler is not None and line.startswith("M3 "):
+                    rpm = line.split(' ')
+                    if len(rpm) > 1 and rpm[1].startswith('S'):
+                        try:
+                            rpm = float(rpm[1][1:])
+                            line = f"{self.app.spindle_handler.translate} S{self.app.spindle_handler.lookup(rpm)}"
+
+                        except Exception as e:
+                            pass
+
                 # s = time.time()
                 # print("{} - {}".format(s, line))
                 # send the line

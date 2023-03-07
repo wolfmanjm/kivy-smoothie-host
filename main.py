@@ -55,6 +55,7 @@ from notify import Notify
 from calc_widget import CalcScreen
 from uart_logger import UartLogger
 from tmc_configurator import TMCConfigurator
+from spindle_handler import SpindleHandler
 
 import subprocess
 import threading
@@ -1135,6 +1136,7 @@ class SmoothieHost(App):
         self.minimized = False
         self.safez = 20
         self.last_command = ""
+        self.spindle_handler = None
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1556,6 +1558,11 @@ class SmoothieHost(App):
                 # remove from panel
                 self.main_window.ids.blright.remove_widget(self.main_window.ids.extruder_tab)
 
+            # see if a spindle handler is enabled to translater the spindle speeds to PWM
+            self.spindle_handler = SpindleHandler()
+            if not self.spindle_handler.load():
+                self.spindle_handler = None
+
         # if not CNC mode then do not show the ZABC buttons in jogrose
         if not self.is_cnc:
             self.main_window.ids.tabs.jog_rose.jogrosemain.remove_widget(self.main_window.ids.tabs.jog_rose.abc_panel)
@@ -1805,6 +1812,13 @@ class SmoothieHost(App):
 
     def close_settings(self, *largs):
         self.sm.current = 'main'
+
+    def scale_rpm(self, rpm):
+        if spindle_handler is not None:
+            pwm = spindle_handler.lookup(rpm)
+            return pwm
+
+        return rpm
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):
