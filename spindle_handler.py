@@ -60,32 +60,37 @@ class SpindleHandler():
 
         return True
 
-    def lookup(self, r):
+    def lookup(self, srpm):
         ''' look up the RPM in the table and return the interpolated PWM '''
         idx = 0
         # take into consideration the ratio to get the motor RPM, ration is from motor to pulley
-        r = r / self.ratio  # convert to Motor RPM from Spindle RPM
+        mrpm = srpm / self.ratio  # convert to Motor RPM from Spindle RPM
 
         for ri in self.rpm:
-            if ri > r:
+            if ri > mrpm:
                 break
             idx += 1
 
         # return minimum or maximum if necessary
+        pwm = None
         if idx == 0:
-            return self.pwm[0]
+            pwm = self.pwm[0]
         if idx >= len(self.pwm):
-            return self.pwm[-1]
+            pwm = self.pwm[-1]
 
-        # interpolate the value
-        p1 = self.pwm[idx - 1]
-        p2 = self.pwm[idx]
-        r1 = self.rpm[idx - 1]
-        r2 = self.rpm[idx]
+        if pwm is None:
+            # interpolate the value
+            p1 = self.pwm[idx - 1]
+            p2 = self.pwm[idx]
+            r1 = self.rpm[idx - 1]
+            r2 = self.rpm[idx]
 
-        p = p1 + (p2 - p1) * ((r - r1) / (r2 - r1))
+            pwm = p1 + (p2 - p1) * ((r - r1) / (r2 - r1))
 
-        return p
+        # for debugging
+        Logger.debug(f"SpindleHandler: Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.2f}")
+        self.app.main_window.async_display(f"Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.2f}")
+        return pwm
 
 
 # test it
@@ -99,7 +104,7 @@ if __name__ == "__main__":
         print(f"translate M3 to {sh.translate}")
         print(f"ratio = {sh.ratio}")
 
-        for r in [0, 6000, 6010, 1, 100, 200, 500, 1000, 150, 510, 550, 590, 750, 900, 999, -1]:
+        for r in [0, 6000, 6010, 10000, 1, 100, 200, 500, 1000, 150, 510, 550, 590, 750, 900, 999, -1]:
             print(f"{r}: {sh.lookup(r)}")
 
 

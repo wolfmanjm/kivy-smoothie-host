@@ -36,6 +36,7 @@ class ToolScripts():
             self.app.main_window.async_display("Must be connected to set datetime")
 
     def set_rpm(self, rpm):
+        """ set the RPM for a PWM driven switch spindle """
         if self.app.spindle_handler is not None:
             pwm = self.app.spindle_handler.lookup(rpm)
             if self.app.is_connected:
