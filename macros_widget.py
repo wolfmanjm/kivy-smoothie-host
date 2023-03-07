@@ -257,17 +257,21 @@ class MacrosWidget(StackLayout):
         # add any tool scripts here
         if cmd.startswith("find_center"):
             self.app.tool_scripts.find_center()
+
         elif cmd.startswith("set_rpm"):
             if "RPM " in cmd:
                 try:
                     p = cmd.find('RPM')
-                    p += 3
+                    p += 4
                     r = cmd[p:]
                     self.app.tool_scripts.set_rpm(float(r))
-                except Exception:
-                    pass
+                except Exception as e:
+                    Logger.error(f"MacrosWidget: set_rpm exception {e}")
             else:
                 self.app.main_window.async_display('RPM argument is required')
+
+        else:
+            Logger.error(f"MacrosWidget: {cmd} is not a tool script")
 
     def exec_script(self, cmd, io, params, *args):
         if params is not None:

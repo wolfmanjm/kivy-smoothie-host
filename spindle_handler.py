@@ -63,7 +63,7 @@ class SpindleHandler():
     def lookup(self, srpm):
         ''' look up the RPM in the table and return the interpolated PWM '''
         idx = 0
-        # take into consideration the ratio to get the motor RPM, ration is from motor to pulley
+        # take into consideration the ratio to get the motor RPM, ratio is from motor to pulley
         mrpm = srpm / self.ratio  # convert to Motor RPM from Spindle RPM
 
         for ri in self.rpm:
@@ -85,11 +85,11 @@ class SpindleHandler():
             r1 = self.rpm[idx - 1]
             r2 = self.rpm[idx]
 
-            pwm = p1 + (p2 - p1) * ((r - r1) / (r2 - r1))
+            pwm = p1 + (p2 - p1) * ((mrpm - r1) / (r2 - r1))
 
         # for debugging
         Logger.debug(f"SpindleHandler: Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.2f}")
-        self.app.main_window.async_display(f"Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.2f}")
+        App.get_running_app().main_window.async_display(f"Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.2f}")
         return pwm
 
 
