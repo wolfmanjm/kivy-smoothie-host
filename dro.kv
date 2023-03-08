@@ -206,3 +206,9 @@
             size_hint: None, None
             size: self.texture_size if app.lp > 0 else (0, 0)
             opacity: 1 if app.lp > 0 else 0
+
+        Label:
+            text: ' | {:4.1f} RPM'.format(app.rpm)
+            size_hint: None, None
+            size: self.texture_size if app.rpm > 0 else (0, 0)
+            opacity: 1 if app.rpm > 0 else 0
