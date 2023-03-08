@@ -196,10 +196,10 @@
             size: self.texture_size
 
         Label:
-            text: ' | Laser:'
+            text: ' | Laser:' if app.spindle_rpm < 0 else ' | RPM: '
             size_hint_x: None
             size: self.texture_size
         Label:
-            text: '{:3.1f}%'.format(app.lp)
+            text: '{:3.1f}%'.format(app.lp) if app.spindle_rpm < 0 else '{:4.1f}'.format(app.spindle_rpm)
             size_hint_x: None
             size: self.texture_size

@@ -1100,6 +1100,7 @@ class SmoothieHost(App):
     frr = NumericProperty(0)
     fro = NumericProperty(100)
     sr = NumericProperty(0)
+    spindle_rpm = NumericProperty(-1)
     lp = NumericProperty(0)
     is_inch = BooleanProperty(False)
     is_spindle_on = BooleanProperty(False)

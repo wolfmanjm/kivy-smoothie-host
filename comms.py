@@ -755,6 +755,8 @@ class Comms():
                     if len(rpm) > 1 and rpm[1].startswith('S'):
                         try:
                             rpm = float(rpm[1][1:])
+                            self.app.spindle_rpm = rpm
+
                             line = f"{self.app.spindle_handler.translate} S{self.app.spindle_handler.lookup(rpm)}"
                             self.log.debug(f'Comms: Translated M3 to {line}')
                             self.app.main_window.async_display(f'// Translated M3 to {line}\n')

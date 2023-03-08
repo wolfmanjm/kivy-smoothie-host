@@ -182,6 +182,7 @@ class HB04():
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
+    spindle_rpm = -1
     cont_mode = False
     cont_moving = False
 
@@ -246,10 +247,12 @@ class HB04():
             self.app.bind(wpos=self.update_wpos)
             self.app.bind(mpos=self.update_mpos)
             self.app.bind(fro=self.update_fro)
+            self.app.bind(spindle_rpm=self.update_rpm)
         else:
             self.app.unbind(wpos=self.update_wpos)
             self.app.unbind(mpos=self.update_mpos)
             self.app.unbind(fro=self.update_fro)
+            self.app.unbind(spindle_rpm=self.update_rpm)
 
     def handle_button(self, btn, axis):
         if btn not in self.butlut:
@@ -311,7 +314,7 @@ class HB04():
                     self.setwcs(self.app.wpos)
                     self.setmcs(self.app.mpos[0:3])
                     self.setovr(self.f_ovr, self.s_ovr)
-                    self.setfs(self.app.frr, self.app.sr)
+                    self.setfs(self.app.frr, self.app.sr if self.app.spindle_rpm < 0 else self.app.spindle_rpm)
                     self.setmul(self.mul)
                     self.update_lcd()
                     self.do_bind(True)
@@ -332,6 +335,9 @@ class HB04():
                                     self.app.comms.write("M220 S{}\n".format(self.f_ovr))
                                 # if self.s_ovr != self.app.sr:
                                 #     self.app.comms.write("M221 S{}\n".format(self.s_ovr));
+                                # change spindle RPM if it has been changed on the dial
+                                if self.spindle_rpm != self.app.spindle_rpm and self.app.spindle_rpm > 0:
+                                    self.app.tool_scripts.set_rpm(self.spindle_rpm)
                                 self.refresh_lcd()
                             continue
 
@@ -429,12 +435,19 @@ class HB04():
                                 self.setovr(self.f_ovr, self.s_ovr)
                                 self.update_lcd()
                                 continue
+
                             if axis == 'S':
-                                # adjust S override, laser power? (TODO maybe this is tool speed?)
-                                self.s_ovr += wheel
-                                if self.s_ovr < 1:
-                                    self.s_ovr = 1
-                                self.setovr(self.f_ovr, self.s_ovr)
+                                # adjust S override, laser power?
+                                # self.s_ovr += wheel
+                                # if self.s_ovr < 1:
+                                #     self.s_ovr = 1
+                                # self.setovr(self.f_ovr, self.s_ovr)
+                                # Adjust spindle RPM
+                                self.spindle_rpm += (wheel * 10)
+                                if self.spindle_rpm < 0:
+                                    self.spindle_rpm = 0
+
+                                self.setfs(self.app.frr, self.spindle_rpm)
                                 self.update_lcd()
                                 continue
 
@@ -550,7 +563,7 @@ class HB04():
         # print("Sent {} out of {}".format(n, len(lcd_data)))
 
     def refresh_lcd(self):
-        self.setfs(self.app.frr, self.app.sr)
+        self.setfs(self.app.frr, self.app.sr if self.app.spindle_rpm < 0 else self.app.spindle_rpm)
         if self.cont_mode:
             self.setmul(self.mul | 0x10)
         elif self.app.status == "Run":
@@ -576,3 +589,8 @@ class HB04():
     def update_fro(self, i, v):
         self.f_ovr = v
         self.setovr(self.f_ovr, self.s_ovr)
+
+    def update_rpm(self, i, v):
+        self.spindle_rpm = v
+        self.setfs(self.app.frr, self.spindle_rpm)
+        self.update_lcd()
