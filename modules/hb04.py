@@ -183,6 +183,8 @@ class HB04():
     f_ovr = 100
     s_ovr = 100
     sr = 0
+    sr_inc = 1
+    change_sr = 0
     cont_mode = False
     cont_moving = False
 
@@ -218,6 +220,8 @@ class HB04():
 
             # load any default settings
             self.mul = config.getint("defaults", "multiplier", fallback=8)
+            self.sr_inc = config.getfloat("defaults", "sr_inc", fallback=1)
+
             # initialize axis specific multiplier (default is above)
             for x in ['X', 'Y', 'Z', 'A']:
                 self.axis_mul[x] = config.getint("defaults", f"{x}_multiplier".lower(), fallback=self.mul)
@@ -336,8 +340,10 @@ class HB04():
                                 # if self.s_ovr != self.app.sr:
                                 #     self.app.comms.write("M221 S{}\n".format(self.s_ovr));
                                 # change spindle RPM if it has been changed on the dial
-                                # if self.sr != self.app.sr and self.app.sr >= 0:
-                                #     self.app.tool_scripts.set_rpm(self.sr)
+                                if self.change_sr != 0:
+                                    self.app.comms.write(f"M3 S{self.sr + self.change_sr}\n")
+                                    self.change_sr = 0
+
                                 self.refresh_lcd()
                             continue
 
@@ -443,12 +449,9 @@ class HB04():
                                         self.s_ovr = 1
                                     self.setovr(self.f_ovr, self.s_ovr)
                                 else:
-                                    # Adjust spindle RPM
-                                    self.sr += (wheel * 100)
-                                    if self.sr < 0:
-                                        self.sr = 0
-
-                                    self.setfs(self.app.frr, self.sr)
+                                    # Adjust spindle RPM (or PWM)
+                                    self.change_sr += (wheel * self.sr_inc)
+                                    self.setfs(self.app.frr, self.sr + self.change_sr)
 
                                 self.update_lcd()
                                 continue

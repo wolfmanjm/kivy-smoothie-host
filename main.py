@@ -520,6 +520,9 @@ class MainWindow(BoxLayout):
 
         if 'S' in d:
             self.app.sr = d['S'][0]
+            if self.app.spindle_handler is not None:
+                # convert from the PWM to RPM
+                self.app.rpm = self.app.spindle_handler.reverse_lookup(self.app.sr)
 
         if 'L' in d:
             self.app.lp = d['L'][0]
@@ -562,11 +565,6 @@ class MainWindow(BoxLayout):
         self.app.is_inch = a[3] == 'G20'
         self.app.is_abs = a[4] == 'G90'
         self.app.is_spindle_on = a[7] == 'M3'
-        if self.app.is_spindle_on and self.app.spindle_handler is not None:
-            # get RPM from the PWM
-            self.app.rpm = self.app.spindle_handler.reverse_lookup(self.app.sr)
-        else:
-            self.app.rpm = 0
 
     def ask_exit(self, restart=False):
         # are you sure?
