@@ -336,7 +336,7 @@ class HB04():
                                 # if self.s_ovr != self.app.sr:
                                 #     self.app.comms.write("M221 S{}\n".format(self.s_ovr));
                                 # change spindle RPM if it has been changed on the dial
-                                if self.spindle_rpm != self.app.spindle_rpm and self.app.spindle_rpm > 0:
+                                if self.spindle_rpm != self.app.spindle_rpm and self.app.spindle_rpm >= 0:
                                     self.app.tool_scripts.set_rpm(self.spindle_rpm)
                                 self.refresh_lcd()
                             continue
@@ -354,25 +354,24 @@ class HB04():
 
                         axis = self.alut[wheel_mode]
 
-                        # handle move multiply buttons
-                        if btn_1 == BUT_STEP:
-                            self.mul += wheel
-                            if self.mul > 10:
-                                self.mul = 1
-                            if self.mul < 1:
-                                self.mul = 10
-                            self.setmul(self.mul)
-                            if axis in ['X', 'Y', 'Z', 'A']:
+                        if axis in ['X', 'Y', 'Z', 'A']:
+                            # handle move multiply buttons
+                            if btn_1 == BUT_STEP:
+                                self.mul += wheel
+                                if self.mul > 10:
+                                    self.mul = 1
+                                if self.mul < 1:
+                                    self.mul = 10
+                                self.setmul(self.mul)
                                 self.axis_mul[axis] = self.mul
+                                self.refresh_lcd()
+                                continue
 
-                            self.refresh_lcd()
-                            continue
-
-                        elif axis in ['X', 'Y', 'Z', 'A'] and axis != last_axis:
-                            self.mul = self.axis_mul[axis]
-                            self.setmul(self.mul)
-                            last_axis = axis
-                            self.refresh_lcd()
+                            elif axis != last_axis:
+                                self.mul = self.axis_mul[axis]
+                                self.setmul(self.mul)
+                                last_axis = axis
+                                self.refresh_lcd()
 
                         if not self.app.is_connected:
                             continue
@@ -437,17 +436,20 @@ class HB04():
                                 continue
 
                             if axis == 'S':
-                                # adjust S override, laser power?
-                                # self.s_ovr += wheel
-                                # if self.s_ovr < 1:
-                                #     self.s_ovr = 1
-                                # self.setovr(self.f_ovr, self.s_ovr)
-                                # Adjust spindle RPM
-                                self.spindle_rpm += (wheel * 10)
-                                if self.spindle_rpm < 0:
-                                    self.spindle_rpm = 0
+                                if btn_1 == BUT_STEP:
+                                    # adjust S override
+                                    self.s_ovr += wheel
+                                    if self.s_ovr < 1:
+                                        self.s_ovr = 1
+                                    self.setovr(self.f_ovr, self.s_ovr)
+                                else:
+                                    # Adjust spindle RPM
+                                    self.spindle_rpm += (wheel * 10)
+                                    if self.spindle_rpm < 0:
+                                        self.spindle_rpm = 0
 
-                                self.setfs(self.app.frr, self.spindle_rpm)
+                                    self.setfs(self.app.frr, self.spindle_rpm)
+
                                 self.update_lcd()
                                 continue
 

@@ -562,6 +562,8 @@ class MainWindow(BoxLayout):
         self.app.is_inch = a[3] == 'G20'
         self.app.is_abs = a[4] == 'G90'
         self.app.is_spindle_on = a[7] == 'M3'
+        if not self.app.is_spindle_on:
+            self.app.spindle_rpm = -1
 
     def ask_exit(self, restart=False):
         # are you sure?
@@ -1100,10 +1102,10 @@ class SmoothieHost(App):
     frr = NumericProperty(0)
     fro = NumericProperty(100)
     sr = NumericProperty(0)
-    spindle_rpm = NumericProperty(-1)
     lp = NumericProperty(0)
     is_inch = BooleanProperty(False)
     is_spindle_on = BooleanProperty(False)
+    spindle_rpm = NumericProperty(-1)
     is_abs = BooleanProperty(True)
     tab_top = BooleanProperty(False)
     gcode_file = StringProperty()

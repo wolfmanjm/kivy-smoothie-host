@@ -761,7 +761,7 @@ class Comms():
                             self.log.debug(f'Comms: Translated M3 to {line}')
                             self.app.main_window.async_display(f'// Translated M3 to {line}\n')
                         except Exception as e:
-                            pass
+                            self.log.error(f"Comms: spindle handler exception: {e}")
 
                 # s = time.time()
                 # print("{} - {}".format(s, line))
