@@ -182,6 +182,7 @@ class HB04():
     macrobut = {}
     change_f_ovr = 0
     change_fr = 0
+    fr_inc = 1.0
     s_ovr = 100
     sr_inc = 1
     sr_scale = 1.0
@@ -223,6 +224,7 @@ class HB04():
             # load any default settings
             self.mul = config.getint("defaults", "multiplier", fallback=8)
             self.sr_inc = config.getfloat("defaults", "sr_inc", fallback=1.0)
+            self.fr_inc = config.getfloat("defaults", "fr_inc", fallback=1.0)
             self.sr_scale = config.getfloat("defaults", "sr_scale", fallback=1.0)
             self.default_spindle_speed = config.getfloat("defaults", "spindle_speed", fallback=3000)
 
@@ -456,7 +458,7 @@ class HB04():
                                         self.setovr(d, self.s_ovr)
                                 else:
                                     # adjust Feedrate
-                                    self.change_fr += (wheel * 10)
+                                    self.change_fr += (wheel * self.fr_inc)
                                     d = self.app.frr + self.change_fr
                                     if d <= 0:
                                         self.change_fr = 0
@@ -476,6 +478,7 @@ class HB04():
                                 else:
                                     # Adjust spindle RPM (or PWM)
                                     self.change_sr += (wheel * self.sr_inc)
+                                    d = self.app.sr + self.change_sr
                                     if d < 0:
                                         self.change_sr = 0
                                     else:
