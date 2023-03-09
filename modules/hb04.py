@@ -187,6 +187,7 @@ class HB04():
     change_sr = 0
     cont_mode = False
     cont_moving = False
+    default_spindle_speed = 3000
 
     def __init__(self, vid, pid):
         # HB04 vendor ID and product ID
@@ -222,6 +223,7 @@ class HB04():
             self.mul = config.getint("defaults", "multiplier", fallback=8)
             self.sr_inc = config.getfloat("defaults", "sr_inc", fallback=1.0)
             self.sr_scale = config.getfloat("defaults", "sr_scale", fallback=1.0)
+            self.default_spindle_speed = config.getfloat("defaults", "spindle_speed", fallback=3000)
 
             # initialize axis specific multiplier (default is above)
             for x in ['X', 'Y', 'Z', 'A']:
@@ -290,7 +292,7 @@ class HB04():
         elif btn == BUT_SAFEZ:
             cmd = "G91 G0 Z20 G90"
         elif btn == BUT_SPINDLE:
-            cmd = "M5" if self.app.is_spindle_on else "M3"
+            cmd = "M5" if self.app.is_spindle_on else f"M3 S{self.default_spindle_speed}"
         elif btn == BUT_HALF:
             cmd = "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis) - ord('X')] / 2.0)
 
