@@ -180,7 +180,8 @@ class HB04():
     mullut = {0x00: 0, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
     axis_mul = {}
     macrobut = {}
-    f_ovr = 100
+    change_f_ovr = 0
+    change_fr = 0
     s_ovr = 100
     sr_inc = 1
     sr_scale = 1.0
@@ -254,11 +255,13 @@ class HB04():
             self.app.bind(wpos=self.update_wpos)
             self.app.bind(mpos=self.update_mpos)
             self.app.bind(fro=self.update_fro)
+            self.app.bind(frr=self.update_frr)
             self.app.bind(sr=self.update_sr)
         else:
             self.app.unbind(wpos=self.update_wpos)
             self.app.unbind(mpos=self.update_mpos)
             self.app.unbind(fro=self.update_fro)
+            self.app.unbind(frr=self.update_frr)
             self.app.unbind(sr=self.update_sr)
 
     def handle_button(self, btn, axis):
@@ -320,7 +323,7 @@ class HB04():
                     # setup LCD with current settings
                     self.setwcs(self.app.wpos)
                     self.setmcs(self.app.mpos[0:3])
-                    self.setovr(self.f_ovr, self.s_ovr)
+                    self.setovr(self.app.fro, self.s_ovr)
                     self.setfs(self.app.frr, self.app.sr)
                     self.setmul(self.mul)
                     self.update_lcd()
@@ -338,10 +341,17 @@ class HB04():
                         if size == 0:
                             # timeout
                             if self.app.is_connected:
-                                if self.f_ovr != self.app.fro:
-                                    self.app.comms.write("M220 S{}\n".format(self.f_ovr))
+                                if self.change_f_ovr != 0:
+                                    self.app.comms.write(f"M220 S{self.app.fro + self.change_f_ovr}\n")
+                                    self.change_f_ovr = 0
+
+                                if self.change_fr != 0:
+                                    self.app.comms.write(f"F{self.app.frr + self.change_fr}\n")
+                                    self.change_fr = 0
+
                                 # if self.s_ovr != self.app.sr:
                                 #     self.app.comms.write("M221 S{}\n".format(self.s_ovr));
+
                                 # change spindle RPM if it has been changed on the dial
                                 if self.change_sr != 0:
                                     self.app.comms.write(f"M3 S{self.app.sr + self.change_sr}\n")
@@ -436,11 +446,23 @@ class HB04():
 
                         if wheel != 0:
                             if axis == 'F':
-                                # adjust feed override
-                                self.f_ovr += wheel
-                                if self.f_ovr < 10:
-                                    self.f_ovr = 10
-                                self.setovr(self.f_ovr, self.s_ovr)
+                                if btn_1 == BUT_STEP:
+                                    # adjust feed override
+                                    self.change_f_ovr += wheel
+                                    d = self.app.fro + self.change_f_ovr
+                                    if d < 0:
+                                        self.change_f_ovr = 0
+                                    else:
+                                        self.setovr(d, self.s_ovr)
+                                else:
+                                    # adjust Feedrate
+                                    self.change_fr += (wheel * 10)
+                                    d = self.app.frr + self.change_fr
+                                    if d <= 0:
+                                        self.change_fr = 0
+                                    else:
+                                        self.setfs(d, self.app.sr)
+
                                 self.update_lcd()
                                 continue
 
@@ -450,11 +472,14 @@ class HB04():
                                     self.s_ovr += wheel
                                     if self.s_ovr < 1:
                                         self.s_ovr = 1
-                                    self.setovr(self.f_ovr, self.s_ovr)
+                                    self.setovr(self.app.fro, self.s_ovr)
                                 else:
                                     # Adjust spindle RPM (or PWM)
                                     self.change_sr += (wheel * self.sr_inc)
-                                    self.setfs(self.app.frr, self.app.sr + self.change_sr)
+                                    if d < 0:
+                                        self.change_sr = 0
+                                    else:
+                                        self.setfs(self.app.frr, d)
 
                                 self.update_lcd()
                                 continue
@@ -595,8 +620,12 @@ class HB04():
         self.update_lcd()
 
     def update_fro(self, i, v):
-        self.f_ovr = v
-        self.setovr(self.f_ovr, self.s_ovr)
+        self.setovr(v, self.s_ovr)
+        self.update_lcd()
+
+    def update_frr(self, i, v):
+        self.setfs(v, self.app.sr)
+        self.update_lcd()
 
     def update_sr(self, i, v):
         self.setfs(self.app.frr, v)
