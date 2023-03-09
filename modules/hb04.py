@@ -182,7 +182,6 @@ class HB04():
     macrobut = {}
     f_ovr = 100
     s_ovr = 100
-    sr = 0
     sr_inc = 1
     change_sr = 0
     cont_mode = False
@@ -341,7 +340,7 @@ class HB04():
                                 #     self.app.comms.write("M221 S{}\n".format(self.s_ovr));
                                 # change spindle RPM if it has been changed on the dial
                                 if self.change_sr != 0:
-                                    self.app.comms.write(f"M3 S{self.sr + self.change_sr}\n")
+                                    self.app.comms.write(f"M3 S{self.app.sr + self.change_sr}\n")
                                     self.change_sr = 0
 
                                 self.refresh_lcd()
@@ -451,7 +450,7 @@ class HB04():
                                 else:
                                     # Adjust spindle RPM (or PWM)
                                     self.change_sr += (wheel * self.sr_inc)
-                                    self.setfs(self.app.frr, self.sr + self.change_sr)
+                                    self.setfs(self.app.frr, self.app.sr + self.change_sr)
 
                                 self.update_lcd()
                                 continue
@@ -596,6 +595,5 @@ class HB04():
         self.setovr(self.f_ovr, self.s_ovr)
 
     def update_sr(self, i, v):
-        self.sr = v
-        self.setfs(self.app.frr, self.sr)
+        self.setfs(self.app.frr, v)
         self.update_lcd()

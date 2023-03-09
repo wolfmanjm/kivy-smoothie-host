@@ -95,20 +95,20 @@ class SpindleHandler():
             app.main_window.async_display(f"Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.2f}")
         return pwm
 
-    def reverse_lookup(self, spwm):
+    def reverse_lookup(self, pwm):
         ''' look up the PWM in the table and return the interpolated RPM '''
         idx = 0
         for ri in self.pwm:
-            if ri > spwm:
+            if ri > pwm:
                 break
             idx += 1
 
         # return minimum or maximum if necessary
         if idx == 0:
-            rpm = self.rpm[0]
+            mrpm = self.rpm[0]
 
         elif idx >= len(self.rpm):
-            rpm = self.rpm[-1]
+            mrpm = self.rpm[-1]
 
         else:
             # interpolate the value
@@ -117,10 +117,10 @@ class SpindleHandler():
             r1 = self.pwm[idx - 1]
             r2 = self.pwm[idx]
 
-            rpm = p1 + (p2 - p1) * ((spwm - r1) / (r2 - r1))
+            mrpm = p1 + (p2 - p1) * ((pwm - r1) / (r2 - r1))
 
-        # take into consideration the ratio to get the motor RPM, ratio is from motor to pulley
-        return rpm * self.ratio
+        # take into consideration the ratio to get the spindle RPM, ratio is from motor to pulley
+        return mrpm * self.ratio
 
     def get_max_rpm(self):
         return self.rpm[-1]
@@ -142,5 +142,5 @@ if __name__ == "__main__":
             print(f"{r}: {sh.lookup(r)}")
 
         print("lookup PWM to RPM")
-        for r in [6.5, 8.55, 1, 9, 7.8, 7.75, 7.5]:
-            print(f"{r}: {sh.reverse_lookup(r)}")
+        for r in [6.5, 8.55, 1, 9, 6.95, 7.45, 7.55, 7.50, 7.551666, 7.98]:
+            print(f"{r}: {sh.reverse_lookup(r):1.2f}")
