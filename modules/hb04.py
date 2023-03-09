@@ -183,6 +183,7 @@ class HB04():
     f_ovr = 100
     s_ovr = 100
     sr_inc = 1
+    sr_scale = 1.0
     change_sr = 0
     cont_mode = False
     cont_moving = False
@@ -219,7 +220,8 @@ class HB04():
 
             # load any default settings
             self.mul = config.getint("defaults", "multiplier", fallback=8)
-            self.sr_inc = config.getfloat("defaults", "sr_inc", fallback=1)
+            self.sr_inc = config.getfloat("defaults", "sr_inc", fallback=1.0)
+            self.sr_scale = config.getfloat("defaults", "sr_scale", fallback=1.0)
 
             # initialize axis specific multiplier (default is above)
             for x in ['X', 'Y', 'Z', 'A']:
@@ -541,7 +543,7 @@ class HB04():
         self.lock.acquire()
         self.lcd_data[31] = l
         self.lcd_data[32] = h
-        (l, h) = self.to_le(int(round(s)))
+        (l, h) = self.to_le(int(round(s * sr_scale)))
         self.lcd_data[33] = l
         self.lcd_data[34] = h
         self.lock.release()
