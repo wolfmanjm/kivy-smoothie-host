@@ -545,7 +545,7 @@ class HB04():
         self.lock.acquire()
         self.lcd_data[31] = l
         self.lcd_data[32] = h
-        (l, h) = self.to_le(int(round(s * sr_scale)))
+        (l, h) = self.to_le(int(round(s * self.sr_scale)))
         self.lcd_data[33] = l
         self.lcd_data[34] = h
         self.lock.release()
