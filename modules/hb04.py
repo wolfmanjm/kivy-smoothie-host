@@ -349,7 +349,7 @@ class HB04():
                                     self.change_f_ovr = 0
 
                                 if self.change_fr != 0:
-                                    self.app.comms.write(f"F{self.app.frr + self.change_fr}\n")
+                                    self.app.comms.write(f"G1 F{self.app.frr + self.change_fr}\n")
                                     self.change_fr = 0
 
                                 # if self.s_ovr != self.app.sr:
