@@ -241,6 +241,7 @@ class HB04():
 
         except Exception as err:
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
+            self.app.main_window.async_display(f"HB04: ERROR - exception parsing config file: {err} - may not be fully configured now")
 
     def edit_macros(self, *args):
         self.app.text_editor.open('hb04.ini', self.reload_macros)
