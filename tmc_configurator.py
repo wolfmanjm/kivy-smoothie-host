@@ -9,6 +9,7 @@ Builder.load_string('''
 <TMCConfigurator>:
     on_enter: self.start()
     BoxLayout:
+        disabled: not app.is_connected or root.is_printing
         canvas:
             Color:
                 rgba: 0.3, 0.3, 0.3, 1
@@ -310,8 +311,11 @@ class TMCConfigurator(Screen):
     current_motor = 0
 
     def start(self):
-        # get current settings for selected motor
-        self.get_chop_register()
+        if App.get_running_app().is_connected:
+            # get current settings for selected motor
+            self.get_chop_register()
+        else:
+            self.close()
 
     def tab_changed(self):
         name = self.ids.modes.current_tab.text

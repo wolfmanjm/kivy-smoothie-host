@@ -55,6 +55,7 @@ from notify import Notify
 from calc_widget import CalcScreen
 from uart_logger import UartLogger
 from tmc_configurator import TMCConfigurator
+from spindle_handler import SpindleHandler
 
 import subprocess
 import threading
@@ -519,6 +520,9 @@ class MainWindow(BoxLayout):
 
         if 'S' in d:
             self.app.sr = d['S'][0]
+            if self.app.spindle_handler is not None:
+                # convert from the PWM to RPM
+                self.app.rpm = self.app.spindle_handler.reverse_lookup(self.app.sr)
 
         if 'L' in d:
             self.app.lp = d['L'][0]
@@ -1071,7 +1075,7 @@ class MainWindow(BoxLayout):
         if self.app.is_desktop >= 1:
             Window.minimize()
 
-    def open_tmc_configurator(self):
+    def open_tmc_configurator(self, arg=None):
         if not self.app.sm.has_screen('tmc_configurator'):
             tmc_configurator = TMCConfigurator(name='tmc_configurator')
             self.app.sm.add_widget(tmc_configurator)
@@ -1100,6 +1104,7 @@ class SmoothieHost(App):
     fro = NumericProperty(100)
     sr = NumericProperty(0)
     lp = NumericProperty(0)
+    rpm = NumericProperty(0)
     is_inch = BooleanProperty(False)
     is_spindle_on = BooleanProperty(False)
     is_abs = BooleanProperty(True)
@@ -1135,6 +1140,7 @@ class SmoothieHost(App):
         self.minimized = False
         self.safez = 20
         self.last_command = ""
+        self.spindle_handler = None
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1556,6 +1562,11 @@ class SmoothieHost(App):
                 # remove from panel
                 self.main_window.ids.blright.remove_widget(self.main_window.ids.extruder_tab)
 
+            # see if a spindle handler is enabled to translate the spindle speeds to PWM
+            self.spindle_handler = SpindleHandler()
+            if not self.spindle_handler.load():
+                self.spindle_handler = None
+
         # if not CNC mode then do not show the ZABC buttons in jogrose
         if not self.is_cnc:
             self.main_window.ids.tabs.jog_rose.jogrosemain.remove_widget(self.main_window.ids.tabs.jog_rose.abc_panel)
@@ -1563,6 +1574,9 @@ class SmoothieHost(App):
         if self.is_webserver:
             self.webserver = ProgressServer()
             self.webserver.start(self, 8000)
+
+        # add calculator to menu
+        self.main_window.tools_menu.add_widget(ActionButton(text='Calculator', on_press=self.main_window.open_calculator))
 
         if self.is_show_camera:
             self.camera_url = self.config.get('Web', 'camera_url')
@@ -1584,9 +1598,7 @@ class SmoothieHost(App):
 
         if self.is_v2:
             self.main_window.tools_menu.add_widget(ActionButton(text='Set Datetime', on_press=self.tool_scripts.set_datetime))
-
-        # add calculator to menu
-        self.main_window.tools_menu.add_widget(ActionButton(text='Calculator', on_press=self.main_window.open_calculator))
+            self.main_window.tools_menu.add_widget(ActionButton(text='TMC Config', on_press=self.main_window.open_tmc_configurator))
 
         # load any modules specified in config
         self._load_modules()

@@ -264,10 +264,10 @@ class Knob(Widget):
     def on_release(self):
         pass
 
-    def update_angle(self, touch, first= False):
-        posx, posy          =   touch.pos
-        cx, cy              =   self.center
-        rx, ry              =   posx - cx, posy - cy
+    def update_angle(self, touch, first=False):
+        posx, posy = touch.pos
+        cx, cy = self.center
+        rx, ry = posx - cx, posy - cy
 
         if ry >= 0:                                 # Quadrants are clockwise.
             quadrant = 1 if rx >= 0 else 4
@@ -275,43 +275,43 @@ class Knob(Widget):
             quadrant = 3 if rx <= 0 else 2
 
         try:
-            angle    = math.atan(rx / ry) * (180./math.pi)
+            angle = math.atan(rx / ry) * (180. / math.pi)
             if quadrant == 2 or quadrant == 3:
                 angle = 180 + angle
             elif quadrant == 4:
                 angle = 360 + angle
 
-        except:                                   # atan not def for angle 90 and 270
+        except Exception:                                   # atan not def for angle 90 and 270
             angle = 90 if quadrant <= 2 else 270
 
         # handle relative ticks per move
         if first:
-            self._start_angle= angle
-            self._last_angle= angle
-            #print('start angle= {}'.format(self._start_angle))
+            self._start_angle = angle
+            self._last_angle = angle
+            # print('start angle= {}'.format(self._start_angle))
 
-        #print("angle= {}, direction= {}, clicks= {}".format(angle, self._last_angle <= angle, abs(self._last_angle-angle)))
-        t= angle-self._last_angle
+        # print("angle= {}, direction= {}, clicks= {}".format(angle, self._last_angle <= angle, abs(self._last_angle-angle)))
+        t = angle - self._last_angle
         # handle wrap around
         if t > 270:
-            t= t - 360
+            t = t - 360
         if t < -270:
-            t= t + 360
+            t = t + 360
 
         if abs(t) >= 1.0:
             # only issue event every full degree
-            self.ticks= int(t)
-            self._last_angle= angle
+            self.ticks = int(t)
+            self._last_angle = angle
             self.dispatch('on_tick')
 
         # original handle absolute position
-        self._angle_step    =   (self.step*360)/(self.max - self.min)
-        self._angle         =   self._angle_step
+        self._angle_step = (self.step * 360) / (self.max - self.min)
+        self._angle = self._angle_step
         while self._angle < angle:
-            self._angle     =   self._angle + self._angle_step
+            self._angle = self._angle + self._angle_step
 
-        relativeValue   =   pow((angle/360.), 1./self.curve)
-        self.value      =   (relativeValue * (self.max - self.min)) + self.min
+        relativeValue = pow((angle / 360.), 1. / self.curve)
+        self.value = (relativeValue * (self.max - self.min)) + self.min
 
     def on_tick(self):
         pass

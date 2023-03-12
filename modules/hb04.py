@@ -180,10 +180,16 @@ class HB04():
     mullut = {0x00: 0, 0x01: 1, 0x02: 5, 0x03: 10, 0x04: 20, 0x05: 30, 0x06: 40, 0x07: 50, 0x08: 100, 0x09: 500, 0x0A: 1000}
     axis_mul = {}
     macrobut = {}
-    f_ovr = 100
+    change_f_ovr = 0
+    change_fr = 0
+    fr_inc = 1.0
     s_ovr = 100
+    sr_inc = 1
+    sr_scale = 1.0
+    change_sr = 0
     cont_mode = False
     cont_moving = False
+    default_spindle_speed = 3000
 
     def __init__(self, vid, pid):
         # HB04 vendor ID and product ID
@@ -217,6 +223,11 @@ class HB04():
 
             # load any default settings
             self.mul = config.getint("defaults", "multiplier", fallback=8)
+            self.sr_inc = config.getfloat("defaults", "sr_inc", fallback=1.0)
+            self.fr_inc = config.getfloat("defaults", "fr_inc", fallback=1.0)
+            self.sr_scale = config.getfloat("defaults", "sr_scale", fallback=1.0)
+            self.default_spindle_speed = config.getfloat("defaults", "spindle_speed", fallback=3000)
+
             # initialize axis specific multiplier (default is above)
             for x in ['X', 'Y', 'Z', 'A']:
                 self.axis_mul[x] = config.getint("defaults", f"{x}_multiplier".lower(), fallback=self.mul)
@@ -230,6 +241,7 @@ class HB04():
 
         except Exception as err:
             Logger.warning('HB04: WARNING - exception parsing config file: {}'.format(err))
+            self.app.main_window.async_display(f"HB04: ERROR - exception parsing config file: {err} - may not be fully configured now")
 
     def edit_macros(self, *args):
         self.app.text_editor.open('hb04.ini', self.reload_macros)
@@ -246,10 +258,14 @@ class HB04():
             self.app.bind(wpos=self.update_wpos)
             self.app.bind(mpos=self.update_mpos)
             self.app.bind(fro=self.update_fro)
+            self.app.bind(frr=self.update_frr)
+            self.app.bind(sr=self.update_sr)
         else:
             self.app.unbind(wpos=self.update_wpos)
             self.app.unbind(mpos=self.update_mpos)
             self.app.unbind(fro=self.update_fro)
+            self.app.unbind(frr=self.update_frr)
+            self.app.unbind(sr=self.update_sr)
 
     def handle_button(self, btn, axis):
         if btn not in self.butlut:
@@ -282,7 +298,7 @@ class HB04():
         elif btn == BUT_SAFEZ:
             cmd = "G91 G0 Z20 G90"
         elif btn == BUT_SPINDLE:
-            cmd = "M5" if self.app.is_spindle_on else "M3"
+            cmd = "M5" if self.app.is_spindle_on else f"M3 S{self.default_spindle_speed}"
         elif btn == BUT_HALF:
             cmd = "G10 L20 P0 {}{}".format(axis, self.app.wpos[ord(axis) - ord('X')] / 2.0)
 
@@ -310,7 +326,7 @@ class HB04():
                     # setup LCD with current settings
                     self.setwcs(self.app.wpos)
                     self.setmcs(self.app.mpos[0:3])
-                    self.setovr(self.f_ovr, self.s_ovr)
+                    self.setovr(self.app.fro, self.s_ovr)
                     self.setfs(self.app.frr, self.app.sr)
                     self.setmul(self.mul)
                     self.update_lcd()
@@ -328,10 +344,22 @@ class HB04():
                         if size == 0:
                             # timeout
                             if self.app.is_connected:
-                                if self.f_ovr != self.app.fro:
-                                    self.app.comms.write("M220 S{}\n".format(self.f_ovr))
+                                if self.change_f_ovr != 0:
+                                    self.app.comms.write(f"M220 S{self.app.fro + self.change_f_ovr}\n")
+                                    self.change_f_ovr = 0
+
+                                if self.change_fr != 0:
+                                    self.app.comms.write(f"G1 F{self.app.frr + self.change_fr}\n")
+                                    self.change_fr = 0
+
                                 # if self.s_ovr != self.app.sr:
                                 #     self.app.comms.write("M221 S{}\n".format(self.s_ovr));
+
+                                # change spindle RPM if it has been changed on the dial
+                                if self.change_sr != 0:
+                                    self.app.comms.write(f"M3 S{self.app.sr + self.change_sr}\n")
+                                    self.change_sr = 0
+
                                 self.refresh_lcd()
                             continue
 
@@ -348,25 +376,24 @@ class HB04():
 
                         axis = self.alut[wheel_mode]
 
-                        # handle move multiply buttons
-                        if btn_1 == BUT_STEP:
-                            self.mul += wheel
-                            if self.mul > 10:
-                                self.mul = 1
-                            if self.mul < 1:
-                                self.mul = 10
-                            self.setmul(self.mul)
-                            if axis in ['X', 'Y', 'Z', 'A']:
+                        if axis in ['X', 'Y', 'Z', 'A']:
+                            # handle move multiply buttons
+                            if btn_1 == BUT_STEP:
+                                self.mul += wheel
+                                if self.mul > 10:
+                                    self.mul = 1
+                                if self.mul < 1:
+                                    self.mul = 10
+                                self.setmul(self.mul)
                                 self.axis_mul[axis] = self.mul
+                                self.refresh_lcd()
+                                continue
 
-                            self.refresh_lcd()
-                            continue
-
-                        elif axis in ['X', 'Y', 'Z', 'A'] and axis != last_axis:
-                            self.mul = self.axis_mul[axis]
-                            self.setmul(self.mul)
-                            last_axis = axis
-                            self.refresh_lcd()
+                            elif axis != last_axis:
+                                self.mul = self.axis_mul[axis]
+                                self.setmul(self.mul)
+                                last_axis = axis
+                                self.refresh_lcd()
 
                         if not self.app.is_connected:
                             continue
@@ -422,19 +449,42 @@ class HB04():
 
                         if wheel != 0:
                             if axis == 'F':
-                                # adjust feed override
-                                self.f_ovr += wheel
-                                if self.f_ovr < 10:
-                                    self.f_ovr = 10
-                                self.setovr(self.f_ovr, self.s_ovr)
+                                if btn_1 == BUT_STEP:
+                                    # adjust feed override
+                                    self.change_f_ovr += wheel
+                                    d = self.app.fro + self.change_f_ovr
+                                    if d < 0:
+                                        self.change_f_ovr = 0
+                                    else:
+                                        self.setovr(d, self.s_ovr)
+                                else:
+                                    # adjust Feedrate
+                                    self.change_fr += (wheel * self.fr_inc)
+                                    d = self.app.frr + self.change_fr
+                                    if d <= 0:
+                                        self.change_fr = 0
+                                    else:
+                                        self.setfs(d, self.app.sr)
+
                                 self.update_lcd()
                                 continue
+
                             if axis == 'S':
-                                # adjust S override, laser power? (TODO maybe this is tool speed?)
-                                self.s_ovr += wheel
-                                if self.s_ovr < 1:
-                                    self.s_ovr = 1
-                                self.setovr(self.f_ovr, self.s_ovr)
+                                if btn_1 == BUT_STEP:
+                                    # adjust S override
+                                    self.s_ovr += wheel
+                                    if self.s_ovr < 1:
+                                        self.s_ovr = 1
+                                    self.setovr(self.app.fro, self.s_ovr)
+                                else:
+                                    # Adjust spindle RPM (or PWM)
+                                    self.change_sr += (wheel * self.sr_inc)
+                                    d = self.app.sr + self.change_sr
+                                    if d < 0:
+                                        self.change_sr = 0
+                                    else:
+                                        self.setfs(self.app.frr, d)
+
                                 self.update_lcd()
                                 continue
 
@@ -524,7 +574,7 @@ class HB04():
         self.lock.acquire()
         self.lcd_data[31] = l
         self.lcd_data[32] = h
-        (l, h) = self.to_le(int(round(s)))
+        (l, h) = self.to_le(int(round(s * self.sr_scale)))
         self.lcd_data[33] = l
         self.lcd_data[34] = h
         self.lock.release()
@@ -574,5 +624,13 @@ class HB04():
         self.update_lcd()
 
     def update_fro(self, i, v):
-        self.f_ovr = v
-        self.setovr(self.f_ovr, self.s_ovr)
+        self.setovr(v, self.s_ovr)
+        self.update_lcd()
+
+    def update_frr(self, i, v):
+        self.setfs(v, self.app.sr)
+        self.update_lcd()
+
+    def update_sr(self, i, v):
+        self.setfs(self.app.frr, v)
+        self.update_lcd()

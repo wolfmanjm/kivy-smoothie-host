@@ -168,38 +168,31 @@
         height: 40
         padding: 4
         spacing: 4
+
         Label:
-            text: 'Fr:'
-            size_hint_x: None
-            size: self.texture_size
-        Label:
-            text: '{:0.1f}/{:0.1f}'.format(app.fr, app.frr)
-            size_hint_x: None
+            text: 'Fr: {:0.1f}/{:0.1f}'.format(app.fr, app.frr)
+            size_hint: None, None
             size: self.texture_size
 
         Label:
-            text: ' | Ovr:'
-            size_hint_x: None
-            size: self.texture_size
-        Label:
-            text: '{:3.0f}%'.format(app.fro)
-            size_hint_x: None
+            text: ' | Ovr: {:3.0f}%'.format(app.fro)
+            size_hint: None, None
             size: self.texture_size
 
         Label:
-            text: ' | Power:'
-            size_hint_x: None
-            size: self.texture_size
-        Label:
-            text: '{:1.2f}'.format(app.sr)
-            size_hint_x: None
+            text: ' | S: {:1.2f}'.format(app.sr)
+            size_hint: None, None
             size: self.texture_size
 
+        # Hide these if they are not set
         Label:
-            text: ' | Laser:'
-            size_hint_x: None
-            size: self.texture_size
+            text: ' | Laser: {:3.1f}%'.format(app.lp)
+            size_hint: None, None
+            size: self.texture_size if app.lp > 0 else (0, 0)
+            opacity: 1 if app.lp > 0 else 0
+
         Label:
-            text: '{:3.1f}%'.format(app.lp)
-            size_hint_x: None
-            size: self.texture_size
+            text: ' | {:4.1f} RPM'.format(app.rpm)
+            size_hint: None, None
+            size: self.texture_size if app.rpm > 0 else (0, 0)
+            opacity: 1 if app.rpm > 0 else 0
