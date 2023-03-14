@@ -87,12 +87,12 @@ class SpindleHandler():
 
             pwm = p1 + (p2 - p1) * ((mrpm - r1) / (r2 - r1))
 
-        Logger.debug(f"SpindleHandler: Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.2f}")
+        Logger.debug(f"SpindleHandler: Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.4f}")
 
         # FIXME for debugging remove when done
         app = App.get_running_app()
         if app is not None:
-            app.main_window.async_display(f"Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.2f}")
+            app.main_window.async_display(f"Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.4f}")
         return pwm
 
     def reverse_lookup(self, pwm):
