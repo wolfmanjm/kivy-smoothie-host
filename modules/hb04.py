@@ -356,9 +356,9 @@ class HB04():
                                 #     self.app.comms.write("M221 S{}\n".format(self.s_ovr));
 
                                 # change spindle RPM if it has been changed on the dial
-                                if self.change_sr != 0:
-                                    self.app.comms.write(f"M3 S{self.app.sr + self.change_sr}\n")
-                                    self.change_sr = 0
+                                # if self.change_sr != 0:
+                                #     self.app.comms.write(f"M3 S{self.app.sr + self.change_sr}\n")
+                                #     self.change_sr = 0
 
                                 self.refresh_lcd()
                             continue
@@ -480,10 +480,10 @@ class HB04():
                                     # Adjust spindle RPM (or PWM)
                                     self.change_sr += (wheel * self.sr_inc)
                                     d = self.app.sr + self.change_sr
-                                    if d < 0:
-                                        self.change_sr = 0
-                                    else:
+                                    if d > 0:
                                         self.setfs(self.app.frr, d)
+                                        self.app.comms.write(f"M3 S{d}\n")
+                                    self.change_sr = 0
 
                                 self.update_lcd()
                                 continue
