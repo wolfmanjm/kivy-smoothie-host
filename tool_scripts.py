@@ -173,8 +173,8 @@ class ToolScripts():
                 "Diameter is {}, plus the tool diameter".format(diam))
 
         except Exception as msg:
-            # Logger.info("Tools: Exception - {}".format(traceback.format_exc()))
-            Logger.error("Tools: find_center: Got exception: {}".format(msg))
+            Logger.info("Tools: Exception - {}".format(traceback.format_exc()))
+            # Logger.error("Tools: find_center: Got exception: {}".format(msg))
             self.app.main_window.async_display("find center failed: {}".format(msg))
 
         else:
