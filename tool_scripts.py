@@ -48,7 +48,7 @@ class ToolScripts():
             self.app.comms.write(f"M3 S{rpm}\n")
 
     # private methods
-    def _wait(tmo=120):
+    def _wait(self, tmo=120):
         self.app.comms.write("M400\n")
         if not self.app.comms.okcnt.wait(tmo):
             raise Exception("wait (M400) timed out")
