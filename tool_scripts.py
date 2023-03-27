@@ -141,6 +141,7 @@ class ToolScripts():
 
             # move back to starting x
             self._moveto(x=wpx)
+            self._wait()
 
             # probe left
             r2 = self._probe(x=-30)
