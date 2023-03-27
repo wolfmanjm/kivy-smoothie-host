@@ -48,6 +48,13 @@ class ToolScripts():
             self.app.comms.write(f"M3 S{rpm}\n")
 
     # private methods
+    def _wait(tmo=120):
+        self.app.comms.write("M400\n")
+        if not self.app.comms.okcnt.wait(tmo):
+            raise Exception("wait (M400) timed out")
+
+        self.app.comms.okcnt.clear()
+
     def _probe(self, x=None, y=None, z=None):
         cmd = ""
         if x:
@@ -142,12 +149,14 @@ class ToolScripts():
 
             # center in X
             self._moveby(x=diam / 2.0)
+            self._wait()
 
             # probe back
             r1 = self._probe(y=30)
 
             # move back to starting y
             self._moveto(y=wpy)
+            self._wait()
 
             # probe front
             r2 = self._probe(y=-30)
@@ -156,6 +165,7 @@ class ToolScripts():
 
             # center in Y
             self._moveby(y=diam / 2.0)
+            self._wait()
 
             # tell us the approx diameter
             self.app.main_window.async_display(
