@@ -755,10 +755,17 @@ class Comms():
                     if len(rpm) > 1 and rpm[1].startswith('S'):
                         try:
                             rpm = float(rpm[1][1:])
-
-                            line = f"{self.app.spindle_handler.translate} S{self.app.spindle_handler.lookup(rpm)}"
+                            (pwm, belt) = self.app.spindle_handler.lookup(rpm)
+                            line = f"{self.app.spindle_handler.translate} S{pwm}"
                             self.log.debug(f'Comms: Translated M3 to {line}')
-                            self.app.main_window.async_display(f'// Translated M3 to {line}\n')
+                            self.app.main_window.async_display(f'// {line} use belt {belt}\n')
+                            if belt:
+                                # wait for the continue dialog to be dismissed after belt changed
+                                self.app.main_window.m0_dlg()
+                                self.m0 = asyncio.Event()
+                                await self.m0.wait()
+                                self.m0 = None
+
                         except Exception as e:
                             self.log.error(f"Comms: spindle handler exception: {e}")
 

@@ -19,7 +19,9 @@ class SpindleHandler():
         self.pwm = []
         self.enabled = False
         self.translate = ""
-        self.ratio = 1.0
+        self.belt_tbl = []
+        self.last_ratio = 1.0
+        self.last_belt = None
 
     def load(self):
         if not (os.path.isfile(SPINDLE_INI_FILE) and os.access(SPINDLE_INI_FILE, os.R_OK)):
@@ -38,9 +40,6 @@ class SpindleHandler():
             # read translation M code
             self.translate = config.get("setup", "translate", fallback="")
 
-            # read spindle pulley ratio
-            self.ratio = config.getfloat("setup", "ratio", fallback=1.0)
-
             # read calibration data, must be is ascending RPM order
             last_rpm = 0
             for (key, v) in config.items('calibration'):
@@ -54,17 +53,42 @@ class SpindleHandler():
                 self.rpm.append(r)
                 self.pwm.append(p)
 
+            # read spindle pulley ratio in belt 1 to belt 10 position
+            for section in config.sections():
+                if section.startswith('belt '):
+                    belt = section[5:]
+                    ratio = config.getfloat(section, "ratio")
+                    high = config.getfloat(section, "rpm_high")
+                    low = config.getfloat(section, "rpm_low")
+                    self.belt_tbl.append({'position': belt, 'ratio': ratio, 'high': high, 'low': low})
+
+            print(self.belt_tbl)
+
         except Exception as err:
-            Logger.warning('SpindleHandler: WARNING - exception parsing config file: {}'.format(err))
+            Logger.warning(f'SpindleHandler: WARNING - exception parsing config file: {err}')
+            app = App.get_running_app()
+            if app is not None:
+                app.main_window.async_display(f"ERROR in spindle.ini: {err}")
+
             return False
 
         return True
 
     def lookup(self, srpm):
-        ''' look up the RPM in the table and return the interpolated PWM '''
+        ''' look up the spindle RPM in the table and return the interpolated PWM '''
         idx = 0
+        mrpm = srpm
+        belt = 0
+
         # take into consideration the ratio to get the motor RPM, ratio is from motor to pulley
-        mrpm = srpm / self.ratio  # convert to Motor RPM from Spindle RPM
+        if self.belt_tbl:
+            for b in self.belt_tbl:
+                # find rpm range
+                if srpm >= b['low'] and srpm <= b['high']:
+                    self.last_ratio = b['ratio']
+                    mrpm = srpm / self.last_ratio  # convert to Motor RPM from Spindle RPM
+                    belt = b['position']
+                    break
 
         for ri in self.rpm:
             if ri > mrpm:
@@ -93,10 +117,17 @@ class SpindleHandler():
         app = App.get_running_app()
         if app is not None:
             app.main_window.async_display(f"Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.4f}")
-        return pwm
+
+        # returns the pwm to use and the belt position (0 means no belt position needed)
+        if self.last_belt is None:
+            self.last_belt = belt
+        elif self.last_belt == belt:
+            belt = 0
+
+        return (pwm, belt)
 
     def reverse_lookup(self, pwm):
-        ''' look up the PWM in the table and return the interpolated RPM '''
+        ''' look up the PWM in the table and return the interpolated RPM, presumes lookup was used previously '''
         idx = 0
         for ri in self.pwm:
             if ri > pwm:
@@ -120,7 +151,7 @@ class SpindleHandler():
             mrpm = p1 + (p2 - p1) * ((pwm - r1) / (r2 - r1))
 
         # take into consideration the ratio to get the spindle RPM, ratio is from motor to pulley
-        return mrpm * self.ratio
+        return mrpm * self.last_ratio
 
     def get_max_rpm(self):
         return self.rpm[-1]
@@ -135,12 +166,12 @@ if __name__ == "__main__":
 
     else:
         print(f"translate M3 to {sh.translate}")
-        print(f"ratio = {sh.ratio}")
 
         print("lookup RPM to PWM")
-        for r in [0, 6000, 6010, 10000, 1, 100, 200, 500, 1000, 150, 510, 550, 590, 750, 900, 999, -1]:
+        for r in [0, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 12000]:
+            sh.last_belt = None
             print(f"{r}: {sh.lookup(r)}")
 
-        print("lookup PWM to RPM")
-        for r in [6.5, 8.55, 1, 9, 6.95, 7.45, 7.55, 7.50, 7.551666, 7.98]:
-            print(f"{r}: {sh.reverse_lookup(r):1.2f}")
+        # print("lookup PWM to RPM")
+        # for r in [6.5, 8.55, 1, 9, 6.95, 7.45, 7.55, 7.50, 7.551666, 7.98]:
+        #     print(f"{r}: {sh.reverse_lookup(r):1.2f}")
