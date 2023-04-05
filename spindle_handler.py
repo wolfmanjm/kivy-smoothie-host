@@ -2,6 +2,11 @@ import kivy
 
 from kivy.app import App
 from kivy.logger import Logger
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.popup import Popup
+from kivy.clock import mainthread
 
 import configparser
 from functools import partial
@@ -13,7 +18,7 @@ SPINDLE_INI_FILE = "spindle.ini"
 class SpindleHandler():
     def __init__(self, **kwargs):
         super(SpindleHandler, self).__init__(**kwargs)
-        # self.app = App.get_running_app()
+        self.app = App.get_running_app()
 
         self.rpm = []
         self.pwm = []
@@ -62,13 +67,12 @@ class SpindleHandler():
                     low = config.getfloat(section, "rpm_low")
                     self.belt_tbl.append({'position': belt, 'ratio': ratio, 'high': high, 'low': low})
 
-            print(self.belt_tbl)
+            # print(self.belt_tbl)
 
         except Exception as err:
             Logger.warning(f'SpindleHandler: WARNING - exception parsing config file: {err}')
-            app = App.get_running_app()
-            if app is not None:
-                app.main_window.async_display(f"ERROR in spindle.ini: {err}")
+            if self.app is not None:
+                self.app.main_window.async_display(f"ERROR in spindle.ini: {err}")
 
             return False
 
@@ -114,15 +118,16 @@ class SpindleHandler():
         Logger.debug(f"SpindleHandler: Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.4f}")
 
         # FIXME for debugging remove when done
-        app = App.get_running_app()
-        if app is not None:
-            app.main_window.async_display(f"Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.4f}")
+        if self.app is not None:
+            self.app.main_window.async_display(f"Spindle RPM of {srpm} is motor RPM of {mrpm:1.2f} which is PWM of {pwm:1.4f}")
 
-        # returns the pwm to use and the belt position (0 means no belt position needed)
+        # returns the pwm to use and the belt position (0 means no belt change is needed)
         if self.last_belt is None:
             self.last_belt = belt
         elif self.last_belt == belt:
             belt = 0
+        else:
+            self.last_belt = belt
 
         return (pwm, belt)
 
@@ -156,6 +161,25 @@ class SpindleHandler():
     def get_max_rpm(self):
         return self.rpm[-1]
 
+    @mainthread
+    def change_belt(self):
+        label1 = Label(text=f"to belt {self.last_belt}")
+        btn1 = Button(text="OK", size_hint_y=None, height=48)
+        Boxed_layout = BoxLayout(orientation="vertical")
+        Boxed_layout.add_widget(label1)
+        Boxed_layout.add_widget(btn1)
+
+        pop = Popup(title="Change Belt", content=Boxed_layout, size_hint=(.5, None), height=Boxed_layout.height + 140, auto_dismiss=False)
+
+        btn1.bind(on_release=partial(self.belt_changed, pop))
+
+        pop.open()
+
+    @mainthread
+    def belt_changed(self, popup, button):
+        popup.dismiss()
+        self.app.comms.release_m0()
+
 
 # test it
 if __name__ == "__main__":
@@ -169,7 +193,6 @@ if __name__ == "__main__":
 
         print("lookup RPM to PWM")
         for r in [0, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 12000]:
-            sh.last_belt = None
             print(f"{r}: {sh.lookup(r)}")
 
         # print("lookup PWM to RPM")

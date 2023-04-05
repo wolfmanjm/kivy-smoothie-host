@@ -761,8 +761,8 @@ class Comms():
                             self.app.main_window.async_display(f'// {line} use belt {belt}\n')
                             if belt:
                                 # wait for the continue dialog to be dismissed after belt changed
-                                self.app.main_window.m0_dlg()
                                 self.m0 = asyncio.Event()
+                                self.app.spindle_handler.change_belt()
                                 await self.m0.wait()
                                 self.m0 = None
 
