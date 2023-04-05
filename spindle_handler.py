@@ -162,7 +162,7 @@ class SpindleHandler():
         return self.rpm[-1]
 
     @mainthread
-    def change_belt(self):
+    def change_belt(self, cb=None):
         label1 = Label(text=f"to belt {self.last_belt}")
         btn1 = Button(text="OK", size_hint_y=None, height=48)
         Boxed_layout = BoxLayout(orientation="vertical")
@@ -171,14 +171,17 @@ class SpindleHandler():
 
         pop = Popup(title="Change Belt", content=Boxed_layout, size_hint=(.5, None), height=Boxed_layout.height + 140, auto_dismiss=False)
 
-        btn1.bind(on_release=partial(self.belt_changed, pop))
+        btn1.bind(on_release=partial(self.belt_changed, pop, cb))
 
         pop.open()
 
     @mainthread
-    def belt_changed(self, popup, button):
+    def belt_changed(self, popup, cb, button):
         popup.dismiss()
-        self.app.comms.release_m0()
+        if cb is None:
+            self.app.comms.release_m0()
+        else:
+            cb()
 
 
 # test it

@@ -5,6 +5,7 @@ from kivy.app import App
 import threading
 import traceback
 import datetime
+from functools import partial
 
 
 class ToolScripts():
@@ -39,7 +40,12 @@ class ToolScripts():
         """ set the RPM for a PWM driven switch spindle """
         if self.app.spindle_handler is not None:
             (pwm, belt) = self.app.spindle_handler.lookup(rpm)
-            self.app.comms.write(f"M3 S{pwm:1.4f}\n")
+            if belt:
+                # wait for the continue dialog to be dismissed after belt changed
+                self.app.spindle_handler.change_belt(partial(self._belt_changed, pwm))
+
+            else:
+                self.app.comms.write(f"M3 S{pwm:1.4f}\n")
 
             # FIXME for DEBUG
             self.app.main_window.async_display(f"Spindle RPM of {rpm} is PWM {pwm:1.4f} belt {belt}")
@@ -48,6 +54,9 @@ class ToolScripts():
             self.app.comms.write(f"M3 S{rpm}\n")
 
     # private methods
+    def _belt_changed(self, pwm):
+        self.app.comms.write(f"M3 S{pwm:1.4f}\n")
+
     def _wait(self, tmo=120):
         self.app.comms.write("M400\n")
         if not self.app.comms.okcnt.wait(tmo):
