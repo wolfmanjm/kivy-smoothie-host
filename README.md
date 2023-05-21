@@ -149,15 +149,17 @@ Samsung Evo+ are also supposed to be very fast in an RPI.
 
 The last line is quite important otherwise you get a whole lot of ok's echoed back to smoothie when it opens. This does not appear to be needed on a desktop probably due to the speed it is setup vs the rpi.
 
-### Raspbian/Buster on RPI3x (NOT RPI4b)
+### Raspbian/Buster or Bullseye on RPI3x (NOT RPI4b)
 
-Note the latest version is Bullseye and does not work on the official touch screen so use Buster. (see below if you must use Bullseye).
+(Note the latest version is Bullseye may not work on the official touch screen, but this may have been fixed recently).
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
 (This may work on older RPI versions but is not tested, please read this https://www.raspberrypi.org/documentation/hardware/display/legacy.md).
 
-Install the latest raspbian buster lite... (No XWindows)
+Install the latest raspbian buster lite (or Bullseye lite)... (No XWindows)
+eg
+
 https://downloads.raspberrypi.org/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2022-09-26/2022-09-22-raspios-buster-armhf-lite.img.xz
 
 Or you can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
