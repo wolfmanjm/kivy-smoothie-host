@@ -156,7 +156,7 @@ class Comms():
         self.m0 = None
         self.net_connection = False
         self.log = logging.getLogger()  # .getChild('Comms')
-        # logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.INFO)
 
     def connect(self, port):
         ''' called from UI to connect to given port, runs the asyncio mainloop in a separate thread '''
