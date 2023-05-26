@@ -407,19 +407,14 @@ class SerialTransport(asyncio.Transport):
             self._loop = None
 
 
-@asyncio.coroutine
-def create_serial_connection(loop, protocol_factory, *args, **kwargs):
+async def create_serial_connection(loop, protocol_factory, *args, **kwargs):
     ser = serial.serial_for_url(*args, **kwargs)
     protocol = protocol_factory()
     transport = SerialTransport(loop, protocol, ser)
     return (transport, protocol)
 
 
-@asyncio.coroutine
-def open_serial_connection(*,
-                           loop=None,
-                           limit=asyncio.streams._DEFAULT_LIMIT,
-                           **kwargs):
+async def open_serial_connection(*, loop=None, limit=asyncio.streams._DEFAULT_LIMIT, **kwargs):
     """A wrapper for create_serial_connection() returning a (reader,
     writer) pair.
 
@@ -437,7 +432,7 @@ def open_serial_connection(*,
         loop = asyncio.get_event_loop()
     reader = asyncio.StreamReader(limit=limit, loop=loop)
     protocol = asyncio.StreamReaderProtocol(reader, loop=loop)
-    transport, _ = yield from create_serial_connection(
+    transport, _ = await create_serial_connection(
         loop=loop,
         protocol_factory=lambda: protocol,
         **kwargs)
