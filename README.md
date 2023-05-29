@@ -424,7 +424,7 @@ Install Smoopi itself
 
 Run as
 
-    > cd kivy-smoothie-host
+    > cd smoopi
     > python3 main.py
 
 In settings set the desktop layout to Wide Desktop (or Small Desktop or Large Desktop) and restart.  The larger desktop layouts can also have a size specified by editing the smoothiehost.ini file and changing eg ```screen_size = 1024x900``` under the [UI] section. Set ```screen_size``` and 
