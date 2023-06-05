@@ -165,13 +165,15 @@ https://downloads.raspberrypi.org/raspios_oldstable_lite_armhf/images/raspios_ol
 Or you can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
 (type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the Buster lite OS.
 
-If you installed Buster you can do a quick install of the Kivy wheel using the following commands...
+If you installed Buster (or Bullseye) you can do a quick install of the Kivy wheel using the following commands...
 
     sudo apt update
     sudo apt upgrade (maybe reboot)
-    sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
     sudo apt install python3-pip
     python3 -m pip install --user kivy
+
+    # you may need to do the following but on the most recent raspbian OS it was not needed
+    sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
 
 Then skip to the Smoopi install and setup [section below](https://github.com/wolfmanjm/kivy-smoothie-host#smoopi-install-and-setup)
 
@@ -199,25 +201,22 @@ I had to add this to the /boot/config.txt
 #### RPI4b and Raspbian Buster or Bullseye
 It is recommended (and easier) to run under XWindows (>= 2GB memory is needed).
 First install the Full XWindows desktop version of Raspberry PI OS on the RPI4b,
-Bullseye which is here... https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2021-11-08/2021-10-30-raspios-bullseye-armhf.zip
-(or Buster which is here https://downloads.raspberrypi.org/raspbian/images/raspbian-2020-02-14/).
-(Note touch screens have been reported to have issues with bullseye).
+Bullseye which is here... https://www.raspberrypi.com/software/operating-systems/#raspberry-pi-os-64-bit
 
-Then you will need to install kivy (version == 2.1.0) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Smoopi install and setup" header.
+Then you will need to install kivy (version >= 2.1.0) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Smoopi install and setup" header.
 This recipe worked for me under Buster and Bullseye...
 
     > sudo apt-get update
-    > sudo python3 -m pip install --upgrade pip setuptools
-    > sudo apt install pkg-config libgl1-mesa-dev libgles2-mesa-dev libgstreamer1.0-dev gstreamer1.0-plugins-{bad,base,good,ugly} gstreamer1.0-{omx,alsa} libmtdev-dev xclip xsel libjpeg-dev
-    > sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-    > python3 -m pip install --upgrade --user kivy[base,media]
+    > python3 -m pip install --upgrade --user kivy
 
 Reading the Kivy install for pi4 is recommended https://kivy.org/doc/stable/installation/installation-rpi.html#install-source-rpi
 
 *NOTE* you *may* be able to get a touch screen to run without XWindows (console/headless mode) but I have not tested this (it is quite a complex install, and installing from source is required). Read this https://kivy.org/doc/stable/installation/installation-rpi.html#raspberry-pi-4-headless-installation-on-raspbian-buster and this issue may help.. https://github.com/kivy/kivy/issues/6474
 
 #### Running under XWindows on RPI
-Make sure that you run `raspi-config` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
+On RPI3b make sure that you run `raspi-config` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
+On RPI4b with Bullseye this is not needed, the default driver works fine.
+
 If using a mouse make sure that in `~/.kivy/config.ini` 
 
     [input]
@@ -318,8 +317,8 @@ To allow the program to shutdown the RPI when the shutdown menu entry is selecte
 
 To autostart smoopi on boot but run as the pi user follow these directions...
 
-1. Install runit (sudo apt-get install runit).
-2. On Raspbian Stretch/Buster do ```sudo apt-get install runit-systemd``` on Bullseye do ```sudo apt-get install runit-run```
+1. Install runit (sudo apt install runit).
+2. On Raspbian Stretch/Buster do ```sudo apt-get install runit-systemd``` (not needed on Bullseye)
 3. in the /home/pi directory run ```tar xvf ./smoopi/runit-setup-stretch.tar``` (presuming you checked out the smoopi source into /home/pi/smoopi)
 4. sudo ln -s /home/pi/sv/smoopi /etc/service
 
