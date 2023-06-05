@@ -316,11 +316,12 @@ To allow the program to shutdown the RPI when the shutdown menu entry is selecte
 
 ### Autostart Smoopi (Optional)
 
-To autostart smoopi on boot but run as the pi user follow these directions. (Assuming you are using stretch)...
+To autostart smoopi on boot but run as the pi user follow these directions...
 
-1. Install runit (sudo apt-get install runit). On Raspbian Stretch also do ```sudo apt-get install runit-systemd```
-2. in the /home/pi directory run ```tar xvf ./smoopi/runit-setup-stretch.tar``` (presuming you checked out the smoopi source into /home/pi/smoopi)
-3. sudo ln -s /home/pi/sv/smoopi /etc/service
+1. Install runit (sudo apt-get install runit).
+2. On Raspbian Stretch/Buster do ```sudo apt-get install runit-systemd``` on Bullseye do ```sudo apt-get install runit-run```
+3. in the /home/pi directory run ```tar xvf ./smoopi/runit-setup-stretch.tar``` (presuming you checked out the smoopi source into /home/pi/smoopi)
+4. sudo ln -s /home/pi/sv/smoopi /etc/service
 
 
 To allow Smoopi to connect to the smoothie when auto start by runit you need to do this...
