@@ -291,7 +291,7 @@ class Comms():
             self.app.main_window.disconnected()  # tell upstream we disconnected
 
             # we wait until all tasks are complete
-            pending = asyncio.Task.all_tasks()
+            pending = asyncio.all_tasks(loop)
             self.log.debug(f'Comms: waiting for all tasks to complete: {pending}')
             loop.run_until_complete(asyncio.gather(*pending))
             # loop.run_forever()
