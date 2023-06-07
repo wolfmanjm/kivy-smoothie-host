@@ -138,7 +138,7 @@ Samsung Evo+ are also supposed to be very fast in an RPI.
 
 **WARNING** Backup the sdcard regularly (I use rpi-clone), as the cards do fail quite quickly (I've had one fail after 9 months), the Sandisk ultras seem especially prone to early failure, and apparently using them on RPI invalidatesc the cards warranty.
 
-**NOTE** on the current image and all installs on raspbian you need to add this...
+**NOTE** on the older versions of raspbian (like bulldog or stretch) you need to add the following, however this is optional on a recent Bullseye install if you run as the user setup during install.
 
     > sudo nano /etc/udev/rules.d/90-smoothie.rules
     and add this...
@@ -209,7 +209,8 @@ This recipe worked for me under Buster and Bullseye...
     > sudo apt-get update
     > python3 -m pip install --upgrade --user kivy
 
-Reading the Kivy install for pi4 is recommended https://kivy.org/doc/stable/installation/installation-rpi.html#install-source-rpi
+If you want to install Kivy from source (or run headless) then reading the Kivy install for pi4
+is recommended https://kivy.org/doc/stable/installation/installation-rpi.html#install-source-rpi
 
 *NOTE* you *may* be able to get a touch screen to run without XWindows (console/headless mode) but I have not tested this (it is quite a complex install, and installing from source is required). Read this https://kivy.org/doc/stable/installation/installation-rpi.html#raspberry-pi-4-headless-installation-on-raspbian-buster and this issue may help.. https://github.com/kivy/kivy/issues/6474
 
