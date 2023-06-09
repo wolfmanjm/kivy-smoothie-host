@@ -177,6 +177,8 @@ If you installed Buster (or Bullseye) you can do a quick install of the Kivy whe
 
 Then skip to the Smoopi install and setup [section below](https://github.com/wolfmanjm/kivy-smoothie-host#smoopi-install-and-setup)
 
+After running smoopi the first time a default ```~/.kivy/config.ini``` will be created and may need editing as below.
+
 On an rpi3b+ (and better) it seems the double tap time needs to be increased to be usable..
 
     # in file ~/.kivy/config.ini
@@ -185,6 +187,13 @@ On an rpi3b+ (and better) it seems the double tap time needs to be increased to 
     double_tap_time = 400 # <-- increase this from the 200 default
     triple_tap_distance = 20
     triple_tap_time = 600 # <- and this to be > than double_tap_time
+
+Also if the touch screen does not work then you need to make sure that this is set in the kivy config.ini...
+
+    # in file ~/.kivy/config.ini
+    [input]
+    mtdev_%(name)s = probesysfs,provider=mtdev
+
 
 #### Bullseye on touch screen and RPI3
 I was able to get the lcd to work under bullseye (did not test the touch screen though).
