@@ -19,8 +19,7 @@ The minimum usable resolution is 800x480.
 
 ## Easy install for RPI3x
 
-The easiest installion for an RPI3a or RPI3b is to use the presetup image here
-http://smoothieware.org/_media/bin/smoopi-rpi3-buster.zip
+The easiest installation for an RPI3a or RPI3b is to use the presetup image [here](https://smoothieware.org/_media/bin/smoopi-rpi3-buster.zip)
 
 Flash it to a sdcard and boot.
 The even easier method is to use the rpi-imager, and setup the wifi in that then flash it.
