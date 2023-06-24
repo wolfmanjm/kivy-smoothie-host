@@ -156,31 +156,35 @@ Samsung Evo+ are also supposed to be very fast in an RPI.
 
 The last line is quite important otherwise you get a whole lot of ok's echoed back to smoothie when it opens. This does not appear to be needed on a desktop probably due to the speed it is setup vs the rpi.
 
-### Raspbian/Buster or Bullseye on RPI3x (NOT RPI4b)
-
-(Note the latest version is Bullseye may not work on the official touch screen, but this may have been fixed recently).
+### Raspbian/Buster (or Bullseye) on RPI3x (NOT RPI4b)
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
 (This may work on older RPI versions but is not tested, please read this https://www.raspberrypi.org/documentation/hardware/display/legacy.md).
 
-Install the latest raspbian buster lite (or Bullseye lite)... (No XWindows)
-eg
+Install the latest raspbian buster lite (or Bullseye lite)... (No XWindows) and Note if you install 32bit or 64bit version.
 
-https://downloads.raspberrypi.org/raspios_oldstable_lite_armhf/images/raspios_oldstable_lite_armhf-2022-09-26/2022-09-22-raspios-buster-armhf-lite.img.xz
+The touch display does not seem to work very reliably under Bullseye so for now I recommend buster.
 
-Or you can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu 
+You can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu
 (type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the Buster lite OS.
 
-If you installed Buster (or Bullseye) you can do a quick install of the Kivy wheel using the following commands...
+If you installed the 32bit (armhf) versions then you need to install kivy version 2.2.0 to get the wheel...
+
+    sudo apt update
+    sudo apt upgrade (maybe reboot)
+    sudo apt install python3-pip
+    python3 -m pip install --user kivy==2.2.0
+    # you also need to do the following to install the required support libraries
+    sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
+
+If you installed the 64bit version you can do a quick install of the Kivy wheel using the following commands...
 
     sudo apt update
     sudo apt upgrade (maybe reboot)
     sudo apt install python3-pip
     python3 -m pip install --user kivy
 
-    # you may need to do the following but on the most recent raspbian OS it was not needed
-    sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
 
 Then skip to the Smoopi install and setup [section below](https://github.com/wolfmanjm/kivy-smoothie-host#smoopi-install-and-setup)
 
@@ -201,10 +205,9 @@ Also if the touch screen does not work then you need to make sure that this is s
     [input]
     mtdev_%(name)s = probesysfs,provider=mtdev
 
+**NOTE** if installing on Bullseye with a touch screen and RPI3
 
-#### Bullseye on touch screen and RPI3
-I was able to get the lcd to work under bullseye (did not test the touch screen though).
-I had to add this to the /boot/config.txt
+    Edit the /boot/config.txt and add the following, then reboot...
 
     [all]
     # Disable compensation for displays with overscan
@@ -292,8 +295,8 @@ You will  need to add the following line to your ```~/.kivy/config.ini``` ...
 ### Smoopi install and setup
 It is recommended to do this first...
 
-    > sudo apt-get update
-    > sudo apt-get upgrade
+    > sudo apt update
+    > sudo apt upgrade
 
 Then install some smoopi dependencies...
 
@@ -301,7 +304,7 @@ Then install some smoopi dependencies...
 
 Install Smoopi itself
 
-    > sudo apt install git-core (if not already installed)
+    > sudo apt install git
     > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git smoopi
 
 Run with...
