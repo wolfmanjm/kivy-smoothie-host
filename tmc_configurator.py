@@ -315,6 +315,7 @@ class TMCConfigurator(Screen):
             # get current settings for selected motor
             self.get_chop_register()
         else:
+            App.get_running_app().main_window.display("Must be connected to use TMC Configurator")
             self.close()
 
     def tab_changed(self):
