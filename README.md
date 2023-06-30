@@ -167,7 +167,7 @@ Install the latest raspbian buster lite (or Bullseye lite)... (No XWindows) and 
 The touch display does not seem to work very reliably under Bullseye so for now I recommend buster.
 
 You can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu
-(type Ctrl-Shift-X) you can quickly presetup your wifi and make it headless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the Buster lite OS.
+(type Ctrl-Shift-X) you can quickly presetup your wifi and make it heabdless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the Buster lite OS.
 
 If you installed the 32bit (armhf) versions then you need to install kivy version 2.2.0 to get the wheel...
 

@@ -9,7 +9,7 @@ Builder.load_string('''
 <TMCConfigurator>:
     on_enter: self.start()
     BoxLayout:
-        disabled: not app.is_connected or root.is_printing
+        disabled: not app.is_connected or app.main_window.is_printing
         canvas:
             Color:
                 rgba: 0.3, 0.3, 0.3, 1
