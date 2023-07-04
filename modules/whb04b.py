@@ -386,7 +386,7 @@ class WHB04B():
                     while not self.quit:
                         data = self.hid.recv(timeout=1000)
 
-                        if data is None:
+                        if not data:
                             continue
 
                         size = len(data)
