@@ -63,6 +63,10 @@ class WHB04BHID:
             Logger.debug("WHB04BHID: No matching device found")
             return None
 
+        # HIDAPI bug: same device is listed multiple times
+        seen = set()
+        devices = [obj for obj in devices if obj.path not in seen and not seen.add(obj.path)]
+
         if len(devices) > 1:
             Logger.debug(f"WHB04BHID: more than one device found: {devices}")
             return None
