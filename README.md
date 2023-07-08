@@ -162,14 +162,14 @@ The last line is quite important otherwise you get a whole lot of ok's echoed ba
 
 (This may work on older RPI versions but is not tested, please read this https://www.raspberrypi.org/documentation/hardware/display/legacy.md).
 
-Install the latest raspbian buster lite (or Bullseye lite)... (No XWindows) and Note if you install 32bit or 64bit version.
+Install the latest raspbian buster lite (or Bullseye lite)... (No XWindows) either 32bit or 64bit version.
 
-The touch display does not seem to work very reliably under Bullseye so for now I recommend buster.
+The touch display does not seem to work very reliably under Bullseye so for now I recommend Buster.
 
 You can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu
 (type Ctrl-Shift-X) you can quickly presetup your wifi and make it heabdless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the Buster lite OS.
 
-If you installed the 32bit (armhf) versions then you need to install kivy version 2.2.0 to get the wheel...
+You need to install kivy version 2.2.0 to get the wheel...
 
     sudo apt update
     sudo apt upgrade (maybe reboot)
@@ -177,13 +177,6 @@ If you installed the 32bit (armhf) versions then you need to install kivy versio
     python3 -m pip install --user kivy==2.2.0
     # you also need to do the following to install the required support libraries
     sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
-
-If you installed the 64bit version you can do a quick install of the Kivy wheel using the following commands...
-
-    sudo apt update
-    sudo apt upgrade (maybe reboot)
-    sudo apt install python3-pip
-    python3 -m pip install --user kivy
 
 
 Then skip to the Smoopi install and setup [section below](https://github.com/wolfmanjm/kivy-smoothie-host#smoopi-install-and-setup)
