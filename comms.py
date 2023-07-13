@@ -713,6 +713,9 @@ class Comms():
                         # handle tool change M6 or M06
                         if line == "M6" or line == "M06" or "M6 " in line or "M06 " in line or line.endswith("M6"):
                             tool_change_state = 1
+                            if self.last_tool is None:
+                                self.last_tool = line
+
                             # look ahead for possible (MSG...
                             pos = await f.tell()  # remember where we are
                             nxtline = await f.readline()
@@ -746,7 +749,8 @@ class Comms():
                         line = "M600"
                         # we need to pause the stream here immediately, but the real _stream_pause will be called by suspend
                         self.pause_stream = True  # we don't normally set this directly
-                        self.app.main_window.tool_change_prompt(f"{line} - {self.last_tool}")
+                        self.app.main_window.tool_change_prompt(f"{self.last_tool}")
+                        self.last_tool = None
                         tool_change_state = 0
 
                 # Handle potential translation and scaling of Spindle on command
