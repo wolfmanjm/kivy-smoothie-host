@@ -1142,6 +1142,7 @@ class SmoothieHost(App):
         self.last_command = ""
         self.spindle_handler = None
         self.cont_jog = False
+        self.use_keypad = False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1169,7 +1170,8 @@ class SmoothieHost(App):
             'screen_pos': 'auto',
             'screen_offset': '0,0',
             'filechooser': 'default',
-            'touch_screen': 'false'
+            'touch_screen': 'false',
+            'use_keypad': 'default'
         })
         config.setdefaults('Viewer', {
             'slice': "1.0",
@@ -1208,6 +1210,14 @@ class SmoothieHost(App):
                   "desc": "Turn on for a touch screen",
                   "section": "UI",
                   "key": "touch_screen"
+                },
+
+                { "type": "options",
+                  "title": "Use Keypad",
+                  "desc": "use arrow keys on keypad to jog",
+                  "section": "UI",
+                  "key": "use_keypad",
+                  "options": ["default", "yes", "no"]
                 },
 
                 { "type": "bool",
@@ -1474,9 +1484,16 @@ class SmoothieHost(App):
         self.is_v2 = self.config.getboolean('General', 'v2')
         self.hdmi = self.config.getboolean('General', 'hdmi')
         self.safez = self.config.getfloat('Jog', 'safez')
-
         self.comms = Comms(App.get_running_app(), self.config.getfloat('General', 'report_rate'))
         self.gcode_file = self.config.get('General', 'last_print_file')
+
+        # see if we want to force the use of the keypad
+        t_use_keypad = self.config.get('UI', 'use_keypad')
+        if t_use_keypad == 'default':
+            self.use_keypad = not self.is_touch
+        else:
+            self.use_keypad = (t_use_keypad == 'yes')
+
         if self.is_touch:
             self.sm = ScreenManager(transition=NoTransition())
         else:
@@ -1544,9 +1561,6 @@ class SmoothieHost(App):
                 # use Kivy filechooser
                 Factory.register('filechooser', cls=FileDialog)
 
-            # we want to capture arrow keys
-            Window.bind(on_key_down=self._on_keyboard_down)
-            Window.bind(on_key_up=self._on_keyboard_up)
             if self.is_desktop > 1:
                 # remove KBD tab
                 self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.console_tab)
@@ -1554,6 +1568,11 @@ class SmoothieHost(App):
         else:
             # use Kivy filechooser
             Factory.register('filechooser', cls=FileDialog)
+
+        if self.use_keypad:
+            # we want to capture arrow keys
+            Window.bind(on_key_down=self._on_keyboard_down)
+            Window.bind(on_key_up=self._on_keyboard_up)
 
         # setup for cnc or 3d printer
         if self.is_cnc:
