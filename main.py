@@ -1141,6 +1141,7 @@ class SmoothieHost(App):
         self.safez = 20
         self.last_command = ""
         self.spindle_handler = None
+        self.cont_jog = False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1545,6 +1546,7 @@ class SmoothieHost(App):
 
             # we want to capture arrow keys
             Window.bind(on_key_down=self._on_keyboard_down)
+            Window.bind(on_key_up=self._on_keyboard_up)
             if self.is_desktop > 1:
                 # remove KBD tab
                 self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.console_tab)
@@ -1622,15 +1624,30 @@ class SmoothieHost(App):
     def _show_web_cam(self, args=None):
         self.sm.current = "web cam"
 
+    def _on_keyboard_up(self, instance, key, scancode):
+        print("UP key: {}, scancode: {}".format(key, scancode))
+        if self.cont_jog:
+            self.cont_jog = False
+            self.comms.write('\x19')
+
     def _on_keyboard_down(self, instance, key, scancode, codepoint, modifiers):
-        # print("key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
-        # control uses finer move, shift uses coarse move
+        print("DOWN key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
+
+        # if already in continuous jog ignore repeats
+        if self.cont_jog:
+            return True
+
+        # control uses finer move, shift uses coarse move, alt does continuous jog until released
         v = 0.1
+
         if len(modifiers) >= 1:
             if 'ctrl' in modifiers:
                 v = 0.01
             elif 'shift' in modifiers:
                 v = 1
+            elif 'alt' in modifiers:
+                v = 1
+                self.cont_jog = True
 
         choices = {
             273: f"Y{v}",
@@ -1638,15 +1655,32 @@ class SmoothieHost(App):
             274: f"Y{-v}",
             276: f"X{-v}",
             280: f"Z{v}",
-            281: f"Z{-v}"
+            281: f"Z{-v}",
         }
+        '''
+        # keypad keys
+            264: f"Y{v}",
+            262: f"X{v}",
+            258: f"Y{-v}",
+            260: f"X{-v}",
+            265: f"Z{v}",
+            259: f"Z{-v}",
+        '''
 
         s = choices.get(key, None)
         if s is not None:
             if not (self.main_window.is_printing and not self.main_window.is_suspended):
-                self.comms.write(f'$J {s}\n')
+                if self.cont_jog:
+                    self.comms.write(f'$J -c {s}\n')
+                else:
+                    self.comms.write(f'$J {s}\n')
+            else:
+                self.cont_jog = False
 
             return True
+
+        else:
+            self.cont_jog = False
 
         # handle command history if in desktop mode
         if self.is_desktop > 1:
