@@ -1644,13 +1644,13 @@ class SmoothieHost(App):
         self.sm.current = "web cam"
 
     def _on_keyboard_up(self, instance, key, scancode):
-        print("UP key: {}, scancode: {}".format(key, scancode))
+        # print("UP key: {}, scancode: {}".format(key, scancode))
         if self.cont_jog:
             self.cont_jog = False
             self.comms.write('\x19')
 
     def _on_keyboard_down(self, instance, key, scancode, codepoint, modifiers):
-        print("DOWN key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
+        # print("DOWN key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
 
         # if already in continuous jog ignore repeats
         if self.cont_jog:
