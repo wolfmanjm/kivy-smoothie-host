@@ -1690,7 +1690,9 @@ class SmoothieHost(App):
         if s is not None:
             if not (self.main_window.is_printing and not self.main_window.is_suspended):
                 if self.cont_jog:
-                    self.comms.write(f'$J -c {s}\n')
+                    # we use current feedrate if available
+                    cfr = f"F{self.frr}" if self.frr > 0 else ""
+                    self.comms.write(f'$J -c {s} {cfr}\n')
                 else:
                     self.comms.write(f'$J {s}\n')
             else:
