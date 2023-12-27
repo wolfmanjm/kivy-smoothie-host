@@ -19,6 +19,7 @@ G28.3 | Set Manual Homing position
 G28.4 | Manual Homing based on actuator position
 G28.5 | Clears the homed flag for the specified axis, or all if not specifed
 G28.6 | Shows the homing status of each axis
+G28.7 | Home the slaved axis on the specified axis, set to 1 to adjust
 G29 | Tests the bed and outputs the bed heights. P selects the strategy to use
 G30 | Simple Z probe at current XY, G30.1 leaves probe where it is.
 G31 | Depends on levelling strategy selected, delta does delta grid
