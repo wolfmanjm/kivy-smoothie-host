@@ -137,6 +137,7 @@ calc_thermistor | [-s0] T1,R1,T2,R2,T3,R3 calculate the Steinhart Hart coefficie
 cat | <file> [limit] [-d 10] print contents of file with optional line limit and delay
 cd | <dir> change directory to dir
 config-set | <configuration_source> <configuration_setting> <value> set config as specified source is usually sd
+date | [YYMMDDhhmmss] set or get current date/time
 dfu | enter dfu boot loader
 fire | <0-100>|off|status>  fire the laser at given power or return to auto
 get fk | [x,y,z] do forward kinematics on given coordinates using current arm solution
@@ -146,6 +147,7 @@ get state | print gcode state
 get status | print query information
 get temp | <bed|hotend> show temperature of hotend or bed
 get wcs | print WCS settings
+get volts | print out the voltages in the system
 load | <file> loads a configuration override file from specified name or config-override
 ls | [-s] <dir> lists directory contents (with size)
 md5sum | <file> prints md5 sum of the given file
