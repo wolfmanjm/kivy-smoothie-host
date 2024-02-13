@@ -659,7 +659,7 @@ class GcodeViewerScreen(Screen):
 
         Logger.debug("GcodeViewerScreen: scale= {}".format(scale))
         self.scale = scale
-        self.canv.insert(1, Scale(scale))
+        self.canv.insert(1, Scale(scale, scale, 1.0))
         # translate to center of canvas
         self.offs = self.ids.surface.center
         self.canv.insert(1, Translate(self.ids.surface.center[0], self.ids.surface.center[1]))
