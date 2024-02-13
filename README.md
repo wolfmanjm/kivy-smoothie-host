@@ -6,7 +6,9 @@ A Smoothie host designed to run on an rpi with multitouch screen or on a desktop
 
 This is stable and ready for everyday use.
 
-This uses python >= 3.7.x and <= 3.10.x and kivy >= 2.1.x
+This uses python >= 3.7.x and <= 3.10.x and kivy >= 2.1.x <= 2.2.1
+
+  (NOTE Kivy versions > 2.2.1 seem to have changed or broken something that makes the gcode viewer scale very small)
 
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
@@ -171,12 +173,12 @@ The touch display does not seem to work very reliably under Bullseye so for now 
 You can also create an image for your raspi using the raspi imager from here. https://www.raspberrypi.com/software/, using the advanced menu
 (type Ctrl-Shift-X) you can quickly presetup your wifi and make it heabdless. (Do not enable or install X Windows if you are using the raspi 7" touch screen). Select the Buster lite OS.
 
-You need to install kivy version 2.2.0 to get the wheel...
+You need to install kivy version 2.2.1 to get the wheel...
 
     sudo apt update
     sudo apt upgrade (maybe reboot)
     sudo apt install python3-pip
-    python3 -m pip install --user kivy==2.2.0
+    python3 -m pip install --user kivy==2.2.1
     # you also need to do the following to install the required support libraries
     sudo apt install libjpeg-dev libsdl2-2.0-0 libsdl2-ttf-2.0-0 libsdl2-image-2.0-0 libsdl2-mixer-2.0-0 libmtdev1 libgl1-mesa-dev libgles2-mesa xclip xsel
 
@@ -217,11 +219,11 @@ It is recommended (and easier) to run under XWindows (>= 2GB memory is needed).
 First install the Full XWindows desktop version of Raspberry PI OS on the RPI4b,
 Bullseye which is here... https://www.raspberrypi.com/software/operating-systems/#raspberry-pi-os-64-bit
 
-Then you will need to install kivy (version >= 2.1.0) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Smoopi install and setup" header.
+Then you will need to install kivy (version >= 2.1.0 but <= 2.2.1) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Smoopi install and setup" header.
 This recipe worked for me under Buster and Bullseye...
 
     > sudo apt-get update
-    > python3 -m pip install --upgrade --user kivy
+    > python3 -m pip install --upgrade --user kivy==2.2.1
 
 If you want to install Kivy from source (or run headless) then reading the Kivy install for pi4
 is recommended https://kivy.org/doc/stable/installation/installation-rpi.html#install-source-rpi
@@ -406,7 +408,7 @@ Install on recent Linux (Ubuntu/Debian etc) with python >= 3.7.x and <= 3.10.x u
     
     sudo apt install python3-pip
     python3 -m pip install --upgrade --user pip setuptools
-    python3 -m pip install --user --upgrade kivy
+    python3 -m pip install --user --upgrade kivy==2.2.1
 
 
 See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
@@ -424,7 +426,7 @@ If that does not work then install from source...
        gstreamer1.0-{omx,alsa} python3-dev libmtdev-dev \
        xclip xsel
     python3 -m pip install --user --upgrade Cython==0.28.2 pillow
-    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@stable
+    python3 -m pip install --user --upgrade git+https://github.com/kivy/kivy.git@stable-2.2.0
 
 Install some dependencies we need...
 
