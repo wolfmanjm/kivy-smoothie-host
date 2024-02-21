@@ -959,10 +959,10 @@ class MainWindow(BoxLayout):
             pass
 
     @mainthread
-    def _list_sdcard_results(self, l):
+    def _list_sdcard_results(self, ll):
         # dismiss waiting dialog
         fl = {}
-        for f in l:
+        for f in ll:
             f = f'/sd/{f}'
             # if f.endswith('/'):
             #     fl[f[:-1]] = {'size': 0, 'isdir': True}
@@ -1003,9 +1003,9 @@ class MainWindow(BoxLayout):
                 need_update = True
                 str = result.decode('utf-8').splitlines()
                 self.add_line_to_log(">>> Update:")
-                for l in str:
-                    self.add_line_to_log(l)
-                    if "up-to-date" in l:
+                for ll in str:
+                    self.add_line_to_log(ll)
+                    if "up-to-date" in ll:
                         need_update = False
 
                 if need_update:
@@ -1018,9 +1018,9 @@ class MainWindow(BoxLayout):
         self.app.sm.current = 'camera'
 
     @mainthread
-    def tool_change_prompt(self, l):
+    def tool_change_prompt(self, ll):
         # Print is paused by gcode command M6, prompt for tool change
-        self.display(f"ACTION NEEDED: Manual Tool Change:\n Tool: {l}\nWait for machine to stop, then you can jog around to change the tool.\n tap Resume to continue\n**** REMEMBER to reset Z Height before Resuming ****\n")
+        self.display(f"ACTION NEEDED: Manual Tool Change:\n Tool: {ll}\nWait for machine to stop, then you can jog around to change the tool.\n tap Resume to continue\n**** REMEMBER to reset Z Height before Resuming ****\n")
 
     @mainthread
     def m0_dlg(self):
@@ -1735,10 +1735,10 @@ class SmoothieHost(App):
             try:
                 p = subprocess.Popen(s[1:], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
                 result, err = p.communicate(timeout=10)
-                for l in result.splitlines():
-                    self.main_window.display(l)
-                for l in err.splitlines():
-                    self.main_window.display(l)
+                for ll in result.splitlines():
+                    self.main_window.display(ll)
+                for ll in err.splitlines():
+                    self.main_window.display(ll)
                 if p.returncode != 0:
                     self.main_window.display(f'returncode: {p.returncode}')
             except subprocess.TimeoutExpired:
@@ -1852,7 +1852,7 @@ class SmoothieHost(App):
 
     def get_application_config(self):
         # allow a command line argument to select a different config file to use
-        if(len(sys.argv) > 1):
+        if len(sys.argv) > 1:
             ext = sys.argv[1]
             self.config_file = f'{self.directory}/{self.name}-{ext}.ini'
         else:

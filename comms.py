@@ -381,11 +381,11 @@ class Comms():
             # accumulate the incoming lines
             files.append(ll)
 
-    def redirect_incoming(self, l):
-        async_main_loop.call_soon_threadsafe(self._redirect_incoming, l)
+    def redirect_incoming(self, fnc):
+        async_main_loop.call_soon_threadsafe(self._redirect_incoming, fnc)
 
-    def _redirect_incoming(self, l):
-        if l:
+    def _redirect_incoming(self, fnc):
+        if fnc:
             if self.timer:
                 # temporarily turn off status timer so we don't get unexpected lines
                 self._restart_timer = True
@@ -394,7 +394,7 @@ class Comms():
             else:
                 self._restart_timer = False
 
-            self._reroute_incoming_data_to = l
+            self._reroute_incoming_data_to = fnc
 
         else:
             # turn off rerouting
@@ -1105,8 +1105,8 @@ if __name__ == "__main__":
         def update_status(self, stat, d):
             pass
 
-        def manual_tool_change(self, l):
-            print(f"tool change: {l}\n")
+        def manual_tool_change(self, ll):
+            print(f"tool change: {ll}\n")
 
         def action_paused(self, flag, suspend=False):
             print("paused: {}, suspended: {}", flag, suspend)
@@ -1114,8 +1114,8 @@ if __name__ == "__main__":
         def get_queries(self):
             return ""
 
-        def wait_on_m0(self, l):
-            print(f"wait on m0: {l}\n")
+        def wait_on_m0(self, ll):
+            print(f"wait on m0: {ll}\n")
 
     start = None
     nlines = None

@@ -365,10 +365,10 @@ class MacrosWidget(StackLayout):
                 self.app.main_window.async_display("> {}".format(cmd))
                 p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # , encoding='latin1'
                 result, err = p.communicate()
-                for l in result.splitlines():
-                    self.app.main_window.async_display(l)
-                for l in err.splitlines():
-                    self.app.main_window.async_display(l)
+                for ll in result.splitlines():
+                    self.app.main_window.async_display(ll)
+                for ll in err.splitlines():
+                    self.app.main_window.async_display(ll)
                 if p.returncode != 0:
                     self.app.main_window.async_display("return code: {}".format(p.returncode))
 

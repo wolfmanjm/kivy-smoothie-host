@@ -300,12 +300,12 @@ class DialGauge(Widget):
         labi = self.scale_min
         x = -180.0 + self.angle_start + self.angle_offset  # start
         while x <= self.angle_stop - 180 + self.angle_offset:
-            a = x if(x < 0.0) else x + 360.0
+            a = x if x < 0.0 else x + 360.0
 
             need_label = True
             ticlen = self.tic_length
 
-            if(cnt % self.tic_frequency != 0):
+            if (cnt % self.tic_frequency) != 0:
                 ticlen = self.tic_length / 2
                 need_label = False
 

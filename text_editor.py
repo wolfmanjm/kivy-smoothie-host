@@ -140,10 +140,10 @@ class TextEditor(Screen):
             # rename old file to .bak
             os.rename(self.fn, self.fn + '.bak')
             with open(self.fn, 'w') as f:
-                for l in self.rv.data:
+                for x in self.rv.data:
                     # writeout file
-                    if l['index'] >= 0:
-                        f.write("{}\n".format(l['value']))
+                    if x['index'] >= 0:
+                        f.write("{}\n".format(x['value']))
 
     def insert(self, before):
         # now see which line is selected and insert before or after that
@@ -187,7 +187,7 @@ class TextEditor(Screen):
 
     def set_edit(self):
         self.editable = not self.editable
-        for l in self.rv.data:
-            if l['index'] >= 0:
-                l['ro'] = not self.editable
+        for x in self.rv.data:
+            if x['index'] >= 0:
+                x['ro'] = not self.editable
         self.rv.refresh_from_data()

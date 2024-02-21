@@ -89,7 +89,7 @@ class GraphView(FloatLayout):
             self.he1_plot.points.append((self.secs / 60., temp))
             # truncate points
             if len(self.he1_plot.points) > self.maxsecs:
-                del(self.he1_plot.points[0])
+                del self.he1_plot.points[0]
 
             # now draw in setpoint if set
             if not math.isnan(setpoint) and setpoint > 0:
@@ -99,7 +99,7 @@ class GraphView(FloatLayout):
                 self.he1sp_plot.points.append((self.secs / 60., setpoint))
                 # truncate points
                 if len(self.he1sp_plot.points) > self.maxsecs:
-                    del(self.he1sp_plot.points[0])
+                    del self.he1sp_plot.points[0]
             else:
                 if self.he1sp_plot is not None:
                     self.ids.graph.remove_plot(self.he1sp_plot)
@@ -123,7 +123,7 @@ class GraphView(FloatLayout):
             self.bed_plot.points.append((self.secs / 60., temp))
 
             if len(self.bed_plot.points) > self.maxsecs:
-                del(self.bed_plot.points[0])
+                del self.bed_plot.points[0]
 
             if not math.isnan(setpoint) and setpoint > 0:
                 if self.bedsp_plot is None:
@@ -132,7 +132,7 @@ class GraphView(FloatLayout):
                 self.bedsp_plot.points.append((self.secs / 60., setpoint))
                 # truncate points
                 if len(self.bedsp_plot.points) > self.maxsecs:
-                    del(self.bedsp_plot.points[0])
+                    del self.bedsp_plot.points[0]
             else:
                 if self.bedsp_plot is not None:
                     self.ids.graph.remove_plot(self.bedsp_plot)
