@@ -93,7 +93,7 @@ Builder.load_string('''
                 on_press: root.next_layer()
             Spinner:
                 text_autoupdate: True
-                values: ('3D', '2D', 'Laser') if not app.is_cnc else ('2D', 'Laser', '3D')
+                values: ('3D', '2D', 'Laser', 'Drill') if not app.is_cnc else ('2D', 'Laser', 'Drill', '3D')
                 on_text: root.set_type(self.text)
 
             ToggleButton:
@@ -127,6 +127,7 @@ class GcodeViewerScreen(Screen):
     select_mode = BooleanProperty(False)
     twod_mode = BooleanProperty(False)
     laser_mode = BooleanProperty(False)
+    drill_mode = BooleanProperty(False)
     valid = BooleanProperty(False)
     bounds = ListProperty([0, 0, 0, 0])
     layers = ListProperty([0])
@@ -468,7 +469,7 @@ class GcodeViewerScreen(Screen):
                         # in CNC mode we want to only see slices between a slice
                         # but as we mostly do depth first cutting we have to process everything
                         self.current_z = self.above_layer
-                        if gcode > 0 and z is not None and (z < self.above_layer or z > self.below_layer):
+                        if not self.drill_mode and gcode > 0 and z is not None and (z < self.above_layer or z > self.below_layer):
                             # ignore layers below or above slice
                             Logger.debug('...Ignored...')
                             last_gcode = gcode
@@ -565,6 +566,12 @@ class GcodeViewerScreen(Screen):
                                 self.canv.add(Color(0, 0, 0))
                                 self.canv.add(Line(points=points, width=1, cap='none', joint='none'))
                                 points = []
+
+                            # if cnc mode and negative Z only then it is a drill, so show a circle
+                            # we use an arbitrary value of -0.5 to distinguish drill from engrave copper on PCB
+                            if self.drill_mode and ('Z' in d) and (z < -0.5):
+                                self.canv.add(Color(1, 0, 0))
+                                self.canv.add(Line(circle=(x, y, 1.5 / self.ids.surface.scale)))
 
                     elif gcode in [2, 3]:  # CW=2,CCW=3 circle
                         # G02 X0 Y-2 I0 J-2.0
@@ -869,12 +876,19 @@ class GcodeViewerScreen(Screen):
         if t == '3D':
             self.twod_mode = False
             self.laser_mode = False
+            self.drill_mode = False
         elif t == '2D':
             self.twod_mode = True
             self.laser_mode = False
+            self.drill_mode = False
         elif t == 'Laser':
             self.twod_mode = True
             self.laser_mode = True
+            self.drill_mode = False
+        elif t == 'Drill':
+            self.twod_mode = True
+            self.laser_mode = False
+            self.drill_mode = True
 
         self.layers = [0]
         self.loading()
