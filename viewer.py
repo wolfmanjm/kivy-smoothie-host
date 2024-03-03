@@ -258,6 +258,37 @@ class GcodeViewerScreen(Screen):
     def do_print(self):
         self.app.main_window._start_print()
 
+    extract_tool = re.compile(r"\(Tool: (\d+) \-\> Dia: (-?\d*\.?\d*\.?)\)")
+
+    def read_drill_list(self, f):
+        # reads a flatcam tool list
+        # (TOOLS DIAMETER: )
+        # (Tool: 1 -> Dia: 0.4)
+        # (Tool: 2 -> Dia: 0.6)
+        # (Tool: 3 -> Dia: 0.8)
+        # (Tool: 4 -> Dia: 1.0)
+        # (Tool: 5 -> Dia: 1.2)
+        # (Tool: 6 -> Dia: 2.5)
+        tt = {}
+        eof = False
+        while not eof:
+            ln = f.readline()
+            if not ln:
+                break
+            if ln.startswith('(TOOLS DIAMETER: )'):
+                while ln:
+                    ln = f.readline()
+                    matches = self.extract_tool.findall(ln)
+                    if not matches:
+                        eof = True
+                        break
+
+                    for m in matches:
+                        tt[int(m[0])] = float(m[1])
+
+        f.seek(0)
+        return tt
+
     extract_gcode = re.compile(r"(G|X|Y|Z|I|J|K|E|S)(-?\d*\.?\d*\.?)")
 
     def parse_gcode_file(self, fn, one_layer=False):
@@ -280,6 +311,8 @@ class GcodeViewerScreen(Screen):
         plane = XY
         rel_move = False
         self.is_visible = True
+        drill_size = None
+
         if self.laser_mode:
             self.twod_mode = True  # laser mode implies 2D mode
 
@@ -301,6 +334,14 @@ class GcodeViewerScreen(Screen):
 
         point_count = 0
         with open(fn) as f:
+            # if we are in drill_mode then try to read flatcams drill list
+            if self.drill_mode:
+                try:
+                    tool_table = self.read_drill_list(f)
+                except Exception as e:
+                    Logger.error('GcodeViewerScreen: read_drill_list Got Exception: {}'.format(e))
+                    tool_table = None
+
             # jump to last read position
             f.seek(self.layers[-1])
             # print('Jumped to layer position: {}'.format(f.tell()))
@@ -332,6 +373,16 @@ class GcodeViewerScreen(Screen):
                     if p2 > 0:
                         lnt += ln[p2 + 1:]
                     ln = lnt
+
+                # in drill mode we try to set the drill size
+                if self.drill_mode:
+                    # see if tool change
+                    if ln.startswith('T'):
+                        tool = int(ln[1])
+                        if tool_table is not None and tool in tool_table:
+                            drill_size = tool_table[tool]
+                        else:
+                            drill_size = 3.0  # default drill size
 
                 matches = self.extract_gcode.findall(ln)
 
@@ -567,11 +618,14 @@ class GcodeViewerScreen(Screen):
                                 self.canv.add(Line(points=points, width=1, cap='none', joint='none'))
                                 points = []
 
-                            # if cnc mode and negative Z only then it is a drill, so show a circle
+                            # if drill mode and negative Z only then it is a drill, so show a circle
                             # we use an arbitrary value of -0.5 to distinguish drill from engrave copper on PCB
                             if self.drill_mode and ('Z' in d) and (z < -0.5):
+                                if drill_size is None:
+                                    drill_size = 3.0
+
                                 self.canv.add(Color(1, 0, 0))
-                                self.canv.add(Line(circle=(x, y, 1.5 / self.ids.surface.scale)))
+                                self.canv.add(Line(circle=(x, y, drill_size / 2 / self.ids.surface.scale)))
 
                     elif gcode in [2, 3]:  # CW=2,CCW=3 circle
                         # G02 X0 Y-2 I0 J-2.0
