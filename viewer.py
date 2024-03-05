@@ -945,6 +945,7 @@ class GcodeViewerScreen(Screen):
             self.drill_mode = True
 
         self.layers = [0]
+        self.clear()
         self.loading()
 
 
