@@ -13,7 +13,8 @@ import configparser
 from functools import partial
 import subprocess
 import threading
-import select
+#import select
+import selectors
 import re
 import os
 
@@ -225,7 +226,6 @@ class MacrosWidget(StackLayout):
             self.app.main_window.async_display("ERROR: File not found: {}".format(fn))
 
     def send(self, cmd, *args):
-        print(args)
         # if first character is ? then make sure it is ok to continue
         if cmd.startswith('?'):
             cb = ConfirmBox(text=cmd[1:], cb=partial(self.send, cmd[1:]))
@@ -318,8 +318,7 @@ class MacrosWidget(StackLayout):
             t.start()
 
     def _send_it(self, p, x):
-        p.stdin.write("{}\n".format(x))
-        # print("{}\n".format(x))
+        p.stdin.write(f"{x}\n")
 
     def _script_thread(self, cmd, io):
         try:
@@ -337,37 +336,37 @@ class MacrosWidget(StackLayout):
                     cmd = cmd[1:]
 
                 # I/O is piped to/from smoothie
-                self.app.main_window.async_display("> running script: {}".format(cmd))
+                self.app.main_window.async_display(f"> running script: {cmd}")
+                Logger.info(f"running script: {cmd}")
                 p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
                 self.app.comms.redirect_incoming(lambda x: self._send_it(p, x))
 
-                # so we can see which has output
-                poll_obj = select.poll()
-                poll_obj.register(p.stdout, select.POLLIN)
-                poll_obj.register(p.stderr, select.POLLIN)
+                sel = selectors.DefaultSelector()
+                sel.register(p.stdout, selectors.EVENT_READ)
+                sel.register(p.stderr, selectors.EVENT_READ)
 
-                while p.returncode is None:
-                    poll_result = poll_obj.poll(0)
-                    for pr in poll_result:
-                        if pr[0] == p.stdout.name:
-                            s = p.stdout.readline()
-                            if s:
-                                if not repeating and self.debug:
-                                    self.app.main_window.async_display("<<< script: {}".format(s.rstrip()))
-                                self.app.comms.write('{}'.format(s))
+                ok = True
+                while ok:
+                    for key, _ in sel.select(0):
+                        data = key.fileobj.readline()
+                        if not data:
+                            ok = False
+                            break
+                        if key.fileobj is p.stdout:
+                            if not repeating and self.debug:
+                                self.app.main_window.async_display("<<< script: {}".format(data.rstrip()))
+                            self.app.comms.write(f'{data}')
 
-                        elif pr[0] == p.stderr.name:
-                            e = p.stderr.readline()
-                            if e:
-                                if repeating:
-                                    self.app.main_window.async_display('{}\r'.format(e.rstrip()))
-                                else:
-                                    self.app.main_window.async_display('>>> script: {}'.format(e.rstrip()))
-                                    Logger.info('script: {}'.format(e.rstrip()))
+                        else:  # stderr
+                            if repeating:
+                                self.app.main_window.async_display('{}\r'.format(data.rstrip()))
+                            else:
+                                self.app.main_window.async_display('>>> script: {}'.format(data.rstrip()))
+                                Logger.info(f'script: {data.rstrip()}')
 
-                    p.poll()
-
+                sel.close()
                 self.app.main_window.async_display('> script complete')
+
             else:
                 # just display results
                 self.app.main_window.async_display("> {}".format(cmd))
