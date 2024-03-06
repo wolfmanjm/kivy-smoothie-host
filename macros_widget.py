@@ -7,6 +7,7 @@ from kivy.config import ConfigParser
 from kivy.clock import Clock, mainthread
 from kivy.factory import Factory
 from multi_input_box import MultiInputBox
+from confirm_box import ConfirmBox
 
 import configparser
 from functools import partial
@@ -224,6 +225,13 @@ class MacrosWidget(StackLayout):
             self.app.main_window.async_display("ERROR: File not found: {}".format(fn))
 
     def send(self, cmd, *args):
+        print(args)
+        # if first character is ? then make sure it is ok to continue
+        if cmd.startswith('?'):
+            cb = ConfirmBox(text=cmd[1:], cb=partial(self.send, cmd[1:]))
+            cb.open()
+            return
+
         # if first character is @ then execute contents of the following file name
         if cmd.startswith('@'):
             self._send_file(cmd[1:])

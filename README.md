@@ -87,7 +87,11 @@ Macro buttons can be defined in the `macros.ini` file that can issue simple comm
 Macros buttons can prompt for input and substitute the given variables.
 (See sample-macros.ini for examples).
 Simple macro buttons can be created by clicking the green `New Macro` button.
+
 If a simple macro starts with ```@``` then the following characters are a file name and that file is opened and sent to smoothie. Note that ok is not checked, so it must be a fairly small file of gcodes.
+
+If a simple macro starts with ```?``` then a confirmation dialog will prompt before executing it.
+
 If in CNC mode it will first check for 'macros-cnc.ini' and load that if found, otherwise it will load 'macros.ini'.
 Scripts can also be executed from a macro button [see](scripts/README.md).
 
