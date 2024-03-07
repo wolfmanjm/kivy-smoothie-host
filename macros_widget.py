@@ -13,7 +13,6 @@ import configparser
 from functools import partial
 import subprocess
 import threading
-#import select
 import selectors
 import re
 import os
@@ -347,7 +346,7 @@ class MacrosWidget(StackLayout):
 
                 ok = True
                 while ok:
-                    for key, _ in sel.select(0):
+                    for key, _ in sel.select(None):  # Blocking
                         data = key.fileobj.readline()
                         if not data:
                             ok = False
