@@ -906,15 +906,6 @@ class MainWindow(BoxLayout):
     def _fast_stream_thread(self, cmd):
         # execute the command
         self.async_display(f"External Fast stream > {cmd}")
-        # p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # result, err = p.communicate()
-        # for l in result.splitlines():
-        #     self.async_display(l)
-        # for l in err.splitlines():
-        #     self.async_display(l)
-        # if p.returncode != 0:
-        #     self.async_display("error return code: {}".format(p.returncode))
-
         self.start_print_time = datetime.datetime.now()
         with subprocess.Popen(cmd, shell=True, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True) as p:
             while True:
