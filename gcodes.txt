@@ -20,10 +20,10 @@ G28.4 | Manual Homing based on actuator position
 G28.5 | Clears the homed flag for the specified axis, or all if not specifed
 G28.6 | Shows the homing status of each axis
 G28.7 | Home the slaved axis on the specified axis, set to 1 to adjust
-G29 | Tests the bed and outputs the bed heights. P selects the strategy to use
+G29 | Tests the bed. P0 selects levelling, P1 calibration strategy
 G30 | Simple Z probe at current XY, G30.1 leaves probe where it is.
 G31 | Depends on levelling strategy selected, delta does delta grid
-G32 | Execute current levelling strategy or for delta do trim calibration
+G32 | Do levelling strategy or for delta do trim&radius calibration I{target} R{radius} E{trim} K{keep}
 G38.2 | Standard probe in direction XYZ, halt on error
 G38.3 | Standard probe in direction XYZ
 G38.4 | probe away from work in direction XYZ, halt on error
