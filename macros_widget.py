@@ -88,6 +88,10 @@ class MacrosWidget(StackLayout):
                         Logger.error("MacrosWidget: config error - {} is invalid".format(section))
                         continue
 
+                    # Hack to allow toggle buttons to do continuous jog
+                    if cmd_off == "CONTROL-Y":
+                        cmd_off = '\x19'
+
                     tbtn = Factory.MacroToggleButton()
                     if default == "on":
                         tbtn.state = "down"
