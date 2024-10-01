@@ -104,6 +104,22 @@ class MacrosWidget(StackLayout):
                     tbtn.ud = True
                     self.add_widget(tbtn)
 
+                elif section.startswith('button '):
+                    name = config.get(section, 'name', fallback=None)
+                    pressed_cmd = config.get(section, 'pressed', fallback=None)
+                    released_cmd = config.get(section, 'released', fallback=None)
+                    # Hack to allow buttons to do continuous jog
+                    if released_cmd == "CONTROL-Y":
+                        released_cmd = '\x19'
+                    btn = Factory.MacroButton()
+                    btn.text = name
+                    btn.background_color = (0, 1, 1, 1)
+                    btn.bind(on_press=partial(self.send, pressed_cmd))
+                    if released_cmd is not None:
+                        btn.bind(on_release=partial(self.send, released_cmd))
+                    btn.ud = True
+                    self.add_widget(btn)
+
                 elif section.startswith('script '):
                     name = config.get(section, 'name', fallback=None)
                     script = config.get(section, 'exec', fallback=None)
