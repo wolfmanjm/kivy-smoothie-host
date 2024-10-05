@@ -151,12 +151,18 @@ class ExtruderWidget(BoxLayout):
     def extrude(self):
         ''' called when the extrude button is pressed '''
         Logger.debug(f'Extruder: extrude {self.ids.extrude_length.text} mm @ {self.ids.extrude_speed.text} mm/min')
-        self.app.comms.write('M120 G91 G1 E{0} F{1} M121\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
+        if self.app.is_v2:
+            self.app.comms.write(f"$J E{self.ids.extrude_length.text} F{self.ids.extrude_speed.text}\n")
+        else:
+            self.app.comms.write('M120 G91 G1 E{0} F{1} M121\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
 
     def reverse(self):
         ''' called when the reverse button is pressed '''
         Logger.debug('Extruder: reverse {0} mm @ {1} mm/min'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
-        self.app.comms.write('M120 G91 G1 E-{0} F{1} M121\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
+        if self.app.is_v2:
+            self.app.comms.write(f"$J E-{self.ids.extrude_length.text} F{self.ids.extrude_speed.text}\n")
+        else:
+            self.app.comms.write('M120 G91 G1 E-{0} F{1} M121\n'.format(self.ids.extrude_length.text, self.ids.extrude_speed.text))
 
     def update_buttons(self):
         return "$I\n"
