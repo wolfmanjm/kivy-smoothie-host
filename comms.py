@@ -142,6 +142,7 @@ class Comms():
         self.abort_stream = False
         self.pause_stream = False  # asyncio.Event()
         self.okcnt = None
+        self.actual_line = 0
         self.ping_pong = True  # ping pong protocol for streaming
         self.fast_stream = False
         self.file_streamer = None
@@ -652,6 +653,7 @@ class Comms():
         f = None
         success = False
         linecnt = 0
+        self.actual_line = 0
         tool_change_state = 0
 
         try:
@@ -682,7 +684,7 @@ class Comms():
 
                     # read next line
                     line = await f.readline()
-
+                    self.actual_line += 1
                     if not line:
                         # EOF
                         break
@@ -871,7 +873,7 @@ class Comms():
             # notify upstream that we are done
             self.app.main_window.stream_finished(success)
 
-            self.log.info(f'Comms: Streaming complete: {success}')
+            self.log.info(f'Comms: Streaming complete: {success}, at file line: {self.actual_line}')
 
         return success
 

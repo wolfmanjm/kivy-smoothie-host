@@ -403,12 +403,14 @@ class MainWindow(BoxLayout):
         self.config = self.app.config
         self.last_path = self.config.get('General', 'last_gcode_path')
         self.paused = False
-        self.last_line = 0
         self.is_sdprint = False
         self.save_console_data = None
         self.uart_log_data = []
         self.is_uart_log_in_view = False
         self.uart_log = None
+
+    def get_last_line(self):
+        return self.app.comms.actual_line
 
     def on_touch_down(self, touch):
         if self.ids.log_window.collide_point(touch.x, touch.y):
@@ -635,7 +637,7 @@ class MainWindow(BoxLayout):
         elif was_printing:
             if self.app.notify_email:
                 notify = Notify()
-                notify.send(f'Run in ALARM state: {s}, last Z: {self.wpos[2]}, last line: {self.last_line}')
+                notify.send(f'Run in ALARM state: {s}, last Z: {self.wpos[2]}, last line: {self.get_last_line()}')
 
     def do_kill(self):
         if self.status == 'Alarm':
@@ -677,7 +679,7 @@ class MainWindow(BoxLayout):
             if suspended:
                 self.add_line_to_log(">>> Streaming Suspended, Resume or Abort as needed")
                 if self.app.notify_email:
-                    Notify().send(f'Run has been suspended: last Z: {self.wpos[2]}, last line: {self.last_line}')
+                    Notify().send(f'Run has been suspended: last Z: {self.wpos[2]}, last line: {self.get_last_line()}')
 
             else:
                 self.add_line_to_log(">>> Streaming Paused, Abort or Continue as needed")
@@ -725,7 +727,7 @@ class MainWindow(BoxLayout):
             self.nlines = None
 
         self.start_print_time = datetime.datetime.now()
-        self.display(f'>>> Running file: {file_path}, {self.nlines} lines')
+        self.display(f'>>> Running file: {file_path}, {self.nlines} GCode lines')
 
         if self.app.comms.stream_gcode(file_path, progress=lambda x: self.display_progress(x)):
             self.display(f">>> Run started at: {self.start_print_time.strftime('%x %X')}")
@@ -843,14 +845,14 @@ class MainWindow(BoxLayout):
         self.is_printing = False
         now = datetime.datetime.now()
         self.display(f">>> Run finished {'ok' if ok else 'abnormally'}")
-        self.display(f">>> Run ended at : {now.strftime('%x %X')}, last Z: {self.wpos[2]}, last line: {self.last_line}")
+        self.display(f">>> Run ended at : {now.strftime('%x %X')}, last Z: {self.wpos[2]}, last line: {self.get_last_line()}")
         et = datetime.timedelta(seconds=int((now - self.start_print_time).seconds))
         self.display(f">>> Elapsed time: {et}")
         self.eta = 'Not Streaming'
         if self.app.notify_email:
             notify = Notify()
-            notify.send(f"Run finished {'ok' if ok else 'abnormally'}, last Z: {self.wpos[2]}, last line: {self.last_line}")
-        Logger.info(f"MainWindow: Run finished {'ok' if ok else 'abnormally'}, last Z: {self.wpos[2]}, last line: {self.last_line}")
+            notify.send(f"Run finished {'ok' if ok else 'abnormally'}, last Z: {self.wpos[2]}, last line: {self.get_last_line()}")
+        Logger.info(f"MainWindow: Run finished {'ok' if ok else 'abnormally'}, last Z: {self.wpos[2]}, last line: {self.get_last_line()}")
 
     def upload_gcode(self):
         # get file to upload
@@ -940,9 +942,7 @@ class MainWindow(BoxLayout):
             else:
                 eta = 0
 
-            self.eta = f"ETA: {'Paused' if self.paused else datetime.timedelta(seconds=int(eta))} | {n / self.nlines:.1%} | L{n}"
-
-        self.last_line = n
+            self.eta = f"ETA: {'Paused' if self.paused else datetime.timedelta(seconds=int(eta))} | {n / self.nlines:.1%}"
 
     def list_sdcard(self):
         if self.app.comms.list_sdcard(self._list_sdcard_results):
