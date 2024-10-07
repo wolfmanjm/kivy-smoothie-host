@@ -164,6 +164,24 @@ Samsung Evo+ are also supposed to be very fast in an RPI.
 
 The last line is quite important otherwise you get a whole lot of ok's echoed back to smoothie when it opens. This does not appear to be needed on a desktop probably due to the speed it is setup vs the rpi.
 
+### Raspbian running bookworm on RPI3x (NOT RPI4b)
+
+Bookworm seems to have changed the way python packages are installed, so it maybe easier to do the following...
+
+    sudo apt update
+    sudo apt upgrade
+    sudo apt install python3-kivy python3-aiofiles python3-serial git xclip xsel
+    git clone https://github.com/wolfmanjm/kivy-smoothie-host.git smoopi
+
+    cd smoopi
+    python main.py
+
+
+That seems to work if running without X.
+
+You can skim the rest of the README if you run into issues
+
+
 ### Raspbian/Buster (or Bullseye) on RPI3x (NOT RPI4b)
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
