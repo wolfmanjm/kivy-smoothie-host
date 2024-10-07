@@ -24,7 +24,14 @@ The minimum usable resolution is 800x480.
 The easiest installation for an RPI3a or RPI3b is to use the presetup image [here](https://github.com/wolfmanjm/kivy-smoothie-host/releases/tag/V1.1-image)
 
 Flash it to a sdcard and boot.
-The even easier method is to use the rpi-imager, and setup the wifi in that then flash it.
+
+Another easy method is to use the rpi-imager to install 64-bit Bookworm lite, and setup the wifi in that then flash it. Then...
+
+    sudo apt install git
+    git clone https://github.com/wolfmanjm/kivy-smoothie-host.git smoopi
+    cd smoopi
+    ./install-smoopi-on-bookworm
+
 
 ## Tested touch panels
 The following touch panels have been tested and work nicely:
@@ -180,6 +187,10 @@ Bookworm seems to have changed the way python packages are installed, so it mayb
 That seems to work if running without X.
 
 You can skim the rest of the README if you run into issues
+
+You may also want to disable the modem manager to stop it interfering with serial ports...
+
+    sudo systemctl disable ModemManager
 
 
 ### Raspbian/Buster (or Bullseye) on RPI3x (NOT RPI4b)

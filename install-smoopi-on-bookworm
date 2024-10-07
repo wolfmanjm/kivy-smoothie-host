@@ -1,0 +1,2 @@
+# install everything we need to run smoopi on raspbian bookworm
+sudo apt install python3-kivy python3-aiofiles python3-serial git xclip xsel
