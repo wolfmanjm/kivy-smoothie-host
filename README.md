@@ -6,7 +6,7 @@ A Smoothie host designed to run on an rpi with multitouch screen or on a desktop
 
 This is stable and ready for everyday use.
 
-This uses python >= 3.7.x and <= 3.10.x and kivy >= 2.1.x <= 2.2.1
+This uses python >= 3.7.x and <= 3.11.x and kivy >= 2.1.x <= 2.2.1
 
   (NOTE Kivy versions > 2.2.1 seem to have changed or broken something that makes the gcode viewer scale very small)
 
@@ -31,6 +31,11 @@ Another easy method is to use the rpi-imager to install 64-bit Bookworm lite, an
     git clone https://github.com/wolfmanjm/kivy-smoothie-host.git smoopi
     cd smoopi
     ./install-smoopi-on-bookworm
+
+*NOTE* If installing the 64-bit version on a RPI3b then the following needs to be appended to the /boot/firmware/cmdline.txt, which fixes a reported kernel bug affecting USB.
+
+    dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0
+
 
 
 ## Tested touch panels
