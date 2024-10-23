@@ -285,6 +285,33 @@ class ArrowButton(ButtonBehavior, Widget):
     #     return Vector.in_bbox((x, y), bmin, bmax)
 
 
+class LPArrowButton(ArrowButton):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.schedule = None
+        self.register_event_type('on_long_press')
+        self.register_event_type('on_long_release')
+        self.long_press = False
+
+    def on_long_press(self):
+        self.long_press = True
+
+    def on_long_release(self):
+        pass
+
+    def on_press(self):
+        self.schedule = Clock.schedule_once(self._long_press, 2)
+
+    def _long_press(self, _):
+        self.dispatch('on_long_press')
+
+    def on_release(self):
+        self.schedule.cancel()
+        if self.long_press:
+            self.dispatch('on_long_release')
+            self.long_press = False
+
+
 class JogRoseWidget(BoxLayout):
     abc_sel = StringProperty('Z')
 
@@ -346,6 +373,19 @@ class JogRoseWidget(BoxLayout):
         else:
             s = self._get_speed()
             self.app.comms.write(f'$J {axis}{v} S{s}\n')
+
+    def handle_long_press(self, axis, v):
+        s = self._get_speed()
+        # starts continuous jog
+        # must not send another $J -c until ok is recieved from previous one
+        if not self.cont_moving:
+            self.cont_moving = True
+            self.app.comms.ok_notify_cb = lambda x: self.got_ok(x)
+            self.app.comms.write(f'$J -c {axis}{v} S{s}\n')
+
+    def handle_long_release(self):
+        if self.cont_moving:
+            self.app.comms.write('\x19')
 
     def motors_off(self):
         self.app.comms.write('M18\n')
