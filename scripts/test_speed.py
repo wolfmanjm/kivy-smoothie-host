@@ -67,6 +67,11 @@ y_center_min = smallpatternsize / 2 * -1
 y_center_max = smallpatternsize / 2
 
 
+def display(str):
+    sys.stderr.write(str + '\n')
+    sys.stderr.flush()
+
+
 def send(str):
     sys.stdout.write(str + '\n')
     if not debug:
@@ -76,15 +81,10 @@ def send(str):
             if ll.startswith('ok'):
                 break
             elif "!!" in ll:
-                sys.stderr.write("Aborted, Got kill\n")
+                display("Aborted, Got kill\n")
                 sys.exit()
             else:
-                sys.stderr.write(f'> {ll}\n')
-                sys.stderr.flush()
-
-
-def display(str):
-    sys.stderr.write(str + '\n')
+                display(f'> {ll}\n')
 
 
 def get_pos():
@@ -111,8 +111,7 @@ send('G90')
 send('G4 P1000')
 
 p = get_pos()
-sys.stderr.write(f'pos: {p}\n')
-sys.stderr.flush()
+display(f'pos: {p}\n')
 
 # Go to starting position
 send(f"G0 X{x_min} Y{y_min} Z{z_height} F{speed*60}")
@@ -169,8 +168,7 @@ send('M400')  # Finish moves
 send('G28')
 send('G4 P1000')
 p = get_pos()
-sys.stderr.write(f'pos: {p}\n')
-sys.stderr.flush()
+display(f'pos: {p}\n')
 
 # Restore previous gcode state (absolute/relative, etc)
 send('M121')
