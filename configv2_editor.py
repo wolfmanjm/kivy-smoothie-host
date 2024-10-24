@@ -199,49 +199,56 @@ class ConfigV2Editor(Screen):
             return
 
         sections = []
-        for section in self.config.sections():
-            self._update_progress(section)
-            subkeys = {}
+        try:
+            for section in self.config.sections():
+                self._update_progress(section)
+                subkeys = {}
 
-            for (key, v) in self.config.items(section):
-                if self.force_close:
-                    return
+                for (key, v) in self.config.items(section):
+                    if self.force_close:
+                        return
 
-                o = v.find('#')
-                if o > 0:
-                    # convert comment into desc and strip from value
-                    comment = v[o + 1:]
-                    v = v[0:o].rstrip()
-                    self.config.set(section, key, v)
-                else:
-                    comment = ""
-
-                if '.' in key:
-                    (subkey, k) = key.split('.')
-                    x = (k, key, v, comment)
-
-                else:
-                    subkey = " "
-                    x = (key, key, v, comment)
-
-                if subkey in subkeys:
-                    subkeys[subkey].append(x)
-                else:
-                    subkeys[subkey] = [x]
-
-            jsondata = []
-            for t, l in subkeys.items():
-                if t != " ":
-                    jsondata.append({"type": "title", "title": t})
-
-                for i in l:
-                    tit, key, v, comment = i
-                    if v in ['true', 'false']:
-                        tt = {"type": 'bool', 'values': ['false', 'true'], "title": tit, "desc": comment, "section": section, "key": key}
+                    o = v.find('#')
+                    if o > 0:
+                        # convert comment into desc and strip from value
+                        comment = v[o + 1:]
+                        v = v[0:o].rstrip()
+                        self.config.set(section, key, v)
                     else:
-                        tt = {"type": 'string', "title": tit, "desc": comment, "section": section, "key": key}
-                    jsondata.append(tt)
-            sections.append((section, json.dumps(jsondata)))
+                        comment = ""
+
+                    if '.' in key:
+                        (subkey, k) = key.split('.')
+                        x = (k, key, v, comment)
+
+                    else:
+                        subkey = " "
+                        x = (key, key, v, comment)
+
+                    if subkey in subkeys:
+                        subkeys[subkey].append(x)
+                    else:
+                        subkeys[subkey] = [x]
+
+                jsondata = []
+                for t, l in subkeys.items():
+                    if t != " ":
+                        jsondata.append({"type": "title", "title": t})
+
+                    for i in l:
+                        tit, key, v, comment = i
+                        if v in ['true', 'false']:
+                            tt = {"type": 'bool', 'values': ['false', 'true'], "title": tit, "desc": comment, "section": section, "key": key}
+                        else:
+                            tt = {"type": 'string', "title": tit, "desc": comment, "section": section, "key": key}
+                        jsondata.append(tt)
+                sections.append((section, json.dumps(jsondata)))
+
+        except Exception as e:
+            Logger.error(f"ConfigV2Editor: Error building the config file: {e}")
+            self.app.main_window.async_display("Error building config file, see log")
+            self.close()
+            return
 
         self.sections = sections
         self._done()
@@ -256,15 +263,20 @@ class ConfigV2Editor(Screen):
     def _done(self):
         self._update_progress("Creating Settings Panel....")
 
-        self.msp = MySettingsPanel()
-        for s in self.sections:
-            self.msp.add_json_panel(s[0], self.config, data=s[1])
+        try:
+            self.msp = MySettingsPanel()
+            for s in self.sections:
+                self.msp.add_json_panel(s[0], self.config, data=s[1])
 
-        ss = self.ids.placeholder
-        ss.clear_widgets()
-        ss.add_widget(self.msp)
-        self.sections = None
-        self.progress = None
+            ss = self.ids.placeholder
+            ss.clear_widgets()
+            ss.add_widget(self.msp)
+            self.sections = None
+            self.progress = None
+
+        except Exception as e:
+            Logger.error(f"ConfigV2Editor: Error displaying the config panel: {e}")
+            self.app.main_window.async_display("Error displaying config panel, see log")
 
     @mainthread
     def close(self):
