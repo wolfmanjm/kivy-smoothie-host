@@ -357,7 +357,7 @@ class MacrosWidget(StackLayout):
                 # I/O is piped to/from smoothie
                 self.app.main_window.async_display(f"> running script: {cmd}")
                 Logger.info(f"running script: {cmd}")
-                p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=1)
+                p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, bufsize=0)
                 self.app.comms.redirect_incoming(lambda x: self._send_it(p, x))
 
                 sel = selectors.DefaultSelector()
@@ -376,7 +376,7 @@ class MacrosWidget(StackLayout):
                                 self.app.main_window.async_display("<<< script: {}".format(data.rstrip()))
                             self.app.comms.write(f'{data}')
 
-                        else:  # stderr
+                        elif key.fileobj is p.stderr:  # stderr
                             if repeating:
                                 self.app.main_window.async_display('{}\r'.format(data.rstrip()))
                             else:
