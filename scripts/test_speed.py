@@ -75,8 +75,11 @@ def send(str):
             ll = sys.stdin.readline()   # read a line
             if ll.startswith('ok'):
                 break
+            elif "!!" in ll:
+                sys.stderr.write("Aborted, Got kill\n")
+                sys.exit()
             else:
-                sys.stderr.write(f'> {ll}')
+                sys.stderr.write(f'> {ll}\n')
                 sys.stderr.flush()
 
 
