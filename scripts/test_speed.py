@@ -7,6 +7,8 @@
 # faster in the center of the bed and limit the actuators at the edge of the
 # bed. This maximizes the actual head speed over the bed in most cases
 # without allowing the actuators to overrun.
+# This is useful for both delta and corexy where one actuator can go double
+# the feedrate on diagonals.
 # This is a smoothie only feature AFAIK.
 
 import sys
@@ -135,15 +137,6 @@ send(f"M203.1 X{maxrate} Y{maxrate} Z{maxrate}")
 # Go to starting position
 send(f"G0 X{x_min} Y{y_min} Z{z_height} F{feedrate*60}")
 
-'''
-    # Set new limits
-    {% if printer.configfile.settings.printer.minimum_cruise_ratio is defined %}
-        SET_VELOCITY_LIMIT VELOCITY={speed} ACCEL={accel} MINIMUM_CRUISE_RATIO={min_cruise_ratio}
-    {% else %}
-        SET_VELOCITY_LIMIT VELOCITY={speed} ACCEL={accel} ACCEL_TO_DECEL={accel / 2}
-    {% endif %}
-'''
-
 for i in range(iterations):
     # Large pattern diagonals
     send(f'G0 X{x_min} Y{y_min} F{feedrate * 60}')
@@ -173,14 +166,6 @@ for i in range(iterations):
     send(f'G0 X{x_center_max} Y{y_center_max} F{feedrate * 60}')
     send(f'G0 X{x_center_max} Y{y_center_min} F{feedrate * 60}')
 
-'''
-    # Restore max speed/accel/accel_to_decel to their configured values
-    {% if printer.configfile.settings.printer.minimum_cruise_ratio is defined %}
-        SET_VELOCITY_LIMIT VELOCITY={printer.configfile.settings.printer.max_velocity} ACCEL={printer.configfile.settings.printer.max_accel} MINIMUM_CRUISE_RATIO={printer.configfile.settings.printer.minimum_cruise_ratio} 
-    {% else %}
-        SET_VELOCITY_LIMIT VELOCITY={printer.configfile.settings.printer.max_velocity} ACCEL={printer.configfile.settings.printer.max_accel} ACCEL_TO_DECEL={printer.configfile.settings.printer.max_accel_to_decel}
-    {% endif %}
-'''
 
 # Re-home and get position again for comparison:
 send('M400')  # Finish moves
