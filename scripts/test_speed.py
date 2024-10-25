@@ -11,6 +11,15 @@
 # the feedrate on diagonals.
 # This is a smoothie only feature AFAIK.
 
+# add this to macros.ini
+'''
+[script speed test]
+name= speed test
+io= true
+exec= python3 -u scripts/test_speed.py
+args=--maxrate,--iter
+'''
+
 import sys
 from argparse import ArgumentParser
 
