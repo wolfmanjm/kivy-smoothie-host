@@ -1,4 +1,13 @@
-# inspired by the test speed in klipper reimplemented as a script for Smoopi on a SBV2
+# inspired by the test speed in klipper reimplemented as a script for Smoopi
+# on a SBV2 this is for a delta, and instead of settign feedrate (M203), we
+# set the maximum actuator speed (M203.1) on Smoothie and set feedrate to a
+# very high number. Becuase on Deltas the actuator can end up running 3x
+# faster than the head over the bed it is more efficient to set the maximum
+# actuator speed and leave max speeds at a high level. this allows us to move
+# faster in the center of the bed and limit the actuators at the edge of the
+# bed. This maximizes the actual head speed over the bed in most cases
+# without allowing the actuators to overrun.
+# This is a smoothie only feature AFAIK.
 
 import sys
 from argparse import ArgumentParser
@@ -11,9 +20,15 @@ arg_parser.add_argument(
     default=False
 )
 arg_parser.add_argument(
-    "--speed",
-    help="specify feedrate in mm/sec (default: %(default)s)",
-    default='100',
+    "--maxrate",
+    help="specify max actuator feedrate in mm/sec (default: %(default)s)",
+    default='200',
+    type=int
+)
+arg_parser.add_argument(
+    "--feedrate",
+    help="specify feedrate to use in mm/sec (default: %(default)s)",
+    default='500',
     type=int
 )
 arg_parser.add_argument(
@@ -42,7 +57,8 @@ arg_parser.add_argument(
 )
 
 args = arg_parser.parse_args()
-speed = args.speed
+maxrate = args.maxrate
+feedrate = args.feedrate
 iterations = args.iter
 accel = args.accel
 z_height = args.z_height
@@ -95,14 +111,14 @@ def get_pos():
         if ll.startswith('ok'):
             return raw
         elif ll.startswith('RAW:'):
-                raw = ll
+            raw = ll
 
 
 # Save current gcode state (absolute/relative, etc)
 send('M120')
 
 # Output parameters to g-code terminal
-display("TEST_SPEED_DELTA: starting %d iterations at speed %d, accel %d" % (iterations, speed, accel))
+display("TEST_SPEED_DELTA: starting %d iterations at feedrate %d, accel %d, maxrate %d" % (iterations, feedrate, accel, maxrate))
 
 # Home and get position for comparison later:
 send('M400')  # Finish moves
@@ -113,8 +129,11 @@ send('G4 P1000')
 p = get_pos()
 display(f'pos: {p}\n')
 
+# set the max actuator rate to test
+send(f"M203.1 X{maxrate} Y{maxrate} Z{maxrate}")
+
 # Go to starting position
-send(f"G0 X{x_min} Y{y_min} Z{z_height} F{speed*60}")
+send(f"G0 X{x_min} Y{y_min} Z{z_height} F{feedrate*60}")
 
 '''
     # Set new limits
@@ -127,32 +146,32 @@ send(f"G0 X{x_min} Y{y_min} Z{z_height} F{speed*60}")
 
 for i in range(iterations):
     # Large pattern diagonals
-    send(f'G0 X{x_min} Y{y_min} F{speed * 60}')
-    send(f'G0 X{x_max} Y{y_max} F{speed * 60}')
-    send(f'G0 X{x_min} Y{y_min} F{speed * 60}')
-    send(f'G0 X{x_max} Y{y_min} F{speed * 60}')
-    send(f'G0 X{x_min} Y{y_max} F{speed * 60}')
-    send(f'G0 X{x_max} Y{y_min} F{speed * 60}')
+    send(f'G0 X{x_min} Y{y_min} F{feedrate * 60}')
+    send(f'G0 X{x_max} Y{y_max} F{feedrate * 60}')
+    send(f'G0 X{x_min} Y{y_min} F{feedrate * 60}')
+    send(f'G0 X{x_max} Y{y_min} F{feedrate * 60}')
+    send(f'G0 X{x_min} Y{y_max} F{feedrate * 60}')
+    send(f'G0 X{x_max} Y{y_min} F{feedrate * 60}')
 
     # Large pattern box
-    send(f'G0 X{x_min} Y{y_min} F{speed * 60}')
-    send(f'G0 X{x_min} Y{y_max} F{speed * 60}')
-    send(f'G0 X{x_max} Y{y_max} F{speed * 60}')
-    send(f'G0 X{x_max} Y{y_min} F{speed * 60}')
+    send(f'G0 X{x_min} Y{y_min} F{feedrate * 60}')
+    send(f'G0 X{x_min} Y{y_max} F{feedrate * 60}')
+    send(f'G0 X{x_max} Y{y_max} F{feedrate * 60}')
+    send(f'G0 X{x_max} Y{y_min} F{feedrate * 60}')
 
     # Small pattern diagonals
-    send(f'G0 X{x_center_min} Y{y_center_min} F{speed * 60}')
-    send(f'G0 X{x_center_max} Y{y_center_max} F{speed * 60}')
-    send(f'G0 X{x_center_min} Y{y_center_min} F{speed * 60}')
-    send(f'G0 X{x_center_max} Y{y_center_min} F{speed * 60}')
-    send(f'G0 X{x_center_min} Y{y_center_max} F{speed * 60}')
-    send(f'G0 X{x_center_max} Y{y_center_min} F{speed * 60}')
+    send(f'G0 X{x_center_min} Y{y_center_min} F{feedrate * 60}')
+    send(f'G0 X{x_center_max} Y{y_center_max} F{feedrate * 60}')
+    send(f'G0 X{x_center_min} Y{y_center_min} F{feedrate * 60}')
+    send(f'G0 X{x_center_max} Y{y_center_min} F{feedrate * 60}')
+    send(f'G0 X{x_center_min} Y{y_center_max} F{feedrate * 60}')
+    send(f'G0 X{x_center_max} Y{y_center_min} F{feedrate * 60}')
 
     # Small pattern box
-    send(f'G0 X{x_center_min} Y{y_center_min} F{speed * 60}')
-    send(f'G0 X{x_center_min} Y{y_center_max} F{speed * 60}')
-    send(f'G0 X{x_center_max} Y{y_center_max} F{speed * 60}')
-    send(f'G0 X{x_center_max} Y{y_center_min} F{speed * 60}')
+    send(f'G0 X{x_center_min} Y{y_center_min} F{feedrate * 60}')
+    send(f'G0 X{x_center_min} Y{y_center_max} F{feedrate * 60}')
+    send(f'G0 X{x_center_max} Y{y_center_max} F{feedrate * 60}')
+    send(f'G0 X{x_center_max} Y{y_center_min} F{feedrate * 60}')
 
 '''
     # Restore max speed/accel/accel_to_decel to their configured values
