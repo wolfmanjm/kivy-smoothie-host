@@ -785,15 +785,17 @@ class Comms():
                 # sending stripped line so add \n
                 self._write(f"{line}\n")
 
-                # wait for ok from that command (I'd prefer to interleave with the file read but it is too complex)
-                if self.ping_pong and self.okcnt is not None:
-                    try:
-                        await self.okcnt.wait()
-                        # e = time.time()
-                        # print("{} ({}ms) ok".format(e, (e - s) * 1000))
-                    except Exception:
-                        self.log.debug('Comms: okcnt wait cancelled')
-                        break
+                if not line.startswith("$J"):
+                    # $J does not return ok
+                    # wait for ok from that command (I'd prefer to interleave with the file read but it is too complex)
+                    if self.ping_pong and self.okcnt is not None:
+                        try:
+                            await self.okcnt.wait()
+                            # e = time.time()
+                            # print("{} ({}ms) ok".format(e, (e - s) * 1000))
+                        except Exception:
+                            self.log.debug('Comms: okcnt wait cancelled')
+                            break
 
                 # when streaming we need to yield until the flow control is dealt with
                 if self.proto and self.proto._connection_lost:

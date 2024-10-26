@@ -359,7 +359,8 @@ class GcodeViewerScreen(Screen):
                 ln = ln.strip()
                 if not ln:
                     continue
-                if ln.startswith(';') or ln.startswith('#'):
+                    # skip comments and $ commands
+                if ln.startswith(';') or ln.startswith('#') or ln.startswith('$'):
                     continue
                 if ln.startswith('('):
                     continue
