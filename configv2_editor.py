@@ -284,17 +284,21 @@ class ConfigV2Editor(Screen):
             self.tmo.cancel()
             self.tmo = None
 
-        self.manager.current = 'main'
         self.force_close = True
         self.app.comms.redirect_incoming(None)
         self.ids.placeholder.clear_widgets()
         if self.msp:
             self.msp.on_close()
+            ss = self.ids.placeholder
+            ss.remove_widget(self.msp)
 
         self.sections = None
         self.configdata = []
         self.config = None
         self.progress = None
+        self.manager.current = 'main'
+        self.manager.remove_widget(self)
+        # self.msp = None # FIXME this causes a buinch of errors on close
 
 
 class MyMenuSidebar(FloatLayout):
@@ -351,6 +355,8 @@ class MySettingsPanel(Settings):
 
     def on_close(self):
         print("Closing MySettingsPanel")
+        app = App.get_running_app()
+        app.destroy_settings()
 
     def on_config_change(self, config, section, key, value):
         app = App.get_running_app()

@@ -1087,6 +1087,10 @@ class MainWindow(BoxLayout):
         return cmd
 
     def config_editor(self):
+        if not self.app.sm.has_screen('config_editor'):
+            print("adding comnfig_editor")
+            self.app.sm.add_widget(self.app.config_editor)
+
         self.app.config_editor.open()
 
     def edit_text(self, *args):
@@ -1539,7 +1543,7 @@ class SmoothieHost(App):
         else:
             self.config_editor = ConfigEditor(name='config_editor')
 
-        self.sm.add_widget(self.config_editor)
+        # self.sm.add_widget(self.config_editor)
         self.gcode_help = GcodeHelp(name='gcode_help')
         self.sm.add_widget(self.gcode_help)
 
@@ -1901,7 +1905,8 @@ class SmoothieHost(App):
         self.sm.current = 'settings_screen'
         return True
 
-    def close_settings(self, *largs):
+    def close_settings(self, settings=None):
+        super(SmoothieHost, self).close_settings(settings)
         self.sm.current = 'main'
 
 
