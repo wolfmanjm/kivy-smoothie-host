@@ -49,6 +49,9 @@ Builder.load_string('''
                 text: 'Pins'
                 on_press: root.populate('P')
             Button:
+                text: 'Fnc'
+                on_press: root.populate('F')
+            Button:
                 text: 'Back'
                 on_press: root.close()
 

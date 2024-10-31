@@ -38,6 +38,7 @@ G91 | set Relative mode
 G92 | Set global workspace coordinate system
 G92.1 | Reset G92
 G92.4 | manually set homing (MCS) for XYZ
+
 M0 | Pauses job until a button is clicked, handled by Smoopi if enabled
 M2 | End of job
 M3 | Starts the spindle. S<speed in RPM>
@@ -96,7 +97,7 @@ M211 | Show softendstops status, S0 turns off soft endstops
 M220 | set speed factor override S<percent>
 M221 | set flow rate factor override or Laser power override S<percent>
 M301 | set PID parameters X<i_max> Y<max_pwm> S<heater> P<nnn> I<nnn> D<nnn> (V2) Z<ponm>
-M303 | Begin PID auto-tune cycle  (V2) P<hotendid> or (V1) E<hotend> S<temperature>
+M303 | Begin PID auto-tune cycle (V2) P<hotendid> or (V1) E<hotend> S<temperature>
 M304 | Abort PID auto-tuning (V1 only, ^X for V2)
 M305 | Set parameters for the thermistor, B<beta> R<r0> X<t0> P<ID> of the thermistor
 M306 | Set homing offsets based on current position
@@ -131,6 +132,7 @@ M911.x | Setup advanced driver chips that support SPI setup
 M957 | Report the current spindle speed and PWM value
 M958 | Report the current spindle PID parameters
 M999 | Reset from a halted state caused by limit switch
+
 abort | abort currently running sd file
 break | break into debugger
 calc_thermistor | [-s0] T1,R1,T2,R2,T3,R3 calculate the Steinhart Hart coefficients for a thermistor
@@ -148,6 +150,7 @@ get status | print query information
 get temp | <bed|hotend> show temperature of hotend or bed
 get wcs | print WCS settings
 get volts | print out the voltages in the system
+gpio | set and get gpio pins: PA1 o[ut]/i[n] [on/off or 1/0] [timeout ms]
 load | <file> loads a configuration override file from specified name or config-override
 ls | [-s] <dir> lists directory contents (with size)
 md5sum | <file> prints md5 sum of the given file
@@ -174,6 +177,7 @@ test square | <size> <iterations> [feedrate] draws a  square of given size
 thermistors | print out the predefined thermistors
 upload | <filename> saves a stream of text to the named file
 version | prints current firmware version
+
 $G | same as get state
 $H | Home
 $I | same as get state (no ok)
@@ -181,6 +185,7 @@ $J | [-r|-c] [Xnnn] [Ynnn] [Znnn] [Snnn|Fnnn] issue jog command axis can be XYZA
 $S | <switch names> get switch state(s)
 $X | release ALARM state
 $# | same as get wcs
+
 PA3 | GH4 (ADC1_6)
 PA4 | GF5
 PA5 | GE9 (SPI1_SCK)
@@ -245,6 +250,29 @@ PJ11 | GA6
 PK0 | GB6
 PK1 | GB7
 
-
+F Bed | PE3
+F Endstop Xmax | PI3
+F Endstop Xmin | PD0
+F Endstop Ymax | PA9
+F Endstop Ymin | PI1
+F Endstop Zmax | PH15
+F Endstop Zmin | PI0
+F Fan 1 | PE1
+F Fan 2 | PI11
+F FET NOT Enable | PF14
+F FET PowerShutoff | PD7
+F Hotend1 | PE0
+F Hotend2 | PB8
+F LED1 | PH9
+F LED2 | PH10
+F LED3 | PH11
+F LED4 | PH12
+F Motor NOT Enable | PH13
+F MSC | PJ14
+F Probe | PB10
+F SSR1 | PI4
+F SSR2 | PB7
+F UART2_RX | PD6
+F UART2_TX | PD5
 
 

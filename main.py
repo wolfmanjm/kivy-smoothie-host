@@ -1088,7 +1088,6 @@ class MainWindow(BoxLayout):
 
     def config_editor(self):
         if not self.app.sm.has_screen('config_editor'):
-            print("adding comnfig_editor")
             self.app.sm.add_widget(self.app.config_editor)
 
         self.app.config_editor.open()

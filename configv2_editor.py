@@ -290,7 +290,7 @@ class ConfigV2Editor(Screen):
         if self.msp:
             self.msp.on_close()
             ss = self.ids.placeholder
-            ss.remove_widget(self.msp)
+            ss.clear_widgets()
 
         self.sections = None
         self.configdata = []
@@ -342,6 +342,10 @@ class InterfaceWithScrollableSidebar(BoxLayout):
         self.menu.add_item(name, uid)
         self.content.add_panel(panel, name, uid)
 
+    def on_close(self):
+        # print("InterfaceWithScrollableSidebar on_close()")
+        pass
+
 
 class MySettingsPanel(Settings):
     def __init__(self, *args, **kwargs):
@@ -354,9 +358,10 @@ class MySettingsPanel(Settings):
         #     self.interface.effect_y.friction = 1.0
 
     def on_close(self):
-        print("Closing MySettingsPanel")
-        app = App.get_running_app()
-        app.destroy_settings()
+        if self.interface is not None:
+            self.interface.on_close()
+
+        # print("MySettingsPanel on_close()")
 
     def on_config_change(self, config, section, key, value):
         app = App.get_running_app()
