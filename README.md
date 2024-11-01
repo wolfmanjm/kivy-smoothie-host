@@ -176,7 +176,7 @@ Samsung Evo+ are also supposed to be very fast in an RPI.
 
 The last line is quite important otherwise you get a whole lot of ok's echoed back to smoothie when it opens. This does not appear to be needed on a desktop probably due to the speed it is setup vs the rpi.
 
-### Raspbian running bookworm on RPI3x (NOT RPI4b)
+### Raspbian running bookworm on RPI3x and RPI4xx
 
 Bookworm seems to have changed the way python packages are installed, so it maybe easier to do the following...
 
@@ -189,7 +189,7 @@ Bookworm seems to have changed the way python packages are installed, so it mayb
     python main.py
 
 
-That seems to work if running without X.
+That seems to work if running with or without X.
 
 You can skim the rest of the README if you run into issues
 
@@ -252,7 +252,7 @@ Also if the touch screen does not work then you need to make sure that this is s
     ignore_lcd=0
     dtoverlay=vc4-fkms-v3d
 
-#### RPI4b and Raspbian Buster or Bullseye
+#### RPI4b/RPI400 and Raspbian Buster or Bullseye (See easier version above for Bookworm)
 It is recommended (and easier) to run under XWindows (>= 2GB memory is needed).
 First install the Full XWindows desktop version of Raspberry PI OS on the RPI4b,
 Bullseye which is here... https://www.raspberrypi.com/software/operating-systems/#raspberry-pi-os-64-bit
@@ -268,7 +268,7 @@ is recommended https://kivy.org/doc/stable/installation/installation-rpi.html#in
 
 *NOTE* you *may* be able to get a touch screen to run without XWindows (console/headless mode) but I have not tested this (it is quite a complex install, and installing from source is required). Read this https://kivy.org/doc/stable/installation/installation-rpi.html#raspberry-pi-4-headless-installation-on-raspbian-buster and this issue may help.. https://github.com/kivy/kivy/issues/6474
 
-#### Running under XWindows on RPI
+#### Running under XWindows on RPI for Bullseye and Buster (NOT Bookworm)
 On RPI3b make sure that you run `raspi-config` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
 On RPI4b with Bullseye this is not needed, the default driver works fine.
 
@@ -494,7 +494,7 @@ __NOTE__ all the files are coded UTF-8 so make sure your locale (LANG=en_US.utf8
 
 ## Smoothie version required
 
-This requires the latest FirmwareBin/firmware-latest.bin from Smoothie github, (or FirmwareBin/firmware-cnc-latest.bin).
+This *always* requires the latest versions (V1 or V2) from Smoothie github.
 
 __NOTE__ to use the T0 and T1 buttons in the Extruder panel the temperature controls need to have the following designators 'T' and 'T1'. The temperature for the currently selected tool will show, and the set temp will apply to that tool.
 
