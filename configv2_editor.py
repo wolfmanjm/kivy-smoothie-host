@@ -16,6 +16,7 @@ from functools import partial
 import json
 import configparser
 import threading
+import traceback
 
 Builder.load_string('''
 <ConfigV2Editor>:
@@ -264,7 +265,9 @@ class ConfigV2Editor(Screen):
         self._update_progress("Creating Settings Panel....")
 
         try:
-            self.msp = MySettingsPanel()
+            if self.msp is None:
+                self.msp = MySettingsPanel()
+
             for s in self.sections:
                 self.msp.add_json_panel(s[0], self.config, data=s[1])
 
@@ -275,7 +278,7 @@ class ConfigV2Editor(Screen):
             self.progress = None
 
         except Exception as e:
-            Logger.error(f"ConfigV2Editor: Error displaying the config panel: {e}")
+            Logger.error(f"ConfigV2Editor: Error displaying the config panel: {e} {traceback.format_exc()}")
             self.app.main_window.async_display("Error displaying config panel, see log")
 
     @mainthread
@@ -297,8 +300,6 @@ class ConfigV2Editor(Screen):
         self.config = None
         self.progress = None
         self.manager.current = 'main'
-        self.manager.remove_widget(self)
-        # self.msp = None # FIXME this causes a buinch of errors on close
 
 
 class MyMenuSidebar(FloatLayout):
@@ -317,6 +318,9 @@ class MyMenuSidebar(FloatLayout):
         for button in self.buttons_layout.children:
             if button.uid != self.selected_uid:
                 button.selected = False
+
+    def on_close(self):
+        self.buttons_layout.clear_widgets()
 
 
 class SettingSidebarLabel(Label):
@@ -344,7 +348,8 @@ class InterfaceWithScrollableSidebar(BoxLayout):
 
     def on_close(self):
         # print("InterfaceWithScrollableSidebar on_close()")
-        pass
+        self.menu.on_close()
+        self.content.clear_widgets()
 
 
 class MySettingsPanel(Settings):
@@ -360,8 +365,6 @@ class MySettingsPanel(Settings):
     def on_close(self):
         if self.interface is not None:
             self.interface.on_close()
-
-        # print("MySettingsPanel on_close()")
 
     def on_config_change(self, config, section, key, value):
         app = App.get_running_app()
