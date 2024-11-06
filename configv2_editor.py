@@ -152,27 +152,33 @@ class ConfigV2Editor(Screen):
                 self.configdata.append(ll)
 
     def open(self):
-        self.force_close = False
-        self.start = False
-        self.app = App.get_running_app()
-        self.ids.placeholder.add_widget(Label(text='Loading.... This may take a while!'))
-        self.progress = Label(text="Current line....")
-        self.ids.placeholder.add_widget(self.progress)
+        if self.msp is None:
+            # first time opening we need to populate the settings screen
+            self.force_close = False
+            self.start = False
+            self.app = App.get_running_app()
+            self.ids.placeholder.add_widget(Label(text='Loading.... This may take a while!'))
+            self.progress = Label(text="Current line....")
+            self.ids.placeholder.add_widget(self.progress)
 
-        self.manager.current = 'config_editor'
-        self.config = ConfigParser.get_configparser('Smoothie Config')
-        if self.config is None:
-            self.config = ConfigParser(name='Smoothie Config')
+            self.manager.current = 'config_editor'
+            self.config = ConfigParser.get_configparser('Smoothie Config')
+            if self.config is None:
+                self.config = ConfigParser(name='Smoothie Config')
+            else:
+                for section in self.config.sections():
+                    self.config.remove_section(section)
+
+            # get config, parse and populate
+            self.start = False
+            self.app.comms.redirect_incoming(self._add_line)
+
+            # wait for any outstanding queries
+            Clock.schedule_once(self._send_command, 1)
+
         else:
-            for section in self.config.sections():
-                self.config.remove_section(section)
-
-        # get config, parse and populate
-        self.start = False
-        self.app.comms.redirect_incoming(self._add_line)
-
-        # wait for any outstanding queries
-        Clock.schedule_once(self._send_command, 1)
+            # already been populated just switch to the screen
+            self.manager.current = 'config_editor'
 
     def _timed_out(self, dt):
         Logger.error("ConfigV2Editor: Command timed out")
@@ -276,6 +282,7 @@ class ConfigV2Editor(Screen):
             ss.add_widget(self.msp)
             self.sections = None
             self.progress = None
+            self.configdata = []
 
         except Exception as e:
             Logger.error(f"ConfigV2Editor: Error displaying the config panel: {e} {traceback.format_exc()}")
@@ -283,22 +290,8 @@ class ConfigV2Editor(Screen):
 
     @mainthread
     def close(self):
-        if self.tmo:
-            self.tmo.cancel()
-            self.tmo = None
-
-        self.force_close = True
-        self.app.comms.redirect_incoming(None)
-        self.ids.placeholder.clear_widgets()
-        if self.msp:
-            self.msp.on_close()
-            ss = self.ids.placeholder
-            ss.clear_widgets()
-
-        self.sections = None
-        self.configdata = []
-        self.config = None
-        self.progress = None
+        # due to bugs in settings not getting cleared we leave it
+        # all open and just switch screens
         self.manager.current = 'main'
 
 
