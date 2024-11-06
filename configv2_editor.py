@@ -321,6 +321,7 @@ class MyMenuSidebar(FloatLayout):
 
     def on_close(self):
         self.buttons_layout.clear_widgets()
+        self.selected_uid = 0
 
 
 class SettingSidebarLabel(Label):
