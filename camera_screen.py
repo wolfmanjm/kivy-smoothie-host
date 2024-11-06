@@ -49,6 +49,8 @@ class MjpegViewer(Image):
         self.t.join()
 
     def _read_stream(self):
+        Logger.info("MjpegViewer: started thread")
+
         try:
             if self.realm and self.user and self.pw:
                 auth_handler = urllib.request.HTTPBasicAuthHandler()
@@ -56,7 +58,27 @@ class MjpegViewer(Image):
                 opener = urllib.request.build_opener(auth_handler)
                 urllib.request.install_opener(opener)
 
-            stream = urllib.request.urlopen(self.url)
+            with urllib.request.urlopen(self.url) as stream:
+
+                bytes = b''
+                while not self.quit:
+                    # read in stream until we get the entire frame
+                    bytes += stream.read(1024)
+                    a = bytes.find(b'\xff\xd8')
+                    b = bytes.find(b'\xff\xd9')
+                    if a != -1 and b != -1:
+                        jpg = bytes[a:b + 2]
+                        bytes = bytes[b + 2:]
+
+                        data = io.BytesIO(jpg)
+                        im = CoreImage(data, ext="jpeg", nocache=True)
+                        self.update_image(im)
+
+                        if self.singleshot:
+                            # camera only supplies a snapshot not a stream
+                            time.sleep(0.2)
+                            stream = urllib.request.urlopen(self.url)
+                            bytes = b''
 
         except Exception as err:
             if hasattr(err, 'code') and err.code == 401:
@@ -64,34 +86,6 @@ class MjpegViewer(Image):
 
             self.quit = True
             Logger.error("MjpegViewer: Failed to open url: {} - error: {}".format(self.url, err))
-            return None
-
-        Logger.info("MjpegViewer: started thread")
-
-        bytes = b''
-        while not self.quit:
-            try:
-                # read in stream until we get the entire frame
-                bytes += stream.read(1024)
-                a = bytes.find(b'\xff\xd8')
-                b = bytes.find(b'\xff\xd9')
-                if a != -1 and b != -1:
-                    jpg = bytes[a:b + 2]
-                    bytes = bytes[b + 2:]
-
-                    data = io.BytesIO(jpg)
-                    im = CoreImage(data, ext="jpeg", nocache=True)
-                    self.update_image(im)
-
-                    if self.singleshot:
-                        # camera only supplies a snapshot not a stream
-                        time.sleep(0.2)
-                        stream = urllib.request.urlopen(self.url)
-                        bytes = b''
-
-            except Exception as err:
-                Logger.error("MjpegViewer: Failed to read_queue url: {} - error: {}".format(self.url, err))
-                return None
 
         Logger.info("MjpegViewer: ending thread")
 
