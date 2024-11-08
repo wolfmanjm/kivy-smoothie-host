@@ -32,7 +32,7 @@ Another easy method is to use the rpi-imager to install 64-bit Bookworm lite, an
     cd smoopi
     ./install-smoopi-on-bookworm
 
-*NOTE* If installing the 64-bit version on a RPI3b then the following needs to be appended to the ```/boot/firmware/cmdline.txt```, which fixes a reported kernel bug affecting USB.
+**NOTE** If installing the 64-bit version on a RPI3b then the following needs to be appended to the ```/boot/firmware/cmdline.txt```, which fixes a reported kernel bug affecting USB.
 
     dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0
 
@@ -211,7 +211,7 @@ You may also want to disable the modem manager to stop it interfering with seria
 
 ### Raspbian/Buster (or Bullseye) on RPI3x (NOT RPI4b)
 
-*NOTE* This is not recomemnded, it is best to use bookworm. Left here for posterity.
+**NOTE** This is not recommended, it is best to use bookworm. Left here for posterity.
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
@@ -267,11 +267,11 @@ Also if the touch screen does not work then you need to make sure that this is s
 
 #### RPI4b/RPI400/RPI5 and Raspbian Buster or Bullseye
 
-*NOT* recommended, use Bookworm
+**NOT** recommended, use Bookworm
 
 #### Running under XWindows on RPI for Bullseye and Buster (NOT Bookworm)
 
-*NOE* This also is no longer recommended, use bookworm.
+**NOTE** This also is no longer recommended, use bookworm.
 
 On RPI3b make sure that you run `raspi-config` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
 On RPI4b with Bullseye this is not needed, the default driver works fine.
