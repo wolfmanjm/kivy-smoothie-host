@@ -37,10 +37,10 @@
             y: self.pos[1]
         Rotate:
             angle: root.angle
-            origin: 25,25
+            origin: dp(25), dp(25)
         Mesh:
             mode: 'triangle_fan'
-            vertices: 0,0,0,0, 0,25,0,0, 25,50,0,0, 50,25,0,0, 50,0,0,0
+            vertices: dp(0),dp(0),dp(0),dp(0), dp(0),dp(25),dp(0),dp(0), dp(25),dp(50),dp(0),dp(0), dp(50),dp(25),dp(0),dp(0), dp(50),dp(0),dp(0),dp(0)
             indices: 0,1,2,3,4
         PopMatrix
 
@@ -61,30 +61,30 @@
 
 <MyGridV@GridLayout>:
     size_hint: None, None
-    size: 50, 150
+    size: dp(50), dp(150)
     #spacing: 4
     rows: 3
     col_force_default: True
-    col_default_width: 50
+    col_default_width: dp(50)
     row_force_default: True
-    row_default_height: 50
+    row_default_height: dp(50)
 
 <MyGridH@GridLayout>:
     size_hint: None, None
-    size: 150, 50
+    size: dp(150), dp(50)
     #spacing: 4
     cols: 3
     col_force_default: True
-    col_default_width: 50
+    col_default_width: dp(50)
     row_force_default: True
-    row_default_height: 50
+    row_default_height: dp(50)
 
 <JogRoseWidget>:
     id: jogrose
     jogrosemain: jogrosemain
     abc_panel: abc_panel
     hat: hat
-    padding: 5, 5
+    padding: dp(5), dp(5)
     canvas.before:
         Color:
             rgba: 0.5, 0.5, 0.5, 1
@@ -98,7 +98,7 @@
             pos_hint: {'right': 1.0, 'top': 1.0}
             LPArrowButton:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: '{}+1'.format(root.abc_sel)
                 angle: 0
                 on_press: root.handle_action(root.abc_sel, 1)
@@ -107,32 +107,32 @@
 
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: '{}+0.1'.format(root.abc_sel)
                 on_press: root.handle_action(root.abc_sel, 0.1)
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: '{}+0.01'.format(root.abc_sel)
                 on_press: root.handle_action(root.abc_sel, 0.01)
 
         MyGridV:
             pos_hint: {'right': 1.0, 'center_y': 0.27}
-            size: 50, 100
+            size: dp(50), dp(100)
 
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: '{}-0.01'.format(root.abc_sel)
                 on_press: root.handle_action(root.abc_sel, -0.01)
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: '{}-0.1'.format(root.abc_sel)
                 on_press: root.handle_action(root.abc_sel, -0.1)
             LPArrowButton:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: '{}-1'.format(root.abc_sel)
                 angle: 180
                 on_press: root.handle_action(root.abc_sel, -1)
@@ -143,18 +143,18 @@
             pos_hint: {'center_x': 0.5, 'top': 1.0}
             ArrowButton:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'Y+10'
                 angle: 0
                 on_press: root.handle_action('Y', 10)
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'Y+1'
                 on_press: root.handle_action('Y', 1)
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'Y+0.1'
                 on_press: root.handle_action('Y', 0.1)
 
@@ -163,17 +163,17 @@
 
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'Y-0.1'
                 on_press: root.handle_action('Y', -0.1)
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'Y-1'
                 on_press: root.handle_action('Y', -1)
             ArrowButton:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'Y-10'
                 angle: 180
                 on_press: root.handle_action('Y', -10)
@@ -183,18 +183,18 @@
 
             ArrowButton:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'X-10'
                 angle: 90
                 on_press: root.handle_action('X', -10)
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'X-1'
                 on_press: root.handle_action('X', -1)
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'X-0.1'
                 on_press: root.handle_action('X', -0.1)
 
@@ -203,17 +203,17 @@
 
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'X+0.1'
                 on_press: root.handle_action('X', 0.1)
             Button:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'X+1'
                 on_press: root.handle_action('X', 1)
             ArrowButton:
                 size_hint: None, None
-                size: 50, 50
+                size: dp(50), dp(50)
                 text: 'X+10'
                 angle: -90
                 on_press: root.handle_action('X', 10)
@@ -222,7 +222,7 @@
             id: hat
             pos_hint: {'center_x': 0.5, 'center_y': 0.5}
             size_hint: None, None
-            size: 64, 64
+            size: dp(64), dp(64)
             on_release: root.hat_released()
 
         CircularButton:

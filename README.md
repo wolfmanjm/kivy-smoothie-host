@@ -298,7 +298,9 @@ If running as a resizable window under X you need to make sure the following are
     resizable = 1
     show_cursor = 1
 
-If you are using a USB based touch screen under XWindows you need to run smoopi full screen, and in `~/.kivy/config.ini`
+(also make sure to set ```[UI] touch_screen = false``` in ```smoothiehost.ini```)
+
+If you are using a touch screen under XWindows you need to run smoopi full screen, and in `~/.kivy/config.ini`
 you have the following settings...
 
     [kivy]
