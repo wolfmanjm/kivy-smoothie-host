@@ -13,11 +13,11 @@ This uses python >= 3.7.x and <= 3.11.x and kivy >= 2.1.x <= 2.2.1
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
 
-Runs very nicely on a RPI-4b with 4GB memory under XWindows with an external HDMI monitor running Buster, running the app full screen if using a touch panel. (see special instructions for installation on rpi4b below)
+Runs very nicely on a RPI-4b and RPI5 with 4GB memory under XWindows with an external HDMI monitor running Buster or Bookworm. You can also run the app full screen if using a touch panel. (see special instructions for installation on rpi4b/rpi5 below)
 
 It will run on Windows if you install Python 3.7 (or newer), and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
 
-The minimum usable resolution is 800x480.
+The minimum usable resolution is 800x480. There are various layouts to suit different screen resolutions.
 
 ## Easy install for RPI3x
 
@@ -32,7 +32,7 @@ Another easy method is to use the rpi-imager to install 64-bit Bookworm lite, an
     cd smoopi
     ./install-smoopi-on-bookworm
 
-*NOTE* If installing the 64-bit version on a RPI3b then the following needs to be appended to the /boot/firmware/cmdline.txt, which fixes a reported kernel bug affecting USB.
+*NOTE* If installing the 64-bit version on a RPI3b then the following needs to be appended to the ```/boot/firmware/cmdline.txt```, which fixes a reported kernel bug affecting USB.
 
     dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0
 
@@ -44,6 +44,7 @@ The following touch panels have been tested and work nicely:
 1. Official RPI 7" touch screen. Works well with the `RPI Touch` layout 800x480
 2. Waveshare 7" QLED IPS Capacitive Touch Display. Works well with the `RPI Full Screen` layout 1024x600
 3. SunFounder 10.1" HDMI 1280x800 IPS LCD Touchscreen. Works well with the `Wide Desktop` layout and setting the `Touch screen` setting.
+4. Still playing with the Official RPI 7" version 2 touch screen, which is portrait mode.  It is usable if you rotate the screen and use one of the desktop layouts.
 
 ## Goal
 The goal is to have a small touch screen host that can run a smoothie and is better than an LCD Panel, and almost as good as a host PC running pronterface.
@@ -176,7 +177,7 @@ Samsung Evo+ are also supposed to be very fast in an RPI.
 
 The last line is quite important otherwise you get a whole lot of ok's echoed back to smoothie when it opens. This does not appear to be needed on a desktop probably due to the speed it is setup vs the rpi.
 
-### Raspbian running bookworm on RPI3x and RPI4xx
+### Raspbian running bookworm on RPI3x/RPI4xx/RPI5
 
 Bookworm seems to have changed the way python packages are installed, so it maybe easier to do the following...
 
@@ -191,6 +192,16 @@ Bookworm seems to have changed the way python packages are installed, so it mayb
 
 That seems to work if running with or without X.
 
+*optional*
+This installs a slightly older version of Kivy. To install the latest version of kivy do the following...
+
+    cd ~
+    python3 -m venv smoopivenv
+    ~/smoopivenv/bin/pip3 install kivy[base]
+    cd ~/smoopi
+    ~/smoopivenv/bin/python main.py
+
+
 You can skim the rest of the README if you run into issues
 
 You may also want to disable the modem manager to stop it interfering with serial ports...
@@ -199,6 +210,8 @@ You may also want to disable the modem manager to stop it interfering with seria
 
 
 ### Raspbian/Buster (or Bullseye) on RPI3x (NOT RPI4b)
+
+*NOTE* This is not recomemnded, it is best to use bookworm. Left here for posterity.
 
 (Tested on RPI3a+ and 3b+, genuine RPI 7" multitouch screen and external HDMI LCD monitor).
 
@@ -252,23 +265,14 @@ Also if the touch screen does not work then you need to make sure that this is s
     ignore_lcd=0
     dtoverlay=vc4-fkms-v3d
 
-#### RPI4b/RPI400 and Raspbian Buster or Bullseye (See easier version above for Bookworm)
-It is recommended (and easier) to run under XWindows (>= 2GB memory is needed).
-First install the Full XWindows desktop version of Raspberry PI OS on the RPI4b,
-Bullseye which is here... https://www.raspberrypi.com/software/operating-systems/#raspberry-pi-os-64-bit
+#### RPI4b/RPI400/RPI5 and Raspbian Buster or Bullseye
 
-Then you will need to install kivy (version >= 2.1.0 but <= 2.2.1) then follow the instructions under header "Running under XWindows on RPI", then install smoopi following the instructions under the "Smoopi install and setup" header.
-This recipe worked for me under Buster and Bullseye...
-
-    > sudo apt-get update
-    > python3 -m pip install --upgrade --user kivy==2.2.1
-
-If you want to install Kivy from source (or run headless) then reading the Kivy install for pi4
-is recommended https://kivy.org/doc/stable/installation/installation-rpi.html#install-source-rpi
-
-*NOTE* you *may* be able to get a touch screen to run without XWindows (console/headless mode) but I have not tested this (it is quite a complex install, and installing from source is required). Read this https://kivy.org/doc/stable/installation/installation-rpi.html#raspberry-pi-4-headless-installation-on-raspbian-buster and this issue may help.. https://github.com/kivy/kivy/issues/6474
+*NOT* recommended, use Bookworm
 
 #### Running under XWindows on RPI for Bullseye and Buster (NOT Bookworm)
+
+*NOE* This also is no longer recommended, use bookworm.
+
 On RPI3b make sure that you run `raspi-config` and enable the fake KMS driver, otherwise Smoopi will run really slowly under S/W emulated GL.
 On RPI4b with Bullseye this is not needed, the default driver works fine.
 
@@ -442,11 +446,11 @@ It should auto start then.
 
 (and maybe windows/macos)
 
-Install on recent Linux (Ubuntu/Debian etc) with python >= 3.7.x and <= 3.10.x using the fast wheels installation...
+Install on recent Linux (Ubuntu/Debian etc) with python >= 3.7.x and <= 3.11.x using the fast wheels installation...
     
     sudo apt install python3-pip
     python3 -m pip install --upgrade --user pip setuptools
-    python3 -m pip install --user --upgrade kivy==2.2.1
+    python3 -m pip install --user --upgrade kivy[base]
 
 
 See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
