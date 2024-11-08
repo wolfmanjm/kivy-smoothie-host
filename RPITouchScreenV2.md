@@ -8,7 +8,8 @@ First switch Wayland/X to Landscape
     select Screen Configuration from the Preferences menu.
     Right-click on the touch display rectangle (likely DSI-1) in the layout editor,
     select Orientation, then pick right
-    [See](https://www.raspberrypi.com/documentation/accessories/touch-display-2.html#change-screen-orientation)
+
+[See](https://www.raspberrypi.com/documentation/accessories/touch-display-2.html#change-screen-orientation)
 
 
 Set kivy to run in full screen mode by editing ~/.kivy/config.ini and set these settings
@@ -37,5 +38,5 @@ Run smoopi as
 
     KIVY_METRICS_DENSITY=1.2 ~/smoopivenv/bin/python main.py
 
-This makes everythign a little bit bigger otherwise the buttons and text are tiny. YMMV if you have good eyes.
+This makes everything a little bit bigger otherwise the buttons and text are tiny. YMMV if you have good eyes.
 
