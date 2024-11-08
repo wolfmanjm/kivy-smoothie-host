@@ -19,7 +19,9 @@ It will run on Windows if you install Python 3.7 (or newer), and follow the kivy
 
 The minimum usable resolution is 800x480. There are various layouts to suit different screen resolutions.
 
-## Easy install for RPI3x
+## Easy install for RPI3x (No XWindows)
+
+(See later for easy installion on RPI4 and 5 on XWindows)
 
 The easiest installation for an RPI3a or RPI3b is to use the presetup image [here](https://github.com/wolfmanjm/kivy-smoothie-host/releases/tag/V1.1-image)
 
