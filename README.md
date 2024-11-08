@@ -46,7 +46,7 @@ The following touch panels have been tested and work nicely:
 1. Official RPI 7" touch screen. Works well with the `RPI Touch` layout 800x480
 2. Waveshare 7" QLED IPS Capacitive Touch Display. Works well with the `RPI Full Screen` layout 1024x600
 3. SunFounder 10.1" HDMI 1280x800 IPS LCD Touchscreen. Works well with the `Wide Desktop` layout and setting the `Touch screen` setting.
-4. Still playing with the Official RPI 7" version 2 touch screen, which is portrait mode.  It is usable if you rotate the screen and use one of the desktop layouts.
+4. Official RPI 7" version 2 touch screen, which is portrait mode by default. See [RPI Touch Screen v2](RPITouchScreenv2.md)
 
 ## Goal
 The goal is to have a small touch screen host that can run a smoothie and is better than an LCD Panel, and almost as good as a host PC running pronterface.
