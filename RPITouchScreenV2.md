@@ -11,8 +11,15 @@ Set kivy to run in full screen mode by editing ~/.kivy/config.ini and set these 
     borderless = 1
     resizable = 0
 
+If in Landscape use...
+
     [input]
     mtdev_%(name)s = probesysfs,provider=mtdev,param=rotation=270,param=invert_x=1
+
+If in Portrait use...
+
+    [input]
+    mtdev_%(name)s = probesysfs,provider=mtdev
 
 The [input] setting enables the multitouch and changes its orientation correctly
 
@@ -34,7 +41,7 @@ In smoopi edit the smoothiehost.ini and set
 
 or click settings when smoopi is running and select Desktop Layout to Small Desktop, the touch screen setting needs to be edited in though.
 
-The run Smoothie eith the following line...
+The run Smoothie with the following line...
 
     KIVY_METRICS_DENSITY=1.2 ~/smoopivenv/bin/python main.py
 
@@ -48,6 +55,8 @@ In smoopi edit the smoothiehost.ini and set
     display_type = Portrait Desktop
     touch_screen = 1
 
-Run smoopi as normal (without the Metrics setting as above)
+The run Smoothie with the following line...
+
+    KIVY_METRICS_DENSITY=1.1 ~/smoopivenv/bin/python main.py
 
 
