@@ -16,7 +16,7 @@ It will run on Windows if you install Python 3.7 (or newer), and follow the kivy
 
 The minimum usable resolution is 800x480. There are various layouts to suit different screen resolutions.
 
-(See [here](INSTALL.md) for installion instructions)
+(See [here](INSTALL.md) for installation instructions)
 
 
 ## Tested touch panels
