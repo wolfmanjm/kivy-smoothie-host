@@ -37,7 +37,7 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 30
+            height: dp(30)
 
             Label:
                 text: 'Length:'
@@ -67,19 +67,19 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 50
+            height: dp(50)
             padding: [4, 4, 4, 4]
             spacing: 20
 
             Button:
                 size_hint_y: None
-                height: 40
+                height: dp(40)
                 text: 'Extrude'
                 disabled: not app.is_connected
                 on_press: root.extrude()
             Button:
                 size_hint_y: None
-                height: 40
+                height: dp(40)
                 text: 'Reverse'
                 disabled: not app.is_connected
                 on_press: root.reverse()
@@ -263,7 +263,7 @@
             group: 'tool_group'
             on_press: root.set_tool(0)
             size_hint_y: None
-            size: 40, 40
+            size: dp(40), dp(40)
             text: 'T0'
             state: 'down'
             disabled: not app.is_connected
@@ -274,7 +274,7 @@
             group: 'tool_group'
             on_press: root.set_tool(1)
             size_hint_y: None
-            size: 40, 40
+            size: dp(40), dp(40)
             text: 'T1'
             disabled: not root.has_T1 or not app.is_connected
             allow_no_selection: False
