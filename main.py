@@ -1236,7 +1236,7 @@ class SmoothieHost(App):
                   "desc": "Select Display layout, RPI is for 7in touch screen layout",
                   "section": "UI",
                   "key": "display_type",
-                  "options": ["RPI Touch", "RPI Full Screen", "Small Desktop", "Large Desktop", "Wide Desktop"]
+                  "options": ["RPI Touch", "RPI Full Screen", "Small Desktop", "Large Desktop", "Wide Desktop", "Portrait Desktop"]
                 },
 
                 { "type": "bool",
@@ -1469,7 +1469,8 @@ class SmoothieHost(App):
             "RPI Full Screen": 1,
             "Small Desktop": 2,
             "Large Desktop": 3,
-            "Wide Desktop": 4
+            "Wide Desktop": 4,
+            "Portrait Desktop": 5
         }
 
         self.is_desktop = dtlut.get(lt, 0)
@@ -1482,7 +1483,7 @@ class SmoothieHost(App):
             self.is_touch = True
 
         elif self.is_desktop >= 2:
-            kvlut = {2: ('desktop.kv', (1024, 610)), 3: ('desktop_large.kv', (1280, 1024)), 4: ('desktop_wide.kv', (1280, 800))}
+            kvlut = {2: ('desktop.kv', (1024, 610)), 3: ('desktop_large.kv', (1280, 1024)), 4: ('desktop_wide.kv', (1280, 800)), 5: ('portrait.kv', (720, 1280))}
             Builder.load_file(kvlut[self.is_desktop][0])
             self.is_touch = self.config.getboolean('UI', 'touch_screen')
             if not self.is_touch:
