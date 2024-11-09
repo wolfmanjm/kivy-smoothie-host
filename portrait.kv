@@ -39,6 +39,7 @@
             orientation: 'horizontal'
             spacing: 4
             size_hint_y: 0.4
+            # Jog screen etc is on left
             TabbedPanel:
                 size_hint_x: 0.55
                 id: tabs
@@ -75,6 +76,7 @@
                     ExtruderWidget:
                         id: extruder
 
+            # Console is on right
             BoxLayout:
                 id: blleft
                 orientation: 'vertical'
@@ -130,6 +132,7 @@
                         on_press: app.main_window.review()
 
 
+        # DRO on left and MACROS on right in bottom panel
         BoxLayout:
             # bottom panel
             orientation: 'vertical'
@@ -142,11 +145,11 @@
                     size_hint_x: 0.55
                     id: dro_widget
 
-
                 MacrosWidget:
                     id: macros
                     size_hint_x: 0.4
 
+            # Status bar at bottom
             BoxLayout:
                 orientation: 'vertical'
                 size_hint_y: 0.1
