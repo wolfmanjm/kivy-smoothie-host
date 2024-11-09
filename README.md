@@ -1,4 +1,4 @@
-# Smoopi
+# Smoopi a Graphical Smoothie Host for 3D printing and CNC
 
 Github supports ToC, it is available in the top-right corner of this document.
 
@@ -9,7 +9,7 @@ This is stable and ready for everyday use.
 This uses python >= 3.7.x and <= 3.11.x and kivy >= 2.1.x <= 2.3
 
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
-Also runs on RPI4 and RPI5 under the current raspbian Desktop
+Also runs on RPI4xx and RPI5 under the current raspbian Desktop (Bookworm).
 Also runs on pretty much any Linux XWindows desktop (and maybe Mac).
 
 It will run on Windows if you install Python 3.7 (or newer), and follow the kivy instructions for installing kivy on windows. https://kivy.org/doc/stable/installation/installation-windows.html
