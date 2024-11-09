@@ -59,7 +59,7 @@
 
                 TabbedPanelItem:
                     id: console_tab
-                    text: 'Console'
+                    text: 'Keyboard'
                     KbdWidget:
                         id: kbd_widget
 
@@ -75,9 +75,59 @@
                     ExtruderWidget:
                         id: extruder
 
-            MacrosWidget:
-                id: macros
+            BoxLayout:
+                id: blleft
+                orientation: 'vertical'
                 size_hint_x: 0.4
+
+                RecycleView:
+                    id: log_window
+                    viewclass: 'LogLabel'
+                    scroll_type: ['bars','content']
+                    scroll_wheel_distance: dp(10)
+                    bar_width: dp(10)
+                    scroll_y: 0
+
+                    SelectableRecycleBoxLayout:
+                        id: log_window_layout
+                        orientation: 'vertical'
+                        default_size: None, None
+                        default_size_hint: 1, None
+                        size_hint_y: None
+                        height: self.minimum_height
+                        multiselect: False
+                        touch_multiselect: False
+
+                TextInput:
+                    id: entry
+                    focus: True
+                    unfocus_on_touch: False
+                    multiline: False
+                    size_hint_y: None
+                    height: self.minimum_height
+                    font_size: '20sp'
+                    on_text_validate: app.command_input(self.text); self.text= ''; app._refocus_text_input()
+                    use_bubble: False
+                    use_handles: False
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: dp(45)
+                    ToggleButton:
+                        text: 'UART Log'
+                        on_state: app.main_window.toggle_uart_view(self.state)
+                        size_hint_x: None
+                        opacity: 1 if root.is_uart_log_enabled else 0
+                        width: dp(80) if root.is_uart_log_enabled else 0
+                    Button:
+                        text: 'Run Last File'
+                        disabled: app.gcode_file == '' or not app.is_connected or root.is_printing or app.status == 'Alarm'
+                        on_press: app.main_window.reprint()
+                    Button:
+                        text: 'View Last File'
+                        disabled: app.gcode_file == ''
+                        on_press: app.main_window.review()
 
 
         BoxLayout:
@@ -92,59 +142,10 @@
                     size_hint_x: 0.55
                     id: dro_widget
 
-                BoxLayout:
-                    id: blleft
-                    orientation: 'vertical'
+
+                MacrosWidget:
+                    id: macros
                     size_hint_x: 0.4
-
-                    RecycleView:
-                        id: log_window
-                        viewclass: 'LogLabel'
-                        scroll_type: ['bars','content']
-                        scroll_wheel_distance: dp(10)
-                        bar_width: dp(10)
-                        scroll_y: 0
-
-                        SelectableRecycleBoxLayout:
-                            id: log_window_layout
-                            orientation: 'vertical'
-                            default_size: None, None
-                            default_size_hint: 1, None
-                            size_hint_y: None
-                            height: self.minimum_height
-                            multiselect: False
-                            touch_multiselect: False
-
-                    TextInput:
-                        id: entry
-                        focus: True
-                        unfocus_on_touch: False
-                        multiline: False
-                        size_hint_y: None
-                        height: self.minimum_height
-                        font_size: '20sp'
-                        on_text_validate: app.command_input(self.text); self.text= ''; app._refocus_text_input()
-                        use_bubble: False
-                        use_handles: False
-
-                    BoxLayout:
-                        orientation: 'horizontal'
-                        size_hint_y: None
-                        height: dp(45)
-                        ToggleButton:
-                            text: 'UART Log'
-                            on_state: app.main_window.toggle_uart_view(self.state)
-                            size_hint_x: None
-                            opacity: 1 if root.is_uart_log_enabled else 0
-                            width: dp(80) if root.is_uart_log_enabled else 0
-                        Button:
-                            text: 'Run Last File'
-                            disabled: app.gcode_file == '' or not app.is_connected or root.is_printing or app.status == 'Alarm'
-                            on_press: app.main_window.reprint()
-                        Button:
-                            text: 'View Last File'
-                            disabled: app.gcode_file == ''
-                            on_press: app.main_window.review()
 
             BoxLayout:
                 orientation: 'vertical'
