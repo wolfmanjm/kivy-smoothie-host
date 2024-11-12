@@ -1241,7 +1241,7 @@ class SmoothieHost(App):
 
                 { "type": "bool",
                   "title": "Touch screen",
-                  "desc": "Turn on for a touch screen",
+                  "desc": "Turn on for a touch screen in full screen mode",
                   "section": "UI",
                   "key": "touch_screen"
                 },
