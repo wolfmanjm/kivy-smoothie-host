@@ -46,7 +46,6 @@ in /boot/firmware/config.txt add this
 ## smoopi settings needed in both cases
 
 In smoopi edit the smoothiehost.ini and set
-
     [UI]
     display_type = Small Desktop
     touch_screen = 1
