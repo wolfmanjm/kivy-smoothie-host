@@ -12,16 +12,18 @@ G18 | Select XZY plane
 G19 | Select YZX plane
 G20 | Inch mode
 G21 | Millimeter mode
-G28 | Reprap: Home the given axis - GRBL: park
-G28.1 | Set Predefined Position
-G28.2 | Reprap: Park - GRBL: Home
+G28 | Reprap: Home the given axis, GRBL: park
+G28.1 | Set predefined park position to the current position
+G28.2 | Reprap: Park, GRBL: Home
 G28.3 | Set Manual Homing position
 G28.4 | Manual Homing based on actuator position
 G28.5 | Clears the homed flag for the specified axis, or all if not specifed
 G28.6 | Shows the homing status of each axis
 G28.7 | Home the slaved axis on the specified axis, set to 1 to adjust
 G29 | Tests the bed. P0 selects levelling, P1 calibration strategy
-G30 | Simple Z probe at current XY, G30.1 leaves probe where it is.
+G30 | Reprap: Z probe at current XY, [Zn] sets Z to n, [R1] probe in reverse, [L1] do not retract, [Fn]
+G30 | GRBL: move to predefined position
+G30.1 | GRBL: Sets current position as the predefined position
 G31 | Depends on levelling strategy selected, delta does delta grid
 G32 | Do levelling strategy or for delta do trim&radius calibration I{target} R{radius} E{trim} K{keep}
 G38.2 | Standard probe in direction XYZ, halt on error
@@ -182,6 +184,7 @@ $G | same as get state
 $H | Home
 $I | same as get state (no ok)
 $J | [-r|-c] [Xnnn] [Ynnn] [Znnn] [Snnn|Fnnn] issue jog command axis can be XYZABC optional S is scale of max_rate
+$P | Simple Z probe like G30 but for all modes, takes same parameters as G30
 $S | <switch names> get switch state(s)
 $X | release ALARM state
 $# | same as get wcs
