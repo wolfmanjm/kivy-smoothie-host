@@ -388,7 +388,10 @@ class JogRoseWidget(BoxLayout):
             self.app.comms.write('\x19')
 
     def motors_off(self):
-        self.app.comms.write('M18\n')
+        if self.app.main_window.is_printing:
+            self.app.main_window.display("NOTE: Cannot turn off motors while printing")
+        else:
+            self.app.comms.write('M18\n')
 
     def safe_z(self):
         self.app.comms.write(f'$J Z{self.app.safez} S{self._get_speed()}\n')
