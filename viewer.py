@@ -938,11 +938,17 @@ class GcodeViewerScreen(Screen):
         h = self.bounds[1]
 
         if self.comms:
+            if self.laser_mode:
+                self.comms.write('fire 5\n')
+
             self.comms.write(f'G0 X{x} Y{y}\n')
             self.comms.write(f'$J X{w}\n')
             self.comms.write(f'$J Y{h}\n')
             self.comms.write(f'$J X{-w}\n')
             self.comms.write(f'$J Y{-h}\n')
+
+            if self.laser_mode:
+                self.comms.write('fire off\n')
 
     def set_type(self, t):
         if t == '3D':
