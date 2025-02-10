@@ -110,6 +110,10 @@ Builder.load_string('''
                 disabled: not root.select_mode
                 on_press: root.move_gantry()
             Button:
+                text: 'Frame'
+                disabled: not root.twod_mode
+                on_press: root.frame()
+            Button:
                 text: 'GCode'
                 on_press: app.main_window._edit_text(app.gcode_file)
             Button:
@@ -129,7 +133,7 @@ class GcodeViewerScreen(Screen):
     laser_mode = BooleanProperty(False)
     drill_mode = BooleanProperty(False)
     valid = BooleanProperty(False)
-    bounds = ListProperty([0, 0, 0, 0])
+    bounds = ListProperty([0, 0, 0, 0, 0, 0])
     layers = ListProperty([0])
     slice_size = NumericProperty(1.0)
     above_layer = NumericProperty(-1.0)
@@ -692,7 +696,7 @@ class GcodeViewerScreen(Screen):
         # center the drawing and scale it
         dx = max_x - min_x
         dy = max_y - min_y
-        self.bounds = [dx, dy, min_z, max_z]
+        self.bounds = [dx, dy, min_z, max_z, min_x, min_y]
 
         if not self.twod_mode:
             if dx == 0 or dy == 0:
@@ -926,6 +930,19 @@ class GcodeViewerScreen(Screen):
         else:
             print('Set WCS to: {:1.2f}, {:1.2f}'.format(wpos[0], wpos[1]))
             print('G10 L20 P0 X{:1.2f} Y{:1.2f}'.format(wpos[0], wpos[1]))
+
+    def frame(self):
+        x = self.bounds[4]
+        y = self.bounds[5]
+        w = self.bounds[0]
+        h = self.bounds[1]
+
+        if self.comms:
+            self.comms.write(f'G0 X{x} Y{y}\n')
+            self.comms.write(f'$J X{w}\n')
+            self.comms.write(f'$J Y{h}\n')
+            self.comms.write(f'$J X{-w}\n')
+            self.comms.write(f'$J Y{-h}\n')
 
     def set_type(self, t):
         if t == '3D':
