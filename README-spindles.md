@@ -19,13 +19,13 @@ the correct PWM value required.
 
 For instance if the gcode file has M3 S5000 to set the spindle to 5000 RPM,
 Smoopi will lookup the RPM and find the matching PWM required and then
-actually send M3 S55 for instance to Smoothie, seting hte PEM duty cycle to
+actually send M3 S55 for instance to Smoothie, seting the PWM duty cycle to
 55% which would produce about 5.5volts and the VFD would then set the RPM to
 the 5000RPM required. (Of course you should calibrate the table with several
 PWM to RPM values).
 
 Additionally you may have multiple belt positions on a multi step pulley in
-addition to the VFD, (mainly becuase VFDs lose a lot of torque at low RPM, or
+addition to the VFD, (mainly because VFDs lose a lot of torque at low RPM, or
 the maximum RPM of the 3 phase motor may be well under the maximum spindle RPM required).
 
 To handle this case the spindle.ini file can have different ratios for
