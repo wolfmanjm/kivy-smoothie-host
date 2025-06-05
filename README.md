@@ -6,7 +6,7 @@ A Smoothie host designed to run on an rpi with multitouch screen or on a desktop
 
 This is stable and ready for everyday use.
 
-This uses python >= 3.7.x and <= 3.11.x and kivy >= 2.1.x <= 2.3
+This uses python >= 3.7.x and <= 3.13.x and kivy >= 2.1.x <= 2.3
 
 Use an RPI-3 Model B or B+, or the RPI-3 Model A+ with RPI multitouch screen. (No XWindows, but multitouch is required if there is no keyboard or mouse).
 Also runs on RPI4xx and RPI5 under the current raspbian Desktop (Bookworm).
