@@ -305,11 +305,19 @@ It should auto start then.
 
 (and maybe windows/macos)
 
-Install on recent Linux (Ubuntu/Debian etc) with python >= 3.7.x and <= 3.11.x using the fast wheels installation...
+Install on recent Linux (Ubuntu/Debian etc) with python >= 3.7.x and <= 3.13.x using the fast wheels installation...
 
     sudo apt install python3-pip
     python3 -m pip install --upgrade --user pip setuptools
     python3 -m pip install --user --upgrade kivy[base]
+
+On a recent ArchLinux the following worked...
+
+        sudo pacman -S python-pip
+        sudo pacman -S python-kivy
+        sudo pacman -S python-pyserial
+        sudo pacman -S python-aiofiles
+        sudo pacman -S xclip
 
 
 See https://kivy.org/doc/stable/installation/installation-linux.html#using-wheels
