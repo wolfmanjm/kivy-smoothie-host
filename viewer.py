@@ -35,7 +35,8 @@ Builder.load_string('''
                 size: self.size
         BoxLayout:
             id: view_window
-            pos_hint: {'top': 1}
+            orientation: 'vertical'
+            # pos_hint: {'top': 1}
             Scatter:
                 id: surface
                 on_transform_with_touch: root.moved(*args)
@@ -56,68 +57,112 @@ Builder.load_string('''
 
                 canvas.after:
                     ScissorPop:
-        Label:
-            text: "{} size: {:1.4f}x{:1.4f} minz: {:1.4f} maxz: {:1.4f} {}".format(app.gcode_file, root.bounds[0], root.bounds[1], root.bounds[2], root.bounds[3], "Not all displayed" if root.too_many else "")
-            size_hint_y: None
-            height: self.texture_size[1]
-
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: None
-            height: 40
             Label:
-                canvas.before:
-                    Color:
-                        rgb: 0, 1, 0, 1
-                    Rectangle:
-                        size: self.size
+                text: "{} size: {:1.4f}x{:1.4f} minz: {:1.4f} maxz: {:1.4f} {}".format(app.gcode_file, root.bounds[0], root.bounds[1], root.bounds[2], root.bounds[3], "Not all displayed" if root.too_many else "")
+                size_hint_y: None
+                height: self.texture_size[1]
+
+         StackLayout:
+            orientation: 'lr-tb'
+            size_hint_y: None
+            height: dp(80) if self.width < 1200 else dp(40)
+
+            Label:
+                # canvas.before:
+                #     Color:
+                #         rgb: 0, 1, 0, 1
+                #     Rectangle:
+                #         size: (self.texture_size[0], dp(40))
                 id: z_value
                 text: '{}<>{}'.format(round(root.below_layer, 1), round(root.above_layer, 1)) if root.twod_mode else 'Z{}'.format(round(root.current_z, 1))
                 size_hint_x: None
                 width: self.texture_size[0]
+                size_hint_y: None
+                height: dp(40)
             Button:
                 text: 'Set slice'
                 size_hint_x: None
                 opacity: 1 if root.twod_mode else 0
                 width: dp(80) if root.twod_mode else 0
+                size_hint_y: None
+                height: dp(40)
                 on_press: root.set_slice()
             Button:
                 text: 'First Layer'
+                size_hint_x: None
+                #width: self.texture_size[0] + dp(8)
+                size_hint_y: None
+                height: dp(40)
                 on_press: root.clear(); root.loading()
             Button:
                 text: 'Prev Layer'
+                size_hint_x: None
+                #width: self.texture_size[0] + dp(8)
+                size_hint_y: None
+                height: dp(40)
                 disabled: not root.twod_mode and len(root.layers) <= 2
                 on_press: root.prev_layer()
             Button:
                 text: 'Next Layer'
+                size_hint_x: None
+                #width: self.texture_size[0] + dp(8)
+                size_hint_y: None
+                height: dp(40)
                 on_press: root.next_layer()
             Spinner:
                 text_autoupdate: True
+                size_hint_x: None
+                size_hint_y: None
+                height: dp(40)
                 values: ('3D', '2D', 'Laser', 'Drill') if not app.is_cnc else ('2D', 'Laser', 'Drill', '3D')
                 on_text: root.set_type(self.text)
 
             ToggleButton:
                 id: select_mode_but
                 text: 'Select'
+                size_hint_x: None
+                #width: self.texture_size[0] + dp(8)
+                size_hint_y: None
+                height: dp(40)
                 on_press: root.select(self.state == 'down')
 
             Button:
                 text: 'Set WPOS'
+                size_hint_x: None
+                #width: self.texture_size[0] + dp(8)
+                size_hint_y: None
+                height: dp(40)
                 disabled: not root.select_mode
                 on_press: root.set_wcs()
             Button:
                 text: 'Move to'
+                size_hint_x: None
+                #width: self.texture_size[0] + dp(8)
+                size_hint_y: None
+                height: dp(40)
                 disabled: not root.select_mode
                 on_press: root.move_gantry()
             Button:
                 text: 'Frame'
+                size_hint_x: None
+                #width: self.texture_size[0] + dp(8)
+                size_hint_y: None
+                height: dp(40)
                 disabled: not root.twod_mode
                 on_press: root.frame()
             Button:
                 text: 'GCode'
+                size_hint_x: None
+                #width: self.texture_size[0] + dp(8)
+                size_hint_y: None
+                height: dp(40)
                 on_press: app.main_window._edit_text(app.gcode_file)
             Button:
                 text: 'Back'
+                size_hint_x: None
+                #width: self.texture_size[0] + dp(8)
+                size_hint_y: None
+                height: dp(40)
                 on_press: root.manager.current = 'main'
 ''')
 

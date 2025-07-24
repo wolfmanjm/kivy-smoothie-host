@@ -55,7 +55,7 @@ In smoopi edit the smoothiehost.ini and set
     display_type = Portrait Desktop
     touch_screen = 1
 
-The run Smoothie with the following line...
+Then run Smoothie with the following line...
 
     KIVY_METRICS_DENSITY=1.1 ~/smoopivenv/bin/python main.py
 
