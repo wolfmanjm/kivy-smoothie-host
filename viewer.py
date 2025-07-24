@@ -62,7 +62,7 @@ Builder.load_string('''
                 size_hint_y: None
                 height: self.texture_size[1]
 
-         StackLayout:
+        StackLayout:
             orientation: 'lr-tb'
             size_hint_y: None
             height: dp(80) if self.width < 1200 else dp(40)
