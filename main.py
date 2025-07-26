@@ -1181,6 +1181,7 @@ class SmoothieHost(App):
         self.cont_jog = False
         self.use_keypad = False
         self.backlight_path = '/sys/class/backlight/rpi_backlight'
+        self.kivy_desktop = Config.getint('kivy', 'desktop') == 1
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1438,7 +1439,6 @@ class SmoothieHost(App):
             self.backlight_path = self.config.get('General', 'backlight_path')
         except Exception:
             pass
-        print(self.backlight_path)
 
     def window_request_close(self, win):
         if self.desktop_changed:
