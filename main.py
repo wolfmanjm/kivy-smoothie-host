@@ -1447,7 +1447,7 @@ class SmoothieHost(App):
         elif self.is_desktop >= 2:
             if self.config.get('UI', 'screen_size') != 'none':
                 # Window.size is automatically adjusted for density, must divide by density when saving size
-                self.config.set('UI', 'screen_size', f"{int(Window.size[0] / Metrics.density)}x{int(Window.size[1] / Metrics.density)}")
+                self.config.set('UI', 'screen_size', f"{int(Window.size[0])}x{int(Window.size[1])}")
 
             if self.config.get('UI', 'screen_pos') != 'none':
                 # Kivy seems to offset the value given by window managers
