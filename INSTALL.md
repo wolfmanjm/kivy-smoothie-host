@@ -265,6 +265,13 @@ To allow Smoopi to turn on/off the backlight of the official touch screen you ne
     and add this...
     SUBSYSTEM=="backlight",RUN+="/bin/chmod 666 /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power"
 
+If you are using bookworm the actual path maybe different, you will need to look in `/sys/class/backlight` and see if there is a subdirectory and then you will need to specify that in the config file.
+For example on bookworm using the rpi touch screen 2 you need to add...
+
+    [general]
+    backlight_path = /sys/class/backlight/10-0045
+
+
 NOTE the default is for no blanking, there is a setting under the settings menu that allows you to set the timeout for blanking the screen, it is initially set to 0 which is no blanking. If it blanks then touching the screen will unblank it.
 
 NOTE if you are using an HDMI touch screen then you do not need to do the permissions above, however you need to set ```hdmi = true``` under the ```[general]``` section of the ```smoothiehost.ini``` file.

@@ -1180,6 +1180,7 @@ class SmoothieHost(App):
         self.spindle_handler = None
         self.cont_jog = False
         self.use_keypad = False
+        self.backlight_path = '/sys/class/backlight/rpi_backlight'
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1433,6 +1434,11 @@ class SmoothieHost(App):
     def on_start(self):
         # in case we added something to the defaults, make sure they are written to the ini file
         self.config.update_config(self.config_file)
+        try:
+            self.backlight_path = self.config.get('General', 'backlight_path')
+        except Exception:
+            pass
+        print(self.backlight_path)
 
     def window_request_close(self, win):
         if self.desktop_changed:
@@ -1841,7 +1847,7 @@ class SmoothieHost(App):
             if self.hdmi:
                 os.system("vcgencmd display_power 0")
             else:
-                with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
+                with open(f'{self.backlight_path}/bl_power', 'w') as f:
                     f.write('1\n')
             self._blanked = True
         except Exception:
@@ -1852,7 +1858,7 @@ class SmoothieHost(App):
             if self.hdmi:
                 os.system("vcgencmd display_power 1")
             else:
-                with open('/sys/class/backlight/rpi_backlight/bl_power', 'w') as f:
+                with open(f'{self.backlight_path}/bl_power', 'w') as f:
                     f.write('0\n')
             self._blanked = False
         except Exception:
