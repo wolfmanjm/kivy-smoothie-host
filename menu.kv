@@ -7,9 +7,10 @@
         ActionView:
             use_separator: True
             ActionPrevious:
-                title: 'Smoopi'
+                title: 'Smoopi' if app.is_desktop != 5 else ''
                 with_previous: app.kivy_desktop
                 on_press: root.on_previous()
+                app_icon: ''
 
             ActionOverflow:
 
