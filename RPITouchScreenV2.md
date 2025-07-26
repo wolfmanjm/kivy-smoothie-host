@@ -57,6 +57,6 @@ In smoopi edit the smoothiehost.ini and set
 
 Then run Smoothie with the following line...
 
-    KIVY_METRICS_DENSITY=1.1 ~/smoopivenv/bin/python main.py
+    KIVY_METRICS_DENSITY=1.2 ~/smoopivenv/bin/python main.py
 
 
