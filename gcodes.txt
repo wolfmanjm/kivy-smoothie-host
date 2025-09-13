@@ -97,7 +97,7 @@ M207 | Set retract length S<length> F<feedrate> mm/min Z<additional zlift> Q<zli
 M208 | Set retract recover length S<mm> F<feedrate> mm/min
 M211 | Show softendstops status, S0 turns off soft endstops
 M220 | set speed factor override S<percent>
-M221 | set flow rate factor override or Laser power override S<percent>
+M221 | set flow rate factor override or Laser power override S<percent>, proportional power on/off P<0|1>, pwm frequency R<hz>
 M301 | set PID parameters X<i_max> Y<max_pwm> S<heater> P<nnn> I<nnn> D<nnn> (V2) Z<ponm>
 M303 | Begin PID auto-tune cycle (V2) P<hotendid> or (V1) E<hotend> S<temperature>
 M304 | Abort PID auto-tuning (V1 only, ^X for V2)
