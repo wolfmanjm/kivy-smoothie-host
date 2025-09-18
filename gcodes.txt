@@ -19,10 +19,10 @@ G28.3 | Set Manual Homing position
 G28.4 | Manual Homing based on actuator position
 G28.5 | Clears the homed flag for the specified axis, or all if not specifed
 G28.6 | Shows the homing status of each axis
-G28.7 | Home the slaved axis on the specified axis, set to 1 to adjust
+G28.7 | Home the slaved axis on the specified axis, Y0 reports, Y1 sets
 G29 | Tests the bed. P0 selects levelling, P1 calibration strategy
 G30 | Reprap: Z probe at current XY, [Zn] sets Z to n, [R1] probe in reverse, [L1] do not retract, [Fn]
-G30 | GRBL: move to predefined position
+G30 | GRBL: move to predefined position, [P1] reverts to reprap usage
 G30.1 | GRBL: Sets current position as the predefined position
 G31 | Depends on levelling strategy selected, delta does delta grid
 G32 | Do levelling strategy or for delta do trim&radius calibration I{target} R{radius} E{trim} K{keep}
