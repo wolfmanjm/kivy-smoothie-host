@@ -107,7 +107,7 @@ def send(str):
             ll = sys.stdin.readline()   # read a line
             if ll.startswith('ok'):
                 break
-            elif "!!" in ll:
+            elif "!!" in ll or ll.startswith("ALARM"):
                 display("Aborted, Got kill\n")
                 sys.exit()
             else:
@@ -133,7 +133,7 @@ display("TEST_SPEED_DELTA: starting %d iterations at feedrate %d, accel %d, maxr
 
 # Home and get position for comparison later:
 send('M400')  # Finish moves
-send('G28')
+send('G28 P1')
 send('G90')
 send('G4 P1000')
 
@@ -178,7 +178,7 @@ for i in range(iterations):
 
 # Re-home and get position again for comparison:
 send('M400')  # Finish moves
-send('G28')
+send('G28 P1')
 send('G4 P1000')
 p = get_pos()
 display(f'pos: {p}\n')

@@ -184,7 +184,7 @@ $G | same as get state
 $H | Home
 $I | same as get state (no ok)
 $J | [-r|-c] [Xnnn] [Ynnn] [Znnn] [Snnn|Fnnn] issue jog command axis can be XYZABC optional S is scale of max_rate
-$P | Simple Z probe like G30 but for all modes, takes same parameters as G30
+$P | Simple Z probe like G30 but for all modes, takes same parameters as REPRAP mode G30
 $S | <switch names> get switch state(s)
 $X | release ALARM state
 $# | same as get wcs
