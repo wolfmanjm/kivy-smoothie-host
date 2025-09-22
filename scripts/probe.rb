@@ -317,7 +317,7 @@ def probe_align_y
 
     if $options.auto
         STDERR.puts "Adjusting right Y motor by #{steps}"
-        send("test raw a #{steps} 100")
+        send("test raw y #{steps} 100")
     end
 
     # return to start position
