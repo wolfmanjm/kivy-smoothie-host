@@ -11,7 +11,7 @@ class Optparse
         options.width= 3*25.4;
         options.length= 2*25.4;
         options.z= 10;
-        options.tool_dia= 4
+        options.tool_dia= 3.175  # 1/8" probe tip
         options.feed_rate=  1200 # mm/min
         options.diameter= 50
         options.points= 50
@@ -218,7 +218,7 @@ def probe_size
     STDERR.puts "Width= #{width}, expected= #{$options.width}, difference= #{$options.width-width}"
 
     # center in X and in front of Y face
-    moveBy(x: -width/2.0-d2, y: -$options.length/2.0-10)
+    moveBy(x: -width/2.0-d2, y: -$options.length-10)
 
     r1= probe(:y, 20)
 
