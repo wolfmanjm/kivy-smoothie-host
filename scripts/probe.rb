@@ -232,7 +232,8 @@ def probe_size
     # center in Y
     moveBy(y: -length/2.0-d2, down: false)
 
-    STDERR.puts "Size= #{length} x #{width}"
+    STDERR.puts "Size= #{length} x #{width} mm"
+    STDERR.puts "Size= #{length/25.4} x #{width/25.4} in"
 end
 
 def probe_center
