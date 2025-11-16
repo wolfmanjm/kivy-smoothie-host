@@ -39,6 +39,7 @@ from libs.hat import Hat
 
 from comms import Comms
 from message_box import MessageBox
+from notice_box import NoticeBox
 from input_box import InputBox
 from selection_box import SelectionBox
 from file_dialog import FileDialog
@@ -1055,10 +1056,12 @@ class MainWindow(BoxLayout):
     def tool_change_prompt(self, ll):
         # Print is paused by gcode command M6, prompt for tool change
         self.display(f"ACTION NEEDED: Manual Tool Change:\n Tool: {ll}\nWait for machine to stop, then you can jog around to change the tool.\n tap Resume to continue\n**** REMEMBER to reset Z Height before Resuming ****\n")
+        if self.tool_change_popup:
+            NoticeBox(text="Tool change", additional_text=f"Tool: {ll}\nClick Resume to continue", ok_text="Dismiss").open()
 
     @mainthread
     def m0_dlg(self):
-        MessageBox(text='M0 Pause, click OK to continue', cancel_text='OK', cb=self._m0_dlg).open()
+        NoticeBox(text='M0 Pause', ok_text='Continue', cb=self._m0_dlg).open()
 
     def _m0_dlg(self, ok):
         self.app.comms.release_m0()
@@ -1192,6 +1195,7 @@ class SmoothieHost(App):
             'blank_timeout': '0',
             'manual_tool_change': 'false',
             'wait_on_m0': 'false',
+            'tool_change_popup': 'true',
             'fast_stream_cmd': 'python3 -u comms.py serial:///dev/ttyACM1 {file} -f -q',
             'v2': 'false',
             'is_spindle_camera': 'false',
@@ -1659,6 +1663,9 @@ class SmoothieHost(App):
 
             if ok:
                 self.main_window.tools_menu.add_widget(ActionButton(text='Spindle Cam', on_press=self._show_spindle_cam))
+
+        if self.manual_tool_change:
+            self.main_window.tool_change_popup = self.config.getboolean('General', 'tool_change_popup')
 
         if self.is_v2:
             self.main_window.tools_menu.add_widget(ActionButton(text='Set Datetime', on_press=self.tool_scripts.set_datetime))

@@ -8,8 +8,8 @@ class Optparse
         options = OpenStruct.new
         options.verbose = false
         options.job= 'size'
-        options.width= 3*25.4;
-        options.length= 2*25.4;
+        options.width= 2*25.4;
+        options.length= 3*25.4;
         options.z= 10;
         options.tool_dia= 3.175  # 1/8" probe tip
         options.feed_rate=  1200 # mm/min
@@ -204,7 +204,7 @@ end
 
 def probe_size
 
-    STDERR.puts "Position tool about 10mm to the left of the object to measure"
+    STDERR.puts "Position tool less than 10mm to the left and less than 10mm from the back edge of the object to measure"
     d1= $options.tool_dia
     d2= $options.tool_dia/2.0
 
