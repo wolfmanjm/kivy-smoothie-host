@@ -215,7 +215,7 @@ def probe_size
     r2= probe(:x, -20) # probe left
 
     width= r2.x - r1.x - d1
-    STDERR.puts "Width= #{width}, expected= #{$options.width}, difference= #{$options.width-width}"
+    STDERR.puts "Width= #{width}, expected= #{$options.width}, difference= #{$options.width-width}, percentage= #{$options.width * 100.0 / ($options.width-width)}"
 
     if $options.length > 0
         # center in X and in front of Y face
@@ -228,7 +228,7 @@ def probe_size
         r2= probe(:y, -20) # probe negative Y
 
         length= r2.y - r1.y - d1
-        STDERR.puts "Length= #{length}, expected= #{$options.length}, difference= #{$options.length-length}"
+        STDERR.puts "Length= #{length}, expected= #{$options.length}, difference= #{$options.length-length}, percentage= #{$options.length * 100.0 / ($options.length-length)}"
 
         # center in Y
         moveBy(y: -length/2.0-d2, down: false)
