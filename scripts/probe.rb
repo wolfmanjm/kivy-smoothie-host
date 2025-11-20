@@ -217,20 +217,22 @@ def probe_size
     width= r2.x - r1.x - d1
     STDERR.puts "Width= #{width}, expected= #{$options.width}, difference= #{$options.width-width}"
 
-    # center in X and in front of Y face
-    moveBy(x: -width/2.0-d2, y: -$options.length-10)
+    if $options.length > 0
+        # center in X and in front of Y face
+        moveBy(x: -width/2.0-d2, y: -$options.length-10)
 
-    r1= probe(:y, 20)
+        r1= probe(:y, 20)
 
-    moveBy(y: $options.length+10)
+        moveBy(y: $options.length+10)
 
-    r2= probe(:y, -20) # probe negative Y
+        r2= probe(:y, -20) # probe negative Y
 
-    length= r2.y - r1.y - d1
-    STDERR.puts "Length= #{length}, expected= #{$options.length}, difference= #{$options.length-length}"
+        length= r2.y - r1.y - d1
+        STDERR.puts "Length= #{length}, expected= #{$options.length}, difference= #{$options.length-length}"
 
-    # center in Y
-    moveBy(y: -length/2.0-d2, down: false)
+        # center in Y
+        moveBy(y: -length/2.0-d2, down: false)
+    end
 
     STDERR.puts "Size= #{length} x #{width} mm"
     STDERR.puts "Size= #{length/25.4} x #{width/25.4} in"
