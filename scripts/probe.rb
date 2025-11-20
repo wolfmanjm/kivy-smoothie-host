@@ -216,7 +216,7 @@ def probe_size
 
     width= r2.x - r1.x - d1
     diff = $options.width - width
-    STDERR.puts "Width= #{width}, expected= #{$options.width}\ndifference= #{diff}, percentage= #{diff * 100.0 / $options.width}"
+    printf(STDERR, "Width= %.3f, expected= %.3f\ndifference= %.3f, percentage= %.3f\n", width, $options.width, diff, diff * 100.0 / $options.width)
 
     if $options.length > 0
         # center in X and in front of Y face
@@ -230,16 +230,16 @@ def probe_size
 
         length= r2.y - r1.y - d1
         diff = $options.length - length
-        STDERR.puts "Length= #{length}, expected= #{$options.length}\ndifference= #{diff}, percentage= #{diff * 100.0 / $options.length}"
+        printf(STDERR, "Length= %.3f, expected= %.3f\ndifference= %.3f, percentage= %.3f\n", length, $options.length, diff, diff * 100.0 / $options.length)
 
         # center in Y
         moveBy(y: -length/2.0-d2, down: false)
 
-        STDERR.puts "Size= #{length} x #{width} mm"
-        STDERR.puts "Size= #{length/25.4} x #{width/25.4} in"
+        printf(STDERR, "Size= %.3f x %.3f mm\n", width, length)
+        printf(STDERR, "Size= %.3f x %.3f in\n", width/25.4, length/25.4)
     else
         # center in X
-        moveBy(x: -width/2.0 - d2)
+        moveBy(x: -width/2.0 - d2, down: false)
     end
 
 end
