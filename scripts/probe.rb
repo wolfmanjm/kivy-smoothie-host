@@ -203,6 +203,9 @@ def probe(axis, amount)
 end
 
 def probe_repeatability
+    # set probe at start point to test before running
+    # set current position to 0, 0
+    send("G10 L20 P0 X0 Y0")
     min = max = 0.0
     (0..10).each do |i|
         r1= probe(:x, 20)
