@@ -365,27 +365,34 @@ class MacrosWidget(StackLayout):
                 sel.register(p.stdout, selectors.EVENT_READ)
                 sel.register(p.stderr, selectors.EVENT_READ)
 
-                ok = True
-                while ok:
-                    for key, _ in sel.select(None):  # Blocking
+                # complex method to determine of both streams are closed, other methods do not seem to work
+                err_closed = False
+                out_closed = False
+                while not (err_closed and out_closed):
+                    events = sel.select(None)  # Blocking
+                    for key, _ in events:
                         data = key.fileobj.readline()
-                        if not data:
-                            ok = False
-                            break
-                        if key.fileobj is p.stdout:
-                            if not repeating and self.debug:
-                                self.app.main_window.async_display("<<< script: {}".format(data.rstrip()))
-                            self.app.comms.write(f'{data}')
+                        if data:
+                            if key.fileobj is p.stdout:
+                                if not repeating and self.debug:
+                                    self.app.main_window.async_display("<<< script: {}".format(data.rstrip()))
+                                self.app.comms.write(f'{data}')
 
-                        elif key.fileobj is p.stderr:  # stderr
-                            if repeating:
-                                self.app.main_window.async_display('{}\r'.format(data.rstrip()))
-                            else:
-                                self.app.main_window.async_display('>>> script: {}'.format(data.rstrip()))
-                                Logger.info(f'script: {data.rstrip()}')
+                            elif key.fileobj is p.stderr:  # stderr
+                                if repeating:
+                                    self.app.main_window.async_display('{}\r'.format(data.rstrip()))
+                                else:
+                                    self.app.main_window.async_display('>>> script: {}'.format(data.rstrip()))
+                                    Logger.info(f'script: {data.rstrip()}')
+                        else:
+                            if key.fileobj is p.stdout:
+                                out_closed = True
+                            if key.fileobj is p.stderr:
+                                err_closed = True
 
                 sel.close()
-                self.app.main_window.async_display('> script complete')
+                p.poll()
+                self.app.main_window.async_display(f"> script complete, exitcode: {p.returncode}")
 
             else:
                 # just display results

@@ -202,45 +202,84 @@ def probe(axis, amount)
     r
 end
 
+def probe_repeatability
+    min = max = 0.0
+    (0..10).each do |i|
+        r1= probe(:x, 20)
+        if i == 0
+            min = max = r1.x
+        else
+            min = r1.x if r1.x < min
+            max = r1.x if r1.x > max
+        end
+        moveTo(x: 0.0, up: false, down: false)
+        printf(STDERR, "%d: %.4f\n", i, r1.x)
+    end
+
+    printf(STDERR, "delta: %.4f, max: %.4f, min: %.4f\n", max-min, max, min)
+end
+
 def probe_size
+    # can be used to calibrate lead screws which can be off by a few percent, Use a 123 block or other known sized object
 
     STDERR.puts "Position tool less than 10mm to the left and less than 10mm from the back edge of the object to measure"
     d1= $options.tool_dia
     d2= $options.tool_dia/2.0
+    spmm= get_steps_mm
 
-    r1= probe(:x, 20)
+    if $options.width > 0
+        r1= probe(:x, 20)
 
-    moveBy(x: $options.width+10)
+        moveBy(x: $options.width+10)
 
-    r2= probe(:x, -20) # probe left
+        r2= probe(:x, -20) # probe left
 
-    width= r2.x - r1.x - d1
-    diff = $options.width - width
-    printf(STDERR, "Width= %.3f, expected= %.3f\ndifference= %.3f, percentage= %.3f\n", width, $options.width, diff, diff * 100.0 / $options.width)
+        width= r2.x - r1.x - d1
+        diff = $options.width - width
+        per =  diff * 100.0 / $options.width
+        printf(STDERR, "Width= %.3f, expected= %.3f\ndifference= %.3f, percentage= %.3f\n", width, $options.width, diff, per)
 
-    if $options.length > 0
-        # center in X and in front of Y face
-        moveBy(x: -width/2.0-d2, y: -$options.length-10)
+        # calculate new steps/mm for X
+        steps = spmm.x * per/100.0
+        printf(STDERR, "Steps= %.4f, M92 X%.3f\n", steps, spmm.x - steps)
 
-        r1= probe(:y, 20)
+        if $options.length > 0
+            # center in X and in front of Y face
+            moveBy(x: -width/2.0-d2, y: -$options.length-10)
+        else
+            # center in X
+            moveBy(x: -width/2.0 - d2, down: false)
+            STDERR.flush
+            return
+        end
+    end
 
-        moveBy(y: $options.length+10)
+    # fall through to do Y
+    r1= probe(:y, 20)
 
-        r2= probe(:y, -20) # probe negative Y
+    moveBy(y: $options.length+10)
 
-        length= r2.y - r1.y - d1
-        diff = $options.length - length
-        printf(STDERR, "Length= %.3f, expected= %.3f\ndifference= %.3f, percentage= %.3f\n", length, $options.length, diff, diff * 100.0 / $options.length)
+    r2= probe(:y, -20) # probe negative Y
 
-        # center in Y
-        moveBy(y: -length/2.0-d2, down: false)
+    length= r2.y - r1.y - d1
+    diff = $options.length - length
+    per =  diff * 100.0 / $options.length
+    printf(STDERR, "Length= %.3f, expected= %.3f\ndifference= %.3f, percentage= %.3f\n", length, $options.length, diff, per)
 
+    # calculate new steps/mm for X
+    steps = spmm.y * per/100.0
+    printf(STDERR, "Steps= %.4f, M92 Y%.3f\n", steps, spmm.y - steps)
+
+    # center in Y
+    moveBy(y: -length/2.0-d2, down: false)
+
+    if $options.width > 0
         printf(STDERR, "Size= %.3f x %.3f mm\n", width, length)
         printf(STDERR, "Size= %.3f x %.3f in\n", width/25.4, length/25.4)
-    else
-        # center in X
-        moveBy(x: -width/2.0 - d2, down: false)
     end
+
+    STDERR.puts "Done."
+    STDERR.flush
 
 end
 
@@ -419,6 +458,15 @@ if $options.job == 'size'
 begin
   send("M120")
   probe_size
+  wait
+ensure
+  send("M121")
+end
+
+elsif $options.job == 'testx'
+begin
+  send("M120")
+  probe_repeatability
   wait
 ensure
   send("M121")
