@@ -72,7 +72,6 @@ M106 | Turn fan ON
 M107 | Turn fan OFF
 M109 | Set Extruder Temperature and Wait S<temperature>
 M110 | Set current line number
-M112 | Halt all operations, turn off heaters, go into Halt state
 M114 | Show current position of all axes, XYZ will be the last requested position
 M114.1 | Show current real time position of all axes
 M114.2 | Show current real time machine position of all axes
@@ -159,7 +158,7 @@ md5sum | <file> prints md5 sum of the given file
 mem | [-v] shows current memory usage
 mv | <file> <newfile> rename file to newfile
 net | show network state
-play | <file> [-v] run file form sdcard. optionally print every line
+play | <file> [-v] [-p] [-t] run file form sdcard. optionally print every line, report time it finished, start paused
 progress | shows progress of current running sd file
 pwd | print current directory
 remount | remount sdcard

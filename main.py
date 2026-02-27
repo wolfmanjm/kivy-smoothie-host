@@ -532,6 +532,7 @@ class MainWindow(BoxLayout):
         self.ids.print_but.text = 'Run'
         self.paused = False
         self.is_printing = False
+        self.cont_jog = False
 
     @mainthread
     def disconnected(self):
@@ -1014,7 +1015,7 @@ class MainWindow(BoxLayout):
 
     def _start_sd_print(self, file_path, directory):
         Logger.info(f"MainWindow: SDcard print: {file_path}")
-        self.app.comms.write(f'play {file_path}\n')
+        self.app.comms.write(f'play {file_path} -t\n')
 
     def show_viewer(self):
         if self.is_printing:
