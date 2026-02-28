@@ -91,15 +91,15 @@ class GcodeHelp(Screen):
                             continue
                         g = c[0].strip()
                         d = c[1].strip()
-                        w = self._get_str_pixel_width(g, font_name="data/fonts/RobotoMono-Regular.ttf", font_size=14) + kivy.metrics.dp(8)
+                        w = self._get_str_pixel_width(g, font_name="RobotoMono-Regular.ttf", font_size=14) + kivy.metrics.dp(8)
                         if w > self.max_width:
                             self.max_width = w
 
-                        self.rv.data.append({'text': g, 'font_name': "data/fonts/RobotoMono-Regular.ttf", 'font_size': 14})
-                        self.rv.data.append({'text': d, 'font_name': "data/fonts/Roboto-Regular.ttf", 'font_size': 14})
+                        self.rv.data.append({'text': g, 'font_name': "RobotoMono-Regular.ttf", 'font_size': 14})
+                        self.rv.data.append({'text': d, 'font_name': "Roboto-Regular.ttf", 'font_size': 14})
 
-        except Exception:
-            Logger.error("GcodeHelp: Can't open {}".format(fn))
+        except Exception as ex:
+            Logger.error("GcodeHelp: Can't open {} - {}".format(fn, ex))
 
     def close(self):
         self.rv.data = []
