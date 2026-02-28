@@ -6,6 +6,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.logger import Logger
 from kivy.properties import NumericProperty
 import kivy.core.text
+from kivy.core.window import Window
 
 Builder.load_string('''
 <GCHRow@Label>:
@@ -104,3 +105,35 @@ class GcodeHelp(Screen):
     def close(self):
         self.rv.data = []
         self.manager.current = 'main'
+
+
+if __name__ == '__main__':
+    import os
+
+    Builder.load_string('''
+<ExitScreen>:
+    on_enter: app.stop()
+''')
+
+    class ExitScreen(Screen):
+        pass
+
+    class MainWindow:
+        def display(self, x):
+            print(x)
+
+    class GCodeHelpApp(App):
+        def __init__(self, **kwargs):
+            super(GCodeHelpApp, self).__init__(**kwargs)
+            self.main_window = MainWindow()
+            self.running_directory = os.path.dirname(os.path.realpath(__file__))
+
+        def build(self):
+            Window.size = (800, 600)
+            self.sm = ScreenManager()
+            self.sm.add_widget(GcodeHelp(name='gcodehelp'))
+            self.sm.add_widget(ExitScreen(name='main'))
+            self.sm.current = 'gcodehelp'
+            return self.sm
+
+    GCodeHelpApp().run()
