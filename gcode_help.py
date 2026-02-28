@@ -84,7 +84,7 @@ class GcodeHelp(Screen):
         self.max_width = 0
         fn = '{}/gcodes.txt'.format(App.get_running_app().running_directory)
         try:
-            with open(fn) as f:
+            with open(fn, encoding="utf-8") as f:
                 for line in f:
                     if line[0] == type or (type == ' ' and line[0].islower()):
                         c = line.split(' | ')
