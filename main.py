@@ -1827,7 +1827,7 @@ class SmoothieHost(App):
                     Logger.info(f"load_modules: module {key} failed to start")
 
         except Exception:
-            Logger.warn(f"load_modules: exception: {traceback.format_exc()}")
+            Logger.warning(f"load_modules: exception: {traceback.format_exc()}")
 
     def _every_second(self, dt):
         ''' called every second if blanking is enabled '''

@@ -68,10 +68,9 @@ class WHB04BHID:
         devices = [obj for obj in devices if obj.path not in seen and not seen.add(obj.path)]
 
         if len(devices) > 1:
-            Logger.debug(f"WHB04BHID: more than one device found: {devices}")
-            return None
+            Logger.warning(f"WHB04BHID: more than one device found: {devices}")
 
-        # open the device
+        # open the first device
         self.hid = devices[0]
         self.hid.open()
 

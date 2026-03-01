@@ -63,10 +63,9 @@ class HB04HID:
             return None
 
         if len(devices) > 1:
-            Logger.debug("HB04HID: more than one device found: {}".format(devices))
-            return None
+            Logger.warning("HB04HID: more than one device found: {}".format(devices))
 
-        # open the device
+        # open the first device
         self.hid = devices[0]
         self.hid.open()
 
@@ -518,7 +517,7 @@ class HB04():
                     Logger.info("HB04: Disconnected from HID device")
 
                 else:
-                    Logger.debug("HB04: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
+                    Logger.warning("HB04: Failed to open HID device %04X:%04X" % (self.vid, self.pid))
 
             except Exception:
                 Logger.error("HB04: Exception - {}".format(traceback.format_exc()))
