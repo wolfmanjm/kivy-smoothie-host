@@ -66,18 +66,15 @@ The button functions can be defined in the hb04.ini file (see the sample-hb04.in
 
 Python Easyhid needs to be installed...
 
-Install the prerequisites...
+On newer version O/S do...
+
+* sudo apt install libhidapi-hidraw0
+* pip install easyhid-ng
+
+On older versions or if the above does not work...
 
 * sudo apt-get install libffi-dev
 * sudo apt-get install libhidapi-libusb0 libhidapi-hidraw0
-
-On newer version O/S do...
-
-* pip install easyhid-ng
-
-
-Older versions or if the above does not work...
-
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
 * sudo python3 setup.py install
@@ -124,17 +121,15 @@ NOTE that if ```{axis}``` appears in the macro it will be replaced by the curren
 
 Python Easyhid needs to be installed...
 
-Install the prerequisites...
-
-* sudo apt-get install libffi-dev
-* sudo apt-get install libhidapi-libusb0 libhidapi-hidraw0
-
 On newer version O/S do...
 
+* sudo apt install libhidapi-hidraw0
 * pip install easyhid-ng
 
 On older versions or if the above does not work...
 
+* sudo apt-get install libffi-dev
+* sudo apt-get install libhidapi-libusb0 libhidapi-hidraw0
 * git clone https://github.com/ahtn/python-easyhid
 * cd python-easyhid
 * sudo python3 setup.py install
