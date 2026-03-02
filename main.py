@@ -677,6 +677,9 @@ class MainWindow(BoxLayout):
         else:
             self.add_line_to_log(f"! error message: {s}")
 
+        # turn off cont jog if we get an alarm or error
+        self.cont_jog = False
+
         if self.is_suspended:
             self.add_line_to_log("! NOTE: currently suspended so must Abort as resume will not work")
         elif was_printing:
