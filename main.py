@@ -1776,6 +1776,9 @@ class SmoothieHost(App):
                     # clear console
                     self.main_window.ids.log_window.data = []
                     self.command_history = None
+                elif codepoint == 'x':
+                    # do kill
+                    self.comms.write('\x18')
 
             elif self.command_history:
                 self.command_history = None
