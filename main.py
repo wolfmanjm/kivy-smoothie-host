@@ -1138,6 +1138,18 @@ class MainScreen(Screen):
     pass
 
 
+# This gets set if the current key is alt
+is_alt = False
+
+
+# We need this so as not to put alt characters into the text input
+class MyTextInput(TextInput):
+    def insert_text(self, substring, from_undo=False):
+        if is_alt:
+            return False
+        return super().insert_text(substring, from_undo=from_undo)
+
+
 class SmoothieHost(App):
     is_connected = BooleanProperty(False)
     status = StringProperty("Not Connected")
@@ -1698,13 +1710,16 @@ class SmoothieHost(App):
         self.sm.current = "web cam"
 
     def _on_keyboard_up(self, instance, key, scancode):
+        global is_alt
         # print("UP key: {}, scancode: {}".format(key, scancode))
         if self.cont_jog:
             self.cont_jog = False
             self.comms.write('\x19')
+        is_alt = False
 
     def _on_keyboard_down(self, instance, key, scancode, codepoint, modifiers):
         # print("DOWN key: {}, scancode: {}, codepoint: {}, modifiers: {}".format(key, scancode, codepoint, modifiers))
+        global is_alt
 
         # if already in continuous jog ignore repeats
         if self.cont_jog:
@@ -1712,7 +1727,7 @@ class SmoothieHost(App):
 
         # control uses finer move, shift uses coarse move, alt does continuous jog until released
         v = 0.1
-
+        is_alt = False
         if len(modifiers) >= 1:
             if 'ctrl' in modifiers:
                 v = 0.01
@@ -1721,6 +1736,7 @@ class SmoothieHost(App):
             elif 'alt' in modifiers:
                 v = 1
                 self.cont_jog = True
+                is_alt = True
 
         choices = {
             273: f"Y{v}",
@@ -1757,6 +1773,11 @@ class SmoothieHost(App):
         else:
             self.cont_jog = False
 
+        # check single key shortcut macros
+        if is_alt:
+            self.main_window.ids.macros.exec_shortcut(codepoint)
+            return True
+
         # handle command history if in desktop mode
         if self.is_desktop > 1:
             if v == 0.01:  # it is a control key
@@ -1776,9 +1797,6 @@ class SmoothieHost(App):
                     # clear console
                     self.main_window.ids.log_window.data = []
                     self.command_history = None
-                elif codepoint == 'x':
-                    # do kill
-                    self.comms.write('\x18')
 
             elif self.command_history:
                 self.command_history = None

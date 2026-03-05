@@ -8,6 +8,7 @@ from kivy.clock import Clock, mainthread
 from kivy.factory import Factory
 from multi_input_box import MultiInputBox
 from confirm_box import ConfirmBox
+from kivy.uix.button import Button
 
 import configparser
 from functools import partial
@@ -34,6 +35,7 @@ class MacrosWidget(StackLayout):
         Clock.schedule_once(self._load_user_buttons)
         self.toggle_buttons = {}
         self.debug = False
+        self.shortcuts = {}
 
     def _handle_toggle(self, name, v):
         t = self.toggle_buttons.get(name, None)
@@ -151,6 +153,10 @@ class MacrosWidget(StackLayout):
                 btn.bind(on_press=partial(self.send, v))
                 btn.ud = True
                 self.add_widget(btn)
+
+            # add shortcuts
+            for (key, v) in config.items('shortcuts'):
+                self.add_shortcut(key, v)
 
         except Exception as err:
             Logger.warning('MacrosWidget: WARNING - exception parsing config file: {}'.format(err))
@@ -413,3 +419,20 @@ class MacrosWidget(StackLayout):
         finally:
             if io and self.app.is_connected:
                 self.app.comms.redirect_incoming(None)
+
+    def add_shortcut(self, key, name):
+        self.shortcuts[key] = name
+
+    def exec_shortcut(self, key):
+        s = self.shortcuts.get(key, None)
+        if s is None:
+            return False
+
+        # find the widget
+        for w in self.walk(restrict=True):
+            if isinstance(w, Button) and w.text == s:
+                w.trigger_action()
+                return True
+
+        Logger.error(f"MacrosWidget: no button with name {s} found")
+        return True
