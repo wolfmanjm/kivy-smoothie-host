@@ -78,6 +78,7 @@ M114.2 | Show current real time machine position of all axes
 M114.3 | Show current real time actuator position of all actuators
 M114.4 | Show last milestone
 M114.5 | Show last machine position
+M115 | Shows version and capabilities in reprap format
 M117 | Display message on LCD, blank message will clear it
 M119 | Show limit switch status
 M120 | Push the current state
@@ -142,6 +143,7 @@ cd | <dir> change directory to dir
 config-set | <configuration_source> <configuration_setting> <value> set config as specified source is usually sd
 date | [YYMMDDhhmmss] set or get current date/time
 dfu | enter dfu boot loader
+dl | <filename> saves a stream of text to the named file
 fire | <0-100>|off|status>  fire the laser at given power or return to auto
 get fk | [x,y,z] do forward kinematics on given coordinates using current arm solution
 get ik | [x,y,z] do inverse kinematics on given coordinates using current arm solution
@@ -176,7 +178,6 @@ test pulse | <axis> <iterations> sends a step pulse every 5 seconds to the given
 test raw | <axis> <steps> <steps/sec> issues the given number of steps to the specified axis
 test square | <size> <iterations> [feedrate] draws a  square of given size
 thermistors | print out the predefined thermistors
-upload | <filename> saves a stream of text to the named file
 version | prints current firmware version
 
 $G | same as get state

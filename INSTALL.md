@@ -314,6 +314,10 @@ It should auto start then.
 
 Install on recent Linux (Ubuntu/Debian etc) with python >= 3.7.x and <= 3.13.x using the fast wheels installation...
 
+*NOTE* on very recent versions python will not allow you to install globally, so you must install in a venv
+
+Otherwise...
+
     sudo apt install python3-pip
     python3 -m pip install --upgrade --user pip setuptools
     python3 -m pip install --user --upgrade kivy[base]
