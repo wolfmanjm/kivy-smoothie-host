@@ -26,12 +26,14 @@ PWM to RPM values).
 
 Additionally you may have multiple belt positions on a multi step pulley in
 addition to the VFD, (mainly because VFDs lose a lot of torque at low RPM, or
-the maximum RPM of the 3 phase motor may be well under the maximum spindle RPM required).
+the maximum RPM of the 3 phase motor may be well under the maximum spindle
+RPM required).
 
 To handle this case the spindle.ini file can have different ratios for
-different belt positions, with the prefereed range of RPMs to use for each
+different belt positions, with the prefered range of RPMs to use for each
 belt position. In this case the [calibration] section has the Motor RPM to
 PWM mapping, and the ratio is used to find the spindle RPM.
+NOTE the ratio is specified as `motor_pulley_size / spindle_pulley_size`
 
 For instance...
         # spindle.ini

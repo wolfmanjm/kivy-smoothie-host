@@ -67,8 +67,6 @@ class SpindleHandler():
                     low = config.getfloat(section, "rpm_low")
                     self.belt_tbl.append({'position': belt, 'ratio': ratio, 'high': high, 'low': low})
 
-            # print(self.belt_tbl)
-
         except Exception as err:
             Logger.warning(f'SpindleHandler: WARNING - exception parsing config file: {err}')
             if self.app is not None:
