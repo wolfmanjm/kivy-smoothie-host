@@ -335,6 +335,8 @@ class CommsNet():
         if self.proto:
             self.proto.flush_queue()
 
+        # turn off cont jog flag if we get an alarm or error
+        self.app.cont_jog = False
         self.app.root.alarm_state(s)
 
     def stream_gcode(self, fn, progress=None):

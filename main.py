@@ -532,7 +532,7 @@ class MainWindow(BoxLayout):
         self.ids.print_but.text = 'Run'
         self.paused = False
         self.is_printing = False
-        self.cont_jog = False
+        self.app.cont_jog = False
 
     @mainthread
     def disconnected(self):
@@ -671,14 +671,12 @@ class MainWindow(BoxLayout):
     @mainthread
     def alarm_state(self, msg):
         ''' called when smoothie is in Alarm state (flg == True) or gets an error message (flg == False)'''
+
         s, was_printing, flg = msg
         if flg:
             self.add_line_to_log(f"! alarm state: {s}")
         else:
             self.add_line_to_log(f"! error message: {s}")
-
-        # turn off cont jog if we get an alarm or error
-        self.cont_jog = False
 
         if self.is_suspended:
             self.add_line_to_log("! NOTE: currently suspended so must Abort as resume will not work")
@@ -1145,6 +1143,7 @@ is_alt = False
 # We need this so as not to put alt characters into the text input
 class MyTextInput(TextInput):
     def insert_text(self, substring, from_undo=False):
+        global is_alt
         if is_alt:
             return False
         return super().insert_text(substring, from_undo=from_undo)
