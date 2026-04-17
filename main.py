@@ -539,6 +539,7 @@ class MainWindow(BoxLayout):
         Logger.debug("MainWindow: Disconnected...")
         self.app.is_connected = False
         self.is_printing = False
+        self.app.cont_jog = False
         self.ids.connect_button.state = 'normal'
         self.ids.connect_button.text = "Connect"
         self.add_line_to_log("...Disconnected")

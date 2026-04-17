@@ -579,6 +579,9 @@ class Comms():
         # if self.proto:
         #    self.proto.flush_queue()
 
+        # turn off cont jog flag immediately if we get an alarm or error
+        self.app.cont_jog = False
+
         # call upstream after we have allowed stream to stop
         async_main_loop.call_soon(self.app.main_window.alarm_state, (s, was_printing, flg))
 
