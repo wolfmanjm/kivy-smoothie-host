@@ -286,40 +286,13 @@ class ArrowButton(ButtonBehavior, Widget):
     #     return Vector.in_bbox((x, y), bmin, bmax)
 
 
-class LPArrowButton(ArrowButton):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.schedule = None
-        self.register_event_type('on_long_press')
-        self.register_event_type('on_long_release')
-        self.long_press = False
-
-    def on_long_press(self):
-        self.long_press = True
-
-    def on_long_release(self):
-        pass
-
-    def on_press(self):
-        self.schedule = Clock.schedule_once(self._long_press, 2)
-
-    def _long_press(self, _):
-        self.dispatch('on_long_press')
-
-    def on_release(self):
-        self.schedule.cancel()
-        if self.long_press:
-            self.dispatch('on_long_release')
-            self.long_press = False
-
-
 class JogRoseWidget(BoxLayout):
     abc_sel = StringProperty('Z')
 
     def __init__(self, **kwargs):
         super(JogRoseWidget, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.cont_moving = False
+        self.v = False
 
     def on_kv_post(self, args):
         self.hat.bind(pad=self.on_hat)
@@ -350,16 +323,16 @@ class JogRoseWidget(BoxLayout):
             s = self._get_speed()
             # starts continuous jog
             # must not send another $J -c until ok is recieved from previous one
-            if not self.cont_moving:
-                self.cont_moving = True
+            if not self.app.cont_moving:
+                self.app.cont_moving = True
                 self.app.comms.ok_notify_cb = lambda x: self.got_ok(x)
                 self.app.comms.write(f'$J -c {axis}{v} S{s}\n')
 
     def got_ok(self, f):
-        self.cont_moving = False
+        self.app.cont_moving = False
 
     def hat_released(self):
-        if self.cont_moving:
+        if self.app.cont_moving:
             self.app.comms.write('\x19')
 
     def handle_action(self, axis, v):
@@ -379,13 +352,13 @@ class JogRoseWidget(BoxLayout):
         s = self._get_speed()
         # starts continuous jog
         # must not send another $J -c until ok is recieved from previous one
-        if not self.cont_moving:
-            self.cont_moving = True
+        if not self.app.cont_moving:
+            self.app.cont_moving = True
             self.app.comms.ok_notify_cb = lambda x: self.got_ok(x)
             self.app.comms.write(f'$J -c {axis}{v} S{s}\n')
 
     def handle_long_release(self):
-        if self.cont_moving:
+        if self.app.cont_moving:
             self.app.comms.write('\x19')
 
     def motors_off(self):
@@ -1201,6 +1174,7 @@ class SmoothieHost(App):
         self.use_keypad = False
         self.backlight_path = '/sys/class/backlight/rpi_backlight'
         self.kivy_desktop = Config.getint('kivy', 'desktop') == 1
+        self.cont_moving = False
 
     def build_config(self, config):
         config.setdefaults('General', {
@@ -1921,6 +1895,10 @@ class SmoothieHost(App):
 
     def _on_minimize(self, *args):
         self.minimized = True
+        # safety if we had a long press Z and accidently minimized app
+        if self.cont_moving:
+            self.comms.write('\x19')
+            self.cont_moving = False
 
     def _on_restore(self, *args):
         self.minimized = False

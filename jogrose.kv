@@ -51,14 +51,6 @@
         color: 1,1,1,1
         text: root.text
 
-<LPArrowButton>:
-    Label:
-        size_hint: None, None
-        pos: root.pos
-        size: root.size
-        color: 1,1,0,1
-        text: root.text
-
 <MyGridV@GridLayout>:
     size_hint: None, None
     size: dp(50), dp(150)
@@ -96,14 +88,12 @@
         id: jogrosemain
         MyGridV:
             pos_hint: {'right': 1.0, 'top': 1.0}
-            LPArrowButton:
+            ArrowButton:
                 size_hint: None, None
                 size: dp(50), dp(50)
                 text: '{}+1'.format(root.abc_sel)
                 angle: 0
                 on_press: root.handle_action(root.abc_sel, 1)
-                on_long_press: root.handle_long_press(root.abc_sel, 1)
-                on_long_release: root.handle_long_release()
 
             Button:
                 size_hint: None, None
@@ -130,14 +120,12 @@
                 size: dp(50), dp(50)
                 text: '{}-0.1'.format(root.abc_sel)
                 on_press: root.handle_action(root.abc_sel, -0.1)
-            LPArrowButton:
+            ArrowButton:
                 size_hint: None, None
                 size: dp(50), dp(50)
                 text: '{}-1'.format(root.abc_sel)
                 angle: 180
                 on_press: root.handle_action(root.abc_sel, -1)
-                on_long_press: root.handle_long_press(root.abc_sel, -1)
-                on_long_release: root.handle_long_release()
 
         MyGridV:
             pos_hint: {'center_x': 0.5, 'top': 1.0}
