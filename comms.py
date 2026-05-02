@@ -329,6 +329,11 @@ class Comms():
         self.log.info(f"Comms: Firmware: {d['FIRMWARE_NAME']}, Version: {d['FIRMWARE_VERSION']}, CNC: {'Yes' if d['X-CNC'] == '1' else 'No'}")
         self.app.main_window.async_display(s)
 
+        if d['FIRMWARE_NAME'] == "Smoothieware2" and not self.app.is_v2:
+            self.app.main_window.async_display("WARNING: You are connected to a V2 Smoothie but the settings are for V1, please set V2 in the settings")
+        elif d['FIRMWARE_NAME'] == "Smoothieware" and self.app.is_v2:
+            self.app.main_window.async_display("WARNING: You are connected to a V1 Smoothie but the settings are for V2, please unset V2 in the settings")
+
     def list_sdcard(self, done_cb):
         ''' Issue a ls /sd and send results back to done_cb '''
         self.log.debug('Comms: list_sdcard')
