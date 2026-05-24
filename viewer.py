@@ -704,7 +704,9 @@ class GcodeViewerScreen(Screen):
                             p2 = mposy
                             p1 = mposx
 
-                        if angle < 0:
+                        if angle == 0:
+                            angle = math.radians(360)
+                        elif angle < 0:
                             angle = -angle
 
                         if angleA <= angleB:
@@ -717,7 +719,7 @@ class GcodeViewerScreen(Screen):
                         point_count += 4
 
                         # get bounds for this arc, works for counterclockwise
-                        ex = arc_extents(centerX, centerY, p1, p2, angle, 100)
+                        ex = arc_extents(centerX, centerY, p1, p2, angle, 64)
 
                         for i in ex:
                             max_x = max(i[0], max_x)
