@@ -693,11 +693,19 @@ class GcodeViewerScreen(Screen):
                             # Clockwise
                             angleA = math.atan2(sY, sX)
                             angleB = math.atan2(eY, eX)
-
+                            angle = angleA - angleB
+                            p1 = endpointX
+                            p2 = endpointY
                         else:
                             # Counterclockwise
                             angleB = math.atan2(sY, sX)
                             angleA = math.atan2(eY, eX)
+                            angle = angleB - angleA
+                            p2 = mposy
+                            p1 = mposx
+
+                        if angle < 0:
+                            angle = -angle
 
                         if angleA <= angleB:
                             angleA += 2.0 * math.pi
@@ -706,13 +714,16 @@ class GcodeViewerScreen(Screen):
                         circle_dat = (centerX, centerY, radius, 90 - math.degrees(angleA), 90 - math.degrees(angleB), 64)
                         self.canv.add(Color(0, 0, 0))
                         self.canv.add(Line(circle=circle_dat))
-                        # Logger.debug("GcodeViewerScreen: Circle {}".format(circle_dat))
-                        # FIXME this gets out of hand for large radius arcs that are only partial arcs
-                        # max_x = max(centerX + radius, max_x)
-                        # min_x = min(centerX - radius, min_x)
-                        # max_y = max(centerY + radius, max_y)
-                        # min_y = min(centerY - radius, min_y)
                         point_count += 4
+
+                        # get bounds for this arc, works for counterclockwise
+                        ex = arc_extents(centerX, centerY, p1, p2, angle, 100)
+
+                        for i in ex:
+                            max_x = max(i[0], max_x)
+                            min_x = min(i[0], min_x)
+                            max_y = max(i[1], max_y)
+                            min_y = min(i[1], min_y)
 
                     # always remember last position
                     lastpos = [x, y, z]
@@ -1016,6 +1027,25 @@ class GcodeViewerScreen(Screen):
         self.layers = [0]
         self.clear()
         self.loading()
+
+
+# find the list of N points on the arc
+def arc_extents(cx, cy, px, py, theta, N):
+    points = []
+    dx = px - cx
+    dy = py - cy
+    ctheta = math.cos(theta / (N - 1))
+    stheta = math.sin(theta / (N - 1))
+    p = (cx + dx, cy + dy)
+    points.append(p)
+    for i in range(1, N):
+        dxtemp = ctheta * dx - stheta * dy
+        dy = stheta * dx + ctheta * dy
+        dx = dxtemp
+        p = (cx + dx, cy + dy)
+        points.append(p)
+
+    return points
 
 
 if __name__ == '__main__':
