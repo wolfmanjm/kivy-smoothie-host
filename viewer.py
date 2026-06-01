@@ -718,7 +718,7 @@ class GcodeViewerScreen(Screen):
                         self.canv.add(Line(circle=circle_dat))
                         point_count += 4
 
-                        # get bounds for this arc, works for counterclockwise
+                        # get bounds for this arc
                         ex = arc_extents(centerX, centerY, p1, p2, angle, 64)
 
                         for i in ex:

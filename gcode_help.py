@@ -50,6 +50,9 @@ Builder.load_string('''
                 text: 'Pins'
                 on_press: root.populate('P')
             Button:
+                text: 'Headers'
+                on_press: root.populate('H')
+            Button:
                 text: 'Fnc'
                 on_press: root.populate('F')
             Button:
