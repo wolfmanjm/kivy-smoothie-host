@@ -64,6 +64,9 @@
                 ActionButton:
                     text: 'Start Uart Log' if not root.is_uart_log_enabled else 'Stop Uart Log'
                     on_press: app.main_window.start_uart_log()
+                ActionButton:
+                    text: 'GCode Help'
+                    on_press: app.open_gcode_help()
 
             ActionGroup:
                 id: system_menu

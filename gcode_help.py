@@ -17,7 +17,7 @@ Builder.load_string('''
             size: self.size
             pos: self.pos
     text_size: self.size
-    padding_x: dp(4)
+    #padding_x: dp(4)
 
 <GcodeHelp>:
     rv: rv

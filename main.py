@@ -1777,6 +1777,9 @@ class SmoothieHost(App):
 
         return False
 
+    def open_gcode_help(self):
+        self.sm.current = 'gcode_help'
+
     def command_input(self, s):
         if s.startswith('!'):
             # shell command send to unix shell
@@ -1797,7 +1800,7 @@ class SmoothieHost(App):
                 self.main_window.display(f'> command exception: {err}')
 
         elif s == '?':
-            self.sm.current = 'gcode_help'
+            self.open_gcode_help()
 
         else:
             self.main_window.display(f'<< {s}')
