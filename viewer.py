@@ -995,6 +995,9 @@ class GcodeViewerScreen(Screen):
         w = self.bounds[0]
         h = self.bounds[1]
 
+        if math.isnan(x + y + w + h):
+            return
+
         if self.comms:
             if self.laser_mode:
                 self.comms.write('fire 5\n')
