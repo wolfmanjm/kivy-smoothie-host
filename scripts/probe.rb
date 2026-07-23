@@ -231,6 +231,8 @@ def probe_size
     spmm= get_steps_mm
 
     if $options.width > 0
+        moveBy(x: -1, up: false, down: false)  # backlash
+
         r1= probe(:x, 20)
 
         moveBy(x: $options.width+10)
@@ -256,6 +258,8 @@ def probe_size
             return
         end
     end
+
+    moveBy(y: -1, up: false, down: false)  # backlash
 
     # fall through to do Y
     r1= probe(:y, 20)
