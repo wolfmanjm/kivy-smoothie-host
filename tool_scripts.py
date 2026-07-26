@@ -157,8 +157,10 @@ class ToolScripts():
 
             diam = r1['X'] - r2['X']
 
-            # center in X
-            self._moveby(x=diam / 2.0)
+            # center in X, allow for backlash by going past and coming back
+            d = diam / 2.0
+            self._moveby(x=d + 1)
+            self._moveby(x=-1)
             self._wait()
 
             # probe back
@@ -173,8 +175,10 @@ class ToolScripts():
 
             diam = r1['Y'] - r2['Y']
 
-            # center in Y
-            self._moveby(y=diam / 2.0)
+            # center in Y, allow for backlash by going past and coming back
+            d = diam / 2.0
+            self._moveby(y=d + 1)
+            self._moveby(y=-1)
             self._wait()
 
             # tell us the approx diameter
