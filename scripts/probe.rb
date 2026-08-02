@@ -298,9 +298,8 @@ def probe_center
     r2= probe(:x, -($options.diameter+20)) # probe left
 
     diam= r1.x - r2.x
-    # center in X, allow for backlash
-    moveBy(x: (diam/2.0)+1, up: false, down: false)
-    moveBy(x: -1, up: false, down: false)
+    # center in X
+    moveBy(x: diam/2.0, up: false, down: false)
 
     r1= probe(:y, $options.diameter+20) # probe back
     moveBy(y: wp.y, up: false, down: false) # to speed things up a bit get back to approx center
@@ -308,9 +307,8 @@ def probe_center
 
     diam= r1.y - r2.y
 
-    # center in Y, allow for backlash
-    moveBy(y: (diam/2.0)+1, up: false, down: false)
-    moveBy(y: -1, up: false, down: false)
+    # center in Y
+    moveBy(y: diam/2.0, up: false, down: false)
 
     STDERR.puts "Diameter is #{diam+d1} mm"
 end
