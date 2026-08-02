@@ -178,7 +178,8 @@ class ToolScripts():
             self._wait()
 
             # tell us the approx diameter
-            self.app.main_window.async_display(f"Diameter is {diam}, plus the tool diameter")
+            self.app.main_window.async_display(
+                "Diameter is {}, plus the tool diameter".format(diam))
 
         except Exception as msg:
             Logger.info("Tools: Exception - {}".format(traceback.format_exc()))
