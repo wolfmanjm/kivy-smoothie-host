@@ -18,7 +18,7 @@ class ToolScripts():
         self.wasError = False
 
     def got_ok(self, flg):
-        self.wasError = !flg
+        self.wasError = not flg
         self.okEvent.set()
         return
 
