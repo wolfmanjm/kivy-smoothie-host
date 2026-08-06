@@ -482,6 +482,9 @@ class Comms():
                     self.okcnt.set()
 
             elif s.startswith("ERROR") or s.startswith('error:'):
+                if self.ok_notify_cb:
+                    self.ok_notify_cb(False)
+                    self.ok_notify_cb = None
                 self.handle_alarm(s, False)
 
             elif s.startswith('//'):

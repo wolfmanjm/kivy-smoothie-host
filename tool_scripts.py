@@ -14,6 +14,13 @@ class ToolScripts():
     def __init__(self, **kwargs):
         super(ToolScripts, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.okEvent = threading.Event()
+        self.wasError = False
+
+    def got_ok(self, flg):
+        self.wasError = !flg
+        self.okEvent.set()
+        return
 
     # public methods
     def find_center(self):
@@ -78,15 +85,23 @@ class ToolScripts():
         if not cmd:
             raise Exception("need to specify an axis to probe")
 
+        # setup notification of command completion or error
+        self.okEvent.clear()
+        self.app.comms.ok_notify_cb = lambda x: self.got_ok(x)
         self.app.comms.write(f"G38.2 {cmd}\n")
 
         # wait for it to complete
-        if not self.app.comms.okcnt.wait(120):
+        if not self.okEvent.wait(30):
+            self.app.comms.ok_notify_cb = None
             raise Exception("probe timed out")
 
-        self.app.comms.okcnt.clear()
+        self.okEvent.clear()
+
+        if self.wasError:
+            raise Exception("probe got an error")
 
         r = self.app.last_probe
+
         if not r["status"]:
             raise Exception("probe failed")
 
@@ -137,10 +152,7 @@ class ToolScripts():
 
     def _find_center_thread(self):
         self.app.main_window.async_display("Starting find center....")
-
-        self.app.comms.okcnt = threading.Event()
         try:
-
             # get current position
             wpx = self.app.wpos[0]
             wpy = self.app.wpos[1]
