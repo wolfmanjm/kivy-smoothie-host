@@ -258,11 +258,11 @@ def probe_size
     end
 
     # fall through to do Y
-    r1= probe(:y, 20)
+    r1= probe(:y, 30)
 
     moveBy(y: $options.length+10)
 
-    r2= probe(:y, -20) # probe negative Y
+    r2= probe(:y, -30) # probe negative Y
 
     length= r2.y - r1.y - d1
     diff = $options.length - length

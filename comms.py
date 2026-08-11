@@ -500,6 +500,12 @@ class Comms():
                     elif act in 'resume':
                         self.app.main_window.async_display('>>> Smoothie requested Resume')
                         self._stream_pause(False, False)
+                    elif act in 'feedhold':
+                        self.app.main_window.async_display('>>> Smoothie requested Feed Hold')
+                        self._stream_pause(True, False)
+                    elif act in 'feedresume':
+                        self.app.main_window.async_display('>>> Smoothie requested Feed Resume')
+                        self._stream_pause(False, False)
                     elif act in 'disconnect':
                         self.app.main_window.async_display('>>> Smoothie requested Disconnect')
                         self.disconnect()
