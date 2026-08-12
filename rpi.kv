@@ -48,7 +48,7 @@
             ActionButton:
                 id: print_but
                 disabled: not app.is_connected or app.status == 'Alarm'
-                text: 'Run' # also 'Pause'/'Resume'
+                text: ' Run ' # also 'Pause'/'Resume'
                 important: True
                 on_press: root.start_print()
             ActionButton:

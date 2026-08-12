@@ -502,7 +502,7 @@ class MainWindow(BoxLayout):
         self.app.is_connected = True
         self.ids.connect_button.state = 'down'
         self.ids.connect_button.text = "Disconnect"
-        self.ids.print_but.text = 'Run'
+        self.ids.print_but.text = ' Run '
         self.paused = False
         self.is_printing = False
         self.app.cont_jog = False
@@ -562,7 +562,7 @@ class MainWindow(BoxLayout):
                 self.eta = 'Not Streaming'
                 self.is_sdprint = False
                 self.is_printing = False
-                self.ids.print_but.text = 'Run'
+                self.ids.print_but.text = ' Run '
 
         if not self.app.is_cnc:
             # extract temperature readings and update the extruder property
@@ -869,7 +869,7 @@ class MainWindow(BoxLayout):
     @mainthread
     def stream_finished(self, ok):
         ''' called when streaming gcode has finished, ok is True if it completed '''
-        self.ids.print_but.text = 'Run'
+        self.ids.print_but.text = ' Run '
         self.is_printing = False
         now = datetime.datetime.now()
         self.display(f">>> Run finished {'ok' if ok else 'abnormally'}")
