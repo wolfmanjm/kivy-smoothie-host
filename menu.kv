@@ -33,7 +33,7 @@
                 on_press: root.abort_print()
             ActionButton:
                 id: feedhold_but
-                disabled: not app.is_connected or app.status not in ['Run', 'Hold']
+                disabled: not app.is_connected or app.status not in ['Run', 'Hold'] or app.cont_jog or app.cont_moving
                 text: 'Feed Hold'
                 important: True
                 on_press: root.feed_hold()
