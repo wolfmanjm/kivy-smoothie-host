@@ -689,6 +689,14 @@ class MainWindow(BoxLayout):
 
             self.app.comms.stream_pause(False, True)
 
+    def feed_hold(self):
+        if self.status == 'Run':
+            self.app.comms.write('!')
+            self.ids.feedhold_but.text = 'Cycle Start'
+        elif self.status == 'Hold':
+            self.app.comms.write('~')
+            self.ids.feedhold_but.text = 'Feed Hold'
+
     @mainthread
     def action_paused(self, paused, suspended=False):
         # comms layer is telling us we paused or unpaused
