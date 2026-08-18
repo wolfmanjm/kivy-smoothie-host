@@ -286,6 +286,60 @@ def probe_size
 
 end
 
+def probe_size_one_way
+    # probes in one direction only to avoid backlash and probe slop
+    # Use a 123 block or other known sized object
+
+    STDERR.puts """  Setup 123 blocks back to back with one of them at least 10mm above the other.
+    Position tool less than 10mm to the left or the bottom of the object to measure
+    """
+    spmm= get_steps_mm
+
+    # scan X or Y
+    if $options.width > 0
+        # finds left edge
+        r1= probe(:x, 20)
+
+        # raise up and move to eothin 10mm of next block
+        moveBy(x: $options.width-10, up: true, down: false)
+
+        r2= probe(:x, 20) # probe right
+
+        # as it is the same direction there is no backlash and the prone size and slop cancel out
+        width= r2.x - r1.x
+        diff = $options.width - width
+        per =  diff * 100.0 / $options.width
+        printf(STDERR, "Width= %.3f, expected= %.3f\ndifference= %.3f, percentage= %.3f\n", width, $options.width, diff, per)
+
+        # calculate new steps/mm for X
+        steps = spmm.x * per/100.0
+        printf(STDERR, "Steps= %.4f, M92 X%.3f\n", steps, spmm.x - steps)
+
+        printf(STDERR, "Width= %.3f mm, %.3f in\n", width, width/25.4)
+
+    elsif $options.length > 0
+        r1= probe(:y, 30) # probe bottom
+
+        moveBy(y: $options.length-10, up: true, down: false)
+
+        r2= probe(:y, 20) # probe next ledge
+
+        length= r2.y - r1.y - d1
+        diff = $options.length - length
+        per =  diff * 100.0 / $options.length
+        printf(STDERR, "Length= %.3f, expected= %.3f\ndifference= %.3f, percentage= %.3f\n", length, $options.length, diff, per)
+
+        # calculate new steps/mm for X
+        steps = spmm.y * per/100.0
+        printf(STDERR, "Steps= %.4f, M92 Y%.3f\n", steps, spmm.y - steps)
+
+        printf(STDERR, "Length= %.3f mm, %.3f in\n", length, length/25.4)
+    end
+
+    STDERR.puts "Done."
+    STDERR.flush
+end
+
 def probe_center
     STDERR.puts "Position tool approx in the center of the hole"
     d1= $options.tool_dia
@@ -461,6 +515,15 @@ if $options.job == 'size'
 begin
   send("M120")
   probe_size
+  wait
+ensure
+  send("M121")
+end
+
+if $options.job == 'size1way'
+begin
+  send("M120")
+  probe_size_one_way
   wait
 ensure
   send("M121")
