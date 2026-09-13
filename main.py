@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import kivy
 
 from kivy.config import Config
