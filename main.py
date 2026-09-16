@@ -1644,6 +1644,10 @@ class SmoothieHost(App):
         # add calculator to menu
         self.main_window.tools_menu.add_widget(ActionButton(text='Calculator', on_press=self.main_window.open_calculator))
 
+        # remove the feed hold menu item if V1
+        if not self.is_v2:
+            self.main_window.ids.main_menu.remove_widget(self.main_window.ids.feedhold_but)
+
         if self.is_show_camera:
             self.camera_url = self.config.get('Web', 'camera_url')
             self.sm.add_widget(CameraScreen(name='web cam'))

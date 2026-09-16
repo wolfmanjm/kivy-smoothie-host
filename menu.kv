@@ -1,10 +1,13 @@
 <MainWindow>:
     orientation: 'vertical'
+    main_menu: main_menu
     tools_menu: tools_menu
     system_menu: system_menu
+    feedhold_but: feedhold_but
     ActionBar:
         pos_hint: {'top':1}
         ActionView:
+            id: main_menu
             use_separator: True
             ActionPrevious:
                 title: 'Smoopi' if app.is_desktop != 5 else ''
