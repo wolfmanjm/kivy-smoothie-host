@@ -479,7 +479,7 @@ class HB04():
                                     # Adjust spindle RPM (or PWM)
                                     self.change_sr += (wheel * self.sr_inc)
                                     d = self.app.sr + self.change_sr
-                                    if d > 0:
+                                    if d > 0 and d <= 100:
                                         self.setfs(self.app.frr, d)
                                         self.app.comms.write(f"M3 S{d}\n")
                                     self.change_sr = 0
