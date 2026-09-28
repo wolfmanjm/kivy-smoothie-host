@@ -520,7 +520,7 @@ ensure
   send("M121")
 end
 
-if $options.job == 'size1way'
+elsif $options.job == 'size1way'
 begin
   send("M120")
   probe_size_one_way
