@@ -120,6 +120,7 @@ class ToolScripts():
             cmd += "Z{}".format(z)
 
         if cmd:
+            self.app.comms.okcnt.clear()
             self.app.comms.write("G91 G0 {} G90\n".format(cmd))
             # wait for it to complete
             if not self.app.comms.okcnt.wait(120):
@@ -141,6 +142,7 @@ class ToolScripts():
             cmd += "Z{}".format(z)
 
         if cmd:
+            self.app.comms.okcnt.clear()
             self.app.comms.write("G90 G0 {}\n".format(cmd))
             # wait for it to complete
             if not self.app.comms.okcnt.wait(120):
@@ -152,6 +154,8 @@ class ToolScripts():
 
     def _find_center_thread(self):
         self.app.main_window.async_display("Starting find center....")
+        self.app.comms.okcnt = threading.Event()
+        self.app.comms.ping_pong = True
         try:
             # get current position
             wpx = self.app.wpos[0]
@@ -202,4 +206,4 @@ class ToolScripts():
             self.app.main_window.async_display("find center completed")
 
         finally:
-            self.app.okcnt = None
+            self.app.comms.okcnt = None
