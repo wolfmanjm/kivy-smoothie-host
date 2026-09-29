@@ -115,7 +115,7 @@ end
 
 # send query to get current position
 def getpos()
-  STDOUT.write("M114")
+  STDOUT.write("M114\n")
   l= STDIN.gets # read a line
   STDERR.puts "DEBUG: #{l}" if @verbose
   # ok C: X:20.4483 Y:-17.9331 Z:4.8693
