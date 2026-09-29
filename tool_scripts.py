@@ -158,15 +158,15 @@ class ToolScripts():
         self.app.comms.ping_pong = True
         try:
             # get current position
-            wpx = self.app.wpos[0]
-            wpy = self.app.wpos[1]
+            wpx = float(self.app.wpos[0])
+            wpy = float(self.app.wpos[1])
 
             # probe right
             r1 = self._probe(x=30)
 
             # move back to starting x
             self._moveto(x=wpx)
-            self._wait()
+            # self._wait()
 
             # probe left
             r2 = self._probe(x=-30)
@@ -175,14 +175,14 @@ class ToolScripts():
 
             # center in X
             self._moveby(x=diam / 2.0)
-            self._wait()
+            # self._wait()
 
             # probe back
             r1 = self._probe(y=30)
 
             # move back to starting y
             self._moveto(y=wpy)
-            self._wait()
+            # self._wait()
 
             # probe front
             r2 = self._probe(y=-30)
@@ -191,7 +191,7 @@ class ToolScripts():
 
             # center in Y
             self._moveby(y=diam / 2.0)
-            self._wait()
+            # self._wait()
 
             # tell us the approx diameter
             self.app.main_window.async_display(

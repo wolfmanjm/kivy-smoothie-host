@@ -114,17 +114,13 @@ def readPRB
 end
 
 # send query to get current position
-def getpos(mpos=false)
-  STDOUT.write("?")
+def getpos()
+  STDOUT.write("M114")
   l= STDIN.gets # read a line
   STDERR.puts "DEBUG: #{l}" if @verbose
-  # <Idle|MPos:3.3637,2.1275,0.0000|WPos:-0.0175,2.1275,0.0000|F:1800.0,100.0>
-  if l.start_with?("<")
-    if mpos
-      m= l.match(/MPos:([-0-9.]+),([-0-9.]+),([-0-9.]+)/)
-    else
-      m= l.match(/WPos:([-0-9.]+),([-0-9.]+),([-0-9.]+)/)
-    end
+  # ok C: X:20.4483 Y:-17.9331 Z:4.8693
+  if l.start_with?("ok C: ")
+    m= l.match(/X:([-0-9.]+) Y:([-0-9.]+) Z:([-0-9.]+)/)
     unless m.nil?
       pos= OpenStruct.new
       pos.x, pos.y, pos.z = m[1..3].collect{ |i| i.to_f }
@@ -558,8 +554,7 @@ end
 
 elsif $options.job == 'pos'
 wp= getpos()
-mp = getpos(true)
-STDERR.puts "WPOS x#{wp.x} y#{wp.y} z#{wp.z} MPOS x#{mp.x} y#{mp.y} z#{mp.z}"
+STDERR.puts "WPOS x#{wp.x} y#{wp.y} z#{wp.z}"
 
 elsif $options.job == 'angle'
 probe_angle
