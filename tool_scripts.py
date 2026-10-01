@@ -65,6 +65,7 @@ class ToolScripts():
         self.app.comms.write(f"M3 S{pwm:1.4f}\n")
 
     def _wait(self, tmo=120):
+        self.app.comms.okcnt.clear()
         self.app.comms.write("M400\n")
         if not self.app.comms.okcnt.wait(tmo):
             raise Exception("wait (M400) timed out")
@@ -132,13 +133,13 @@ class ToolScripts():
 
     def _moveto(self, x=None, y=None, z=None):
         cmd = ""
-        if x:
+        if x is not None:
             cmd += "X{} ".format(x)
 
-        if y:
+        if y is not None:
             cmd += "Y{} ".format(y)
 
-        if z:
+        if z is not None:
             cmd += "Z{}".format(z)
 
         if cmd:
