@@ -359,6 +359,11 @@ Install Smoopi itself
     > cd smoopi
     > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git ./smoopi
 
+In order to access the tty ports you may have to do the following
+
+    > sudo usermod -a -G dialout $USER
+    > sudo usermod -a -G tty $USER
+
 Run as
 
     > cd smoopi
