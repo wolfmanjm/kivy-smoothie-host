@@ -1624,6 +1624,7 @@ class SmoothieHost(App):
             if self.is_desktop <= 3:
                 # remove Extruder panel from tabpanel and tab
                 self.main_window.ids.tabs.remove_widget(self.main_window.ids.tabs.extruder_tab)
+
             elif self.is_desktop == 4:
                 # remove from panel
                 self.main_window.ids.blright.remove_widget(self.main_window.ids.extruder_tab)
@@ -1636,6 +1637,8 @@ class SmoothieHost(App):
         # if not CNC mode then do not show the ZABC buttons in jogrose
         if not self.is_cnc:
             self.main_window.ids.tabs.jog_rose.jogrosemain.remove_widget(self.main_window.ids.tabs.jog_rose.abc_panel)
+            # remove the ABC DRO stuff
+            self.main_window.ids.dro_widget.remove_widget(self.main_window.ids.dro_widget.droabc)
 
         if self.is_webserver:
             self.webserver = ProgressServer()
