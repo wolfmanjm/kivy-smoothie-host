@@ -271,6 +271,10 @@ class MacrosWidget(StackLayout):
             self.app.comms.write('{}\n'.format(cmd))
 
     def exec_toolscript(self, cmd, params, *args):
+        if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
+            self.app.main_window.display("NOTE: Cannot run script while printing")
+            return
+
         if params is not None:
             ll = params.split(',')
             mb = MultiInputBox(title='Arguments')
@@ -307,6 +311,10 @@ class MacrosWidget(StackLayout):
             Logger.error(f"MacrosWidget: {cmd} is not a tool script")
 
     def exec_script(self, cmd, io, params, *args):
+        if self.app.main_window.is_printing and not self.app.main_window.is_suspended:
+            self.app.main_window.display("NOTE: Cannot run script while printing")
+            return
+
         if params is not None:
             ll = params.split(',')
             mb = MultiInputBox(title='Arguments')
