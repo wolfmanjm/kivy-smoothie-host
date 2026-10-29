@@ -312,9 +312,16 @@ It should auto start then.
 
 (and maybe windows/macos)
 
-On a very recent Ubuntu installation (resolute) the following worked...
+On a very recent Ubuntu installation (resolute) and Debian (trixie) the following worked...
 
     sudo apt install python3-kivy xclip xsel python3-aiofiles python3-serial
+
+Then install smoopi:
+
+    > mkdir smoopi
+    > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git ./smoopi
+
+and that is it.
 
 On older Linux with python >= 3.7.x and <= 3.13.x using the fast wheels installation...
 
@@ -322,7 +329,7 @@ On older Linux with python >= 3.7.x and <= 3.13.x using the fast wheels installa
     python3 -m pip install --upgrade --user pip setuptools
     python3 -m pip install --user --upgrade kivy[base]
 
-*NOTE* on very recent versions python will not allow you to install globally, so you must install in a venv
+*NOTE* on more recent versions python will not allow you to install globally, so you must install in a venv if you want to do it via pip.
 
 
 On a recent ArchLinux the following worked...
@@ -359,7 +366,6 @@ Install some dependencies we need...
 Install Smoopi itself
 
     > mkdir smoopi
-    > cd smoopi
     > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git ./smoopi
 
 In order to access the tty ports you may have to do the following
