@@ -72,8 +72,8 @@ import collections
 import importlib
 import signal
 
-# we must have Python version between 3.7.3 and 3.13.x
-assert (3, 13, 99) >= sys.version_info >= (3, 7, 3), f"Python version needs to be >= 3.7.3 and <= 3.13.x, you have {sys.version}"
+# we have tested on Python versions between 3.7.3 and 3.15.x
+assert (3, 15, 99) >= sys.version_info >= (3, 7, 3), f"Python version needs to be >= 3.7.3 and <= 3.15.x, you have {sys.version}"
 
 kivy.require('2.1.0')
 
