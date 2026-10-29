@@ -312,15 +312,18 @@ It should auto start then.
 
 (and maybe windows/macos)
 
-Install on recent Linux (Ubuntu/Debian etc) with python >= 3.7.x and <= 3.13.x using the fast wheels installation...
+On a very recent Ubuntu installation (resolute) the following worked...
 
-*NOTE* on very recent versions python will not allow you to install globally, so you must install in a venv
+    sudo apt install python3-kivy xclip xsel python3-aiofiles python3-serial
 
-Otherwise...
+On older Linux with python >= 3.7.x and <= 3.13.x using the fast wheels installation...
 
     sudo apt install python3-pip
     python3 -m pip install --upgrade --user pip setuptools
     python3 -m pip install --user --upgrade kivy[base]
+
+*NOTE* on very recent versions python will not allow you to install globally, so you must install in a venv
+
 
 On a recent ArchLinux the following worked...
 
