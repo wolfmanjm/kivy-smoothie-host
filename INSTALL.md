@@ -318,10 +318,12 @@ On a very recent Ubuntu installation (resolute) and Debian (trixie) the followin
 
 Then install smoopi:
 
-    > mkdir smoopi
-    > git clone https://github.com/wolfmanjm/kivy-smoothie-host.git ./smoopi
+    mkdir smoopi
+    git clone https://github.com/wolfmanjm/kivy-smoothie-host.git ./smoopi
 
-and that is it.
+and that is it. Below are alternative installation methods.
+
+---------------------------------------------------------------
 
 On older Linux with python >= 3.7.x and <= 3.13.x using the fast wheels installation...
 
