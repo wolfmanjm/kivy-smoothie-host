@@ -1,20 +1,45 @@
 # Installation instructions
 
-The easiest installation for an RPI3a or RPI3b is to use the presetup image [here](https://github.com/wolfmanjm/kivy-smoothie-host/releases/tag/V1.1-image)
+The easiest installation for an RPI3a or RPI3b is to use the presetup image [here](https://github.com/wolfmanjm/kivy-smoothie-host/releases/tag/V1.1-image) (NOTE this is a very old version though)
 
 Flash it to a sdcard and boot.
 
-Another easy method is to use the rpi-imager to install 64-bit Bookworm lite, and setup the wifi in that then flash it. Then...
+## Latest RPIOS for most RPI boards...
+
+Another easy method is to use the rpi-imager to install 64-bit Bookworm lite,
+or Trixie lite, and setup the wifi in that then flash it. Then...
 
     sudo apt install git
     git clone https://github.com/wolfmanjm/kivy-smoothie-host.git smoopi
     cd smoopi
     ./install-smoopi-on-bookworm
 
+(NOTE also works on a rpi zero2W)
+
+If using a touch screen with a Trixie-lite install I found I also needed to do the following:
+
+    sudo apt install libmtdev-dev
+
+and to get the onscreen keyboard and multitouch modify the ~/.kivy/config.ini:
+
+    [kivy]
+    keyboard_mode = systemanddock
+
+    [input]
+    mtdev_%(name)s = probesysfs,provider=mtdev
+
+also if you do not want the cursor showing when running full screen touch based:
+
+    [graphics]
+    show_cursor = 0
+
+
 **NOTE** If installing the 64-bit version on a RPI3b then the following needs to be appended to the ```/boot/firmware/cmdline.txt```, which fixes a reported kernel bug affecting USB.
 
     dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0
 
+
+For RPI4 and 5 also read the sections below.
 
 ## Install on RPI
 
