@@ -37,9 +37,13 @@
         ActionView:
             id: main_menu
             use_separator: True
+
             ActionPrevious:
-                title: 'Smoopi'
-                with_previous: False
+                title: 'min'
+                #with_previous: app.kivy_desktop
+                on_press: root.on_previous()
+                app_icon: ''
+
             ActionOverflow:
 
             ActionToggleButton:

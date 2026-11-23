@@ -1489,7 +1489,7 @@ class SmoothieHost(App):
 
         # load the layouts
         if self.is_desktop in [1, 6]:
-            # for full screen xwindows on a small screen (1024x600)
+            # for full screen xwindows on a small screen (1024x600 or 640x480)
             if self.is_desktop == 6:
                 Builder.load_file('vga.kv')
                 Window.size = (640, 480)
@@ -1577,19 +1577,19 @@ class SmoothieHost(App):
             if self.blank_timeout > 0:
                 Clock.schedule_interval(self._every_second, 1)
 
-            if self.is_desktop in [1, 2, 3, 4, 5] :
+            if self.is_desktop in [1, 2, 3, 4, 5]:
                 # remove log window entry widget
                 self.main_window.ids.entry.focus = False
                 self.main_window.ids.blleft.remove_widget(self.main_window.ids.entry)
-                # add text editor tool to menu
-                self.main_window.tools_menu.add_widget(ActionButton(text='Text Editor', on_press=self.main_window.edit_text))
-
                 # add blanker
                 if self.blank_timeout > 0:
                     self.main_window.system_menu.add_widget(ActionButton(text='Blank Screen', on_press=self.blank_screen))
                 # add shutdown
                 self.main_window.system_menu.add_widget(ActionButton(text='Shutdown', on_press=self.main_window.ask_shutdown))
 
+            if self.is_desktop > 0:
+                # add text editor tool to menu
+                self.main_window.tools_menu.add_widget(ActionButton(text='Text Editor', on_press=self.main_window.edit_text))
                 Window.bind(on_minimize=self._on_minimize)
                 Window.bind(on_restore=self._on_restore)
 
