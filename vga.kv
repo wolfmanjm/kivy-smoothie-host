@@ -1,0 +1,257 @@
+# -*- coding: utf-8
+#:include jogrose.kv
+#:include kbd.kv
+#:include extruder.kv
+#:include macros.kv
+#:include mpg.kv
+#:include dro.kv
+
+# <Widget>:
+#     # set default font size
+#     font_size: dp(12)
+
+<LogLabel>:
+    # Draw a background to indicate selection
+    canvas.before:
+        Color:
+            rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, 0, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    size_hint_y: None
+    height: self.texture_size[1]
+    text_size: self.width, None
+    markup: True
+
+<MainScreen>:
+    MainWindow:
+        id: main_window
+
+<MainWindow>:
+    orientation: 'vertical'
+    main_menu: main_menu
+    tools_menu: tools_menu
+    feedhold_but: feedhold_but
+    ActionBar:
+        pos_hint: {'top':1}
+        ActionView:
+            id: main_menu
+            use_separator: True
+            ActionPrevious:
+                title: 'Smoopi'
+                with_previous: False
+            ActionOverflow:
+
+            ActionToggleButton:
+                id: connect_button
+                text: 'Connect'
+                important: True
+                disabled: root.is_printing
+                on_press: root.connect()
+            ActionButton:
+                id: print_but
+                disabled: not app.is_connected or app.status == 'Alarm'
+                text: ' Run ' # also 'Pause'/'Resume'
+                important: True
+                on_press: root.start_print()
+            ActionButton:
+                disabled: not root.is_printing
+                text: 'Abort'
+                important: True
+                on_press: root.abort_print()
+            ActionButton:
+                id: feedhold_but
+                disabled: not app.is_connected or app.status not in ['Run', 'Hold'] or app.cont_jog or app.cont_moving
+                text: 'Feed Hold'
+                important: True
+                on_press: root.feed_hold()
+            ActionButton:
+                disabled: not app.is_connected
+                text: '--- KILL  ---' if app.status != 'Alarm' else 'Clear Alarm'
+                color: 1, 0, 0, 1
+                important: True
+                on_press: root.do_kill()
+
+            ActionButton:
+                text: 'Viewer'
+                important: True
+                on_press: root.show_viewer()
+
+            ActionGroup:
+                id: tools_menu
+                text: 'Tools'
+                mode: 'spinner'
+                ActionButton:
+                    text: 'Config Editor'
+                    on_press: root.config_editor()
+                    disabled: not app.is_connected or root.is_printing
+                ActionButton:
+                    text: 'Text Editor'
+                    on_press: root.edit_text()
+                ActionButton:
+                    text: 'Upload GCode'
+                    disabled: not app.is_connected or root.is_printing
+                    on_press: app.main_window.upload_gcode()
+                ActionButton:
+                    text: 'Fast Stream'
+                    disabled: root.is_printing or not app.fast_stream_cmd
+                    on_press: app.main_window.fast_stream_gcode()
+                ActionButton:
+                    text: 'SD Print'
+                    disabled: not app.is_connected or root.is_printing
+                    on_press: app.main_window.list_sdcard()
+                ActionButton:
+                    text: 'Start Uart Log' if not root.is_uart_log_enabled else 'Stop Uart Log'
+                    on_press: app.main_window.start_uart_log()
+
+            ActionGroup:
+                text: 'System'
+                mode: 'spinner'
+
+                ActionButton:
+                    text: 'Select Port'
+                    disabled: app.is_connected
+                    on_press: root.change_port()
+                ActionButton:
+                    text: 'Settings'
+                    on_press: app.open_settings()
+                ActionButton:
+                    text: 'Blank Screen'
+                    on_press: app.blank_screen()
+                ActionButton:
+                    text: 'Reload Macros'
+                    on_press: app.main_window.ids.macros.reload()
+                ActionButton:
+                    text: 'Update'
+                    on_press: root.do_update()
+
+                ActionButton:
+                    text: 'Restart'
+                    on_press: root.ask_exit(True)
+                ActionButton:
+                    text: 'Quit'
+                    on_press: root.ask_exit(False)
+                ActionButton:
+                    text: 'Shutdown'
+                    on_press: root.ask_shutdown()
+
+    BoxLayout:
+        orientation: 'horizontal'
+
+        # Right panel
+        TabbedPanel:
+            id: tabs
+            do_default_tab: False
+            tab_pos: 'left_mid'
+            tab_width: 62
+            tab_height: 50
+            jog_rose: jog_rose
+            extruder_tab: extruder_tab
+
+            TabbedPanelItem:
+                text: 'Log'
+                # main panel
+                BoxLayout:
+                    orientation: 'vertical'
+                    RecycleView:
+                        id: log_window
+                        viewclass: 'LogLabel'
+                        scroll_type: ['content']
+                        scroll_wheel_distance: dp(10)
+                        bar_width: dp(2)
+                        scroll_y: 0
+
+                        SelectableRecycleBoxLayout:
+                            id: log_window_layout
+                            orientation: 'vertical'
+                            default_size: None, None
+                            default_size_hint: 1, None
+                            size_hint_y: None
+                            height: self.minimum_height
+                            multiselect: False
+                            touch_multiselect: False
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: dp(45)
+                        ToggleButton:
+                            text: 'UART Log'
+                            on_state: app.main_window.toggle_uart_view(self.state)
+                            size_hint_x: None
+                            opacity: 1 if root.is_uart_log_enabled else 0
+                            width: dp(80) if root.is_uart_log_enabled else 0
+                        Button:
+                            text: 'Run Last File'
+                            disabled: app.gcode_file == '' or not app.is_connected or root.is_printing or app.status == 'Alarm'
+                            on_press: app.main_window.reprint()
+                        Button:
+                            text: 'View Last File'
+                            disabled: app.gcode_file == ''
+                            on_press: app.main_window.review()
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        size: status.texture_size
+                        canvas.before:
+                            Color:
+                                rgba: 1,1,1,1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+                        Label:
+                            id: status
+                            text: root.status
+                            color: 0,0,0,1
+                            size_hint_x: None
+                            width: self.texture_size[0]
+                        Label:
+                            id: wpos
+                            text: ' | X{:1.1f} Y{:1.1f} Z{:1.1f} | '.format(*root.wpos)
+                            color: 0,0,0,1
+                            size_hint_x: None
+                            width: self.texture_size[0]
+                        Label:
+                            id: armi
+                            text: '{}|{} | '.format('A' if app.is_abs else 'R', 'I' if app.is_inch else 'M')
+                            size_hint_x: None
+                            width: self.texture_size[0]
+                            color: 0,0,0,1
+                        Label:
+                            id: eta
+                            text: root.eta
+                            size_hint_x: None
+                            width: self.texture_size[0]
+                            color: 0,0,0,1
+
+            TabbedPanelItem:
+                text: 'Jog'
+                JogRoseWidget:
+                    id: jog_rose
+                    disabled: root.is_printing and not root.is_suspended
+
+            TabbedPanelItem:
+                text: 'DRO'
+                DROWidget:
+                    id: dro_widget
+
+            TabbedPanelItem:
+                text: 'Keybrd'
+                KbdWidget:
+                    id: kbd_widget
+
+            TabbedPanelItem:
+                text: 'Macros'
+                MacrosWidget:
+                    id: macros
+
+            TabbedPanelItem:
+                text: 'MPG'
+                MPGWidget:
+                    id: mpg_widget
+
+            TabbedPanelItem:
+                id: extruder_tab
+                text: 'Extruder'
+                ExtruderWidget:
+                    id: extruder

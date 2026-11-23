@@ -1060,7 +1060,7 @@ class MainWindow(BoxLayout):
             return ""
 
         cmd = ""
-        if self.app.is_desktop == 0:
+        if self.app.is_desktop == 0 or self.app.is_desktop == 6:
             # we only send query for the tab we are on
             current_tab = self.ids.tabs.current_tab.text
             if current_tab == 'Macros':  # macros screen
@@ -1243,7 +1243,7 @@ class SmoothieHost(App):
                   "desc": "Select Display layout, RPI is for 7in touch screen layout",
                   "section": "UI",
                   "key": "display_type",
-                  "options": ["RPI Touch", "RPI Full Screen", "Small Desktop", "Large Desktop", "Wide Desktop", "Portrait Desktop"]
+                  "options": ["RPI Touch", "RPI Full Screen", "Small Desktop", "Large Desktop", "Wide Desktop", "Portrait Desktop", "VGA"]
                 },
 
                 { "type": "bool",
@@ -1481,16 +1481,21 @@ class SmoothieHost(App):
             "Small Desktop": 2,
             "Large Desktop": 3,
             "Wide Desktop": 4,
-            "Portrait Desktop": 5
+            "Portrait Desktop": 5,
+            "VGA": 6
         }
 
         self.is_desktop = dtlut.get(lt, 0)
 
         # load the layouts
-        if self.is_desktop == 1:
+        if self.is_desktop in [1, 6]:
             # for full screen xwindows on a small screen (1024x600)
-            Builder.load_file('desktop.kv')
-            Window.size = (1024, 600)
+            if self.is_desktop == 6:
+                Builder.load_file('vga.kv')
+                Window.size = (640, 480)
+            else:
+                Builder.load_file('desktop.kv')
+                Window.size = (1024, 600)
             self.is_touch = True
 
         elif self.is_desktop >= 2:
@@ -1500,7 +1505,7 @@ class SmoothieHost(App):
             if not self.is_touch:
                 s = self.config.get('UI', 'screen_size')
                 if s == 'auto':
-                    Window.size = kvlut[self.is_desktop][1]
+                    Window.size = kvlut[self.is_h][1]
                 elif 'x' in s:
                     (w, h) = s.split('x')
                     Window.size = (int(w), int(h))
@@ -1572,7 +1577,7 @@ class SmoothieHost(App):
             if self.blank_timeout > 0:
                 Clock.schedule_interval(self._every_second, 1)
 
-            if self.is_desktop > 0:
+            if self.is_desktop in [1, 2, 3, 4, 5] :
                 # remove log window entry widget
                 self.main_window.ids.entry.focus = False
                 self.main_window.ids.blleft.remove_widget(self.main_window.ids.entry)
@@ -1768,7 +1773,7 @@ class SmoothieHost(App):
             return True
 
         # handle command history if in desktop mode
-        if self.is_desktop > 1:
+        if self.is_desktop > 1 and self.is_desktop != 6:
             if v == 0.01:  # it is a control key
                 if codepoint == 'p':
                     # get previous history by finding all the recently sent commands
