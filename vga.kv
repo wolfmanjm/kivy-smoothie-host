@@ -40,7 +40,7 @@
 
             ActionPrevious:
                 title: 'min'
-                #with_previous: app.kivy_desktop
+                with_previous: app.kivy_desktop
                 on_press: root.on_previous()
                 app_icon: ''
 
@@ -78,7 +78,6 @@
 
             ActionButton:
                 text: 'Viewer'
-                important: True
                 on_press: root.show_viewer()
 
             ActionGroup:
